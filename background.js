@@ -1,137 +1,224 @@
 "use strict"
 
-var active = false;
-var sites = [ "streamcloud.eu" ];
-var currTab;
-
-var ignoreChange = false;
-
 var literal = '(function parse_content () {' +
 	'$(".info_notice").hide();' +
 	'$("div").each(function() {' +
-
+	
 		'if( $(this).attr("name") == "page")' +
           '$(this).css("display", "block");' +
-
-	'});' +
-'}());'
-
-function onError(error) {
-	console.error(error);
-}
-
-function update (tabId, changeInfo, tabInfo) {
-
-		for (var i = 0; i < sites.length; i++) {
-			
-			if ( tabInfo.url.indexOf(sites[i]) >= 0) {
-
-				/* browser.tabs.on('ready', function(tab) {
-				   
-				   console.error("The Tab is ready!");
-				   console.log(tab);
-				   
-				   }); */
-				
-				console.log(Object.keys(literal));
-
-				window.setTimeout(function() {
-					browser.tabs.sendMessage(
-						
-						tabId,
-						{func: literal}
-						
-					).then(response => {
-						console.log("Hitted target site ---> " + tabInfo.url);
-						console.log("Message from the content script: " + response.response);
-					}).catch(onError);
-					
-				}, 500);
-			}
-		}
-			
-	//console.log(tabInfo);
-}
-
-function change (actInfo) {
-
-	if (!ignoreChange) {
-
-		currTab = actInfo.tabId || actInfo[0].id;
-		console.log("CurrentTab: " + currTab);
-
-	} else {
-
-		ignoreChange = false;
-
-	}
-
-	//browser.pageAction.show(currTab);
-}
-
-function runInTab (literal, tabId) {
-
-	console.log("Test tab: " + currTab);
 	
-	browser.tabs.sendMessage(
-				
-		currTab,
-		{func: literal}
+	'});' +
+	'}());';
+
+function onError (err) {
+	console.error(err);
+}
+
+function BG_mgr () {
+
+	var self = this;
+	
+	this.ignoreChange = false;
+	this.currTab = null;
+	this.editors = [];
+	
+	this.editor_msg = function(msg, err) {
+
+		browser.runtime.sendMessage({
+			message: msg,
+			err: err
+		});
+	};
+
+	this.error_msg = function(msg) {
+
+		console.error(msg);
 		
-	).then(function(obj) {
+		browser.runtime.sendMessage({
+			message: msg,
+			err: true
+		});
+	};
+
+	this.info_msg = function(msg) {
+
+		browser.runtime.sendMessage({
+			message: msg,
+			err: false
+		});
+	};
+	
+	this.handle_response = function(response) {
+
 		
 		browser.runtime.sendMessage({
 			message: obj.err ? obj.err : obj.response,
 			err: obj.err ? true : false
 		});
 		
-	}).catch(onError);
-
-}
-
-/* function getTabNfo (tabInfo) {
-
-   currTab = tabInfo[0].id;
-   console.log("CurrentTab: " + currTab);
-   //browser.pageAction.show(currTab);
-   } */
-
-function showEditor (action) {
-
-	ignoreChange = true;
-	console.log("Tab before editor: " + currTab);
+	};
 	
-	var createData = {
-		type: "popup",
-		url: browser.extension.getURL("editor/editor.html?" + action),
-		width: 800,
-		height: 600
+	this.update = function (tabId, changeInfo, tabInfo) {
+
+		global_storage.__getDomains(domains => {
+
+			for (var i = 0; i < domains.length; i++) {
+			
+				if ( tabInfo.url.indexOf(domains[i]) >= 0) {
+					
+					global_storage.__getDomain(domain => {
+
+						var sources = domain.scripts;
+
+						if (domain.has(tabInfo.url))
+							sources = sources.concat(domain.getSite(tabInfo.url).scripts);
+
+						if (sources.length) {
+							
+							window.setTimeout(function() {
+						
+								browser.tabs.sendMessage(
+							
+									parseInt(tabId),
+									{scripts: sources.map(script => {
+
+										return script.code;
+										
+									}), action: "run"}
+									
+								).then(response => {
+
+									if (response.err)
+										this.log_error(response.err);
+									
+									/* console.log("Hitted target site ---> " + tabInfo.url);
+									   console.log("Message from the content script: " + response.response); */
+									
+								}, onError);
+							
+							}, 500);
+						}
+						
+					}, domains[i]);
+				}
+			}
+		});	
 	};
 
-	var creating = browser.windows.create(createData);
+	this.change = function (actInfo) {
+		
+		if (!self.ignoreChange) {
+
+			if (actInfo.tabId) {
+
+				browser.tabs.get(actInfo.tabId).then(tab => {
+
+					self.currTab = tab;
+
+				});
+
+			} else {
+
+				self.currTab = actInfo[0];
+				
+			}
+			
+			
+			/* console.log("CurrentTab: " + currTab); */
+			
+		} else {
+			
+			self.ignoreChange = false;
+			
+		}
+	};
+
+	this.runInTab = function (literal, tabId) {
+
+		/* console.log("Test tab: " + tabId); */
+	
+		browser.tabs.sendMessage(
+			//new Script({code: literal})
+			parseInt(tabId),
+			{ action: "run", scripts: [literal] }
+		
+		).then(response => {
+
+			if (response.err)
+				self.error_msg(response.err);
+			
+		}, onError);
+
+	};
+	
+	this.editorClose = function(eid) {
+
+		this.editors.remove(eid);
+		
+		console.log("Editor closed: " + self.editors.length);
+	};
+	
+	this.showEditor = function (action) {
+
+		self.ignoreChange = true;
+		/* console.log("Tab before editor: " + currTab); */
+
+		for (var i = 0; i < this.editors.length; i++) {
+
+			if (this.editors[i].tab.id == self.currTab.id) {
+				this.editors[i].wdw.focus();
+				return;
+			}
+		}
+		
+		browser.tabs.sendMessage(
+			
+			parseInt(self.currTab.id),
+			{ action: "backup" }
+			
+		).then(response => {
+			
+			var createData = {
+				type: "popup",
+				url: browser.extension.getURL("editor/editor.html?" + action + "&" + self.currTab.id + "&" + self.editors.length),
+				width: 800,
+				height: 600
+			};
+			
+			browser.windows.create(createData).then(wdw => {
+
+				self.editors.push({
+					tab: self.currTab,
+					wdw: wdw
+				});
+				console.log("Editor opened: " + self.editors.length);
+			});	
+		
+		});
+	};
+	
+	this.revertChanges = function (tabId) {
+
+		browser.tabs.sendMessage(
+						
+			parseInt(tabId),
+			{action: "revert"}
+			
+		);
+	};
+
+	this.getCurrTab = function () {
+
+		return browser.tabs.get(self.currTab.id); 
+
+	};
+
 }
 
-function getCurrTab () {
+var bg_manager = new BG_mgr();		
 
-	return browser.tabs.get(currTab); 
-
-}
-
-/* function change_state () {
-   
-   active = !active;
-   
-   if (active)
-   browser.tabs.onUpdated.addListener(update);
-   else 
-   browser.tabs.onUpdated.removeListener(update);
-   
-   }; */
-
-browser.tabs.onUpdated.addListener(update);
-browser.tabs.onActivated.addListener(change);
+browser.tabs.onUpdated.addListener(bg_manager.update);
+browser.tabs.onActivated.addListener(bg_manager.change);
 
 var gettingCurrent = browser.tabs.query({currentWindow: true, active: true});
-gettingCurrent.then(change, onError); 
-
-//browser.browserAction.onClicked.addListener(change_state);
+gettingCurrent.then(bg_manager.change, bg_manager.log_error); 

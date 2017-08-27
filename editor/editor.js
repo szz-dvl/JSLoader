@@ -2,6 +2,8 @@ var bg;
 var editor;
 var action;
 var buttons = true;
+var my_tab;
+var my_id;
 
 function onError (error) {
 	console.log(`Error: ${error}`);
@@ -9,7 +11,7 @@ function onError (error) {
 
 browser.runtime.getBackgroundPage().then(function(page) {
 		
-	bg = page;
+	bg = page.bg_manager;
 
 }, onError);
 
@@ -32,6 +34,7 @@ browser.runtime.onMessage.addListener(request => {
 	$("#result-info").text(request.message);
 	$("#result-info").css("visibility", "visible");
 
+	/* !!! */
 	setTimeout(function() {
 		
 		$("#result-info").fadeOut(400, "swing", function() {
@@ -73,6 +76,25 @@ function btnHide (self) {
 	}
 }
 
+function saveScript (code) {
+
+
+	console.log(code);
+
+}
+
+function runScript (code) {
+
+	bg.runInTab(code, my_tab);
+
+}
+
+function revertChanges() {
+
+	bg.revertChanges(my_tab);
+
+}
+
 $(document).ready(function() {
 	
 	editor = ace.edit("code_area");
@@ -80,17 +102,66 @@ $(document).ready(function() {
 	editor.renderer.setShowGutter(false);
 	editor.setTheme("ace/theme/twilight");
 	editor.session.setMode("ace/mode/javascript");
+
+	editor.commands.addCommand({
+		name: 'execute',
+		bindKey: {win: 'Ctrl-R', mac: 'Command-Option-R'},
+
+		exec: function(editor) {
+			runScript(editor.getValue().toString().trim());
+			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+		}/* ,
+			readOnly: true */
+	});
+
+	shortcut.add("Ctrl+R", function() {
+
+		runScript(editor.getValue().toString().trim());
+		
+	});
 	
+	editor.commands.addCommand({
+		name: 'save',
+		bindKey: {win: 'Ctrl-S', mac: 'Command-Option-S'},
+
+		exec: function(editor) {
+			saveScript(editor.getValue().toString().trim());
+			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+		}/* ,
+			readOnly: true */
+	});
+
+	shortcut.add("Ctrl+S", function () {
+
+		saveScript(editor.getValue().toString().trim());
+
+	});
+	
+	editor.commands.addCommand({
+		name: 'revert',
+		bindKey: {win: 'Ctrl-B', mac: 'Command-Option-B'},
+
+		exec: function(editor) {
+			revertChanges();
+			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
+		}/* ,
+			readOnly: true */
+	});
+	
+	shortcut.add("Ctrl+B", function () {
+
+		revertChanges();
+
+	});
 	
 	$( "#save_btn" ).click(function() {
 		
-		console.log(editor.getValue());
+		saveScript(editor.getValue());
 		
 	});
 
 	$( "#btns_panel" ).mouseenter(function() {
-
-		console.log("mouse enter!!");
+		
 		btnShow($( "#btns_panel" ));
 		
 	});
@@ -101,7 +172,13 @@ $(document).ready(function() {
 	
 	$( "#test_btn" ).click(function() {
 				
-		bg.runInTab(editor.getValue().toString().trim());
+		runScript(editor.getValue().toString().trim());
+		
+	});
+
+	$( "#revert_btn" ).click(function() {
+				
+		revertChanges();
 		
 	});
 	
@@ -114,9 +191,12 @@ $(document).ready(function() {
 	}, onError);
 
 	
-	action = unescape(window.location.toString().split("?")[1]);
+	action = unescape(window.location.toString().split("?")[1].split("&")[0]);
 	$("#user_action").text(action);
 
+	my_tab = window.location.toString().split("?")[1].split("&")[1];
+	my_id = window.location.toString().split("?")[1].split("&")[2];
+	
 	$("#select-th").on('change', function() {
 		
 		editor.setTheme("ace/theme/" + $(this).val());
@@ -134,4 +214,14 @@ $(document).ready(function() {
 		   btnHide($("#btns_panel")); */
 		
 	});
+
+	console.log("My title: " + window.document.title);
+	window.document.title = "JS Editor";
+
+	window.onbeforeunload = function(ev) {
+
+		bg.editorClose(my_id);
+
+	}
+
 });

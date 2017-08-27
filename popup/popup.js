@@ -30,7 +30,7 @@ function init () {
 
 	browser.runtime.getBackgroundPage().then(function(page) {
 		
-		bg = page;
+		bg = page.bg_manager;
 
 	}, onError);
 	

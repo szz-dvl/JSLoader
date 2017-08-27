@@ -1,0 +1,43 @@
+{
+
+	"description": "Store JS scripts to be run for a given site",
+	"manifest_version": 2,
+	"name": "jsloader",
+	"version": "1.0",
+
+	"applications": {
+		"gecko": {
+			"id": "jsloader@something.com",
+			"strict_min_version": "29.0a1",
+			"strict_max_version": "55.*",
+			"update_url": "https://example.com/updates.json"
+		}
+    },
+
+	"permissions": ["browsingData", "storage", "tabs"],
+	
+	"background": {
+		"scripts": ["background.js"]
+	},
+
+	"browser_action": {
+		"browser_style": true,
+		"default_icon": {
+			"16": "icons/Diskette_16.png",
+			"32": "icons/Diskette_32.png"
+		},
+
+		"default_popup": "popup/menu.html"
+	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://*/*"],
+			"js": ["deps/jquery.min.js", "match.js"]
+		}
+	],
+
+	"options_ui": {
+		"page": "editor.html"
+	}
+}

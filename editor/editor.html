@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="chrome://browser/content/extension.css"></script>
+		<link rel="stylesheet" href="editor.css"/>
+		<script src="../deps/jquery.min.js"></script>
+		<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+		
+	</head>
+	
+	<body spellcheck=false>
+		
+		<div class="panel-section panel-section-header">
+			<div class="text-section-header"> JSLoader || 
+				<span>
+					<bdi id="user_action" class="bold"></bdi>
+					<bdi id="url_pattern" contenteditable="true"></bdi>
+				</span>
+			</div>
+		</div>
+
+		<div class="info-container">
+			<bdi id="result-info" class="status-text"></bdi>
+			<div class="float-right browser-style sel-container"> <!-- panel-section -->
+				<bdi class="theme-label bold browser-style"> Editor theme: </bdi>
+				<select id="select-th" class="browser-style panel-section float-right theme-select">
+					<option value="twilight">twilight</option>
+					<option value="chaos">chaos</option>
+					<option value="ambiance">ambiance</option>
+					<option value="chrome">chrome</option>
+					<option value="clouds"> clouds </option>
+					<option value="clouds_midnight"> clouds_midnight </option>
+					<option value="cobalt"> cobalt </option>
+					<option value="crimson_editor"> crimson_editor </option>
+					<option value="dawn"> dawn </option>
+					<option value="dreamweaver"> dreamweaver </option>
+					<option value="eclipse"> eclipse </option>
+					<option value="github"> github </option>
+					<option value="gob"> gob </option> 
+					<option value="gruvbox"> gruvbox </option>
+					<option value="idle_fingers"> idle_fingers </option>
+					<option value="iplastic"> iplastic </option>
+					<option value="katzenmilch"> katzenmilch </option>
+					<option value="kr_theme"> kr_theme </option>
+					<option value="kuroir"> kuroir </option>
+					<option value="merbivore"> merbivore </option>
+					<option value="merbivore_soft"> merbivore_soft </option>
+					<option value="mono_industrial"> mono_industrial </option>
+					<option value="monokai"> monokai </option>
+					<option value="pastel_on_dark"> pastel_on_dark </option>
+					<option value="solarized_dark"> solarized_dark </option>
+					<option value="solarized_light"> solarized_light </option>
+					<option value="sqlserver"> sqlserver </option>
+					<option value="terminal"> terminal </option>
+					<option value="textmate"> textmate </option>
+					<option value="tomorrow"> tomorrow </option>
+					<option value="tomorrow_night_blue"> tomorrow_night_blue </option>
+					<option value="tomorrow_night_bright"> tomorrow_night_bright </option>
+					<option value="tomorrow_night_eighties"> tomorrow_night_eighties </option>
+					<option value="tomorrow_nighty"> tomorrow_nighty </option>
+					<option value="vibrant_ink"> vibrant_ink </option>
+					<option value="xcode"> xcode </option>
+				</select>
+			</div>
+		</div>
+		<div id="code_container" class="panel-section">
+			
+			<pre id="code_area" >
+				 /* JS code (jQuery available) ...*/
+			</pre>
+			
+		</div>
+
+		<!-- <div id="btns_panel" class="panel-section-separator"></div>-->
+		
+		<div id="btns_panel" class="panel-section hidden-elem">
+			
+			<button id="save_btn" class="hidden-elem browser-style mright jsload_button"> Save </button>
+			<button id="test_btn" class="hidden-elem browser-style mright jsload_button"> Run in Page </button>
+			<button id="revert_btn" class="hidden-elem browser-style mright jsload_button"> Revert changes </button>
+			
+		</div>
+		
+		<script src="editor.js"></script>
+		
+	</body>
+	
+</html>

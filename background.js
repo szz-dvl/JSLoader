@@ -1,4 +1,3 @@
-"use strict"
 
 var literal = '(function parse_content () {' +
 	'$(".info_notice").hide();' +
@@ -10,10 +9,6 @@ var literal = '(function parse_content () {' +
 	'});' +
 	'}());';
 
-function onError (err) {
-	console.error(err);
-}
-
 function BG_mgr () {
 
 	var self = this;
@@ -21,31 +16,37 @@ function BG_mgr () {
 	this.ignoreChange = false;
 	this.currTab = null;
 	this.editors = [];
+	this.domains = [];
+
+	global_storage.bg = this;
+
+	global_storage.__getDomains(function (new_domains) {
+
+		if (new_domains)
+			self.domains = new_domains;
+		
+	});
 	
-	this.editor_msg = function(msg, err) {
+	this.editor_msg = function(eid, action, msg, err) {
 
 		browser.runtime.sendMessage({
+			id: eid,
+			action: action,
 			message: msg,
 			err: err
 		});
 	};
 
-	this.error_msg = function(msg) {
+	this.error_msg = function(eid, msg) {
 
 		console.error(msg);
-		
-		browser.runtime.sendMessage({
-			message: msg,
-			err: true
-		});
+
+		this.editor_msg (eid, "result", msg, true);
 	};
 
-	this.info_msg = function(msg) {
+	this.info_msg = function(eid, msg) {
 
-		browser.runtime.sendMessage({
-			message: msg,
-			err: false
-		});
+		this.editor_msg (eid, "result", msg, false);
 	};
 	
 	this.handle_response = function(response) {
@@ -60,25 +61,41 @@ function BG_mgr () {
 	
 	this.update = function (tabId, changeInfo, tabInfo) {
 
-		global_storage.__getDomains(domains => {
+		if (self.domains.length) {
 
-			for (var i = 0; i < domains.length; i++) {
-			
-				if ( tabInfo.url.indexOf(domains[i]) >= 0) {
+			for (domain of self.domains) {
+				
+				if ( tabInfo.url.indexOf(domain) >= 0) {
 					
-					global_storage.__getDomain(domain => {
-
-						var sources = domain.scripts;
-
-						if (domain.has(tabInfo.url))
-							sources = sources.concat(domain.getSite(tabInfo.url).scripts);
-
-						if (sources.length) {
-							
-							window.setTimeout(function() {
+					global_storage.getDomain(full_domain => {
 						
+						var sources = full_domain.scripts;
+						var site = full_domain.has(tabInfo.url);
+						
+						if (site) 
+							sources = sources.concat(site.scripts);
+
+						console.log("Sources: ");
+						console.log(sources);
+						
+						if (sources.length) {
+
+							var tocontent = []
+
+							for (source of sources) { 
+								tocontent.push(source.get());
+								
+								/* sources.map(function(script) {
+
+								   return script.code;
+								   
+								   }); */
+							}
+							console.log(tocontent);
+							window.setTimeout(function() {
+								
 								browser.tabs.sendMessage(
-							
+									
 									parseInt(tabId),
 									{scripts: sources.map(script => {
 
@@ -89,20 +106,20 @@ function BG_mgr () {
 								).then(response => {
 
 									if (response.err)
-										this.log_error(response.err);
+										onError(response.err);
 									
 									/* console.log("Hitted target site ---> " + tabInfo.url);
 									   console.log("Message from the content script: " + response.response); */
 									
 								}, onError);
-							
+								
 							}, 500);
 						}
 						
-					}, domains[i]);
+					}, domain);
 				}
 			}
-		});	
+		}
 	};
 
 	this.change = function (actInfo) {
@@ -114,13 +131,13 @@ function BG_mgr () {
 				browser.tabs.get(actInfo.tabId).then(tab => {
 
 					self.currTab = tab;
-
+					console.log("New Tab: " + tab.id);
 				});
 
 			} else {
 
 				self.currTab = actInfo[0];
-				
+				console.log("New Tab: " + self.currTab.id);
 			}
 			
 			
@@ -133,19 +150,19 @@ function BG_mgr () {
 		}
 	};
 
-	this.runInTab = function (literal, tabId) {
+	this.runInTab = function (literal, eid) {
 
-		/* console.log("Test tab: " + tabId); */
-	
+		/* console.log("Test ID: " + eid); */
+		
 		browser.tabs.sendMessage(
-			//new Script({code: literal})
-			parseInt(tabId),
+			
+			parseInt(self.editors[eid].tab.id),
 			{ action: "run", scripts: [literal] }
 		
 		).then(response => {
 
 			if (response.err)
-				self.error_msg(response.err);
+				self.error_msg(eid, response.err);
 			
 		}, onError);
 
@@ -160,15 +177,18 @@ function BG_mgr () {
 	
 	this.showEditor = function (action) {
 
-		self.ignoreChange = true;
 		/* console.log("Tab before editor: " + currTab); */
 
-		for (var i = 0; i < this.editors.length; i++) {
+		var i = 0;
+		for (editor of self.editors) {
 
-			if (this.editors[i].tab.id == self.currTab.id) {
-				this.editors[i].wdw.focus();
+			if (editor.tab.id == self.currTab.id) {
+				console.log("Discarting editor: " + i + " for tab: " + self.currTab.id)
+				self.editor_msg (i, "focus");
 				return;
 			}
+			
+			i++;
 		}
 		
 		browser.tabs.sendMessage(
@@ -177,12 +197,15 @@ function BG_mgr () {
 			{ action: "backup" }
 			
 		).then(response => {
-			
+
+			self.ignoreChange = true;
+
 			var createData = {
-				type: "popup",
-				url: browser.extension.getURL("editor/editor.html?" + action + "&" + self.currTab.id + "&" + self.editors.length),
-				width: 800,
-				height: 600
+				type: "panel",
+				state: "normal",
+				url: browser.extension.getURL("editor/editor.html?" + action + "&" + self.editors.length),
+				width: 900,
+				height: 350
 			};
 			
 			browser.windows.create(createData).then(wdw => {
@@ -191,27 +214,56 @@ function BG_mgr () {
 					tab: self.currTab,
 					wdw: wdw
 				});
+				
 				console.log("Editor opened: " + self.editors.length);
 			});	
 		
 		});
 	};
 	
-	this.revertChanges = function (tabId) {
+	this.revertChanges = function (eid) {
 
 		browser.tabs.sendMessage(
 						
-			parseInt(tabId),
+			parseInt(self.editors[eid].tab.id),
 			{action: "revert"}
 			
 		);
 	};
 
-	this.getCurrTab = function () {
+	this.getCurrUrl = function () {
 
-		return browser.tabs.get(self.currTab.id); 
+		return self.currTab.url; 
 
 	};
+
+	this.saveScriptFor = function (literal, endpoint) {
+
+		var url = new URL(endpoint);
+
+		global_storage.getOrCreateDomain(domain => {
+
+			/* console.log("New domain: ");
+			   console.log(domain); */
+			
+			if (url.pathname == "/")
+
+				domain.scripts.push(new Script(unescape(literal.toString())) );
+
+			else {
+				
+				var site = domain.getOrCreateSite(endpoint);
+				
+				site.scripts.push(new Script(unescape(literal.toString())) );
+				
+			}
+
+			domain.persist();
+			
+		}, url.hostname);
+		
+		/* console.log("Host: " + url.hostname + " href: " + url.href + " pathname: " + url.pathname); */
+	}
 
 }
 
@@ -221,4 +273,4 @@ browser.tabs.onUpdated.addListener(bg_manager.update);
 browser.tabs.onActivated.addListener(bg_manager.change);
 
 var gettingCurrent = browser.tabs.query({currentWindow: true, active: true});
-gettingCurrent.then(bg_manager.change, bg_manager.log_error); 
+gettingCurrent.then(bg_manager.change, onError); 

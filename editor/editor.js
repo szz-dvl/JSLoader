@@ -1,227 +1,238 @@
-var bg;
-var editor;
-var action;
-var buttons = true;
-var my_tab;
-var my_id;
-
 function onError (error) {
 	console.log(`Error: ${error}`);
 }
 
-browser.runtime.getBackgroundPage().then(function(page) {
-		
-	bg = page.bg_manager;
+function Editor () {
 
-}, onError);
+	var self = this;
 
-browser.runtime.onMessage.addListener(request => {
-
-	$("#result-info").css("visibility", "hidden");
+	this.buttons = true;
+	this.btn_panel = null;
+	this.res_box = null;
 	
-	if (request.err) {
-
-		$("#result-info").removeClass("status-success");
-		$("#result-info").addClass("status-error");
-
-	} else {
-
-		$("#result-info").removeClass("status-error");
-		$("#result-info").addClass("status-success");
+	browser.runtime.getBackgroundPage().then(function(page) {
 		
-	}
-
-	$("#result-info").text(request.message);
-	$("#result-info").css("visibility", "visible");
-
-	/* !!! */
-	setTimeout(function() {
+		self.bg = page.bg_manager;
 		
-		$("#result-info").fadeOut(400, "swing", function() {
+		var url = self.bg.getCurrUrl();
+		
+		/* console.log("URL_PATTERN: " + tabInfo.url); */
 			
-			$("#result-info").css("visibility", "hidden");
-			$("#result-info").css("display", "block");
+		$("#url_pattern").text(url.toString().split("://")[1] || url);
+		self.proto = url.toString().split("://")[0] + "://"; 
 			
-		});
-		
-	}, 3000);
-		
-});
-
-function btnShow (self) {
-
-	if (!buttons) {
-
-		/* self.css("visibility", "visible"); */
-		self.find( ".hidden-elem" ).css("display", "none");
-		self.find( ".hidden-elem" ).css("visibility", "visible");
-		self.find( ".hidden-elem" ).fadeIn();//css("visibility", "visible");
-		buttons = true;
-	}
-}
-
-function btnHide (self) {
-
-	if (buttons) {
-		
-		self.find( ".hidden-elem" ).fadeOut(400, "swing", function() {
-
-			self.find( ".hidden-elem" ).css("visibility", "hidden");
-			self.find( ".hidden-elem" ).css("display", "block");
-			/* self.css("visibility", "hidden"); */
-			buttons = false;
-			
-		});
-		
-	}
-}
-
-function saveScript (code) {
-
-
-	console.log(code);
-
-}
-
-function runScript (code) {
-
-	bg.runInTab(code, my_tab);
-
-}
-
-function revertChanges() {
-
-	bg.revertChanges(my_tab);
-
-}
-
-$(document).ready(function() {
+	}, onError);
 	
-	editor = ace.edit("code_area");
-	editor.setShowPrintMargin(false);
-	editor.renderer.setShowGutter(false);
-	editor.setTheme("ace/theme/twilight");
-	editor.session.setMode("ace/mode/javascript");
+	this.editor = ace.edit("code_area");
+	this.editor.setShowPrintMargin(false);
+	this.editor.renderer.setShowGutter(false);
+	this.editor.setTheme("ace/theme/twilight");
+	this.editor.session.setMode("ace/mode/javascript");
 
-	editor.commands.addCommand({
+	this.editor.commands.addCommand({
 		name: 'execute',
 		bindKey: {win: 'Ctrl-R', mac: 'Command-Option-R'},
 
 		exec: function(editor) {
-			runScript(editor.getValue().toString().trim());
-			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
-		}/* ,
-			readOnly: true */
+			self.runScript(self.editor.getValue().toString().trim());
+		}
 	});
 
 	shortcut.add("Ctrl+R", function() {
 
-		runScript(editor.getValue().toString().trim());
+		self.runScript(self.editor.getValue().toString().trim());
 		
 	});
 	
-	editor.commands.addCommand({
+	this.editor.commands.addCommand({
 		name: 'save',
 		bindKey: {win: 'Ctrl-S', mac: 'Command-Option-S'},
 
 		exec: function(editor) {
-			saveScript(editor.getValue().toString().trim());
-			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
-		}/* ,
-			readOnly: true */
+			self.saveScript(self.editor.getValue().toString().trim());
+		}
 	});
 
 	shortcut.add("Ctrl+S", function () {
 
-		saveScript(editor.getValue().toString().trim());
+		self.saveScript(self.editor.getValue().toString().trim());
 
 	});
 	
-	editor.commands.addCommand({
+	this.editor.commands.addCommand({
 		name: 'revert',
 		bindKey: {win: 'Ctrl-B', mac: 'Command-Option-B'},
 
 		exec: function(editor) {
-			revertChanges();
-			//ace.config.loadModule("ace/ext/searchbox", function(e) {e.Search(editor, true)});
-		}/* ,
-			readOnly: true */
+			self.revertChanges();
+		}
 	});
 	
 	shortcut.add("Ctrl+B", function () {
+		self.revertChanges();
+	});
 
-		revertChanges();
+	this.editor.getSession().on('change', function() {
+
+		self.hide_buttons();
+	});
+
+	$(document).ready(function() {
+
+		console.log(window);
+		window.titlebar = "no";
+		
+		self.btn_panel = $( "#btns_panel" );
+		self.res_box = $("#result-info");
+		
+		self.id = window.location.toString().split("?")[1].split("&")[1];
+		
+		$( "#save_btn" ).click(function() {
+			
+			self.saveScript(self.editor.getValue().toString().trim());
+			
+		});
+
+		self.btn_panel.mouseenter(function() {
+
+			self.show_buttons();
+			
+		});
+	
+		$( "#test_btn" ).click(function() {
+			
+			self.runScript(self.editor.getValue().toString().trim());
+			
+		});
+
+		$( "#revert_btn" ).click(function() {
+			
+			self.revertChanges();
+			
+		});
+		
+		var action = unescape(window.location.toString().split("?")[1].split("&")[0]);
+		$("#user_action").text(action);
+		
+		$("#select-th").on('change', function() {
+			
+			self.editor.setTheme("ace/theme/" + $(this).val());
+
+		});
+
+		$("body").click(function() {
+
+			self.show_buttons();
+			
+		});
+
+		/* console.log("My title: " + window.document.title);
+		   window.document.title = "JS Editor"; */
+
+		window.onbeforeunload = function(ev) {
+
+			self.bg.editorClose(self.id);
+
+		}
 
 	});
 	
-	$( "#save_btn" ).click(function() {
-		
-		saveScript(editor.getValue());
-		
-	});
+	this.runScript = function (literal) {
 
-	$( "#btns_panel" ).mouseenter(function() {
-		
-		btnShow($( "#btns_panel" ));
-		
-	});
+		this.bg.runInTab(literal, this.id);
 
-	editor.getSession().on('change', function() {
-		btnHide($("#btns_panel"));
-	});
-	
-	$( "#test_btn" ).click(function() {
-				
-		runScript(editor.getValue().toString().trim());
-		
-	});
+	};
 
-	$( "#revert_btn" ).click(function() {
-				
-		revertChanges();
-		
-	});
-	
-	bg.getCurrTab().then(function(tabInfo) {
-		
-		console.log("URL_PATTERN: " + tabInfo.url);
-		
-		$("#url_pattern").text(tabInfo.url.toString().split("://")[1] || tabInfo.url);
-		
-	}, onError);
+	this.saveScript = function (literal) {
 
-	
-	action = unescape(window.location.toString().split("?")[1].split("&")[0]);
-	$("#user_action").text(action);
-
-	my_tab = window.location.toString().split("?")[1].split("&")[1];
-	my_id = window.location.toString().split("?")[1].split("&")[2];
-	
-	$("#select-th").on('change', function() {
-		
-		editor.setTheme("ace/theme/" + $(this).val());
-
-	});
-
-	$("body").click(function() {
-
-		btnShow($("#btns_panel"));
-
-		/* 
-		   if ($("#btns_panel").css("visibility") == "hidden") 
-		   btnShow($("#btns_panel"));
-		   else 
-		   btnHide($("#btns_panel")); */
-		
-	});
-
-	console.log("My title: " + window.document.title);
-	window.document.title = "JS Editor";
-
-	window.onbeforeunload = function(ev) {
-
-		bg.editorClose(my_id);
+		console.log(literal);
+		this.bg.saveScriptFor(literal, self.proto + $("#url_pattern").text());
 
 	}
 
-});
+	this.revertChanges = function () {
+
+		this.bg.revertChanges(this.id);
+
+	}
+	
+	this.show_buttons = function () {
+
+		if (!this.buttons) {
+			
+			self.btn_panel.find( ".hidden-elem" ).css("display", "none");
+			self.btn_panel.find( ".hidden-elem" ).css("visibility", "visible");
+			self.btn_panel.find( ".hidden-elem" ).fadeIn();
+
+			this.buttons = true;
+		}
+		
+	};
+
+	this.hide_buttons = function () {
+
+		if (this.buttons) {
+			
+			self.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", function() {
+				
+				self.btn_panel.find( ".hidden-elem" ).css("visibility", "hidden");
+				self.btn_panel.find( ".hidden-elem" ).css("display", "block");
+				/* self.css("visibility", "hidden"); */
+				self.buttons = false;
+				
+			});
+		}
+	};
+
+	this.handle_message = function (request) {
+
+		if (request.id == self.id) {
+
+			switch (request.action) {
+				case "result":
+					self.show_result (request.message, request.err);
+					break;
+				case "focus":
+					window.focus();
+				default:
+					break;
+			}
+
+		}
+	}
+	
+	this.show_result = function (msg, err) {
+
+		self.res_box.css("visibility", "hidden");
+	
+		if (err) {
+
+			self.res_box.removeClass("status-success");
+			self.res_box.addClass("status-error");
+			
+		} else {
+			
+			self.res_box.removeClass("status-error");
+			self.res_box.addClass("status-success");
+			
+		}
+		
+		self.res_box.text(msg);
+		self.res_box.css("visibility", "visible");
+		
+		/* !!! */
+		setTimeout(function() {
+			
+			self.res_box.fadeOut(800, "swing", function() {
+				
+				self.res_box.css("visibility", "hidden");
+				self.res_box.css("display", "block");
+				
+			});
+			
+		}, 5000);
+	}
+}
+
+editor_instance = new Editor();
+browser.runtime.onMessage.addListener(editor_instance.handle_message);

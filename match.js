@@ -14,11 +14,11 @@ browser.runtime.onMessage.addListener(function(request) {
 
 			var errors = [];
 
-			for (var i = 0; i < request.scripts.length; i++) {
+			for (var script of request.scripts) {
 				
 				try {
 
-					(new Function(request.scripts[i])());
+					(new Function(script)());
 				
 				} catch (err) {
 
@@ -27,9 +27,11 @@ browser.runtime.onMessage.addListener(function(request) {
 				}
 			}
 
-			if (errors.length)
+			if (errors.length) {
+
+				console.log("Content errors.");
 				return Promise.resolve({err: errors});
-				
+			}
 			break;
 		case "backup":
 

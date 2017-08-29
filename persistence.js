@@ -27,6 +27,7 @@ function onError (err) {
 	console.error(err);
 }
 
+var cipher = XORCipher;
 // Array Remove - By John Resig (MIT Licensed)
 Array.prototype.remove = function(from, to) {
 	
@@ -134,7 +135,9 @@ function Storage () {
 					cb(new Domain({name: name, idx: arr.length}));
 				});	
 			}
-		}, name);	
+			
+		}, name);
+		
 	};
 	
 	this.__emmitChanges = function (changes, area) {
@@ -154,16 +157,22 @@ function Storage () {
 
 var global_storage = new Storage();
 
-function Script (code) {
+function Script (opt) {
 
 	var self = this;
 	
-	this.uuid = UUID.generate();
-	this.code = code || null;
+	this.uuid = opt.uuid || UUID.generate();
+	this.code = opt.code || null; // ? opt.enc.toString() : cipher.encode(this.uuid, opt.code);
 
+	/* console.log("Inner code: ");
+	   console.log(this.code.toString()); */
+	
 	this.get = function () {
 
-		return self.code.toString();
+		/* var res = cipher.decode(this.uuid, this.code.toString());
+		   console.log("Inner DeCoded: ");
+		   console.log(res); */
+		return self.code;//res;
 
 	};
 	
@@ -171,7 +180,7 @@ function Script (code) {
 
 		return {
 			
-			id: self.id,
+			uuid: self.uuid,
 			code: self.code
 		}
 	};
@@ -186,7 +195,7 @@ function Site (opt) {
 	this.scripts = [];
 	if (opt.scripts) {
 
-		for ( var script of opt.scripts ) {
+		for (var script of opt.scripts ) {
 
 			this.scripts.push(new Script(script));
 		}

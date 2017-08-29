@@ -18,8 +18,14 @@ browser.runtime.onMessage.addListener(function(request) {
 				
 				try {
 
-					(new Function(script)());
-				
+					console.log("Function: " + script);
+					
+					//script();
+
+					var f = new Function(script);
+					
+					f();
+					
 				} catch (err) {
 
 					errors.push(err.message);

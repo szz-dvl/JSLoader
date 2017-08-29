@@ -68,29 +68,16 @@ function BG_mgr () {
 				if ( tabInfo.url.indexOf(domain) >= 0) {
 					
 					global_storage.getDomain(full_domain => {
-						
+
+						var url = new URL(tabInfo.url);
 						var sources = full_domain.scripts;
-						var site = full_domain.has(tabInfo.url);
+						var site = full_domain.has(url.pathname);
 						
 						if (site) 
 							sources = sources.concat(site.scripts);
-
-						console.log("Sources: ");
-						console.log(sources);
 						
 						if (sources.length) {
-
-							var tocontent = []
-
-							for (source of sources) { 
-								tocontent.push(source.get());
-								
-								/* sources.map(function(script) {
-
-								   return script.code;
-								   
-								   }); */
-							}
+							
 							console.log(tocontent);
 							window.setTimeout(function() {
 								
@@ -99,7 +86,7 @@ function BG_mgr () {
 									parseInt(tabId),
 									{scripts: sources.map(script => {
 
-										return script.code;
+										return source.get();
 										
 									}), action: "run"}
 									
@@ -107,9 +94,6 @@ function BG_mgr () {
 
 									if (response.err)
 										onError(response.err);
-									
-									/* console.log("Hitted target site ---> " + tabInfo.url);
-									   console.log("Message from the content script: " + response.response); */
 									
 								}, onError);
 								
@@ -131,17 +115,15 @@ function BG_mgr () {
 				browser.tabs.get(actInfo.tabId).then(tab => {
 
 					self.currTab = tab;
-					console.log("New Tab: " + tab.id);
+					/* console.log("New Tab: " + tab.id); */
 				});
 
 			} else {
 
 				self.currTab = actInfo[0];
-				console.log("New Tab: " + self.currTab.id);
+				/* console.log("New Tab: " + self.currTab.id); */
 			}
 			
-			
-			/* console.log("CurrentTab: " + currTab); */
 			
 		} else {
 			
@@ -172,7 +154,7 @@ function BG_mgr () {
 
 		this.editors.remove(eid);
 		
-		console.log("Editor closed: " + self.editors.length);
+		/* console.log("Editor closed: " + self.editors.length); */
 	};
 	
 	this.showEditor = function (action) {
@@ -183,8 +165,8 @@ function BG_mgr () {
 		for (editor of self.editors) {
 
 			if (editor.tab.id == self.currTab.id) {
-				console.log("Discarting editor: " + i + " for tab: " + self.currTab.id)
-				self.editor_msg (i, "focus");
+				/* console.log("Discarting editor: " + i + " for tab: " + self.currTab.id) */
+				self.editor_msg (i, "focus"); /* Not working */
 				return;
 			}
 			
@@ -243,18 +225,18 @@ function BG_mgr () {
 
 		global_storage.getOrCreateDomain(domain => {
 
-			/* console.log("New domain: ");
-			   console.log(domain); */
+			/* console.log("Literal: ");
+			   console.log(literal); */
 			
 			if (url.pathname == "/")
 
-				domain.scripts.push(new Script(unescape(literal.toString())) );
+				domain.scripts.push(new Script({code: unescape(literal.toString())} ));
 
 			else {
 				
-				var site = domain.getOrCreateSite(endpoint);
+				var site = domain.getOrCreateSite(url.pathname);
 				
-				site.scripts.push(new Script(unescape(literal.toString())) );
+				site.scripts.push(new Script({code: unescape(literal.toString())} ));
 				
 			}
 

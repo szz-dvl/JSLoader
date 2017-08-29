@@ -17,7 +17,7 @@
 	"permissions": ["browsingData", "storage", "tabs"],
 	
 	"background": {
-		"scripts": ["persistence.js", "background.js"]
+		"scripts": ["deps/UglifyJS/uglify-js.js", "persistence.js", "background.js"]
 	},
 
 	"browser_action": {

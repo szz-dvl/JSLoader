@@ -13,129 +13,151 @@ function Editor () {
 	browser.runtime.getBackgroundPage().then(function(page) {
 		
 		self.bg = page.bg_manager;
+
+		self.action = unescape(window.location.toString().split("?")[1].split("&")[0]);
+		self.id = parseInt(window.location.toString().split("?")[1].split("&")[1]);
+
+		self.bg.getEditorInfo(self.id).then(response => {
+
+			self.url = response.url;
+			self.code = response.code;
+			self.uuid = response.uuid; /* Only when editing */
+
+			$(document).ready(function() {
+
+				/* Options Pge !!! */
+				self.editor = ace.edit("code_area");
+				self.editor.setShowPrintMargin(false);
+				self.editor.renderer.setShowGutter(false);
+				self.editor.setTheme("ace/theme/twilight");
+				self.editor.session.setMode("ace/mode/javascript");
+
+				if (self.code)
+					self.editor.setValue(self.code, -1);
+				
+				self.editor.commands.addCommand({
+					name: 'execute',
+					bindKey: {win: 'Ctrl-R', mac: 'Command-Option-R'},
+
+					exec: function(editor) {
+						self.runScript(self.editor.getValue().toString().trim());
+					}
+				});
+
+				shortcut.add("Ctrl+R", function() {
+
+					self.runScript(self.editor.getValue().toString().trim());
+					
+				});
+				
+				self.editor.commands.addCommand({
+					name: 'save',
+					bindKey: {win: 'Ctrl-S', mac: 'Command-Option-S'},
+
+					exec: function(editor) {
+						self.saveScript(self.editor.getValue().toString().trim());
+					}
+				});
+
+				shortcut.add("Ctrl+S", function () {
+
+					self.saveScript(self.editor.getValue().toString().trim());
+
+				});
+				
+				self.editor.commands.addCommand({
+					name: 'revert',
+					bindKey: {win: 'Ctrl-B', mac: 'Command-Option-B'},
+
+					exec: function(editor) {
+						self.revertChanges();
+					}
+				});
+				
+				shortcut.add("Ctrl+B", function () {
+					self.revertChanges();
+				});
+
+				self.editor.getSession().on('change', function() {
+
+					self.hide_buttons();
+				});
+				
+				$("#user_action").text(self.getActionText());
+				$("#url_pattern").text(self.url.toString().split("://")[1] || self.url);
+
+				self.proto = self.url.toString().split("://")[0] + "://";
+				
+				self.btn_panel = $("#btns_panel");
+				self.res_box = $("#result-info");
+
+				$( "#save_btn" ).text(self.getSaveText());
+				
+				$( "#save_btn" ).click(function() {
+					
+					self.saveScript(self.editor.getValue().toString().trim());
+					
+				});
+				
+				self.btn_panel.mouseenter(function() {
+					
+					self.show_buttons();
+					
+				});
+				
+				$( "#test_btn" ).click(function() {
+					
+					self.runScript(self.editor.getValue().toString().trim());
+					
+				});
+				
+				$( "#revert_btn" ).click(function() {
+					
+					self.revertChanges();
+					
+				});
+				
+				$("#select-th").on('change', function() {
+					
+					self.editor.setTheme("ace/theme/" + $(this).val());
+					
+				});
+				
+				$("body").click(function() {
+					
+					self.show_buttons();
+					
+				});
+				
+				/* console.log("My title: " + window.document.title);
+				   window.document.title = "JS Editor"; */
+				
+				window.onbeforeunload = function(ev) {
+					
+					self.bg.editorClose(self.id);
+					
+				}
+				
+			});
+		});
 		
-		var url = self.bg.getCurrUrl();
-		
-		/* console.log("URL_PATTERN: " + tabInfo.url); */
-			
-		$("#url_pattern").text(url.toString().split("://")[1] || url);
-		self.proto = url.toString().split("://")[0] + "://"; 
-			
 	}, onError);
 	
-	this.editor = ace.edit("code_area");
-	this.editor.setShowPrintMargin(false);
-	this.editor.renderer.setShowGutter(false);
-	this.editor.setTheme("ace/theme/twilight");
-	this.editor.session.setMode("ace/mode/javascript");
-
-	this.editor.commands.addCommand({
-		name: 'execute',
-		bindKey: {win: 'Ctrl-R', mac: 'Command-Option-R'},
-
-		exec: function(editor) {
-			self.runScript(self.editor.getValue().toString().trim());
-		}
-	});
-
-	shortcut.add("Ctrl+R", function() {
-
-		self.runScript(self.editor.getValue().toString().trim());
+	this.getActionText = function() {
 		
-	});
-	
-	this.editor.commands.addCommand({
-		name: 'save',
-		bindKey: {win: 'Ctrl-S', mac: 'Command-Option-S'},
+		if (self.action == "add")
+			return "Adding script for: ";
+		else
+			return "Editing script for: ";
+	};
 
-		exec: function(editor) {
-			self.saveScript(self.editor.getValue().toString().trim());
-		}
-	});
+	this.getSaveText = function() {
 
-	shortcut.add("Ctrl+S", function () {
-
-		self.saveScript(self.editor.getValue().toString().trim());
-
-	});
-	
-	this.editor.commands.addCommand({
-		name: 'revert',
-		bindKey: {win: 'Ctrl-B', mac: 'Command-Option-B'},
-
-		exec: function(editor) {
-			self.revertChanges();
-		}
-	});
-	
-	shortcut.add("Ctrl+B", function () {
-		self.revertChanges();
-	});
-
-	this.editor.getSession().on('change', function() {
-
-		self.hide_buttons();
-	});
-
-	$(document).ready(function() {
-
-		console.log(window);
-		window.titlebar = "no";
-		
-		self.btn_panel = $( "#btns_panel" );
-		self.res_box = $("#result-info");
-		
-		self.id = window.location.toString().split("?")[1].split("&")[1];
-		
-		$( "#save_btn" ).click(function() {
-			
-			self.saveScript(self.editor.getValue().toString().trim());
-			
-		});
-
-		self.btn_panel.mouseenter(function() {
-
-			self.show_buttons();
-			
-		});
-	
-		$( "#test_btn" ).click(function() {
-			
-			self.runScript(self.editor.getValue().toString().trim());
-			
-		});
-
-		$( "#revert_btn" ).click(function() {
-			
-			self.revertChanges();
-			
-		});
-		
-		var action = unescape(window.location.toString().split("?")[1].split("&")[0]);
-		$("#user_action").text(action);
-		
-		$("#select-th").on('change', function() {
-			
-			self.editor.setTheme("ace/theme/" + $(this).val());
-
-		});
-
-		$("body").click(function() {
-
-			self.show_buttons();
-			
-		});
-
-		/* console.log("My title: " + window.document.title);
-		   window.document.title = "JS Editor"; */
-
-		window.onbeforeunload = function(ev) {
-
-			self.bg.editorClose(self.id);
-
-		}
-
-	});
+		if (self.action == "add")
+			return "Store";
+		else
+			return "Save";
+	};
 	
 	this.runScript = function (literal) {
 
@@ -145,16 +167,16 @@ function Editor () {
 
 	this.saveScript = function (literal) {
 
-		console.log(literal);
-		this.bg.saveScriptFor(literal, self.proto + $("#url_pattern").text());
+		/* console.log(literal); */
+		this.bg.saveScriptFor(literal, self.proto + $("#url_pattern").text(), self.uuid);
 
-	}
+	};
 
 	this.revertChanges = function () {
 
 		this.bg.revertChanges(this.id);
 
-	}
+	};
 	
 	this.show_buttons = function () {
 
@@ -199,7 +221,7 @@ function Editor () {
 			}
 
 		}
-	}
+	};
 	
 	this.show_result = function (msg, err) {
 
@@ -231,8 +253,8 @@ function Editor () {
 			});
 			
 		}, 5000);
-	}
+	};
 }
 
-editor_instance = new Editor();
+var editor_instance = new Editor();
 browser.runtime.onMessage.addListener(editor_instance.handle_message);

@@ -1,0 +1,93 @@
+html, body {
+	/* width: 350px; */
+	/* position: absolute; */
+	/* top: 4px; */
+    
+	width: 850px !important;
+	height: 450px !important;
+	/* overflow: visible !important; */
+	overflow-x: hidden !important;
+}
+
+#content {
+	width: 100%;
+	height: 100%;
+	display: block !important;
+	/* text-align: centre; */
+	/* position: fixed !important; */
+}
+
+/* .panel { */
+/* 	margin: 5px; */
+/* } */
+
+.hidden-elem {
+	display: none;
+	/* visibility: hidden; */
+}
+
+.hidden-script {
+	display: none;
+	/* visibility: hidden; */
+}
+
+.panel-list-item {
+	align-items: center;
+	flex-direction: column;
+  /* position: relative !important; */
+	display: block !important;
+}
+
+.panel-section-list {
+	/* align-items: left; */
+	/* flex-direction: column; */
+	display: block !important;
+}
+
+/* .list-bucket { */
+
+/* 	padding-left: 50px; */
+
+/* } */
+
+/* ul:before { */
+/*   content: '\a'; */
+/*   white-space: pre; */
+/* } */
+
+pre {
+
+	margin-left: 10%;
+	margin-right: 10%;
+}
+
+code {
+	
+	width: 100%;
+	max-height: 400px;
+	overflow-y: scroll;
+	overflow-x: scroll;
+}
+/* .inner-list { */
+/* 	position: relative !important; */
+/* 	display: block !important; */
+/* } */
+
+/* nav { */
+/* 	display: block !important; */
+/* 	position: fixed !important; */
+/* } */
+
+.btn-panel {
+
+	align: center;
+	vertical-align: bottom;
+	text-align: center;
+	align-self: center;
+
+}
+
+.mright {
+
+	margin-right: 5px;
+}

@@ -41,14 +41,14 @@ browser.runtime.onMessage.addListener(function(request) {
 			break;
 		case "backup":
 
-			backup = $("body").html();
+			backup = $("html").html();
 			break;
 
 		case "revert":
 
 			/* console.log("reverting: " + backup); */
 			
-			$("body").html(backup);
+			$("html").html(backup);
 			break;
 			
 		default:

@@ -37,6 +37,18 @@
 		}
 	],
 
+	"page_action": {
+		"browser_style": true,
+		"default_icon": {
+			"16": "icons/Diskette_16.png",
+			"32": "icons/Diskette_32.png"
+		},
+		
+		"default_popup": "edit/edit.html"
+	},
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+	
 	"options_ui": {
 		"page": "options.html"
 	}

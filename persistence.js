@@ -23,11 +23,10 @@ var UUID = (function() {
 	
 })();
 
-function onError (err) {
-	console.error(err);
+function onError (error) {
+	console.log(`Error: ${error}`);
 }
 
-var cipher = XORCipher;
 // Array Remove - By John Resig (MIT Licensed)
 Array.prototype.remove = function(from, to) {
 	
@@ -108,18 +107,18 @@ function Storage () {
 	this.getOrCreateDomain = function (cb, name) {
 
 		this.getDomain (domain => {
-
+			
 			/* console.log("My domain: ");
 			   console.log(domain); */
 			
 			if (Object.keys(domain).length) {	
 				
 				cb(domain);
-
+				
 			} else {
-
+				
 				self.__getDomains(arr => {
-
+					
 					/* console.log("Init Array: ");
 					   console.log(arr);
 					   console.log(arr.domains); */
@@ -132,7 +131,7 @@ function Storage () {
 					
 					self.__setDomains(arr);
 					
-					cb(new Domain({name: name, idx: arr.length}));
+					cb(new Domain({name: name}));
 				});	
 			}
 			
@@ -145,7 +144,7 @@ function Storage () {
 		if (area != "local")
 			return;
 		
-		for (var item of Object.keys(changes)) {
+		for (item of Object.keys(changes)) {
 			
 			if (item == "domains") 
 				self.bg.domains = changes[item].newValue;
@@ -163,7 +162,8 @@ function Script (opt) {
 	
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || null; // ? opt.enc.toString() : cipher.encode(this.uuid, opt.code);
-
+	this.parent = opt.parent || null;
+	
 	/* console.log("Inner code: ");
 	   console.log(this.code.toString()); */
 	
@@ -174,6 +174,21 @@ function Script (opt) {
 		   console.log(res); */
 		return self.code;//res;
 
+	};
+
+	this.getUrl = function () {
+
+		if (self.parent.isDomain())
+			return self.parent.name;
+		else 
+			return self.parent.parent.name + self.parent.url;
+		
+	};
+
+	this.remove = function () {
+
+		self.parent.removeScript(self.uuid);
+				
 	};
 	
 	this.__getDBInfo = function () {
@@ -191,17 +206,69 @@ function Site (opt) {
 	var self = this;
 	
 	this.url = opt.url || null;
-
+	this.parent = opt.parent || null;
+	
 	this.scripts = [];
 	if (opt.scripts) {
 
-		for (var script of opt.scripts ) {
+		for (script of opt.scripts ) {
 
+			script.parent = this;
 			this.scripts.push(new Script(script));
 		}
 
 	} 
 
+	this.isDomain = function() {
+
+		return false;
+		
+	};
+
+	this.findScript = function (id) {
+		
+		for (script of self.scripts) {
+			if (script.uuid == id)
+				return script;
+		}
+
+		return null;
+	};
+
+	this.removeScript = function (id) {
+
+		var i = 0;
+
+		for (script of self.scripts) {
+
+			if (script.uuid == id) {
+				self.scripts.remove(i);
+				return;
+			}
+			
+			i ++;
+		}
+
+		if (self.isEmpty())
+			self.parent.removeSite(self.url);
+		
+	};
+	
+	this.isEmpty = function () {
+
+		return this.scripts.length > 0;
+
+	};
+	
+	this.upsertScript = function (literal, uuid) {
+
+		if (uuid) 	
+			self.findScript(uuid).code = unescape(literal.toString());
+		else 
+			self.scripts.push(new Script({code: unescape(literal.toString() ) } ) );
+		
+	};
+	
 	this.__getDBInfo = function () {
 
 		var scripts = [];
@@ -214,7 +281,7 @@ function Site (opt) {
 			url: self.url,
 			scripts: scripts
 		}
-	}
+	};
 }
 
 function Domain (opt) {
@@ -228,30 +295,44 @@ function Domain (opt) {
 
 	if (!this.name)
 		return;
-
-	this.idx = opt.idx || null;
 	
 	this.scripts = [];
 	if (opt.scripts) {
 
-		for (var script of opt.scripts) {
+		for (script of opt.scripts) {
 
+			script.parent = this;
 			this.scripts.push(new Script(script));
 		}
-
 	} 
 
 	this.sites = [];
 	if (opt.sites) {
 
-		for (var site of opt.sites) {
+		for (site of opt.sites) {
 
+			site.parent = this;
 			this.sites.push(new Site(site));
 		}
 
 	}
 
 	this.storage = global_storage;
+
+	this.isDomain = function() {
+
+		return true;
+		
+	};
+
+	this.upsertScript = function (literal, uuid) {
+
+		if (uuid) 	
+			self.findScript(uuid).code = unescape(literal.toString());
+		else 
+			self.scripts.push(new Script({code: unescape(literal.toString() ) } ) );
+		
+	};
 	
 	this.persist = function () {
 		
@@ -259,17 +340,36 @@ function Domain (opt) {
 	};
 	
 	this.remove = function () {
+		
+		self.storage.__getDomains(function(arr) {
 
-		if (self.idx) {
-			
-			self.storage.__getDomains(function(arr) {
-				
-				arr.remove(self.idx - 1);
-				
-			});
+			var idx = arr.indexOf(self.name);
 
-			self.storage.__removeDomain(self.name);
-		}
+			if (idx) {
+				
+				arr.remove(idx);
+				self.storage.__removeDomain(self.name);
+			}
+		});
+	};
+
+
+	this.haveScripts = function () {
+		
+		return this.scripts.length > 0;
+
+	};
+
+	this.haveSites = function () {
+		
+		return this.sites.length > 0;
+
+	};
+
+	this.isEmpty = function () {
+
+		return !(this.haveScripts() || this.haveSites());
+
 	};
 	
 	this.has = function(url) {
@@ -299,6 +399,82 @@ function Domain (opt) {
 		return n;
 	};
 
+	this.findScript = function (id) {
+
+		for (script of self.scripts) {
+			if (script.uuid == id)
+				return script;
+		}
+
+		for (site of self.sites) {
+
+			var script = site.findScript(id);
+
+			if (script)
+				return script;
+		}
+
+		return null;
+	};
+
+	this.removeScript = function (id) {
+
+		var i = 0;
+
+		for (script of self.scripts) {
+
+			if (script.uuid == id) {
+				self.scripts.remove(i);
+
+				if (self.isEmpty())
+					self.remove();
+
+				return;
+			}
+			
+			i ++;
+		}
+
+		
+		
+	};
+
+	this.removeSite = function (url) {
+
+		var i = 0;
+		for (site of self.sites) {
+				
+			if (site.url == url) {
+
+				self.sites.remove(i);
+				
+				if (self.isEmpty())
+					self.remove();
+
+				return;
+			}
+		}
+
+	};
+	
+	this.getEditInfo = function (url) {
+
+		/* The domain must have @url */
+
+		var my_site = self.has(url);
+
+		if (my_site)
+			my_site = my_site.__getDBInfo();
+		
+		return {
+			name: self.name,
+			site: my_site,
+			scripts: self.scripts.map(script => {
+				return script.__getDBInfo();
+			})
+		}
+	};
+	
 	this.__getDBInfo = function () {
 
 		var scripts = [];

@@ -13,11 +13,9 @@
 			"update_url": "https://example.com/updates.json"
 		}
     },
-
-	"permissions": ["browsingData", "storage", "tabs"],
 	
 	"background": {
-		"scripts": ["deps/UglifyJS/uglify-js.js", "persistence.js", "background.js"]
+		"scripts": ["deps/async.min.js", "persistence.js", "background.js"]
 	},
 
 	"browser_action": {
@@ -27,7 +25,7 @@
 			"32": "icons/Diskette_32.png"
 		},
 
-		"default_popup": "popup/menu.html"
+		"default_popup": "menu/menu.html"
 	},
 
 	"content_scripts": [
@@ -46,10 +44,24 @@
 		
 		"default_popup": "edit/edit.html"
 	},
-
-	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 	
 	"options_ui": {
-		"page": "options.html"
-	}
+		"browser_style": true,
+		"open_in_tab": true,
+		"page": "opt/options.html"
+	},
+
+	"commands": {
+		"show-editor": {
+			"suggested_key": {
+				"linux": "Alt+Shift+1"
+			},
+			"description": "Open a new editor window, binded to the current tab."
+		}
+	},
+
+	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
+
+	"permissions": ["storage", "tabs"]
+
 }

@@ -7,8 +7,8 @@ function BG_mgr () {
 	this.currTab = null;
 	this.editors = [];
 	this.domains = [];
+	this.options = {};
 	this.eids = 0;
-	this.pa_shown = false;
 	
 	global_storage.bg = this;
 
@@ -99,11 +99,8 @@ function BG_mgr () {
 
 	this.__showPageAction = function (tabInfo) {
 
-		if (self.pa_shown)
-			return;
-		
 		for (domain of self.domains) {
-
+			
 			if ( tabInfo.url.indexOf(domain) >= 0) {
 				
 				global_storage.getDomain(full_domain => {
@@ -112,18 +109,10 @@ function BG_mgr () {
 					
 					if (full_domain.haveScripts() || full_domain.has(url.pathname))
 						browser.pageAction.show(tabInfo.id);
-
-					self.pa_shown = true;
 					
 				}, domain);
 			}
 		}
-	};
-
-	this.PAClose = function () {
-
-		self.pa_shown = false;
-		
 	};
 	
 	this.getMyScripts = function () {
@@ -139,6 +128,18 @@ function BG_mgr () {
 			}, url.hostname);
 				
 			
+		});
+	};
+
+	this.getOptPage = function () {
+		
+		return new Promise (function (resolve, reject) {
+			
+			global_storage.getOptAndDomains(info => {
+				
+				resolve(info);
+				
+			});
 		});
 	};
 	
@@ -202,7 +203,7 @@ function BG_mgr () {
 		for (editor of self.editors) {
 
 			if (editor.info.id == tid)
-				return true;
+				return editor.id;
 
 		}
 		
@@ -231,7 +232,7 @@ function BG_mgr () {
 		
 		this.editors.remove(this.__getEditorIdx(eid));
 		
-		/* console.log("Editor closed: " + self.editors.length); */
+		console.log("Editor closed: " + self.editors.length);
 	};
 
 	this.__openEditor =  function (action, cb) {
@@ -273,9 +274,11 @@ function BG_mgr () {
 		
 		if (action == "add") {
 
-			if (self.__editorForTab(self.currTab.id)) {
+			var eid = self.__editorForTab(self.currTab.id);
+			
+			if (eid) {
 				
-				self.editor_msg (i, "focus"); /* Not working */
+				self.editor_msg (eid, "focus"); /* Not working */
 				return;
 				
 			}
@@ -323,12 +326,6 @@ function BG_mgr () {
 				domain.getOrCreateSite(url.pathname).upsertScript(literal, uuid);
 			
 			domain.persist();
-
-			if (self.pa_shown) {
-
-				/* Send message to update the script */
-
-			}
 			
 		}, url.hostname);
 		
@@ -352,26 +349,30 @@ function BG_mgr () {
 		return new Promise (function (resolve, reject) {
 
 			var editor_info = self.__getEditorByID(eid).info;
-			
-			if (editor_info.editing) {
+
+			global_storage.getOptions(opts => {
 				
-				global_storage.getDomain(domain => {
+				if (editor_info.editing) {
 					
-					var script = domain.findScript(editor_info.id);
+					global_storage.getDomain(domain => {
+						
+						var script = domain.findScript(editor_info.id);
+						
+						resolve({
+							url: "http://" + script.getUrl(),
+							code: script.get(),
+							uuid: script.uuid,
+							opts: opts.editor
+						});
+						
+					}, editor_info.domain);
 					
-					resolve({
-						url: "http://" + script.getUrl(),
-						code: script.get(),
-						uuid: script.uuid
-					});
+				} else {
 					
-				}, editor_info.domain);
-				
-			} else {
-				
-				resolve({url: self.currTab.url});
-				
-			}
+					resolve({url: self.currTab.url, opts: opts.editor});
+					
+				}
+			});
 		});
 		
 	};
@@ -385,6 +386,23 @@ function BG_mgr () {
 			
 		}, domain_name);
 	};
+
+	this.openOptions = function() {
+
+		/* console.log("Openning options!"); */
+		browser.runtime.openOptionsPage();
+		
+	};
+
+	this.storeOptions = function(opts) {
+
+		global_storage.setOptions(opts);
+
+		console.log("Storing opts");
+		if (self.editors.length) 
+			self.editor_msg (-1, "opts", opts.editor);
+		
+	};
 }
 
 var bg_manager = new BG_mgr();		
@@ -393,4 +411,8 @@ browser.tabs.onUpdated.addListener(bg_manager.update);
 browser.tabs.onActivated.addListener(bg_manager.change);
 
 browser.tabs.query({currentWindow: true, active: true})
-	.then(bg_manager.change, onError); 
+	.then(bg_manager.change, onError);
+
+browser.commands.onCommand.addListener(command => {
+	bg_manager.showEditor("add");
+});

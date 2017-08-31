@@ -138,6 +138,56 @@ function Storage () {
 		}, name);
 		
 	};
+
+	this.getOptions = function (cb) {
+
+		this.__get(opts => {
+
+			
+			cb(new Options(opts || {}));
+			
+		}, 'options');
+
+
+	};
+
+	this.setOptions = function (val) {
+
+		this.__set('options', val);
+	};
+
+	this.getOptAndDomains = function (done) {
+
+		var res = {};
+		
+		this.getOptions(opts => {
+
+			res.opts = opts;
+			
+			self.__getDomains(domains => {
+
+				res.domains = [];
+				
+				async.eachSeries(domains, function (domain_name, cb) {
+
+					self.getDomain(domain => {
+
+						res.domains.push(domain);
+						cb();
+
+					}, domain_name);
+					
+				}, function () {
+					
+					done(res);
+
+				});
+				
+			});
+
+		});
+
+	};
 	
 	this.__emmitChanges = function (changes, area) {
 
@@ -145,9 +195,24 @@ function Storage () {
 			return;
 		
 		for (item of Object.keys(changes)) {
-			
-			if (item == "domains") 
-				self.bg.domains = changes[item].newValue;
+
+			switch (item) {
+				case "domains":
+					if (changes[item].newValue)
+						self.bg.domains = changes[item].newValue;
+					else
+						self.bg.domains = [];
+
+					break;
+					
+				case "options":
+					if (changes[item].newValue)
+						self.bg.options = changes[item].newValue;
+					else
+						self.bg.options = {};
+
+					break;
+			}
 		}
 	};
 
@@ -155,6 +220,30 @@ function Storage () {
 }
 
 var global_storage = new Storage();
+
+function Options (opt) {
+
+	var self = this;
+	
+	this.editor = opt.editor || {
+
+		showPrintMargin: false,
+		showGutter: false,
+		fontSize: 10,
+		collapsed: false,
+		theme: "twilight"
+
+	};
+
+	this.__getDBInfo = function () {
+		
+		return {
+			
+			editor: self.editor
+		}
+		
+	};
+}
 
 function Script (opt) {
 
@@ -490,8 +579,7 @@ function Domain (opt) {
 			
 			name: self.name,
 			sites: sites,
-			scripts: scripts,
-			idx: self.idx
+			scripts: scripts
 		}
 	};
 

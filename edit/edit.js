@@ -113,12 +113,6 @@ function PA () {
 					self.bg.removeScriptFor(id, self.info.name);
 					$("#" + id).parent().remove();
 				});
-
-				window.onbeforeunload = function(ev) {
-					
-					self.bg.PAClose();
-					
-				}
 				
 			});
 			
@@ -162,21 +156,6 @@ function PA () {
 		   }); */
 	}
 
-	//______________________________________________________________//
-	
-	this.handle_message = function (selector) {
-
-		selector.find( ".hidden-elem" ).fadeOut();
-		//selector.find( ".hidden-elem" ).css("visibility", "hidden");
-		
-		/* selector.find( ".hidden-elem" ).fadeOut(400, "swing", function() {
-		   
-		   selector.find( ".hidden-elem" ).css("visibility", "hidden");
-		   selector.find( ".hidden-elem" ).css("display", "block");
-		   }); */
-	}
-
 }
 
 var page_action = new PA();
-browser.runtime.onMessage.addListener(page_action.handle_message);

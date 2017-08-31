@@ -20,18 +20,38 @@ function Editor () {
 		self.bg.getEditorInfo(self.id).then(response => {
 
 			self.url = response.url;
-			self.code = response.code;
+			self.opts = response.opts;		
+			self.code = response.code; /* Only when editing */
 			self.uuid = response.uuid; /* Only when editing */
 
 			$(document).ready(function() {
-
-				/* Options Pge !!! */
+				
+				self.header = $("#editor-header");
+				
+				self.editor_bucket = $("#code_container");
+				self.dropdown = $("#dropdown-header");
+				
+				self.header_shown = true;
+				self.editor_bucket.css("height", window.innerHeight - 50);
+				self.editor_bucket.css("top", "50px");
+				$( "#dropdown-header" ).text("v");
+				
+				if (self.opts.collapsed)
+					self.collapseHeader();
+				
 				self.editor = ace.edit("code_area");
-				self.editor.setShowPrintMargin(false);
-				self.editor.renderer.setShowGutter(false);
-				self.editor.setTheme("ace/theme/twilight");
+				self.editor.setShowPrintMargin(self.opts.showPrintMargin);
+				self.editor.renderer.setShowGutter(self.opts.showGutter);
+				self.editor.setTheme("ace/theme/" + self.opts.theme);
 				self.editor.session.setMode("ace/mode/javascript");
+				self.editor.setValue("/* JS code (jQuery available) ...*/\n");
+				self.editor.setOptions({
+					fontSize: self.opts.fontSize + "pt"
+				});
 
+				/* self.editor.selection.moveCursorToPosition({row: 2, column: 0});
+				   self.editor.selection.selectLine(); */
+				
 				if (self.code)
 					self.editor.setValue(self.code, -1);
 				
@@ -78,6 +98,10 @@ function Editor () {
 					self.revertChanges();
 				});
 
+				shortcut.add("Ctrl+1", function () {
+					self.collapseHeader();
+				});
+
 				self.editor.getSession().on('change', function() {
 
 					self.hide_buttons();
@@ -111,15 +135,15 @@ function Editor () {
 					
 				});
 				
-				$( "#revert_btn" ).click(function() {
-					
-					self.revertChanges();
+				self.dropdown.click(function() {
+
+					self.collapseHeader();
 					
 				});
 				
-				$("#select-th").on('change', function() {
+				$( "#revert_btn" ).click(function() {
 					
-					self.editor.setTheme("ace/theme/" + $(this).val());
+					self.revertChanges();
 					
 				});
 				
@@ -142,6 +166,27 @@ function Editor () {
 		});
 		
 	}, onError);
+
+	this.collapseHeader = function () {
+
+		if (!self.header_shown) {
+
+			$( "#dropdown-header" ).text("v");
+			self.editor_bucket.css("top", "50px");
+			self.editor_bucket.css("height", window.innerHeight - 50);
+	
+		} else {
+			
+			$( "#dropdown-header" ).text("<");
+			self.editor_bucket.css("top", 0);
+			self.editor_bucket.css("height", "100%");
+		}
+
+		//console.log("wdw innerHeigh: " + window.innerHeight + " header: " + self.header.outerHeight());
+
+		self.editor.resize();
+		self.header_shown = !self.header_shown;
+	};
 	
 	this.getActionText = function() {
 		
@@ -179,26 +224,32 @@ function Editor () {
 	};
 	
 	this.show_buttons = function () {
-
+		
 		if (!this.buttons) {
 			
 			self.btn_panel.find( ".hidden-elem" ).css("display", "none");
 			self.btn_panel.find( ".hidden-elem" ).css("visibility", "visible");
-			self.btn_panel.find( ".hidden-elem" ).fadeIn();
+			self.btn_panel.find( ".hidden-elem" ).fadeIn();	
 
+			self.dropdown.show();
+			
 			this.buttons = true;
 		}
 		
 	};
 
 	this.hide_buttons = function () {
-
+		
+	
 		if (this.buttons) {
 			
 			self.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", function() {
 				
 				self.btn_panel.find( ".hidden-elem" ).css("visibility", "hidden");
 				self.btn_panel.find( ".hidden-elem" ).css("display", "block");
+
+				self.dropdown.hide();
+				
 				/* self.css("visibility", "hidden"); */
 				self.buttons = false;
 				
@@ -208,7 +259,7 @@ function Editor () {
 
 	this.handle_message = function (request) {
 
-		if (request.id == self.id) {
+		if (request.id == self.id || request.id < 0) {
 
 			switch (request.action) {
 				case "result":
@@ -216,6 +267,16 @@ function Editor () {
 					break;
 				case "focus":
 					window.focus();
+				case "opts":
+					self.opts = request.message;
+					self.editor.setShowPrintMargin(self.opts.showPrintMargin);
+					self.editor.renderer.setShowGutter(self.opts.showGutter);
+					self.editor.setOptions({
+						fontSize: self.opts.fontSize + "pt"
+					});
+					
+					self.editor.setTheme("ace/theme/" + self.opts.theme);
+						
 				default:
 					break;
 			}

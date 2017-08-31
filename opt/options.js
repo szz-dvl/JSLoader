@@ -86,12 +86,12 @@ function OP () {
 
 					var templ = $("#scripts-template").html();
 
-					console.log("Template: ");
-					console.log(templ);
+					/* console.log("Template: ");
+					   console.log(templ); */
 					
 					var compiled = Handlebars.compile(templ);
-					console.log("Compiled: ");
-					console.log(compiled);
+					/* console.log("Compiled: ");
+					   console.log(compiled); */
 					
 					$("#scripts-bucket").html(compiled(self.info.domains));
 
@@ -127,29 +127,59 @@ function OP () {
 
 					   }); */
 					
-					$(".site-list, .domain-scripts").click(ev => {
+					$(".site-list").click(ev => {
 
 						/* console.log(ev); */
-						console.log(ev.target);
+						//console.log(ev.target);
 
 						var elem;
 						
-						if (ev.target.tagName == "LI")
+						if (ev.target.tagName == "DIV")
+							elem = $(ev.target);
+						else
+							elem = $(ev.target).parent();
+
+						//console.log(elem);
+						
+						if (elem.hasClass("info-shown")) {
+
+							elem.children(".script-list").find(".hidden-elem").hide();
+							elem.removeClass("info-shown");
+							
+						} else {
+							
+							elem.children(".script-list").find(".hidden-elem").show();
+							elem.addClass("info-shown");
+							
+						}
+						
+						/* self.bg.removeScriptFor(id, self.info.name);
+						   $("#" + id).parent().remove(); */
+					});
+
+					$(".script-bucket").click(ev => {
+
+						/* console.log(ev); */
+						//console.log(ev.target);
+
+						var elem;
+						
+						if (ev.target.tagName == "DIV")
 							elem = $(ev.target);
 						else
 							elem = $(ev.target).parent();
 
 						console.log(elem);
 						
-						if (elem.hasClass("info-shown")) {
+						if (elem.hasClass("script-shown")) {
 
-							elem.children("ul").find(".hidden-elem").hide();
-							elem.removeClass("info-shown");
+							elem.find(".hidden-script").hide();
+							elem.removeClass("script-shown");
 							
 						} else {
 							
-							elem.children("ul").find(".hidden-elem").show();
-							elem.addClass("info-shown");
+							elem.find(".hidden-script").show();
+							elem.addClass("script-shown");
 							
 						}
 						

@@ -99,44 +99,44 @@
 					{{#each this}}
 					<h4> {{name}}</h4>
 					<div id="{{name}}_bucket" class="panel-section">
-						<div class="panel-section domain-scripts">
-							<bdi>/</bdi>
-							<ul class="panel-section-list">
+						<div class="panel-list-item site-list">
+							<bdi class="path-name">/</bdi><br>
+							<div class="script-list">
 								{{#each scripts}}
-								<li class="script-bucket hidden-elem">
-									<bdi class="code-uuid"> SCRIPT {{@index}} </bdi>
+								<div class="script-bucket hidden-elem">
+									<bdi class="code-uuid hidden-elem"> SCRIPT {{@index}} </bdi>
 									<div id="{{uuid}}" class="code-bucket hidden-script">
-										<pre><code class="lang-js"> + {{code}} </code></pre>
-										<div class="btn-panel">
-											<button id="edit-btn_{{uuid}}" class="browser-style mright edit-script"> Edit </button>
-											<button id="remove-btn_{{uuid}}" class="browser-style mright remove-script"> Remove </button>
+										<pre class="hidden-script"><code class="lang-js"> {{code}} </code></pre>
+										<div class="btn-panel hidden-script">
+											<button id="edit-btn_{{uuid}}" class="browser-style mright edit-script hidden-script"> Edit </button>
+											<button id="remove-btn_{{uuid}}" class="browser-style mright remove-script hidden-script"> Remove </button>
 										</div>
 									</div><br>
-								</li>
+								</div>
 								{{/each}}
-							</ul>
+							</div>
 						</div>
-						<ul id="{{name}}_sites" class="panel-section-list">
+						<div id="{{name}}_sites" class="panel-list-item site-list">
 							{{#each sites}}
-							<li class="panel-list-item site-list">
+							<!-- <div class="panel-list-item site-list"> -->
 								<bdi class="path-name">{{url}}</bdi><br>
-								<ul class="panel-section-list">
+								<div class="script-list">
 									{{#each scripts}}
-									<li class="script-bucket hidden-elem">
-										<bdi class="code-uuid"> SCRIPT {{@index}} </bdi>
+									<div class="script-bucket hidden-elem">
+										<bdi class="code-uuid hidden-elem"> SCRIPT {{@index}} </bdi>
 										<div id="{{uuid}}" class="code-bucket hidden-script">
-											<pre><code class="lang-js"> + {{code}} </code></pre>
-											<div class="btn-panel">
-												<button id="edit-btn_{{uuid}}" class="browser-style mright edit-script"> Edit </button>
-												<button id="remove-btn_{{uuid}}" class="browser-style mright remove-script"> Remove </button>
+											<pre class="hidden-script"><code class="lang-js"> {{code}} </code></pre>
+											<div class="btn-panel hidden-script jsload-button">
+												<button id="edit-btn_{{uuid}}" class="browser-style edit-script hidden-script"> Edit </button>
+												<button id="remove-btn_{{uuid}}" class="browser-style remove-script hidden-script"> Remove </button>
 											</div>
 										</div><br>
-									</li>
+									</div>
 									{{/each}}
-								</ul>
-							</li>
+								</div>
+							<!-- </div> -->
 							{{/each}}
-						</ul>
+						</div>
 					</div>
 					{{/each}}
 					

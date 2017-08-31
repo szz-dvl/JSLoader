@@ -49,6 +49,8 @@ function Editor () {
 					fontSize: self.opts.fontSize + "pt"
 				});
 
+				self.editor.focus();
+
 				/* self.editor.selection.moveCursorToPosition({row: 2, column: 0});
 				   self.editor.selection.selectLine(); */
 				

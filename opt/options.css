@@ -1,5 +1,6 @@
 html, body {
 	width: 100%;
+	/* flex-direction: column !important; */
 }
 
 #content {
@@ -65,10 +66,29 @@ html, body {
 	
 }
 
+/* .panel-section-formElements { */
+
+/* 	display: block !important; */
+/* 	/\* flex-direction: row !important; *\/ */
+
+/* } */
+
+/* .panel-formElements-item { */
+
+/* 	/\* flex-direction: row !important; *\/ */
+/* 	display: block !important; */
+/* } */
+label:after {
+
+	content: '\a';
+	white-space: pre;
+
+}
+
 div {
 
-	/* flex-direction: row !important; */
-	/* display: block !important; */
+	/* flex-direction: column !important; */
+	display: block !important;
 
 }
 
@@ -90,8 +110,7 @@ ul {
 
 pre {
 
-	margin-left: 10%;
-	margin-right: 10%;
+	
 }
 
 code {
@@ -111,24 +130,37 @@ code {
 /* 	position: fixed !important; */
 /* } */
 
-/* .btn-panel { */
+table, tbody {
 
-/* 	align: center; */
-/* 	vertical-align: bottom; */
-/* 	text-align: center; */
-/* 	align-self: center; */
+	display: table;
+	
+}
 
-/* } */
+table {
+	
+	padding-left: 50%;
+
+}
+
+pre {
+
+	margin-left: 10%;
+	margin-right: 10%;
+	-webkit-user-select: text;  /* Chrome 49+ */
+	-moz-user-select: text;     /* Firefox 43+ */
+	-ms-user-select: text;      /* No support yet */
+	user-select: text;          /* Likely future */   
+}
 
 .jsload-button {
 
 	/* position: absolute; */
     /* bottom: 2%; */
-	align: center;
-	vertical-align: bottom;
-	text-align: center;
-	align-self: center;
-
+	/* align: center; */
+	/* vertical-align: bottom; */
+	/* text-align: center; */
+	/* align-self: center; */
+	display: inline-block !important;
 }
 
 #theme-selector {

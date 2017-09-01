@@ -37,7 +37,7 @@ Array.prototype.remove = function(from, to) {
 
 };
 
-browser.storage.local.clear();
+//browser.storage.local.clear();
 
 function Storage () {
 

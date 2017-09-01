@@ -37,7 +37,7 @@ Array.prototype.remove = function(from, to) {
 
 };
 
-//browser.storage.local.clear();
+browser.storage.local.clear();
 
 function Storage () {
 
@@ -293,7 +293,7 @@ function Script (opt) {
 function Site (opt) {
 
 	var self = this;
-	
+
 	this.url = opt.url || null;
 	this.parent = opt.parent || null;
 	
@@ -314,39 +314,47 @@ function Site (opt) {
 		
 	};
 
-	this.findScript = function (id) {
+	this.removeScript = function (id) {
+		
+		var i = 0;
 		
 		for (script of self.scripts) {
-			if (script.uuid == id)
-				return script;
-		}
-
-		return null;
-	};
-
-	this.removeScript = function (id) {
-
-		var i = 0;
-
-		for (script of self.scripts) {
-
+			
 			if (script.uuid == id) {
 				self.scripts.remove(i);
+				
+				if (self.isEmpty())
+					self.remove();
+				
 				return;
 			}
 			
 			i ++;
-		}
+		}	
+	};
 
-		if (self.isEmpty())
-			self.parent.removeSite(self.url);
+	this.findS = function (id) {
+               
+        for (script of self.scripts) {
+            if (script.uuid == id)
+                return script;
+        }
+
+        return null;
+    };
+
+	this.remove = function () {
+
+		self.parent.removeSite(self.url);
 		
 	};
 	
 	this.isEmpty = function () {
 
-		return this.scripts.length > 0;
-
+		if (!self.isDomain)
+			return self.scripts.length > 0;
+		else 
+			return self.scripts.length > 0 && self.sites.length > 0;
 	};
 	
 	this.upsertScript = function (literal, uuid) {
@@ -379,21 +387,10 @@ function Domain (opt) {
 
 	if (!opt || !opt.name)
 		return null;
+
+	Site.call(this, {url: "/", parent: this, scripts: opt.scripts});
 	
 	this.name = opt.name;
-
-	if (!this.name)
-		return;
-	
-	this.scripts = [];
-	if (opt.scripts) {
-
-		for (script of opt.scripts) {
-
-			script.parent = this;
-			this.scripts.push(new Script(script));
-		}
-	} 
 
 	this.sites = [];
 	if (opt.sites) {
@@ -413,15 +410,6 @@ function Domain (opt) {
 		return true;
 		
 	};
-
-	this.upsertScript = function (literal, uuid) {
-
-		if (uuid) 	
-			self.findScript(uuid).code = unescape(literal.toString());
-		else 
-			self.scripts.push(new Script({code: unescape(literal.toString() ) } ) );
-		
-	};
 	
 	this.persist = function () {
 		
@@ -429,20 +417,19 @@ function Domain (opt) {
 	};
 	
 	this.remove = function () {
-		
-		self.storage.__getDomains(function(arr) {
-
+	
+		self.storage.__getDomains(arr => {
+			
 			var idx = arr.indexOf(self.name);
-
+			
 			if (idx) {
 				
 				arr.remove(idx);
 				self.storage.__removeDomain(self.name);
 			}
-		});
+		});		
 	};
-
-
+	
 	this.haveScripts = function () {
 		
 		return this.scripts.length > 0;
@@ -455,12 +442,7 @@ function Domain (opt) {
 
 	};
 
-	this.isEmpty = function () {
-
-		return !(this.haveScripts() || this.haveSites());
-
-	};
-	
+	/* !!! */
 	this.has = function(url) {
 		
 		for (site of this.sites) {
@@ -497,7 +479,7 @@ function Domain (opt) {
 
 		for (site of self.sites) {
 
-			var script = site.findScript(id);
+			var script = site.findS(id);
 
 			if (script)
 				return script;
@@ -507,43 +489,48 @@ function Domain (opt) {
 	};
 
 	this.removeScript = function (id) {
-
+		
 		var i = 0;
-
+		
 		for (script of self.scripts) {
-
+			
 			if (script.uuid == id) {
 				self.scripts.remove(i);
-
+				
 				if (self.isEmpty())
 					self.remove();
-
+				
 				return;
 			}
 			
 			i ++;
-		}
-
-		
-		
+		}	
 	};
 
 	this.removeSite = function (url) {
-
-		var i = 0;
-		for (site of self.sites) {
+		
+		if (url != "/") {
+			
+			var i = 0;
+			for (site of self.sites) {
 				
-			if (site.url == url) {
-
-				self.sites.remove(i);
-				
-				if (self.isEmpty())
-					self.remove();
-
-				return;
+				if (site.url == url) {
+					
+					self.sites.remove(i);
+					
+					if (self.isEmpty())
+						self.remove();
+					
+					return;
+				}
 			}
+			
+		} else {
+			
+			self.remove();
+			
 		}
-
+		
 	};
 	
 	this.getEditInfo = function (url) {
@@ -582,6 +569,4 @@ function Domain (opt) {
 			scripts: scripts
 		}
 	};
-
-	
 }

@@ -36,9 +36,6 @@ function Editor () {
 				self.editor_bucket.css("top", "50px");
 				$( "#dropdown-header" ).text("v");
 				
-				if (self.opts.collapsed)
-					self.collapseHeader();
-				
 				self.editor = ace.edit("code_area");
 				self.editor.setShowPrintMargin(self.opts.showPrintMargin);
 				self.editor.renderer.setShowGutter(self.opts.showGutter);
@@ -50,6 +47,9 @@ function Editor () {
 				});
 
 				self.editor.focus();
+
+				if (self.opts.collapsed)
+					self.collapseHeader();
 
 				/* self.editor.selection.moveCursorToPosition({row: 2, column: 0});
 				   self.editor.selection.selectLine(); */

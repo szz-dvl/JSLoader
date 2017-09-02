@@ -70,8 +70,11 @@ function Storage () {
 	};
 
 	this.__remove = function (key) {
+
+		console.log("Removing: " + key);
+		/* this.__set(key, {}); */
 		
-		browser.storage.local.remove(key);
+		browser.storage.local.remove(key).then(null, onError);
 	};
 
 	this.__getDomains = function (cb) {
@@ -108,9 +111,6 @@ function Storage () {
 
 		this.getDomain (domain => {
 			
-			/* console.log("My domain: ");
-			   console.log(domain); */
-			
 			if (Object.keys(domain).length) {	
 				
 				cb(domain);
@@ -119,13 +119,8 @@ function Storage () {
 				
 				self.__getDomains(arr => {
 					
-					/* console.log("Init Array: ");
-					   console.log(arr);
-					   console.log(arr.domains); */
-					
-					/* arr = new Object(); */
 					if (!arr)
-						arr = new Array();
+						arr = [];
 					
 					arr.push(name);
 					
@@ -252,6 +247,7 @@ function Script (opt) {
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || null; // ? opt.enc.toString() : cipher.encode(this.uuid, opt.code);
 	this.parent = opt.parent || null;
+	this.name = opt.name || null; /* To Do */
 	
 	/* console.log("Inner code: ");
 	   console.log(this.code.toString()); */
@@ -276,7 +272,7 @@ function Script (opt) {
 
 	this.remove = function () {
 
-		self.parent.removeScript(self.uuid);
+		return self.parent.removeScript(self.uuid);
 				
 	};
 	
@@ -285,7 +281,8 @@ function Script (opt) {
 		return {
 			
 			uuid: self.uuid,
-			code: self.code
+			code: self.code,
+			name: "To Do"
 		}
 	};
 }
@@ -310,7 +307,7 @@ function Site (opt) {
 
 	this.isDomain = function() {
 
-		return false;
+		return self.url == "/";
 		
 	};
 
@@ -323,14 +320,20 @@ function Site (opt) {
 			if (script.uuid == id) {
 				self.scripts.remove(i);
 				
-				if (self.isEmpty())
+				if (self.isEmpty()) { 
+
 					self.remove();
+					return self.isDomain();
+					
+				}
 				
-				return;
+				return false;
 			}
 			
 			i ++;
-		}	
+		}
+
+		return false;
 	};
 
 	this.findS = function (id) {
@@ -351,32 +354,31 @@ function Site (opt) {
 	
 	this.isEmpty = function () {
 
-		if (!self.isDomain)
-			return self.scripts.length > 0;
+		if (!self.isDomain())
+			return !self.scripts.length;
 		else 
-			return self.scripts.length > 0 && self.sites.length > 0;
+			return !self.parent.scripts.length && !self.parent.sites.length;
 	};
 	
 	this.upsertScript = function (literal, uuid) {
 
 		if (uuid) 	
-			self.findScript(uuid).code = unescape(literal.toString());
+			self.findS(uuid).code = unescape(literal.toString());
 		else 
 			self.scripts.push(new Script({code: unescape(literal.toString() ) } ) );
 		
 	};
 	
 	this.__getDBInfo = function () {
-
-		var scripts = [];
-		
-		for (var i = 0; i < this.scripts.length; i++ ) 
-			scripts.push(this.scripts[i].__getDBInfo());
 		
 		return {
 			
 			url: self.url,
-			scripts: scripts
+			scripts: self.scripts.map(script => {
+				
+				return script.__getDBInfo();
+				
+			})
 		}
 	};
 }
@@ -404,12 +406,6 @@ function Domain (opt) {
 	}
 
 	this.storage = global_storage;
-
-	this.isDomain = function() {
-
-		return true;
-		
-	};
 	
 	this.persist = function () {
 		
@@ -422,9 +418,10 @@ function Domain (opt) {
 			
 			var idx = arr.indexOf(self.name);
 			
-			if (idx) {
+			if (idx >= 0) {
 				
 				arr.remove(idx);
+				self.storage.__setDomains(arr);
 				self.storage.__removeDomain(self.name);
 			}
 		});		
@@ -488,24 +485,24 @@ function Domain (opt) {
 		return null;
 	};
 
-	this.removeScript = function (id) {
-		
-		var i = 0;
-		
-		for (script of self.scripts) {
-			
-			if (script.uuid == id) {
-				self.scripts.remove(i);
-				
-				if (self.isEmpty())
-					self.remove();
-				
-				return;
-			}
-			
-			i ++;
-		}	
-	};
+	/* this.removeScript = function (id) {
+	   
+	   var i = 0;
+	   
+	   for (script of self.scripts) {
+	   
+	   if (script.uuid == id) {
+	   self.scripts.remove(i);
+	   
+	   if (self.isEmpty())
+	   self.remove();
+	   
+	   return;
+	   }
+	   
+	   i ++;
+	   }	
+	   }; */
 
 	this.removeSite = function (url) {
 		
@@ -552,21 +549,20 @@ function Domain (opt) {
 	};
 	
 	this.__getDBInfo = function () {
-
-		var scripts = [];
-		var sites = [];
-		
-		for (var i = 0; i < this.scripts.length; i++ ) 
-			scripts.push(this.scripts[i].__getDBInfo());
-
-		for (var i = 0; i < this.sites.length; i++ ) 
-			sites.push(this.sites[i].__getDBInfo());
 		
 		return {
 			
 			name: self.name,
-			sites: sites,
-			scripts: scripts
+			sites: self.sites.map(site => {
+
+				return site.__getDBInfo();
+
+			}),
+			scripts: self.scripts.map(script => {
+
+				return script.__getDBInfo();
+
+			})
 		}
 	};
 }

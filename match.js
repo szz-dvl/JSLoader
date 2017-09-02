@@ -1,60 +1,51 @@
-"use strict";
+function CS() {
 
-var backup;
-
-browser.runtime.onMessage.addListener(function(request) {
-
+	var self = this;
 	
-	console.log("Content script");
-	/* console.log($("body").html());
-	   console.log(request); */
-	
-	switch(request.action) {
-		case "run":
-
-			var errors = [];
-
-			for (var script of request.scripts) {
+	this.process = function (request) {
+		
+		console.log("Content script");
+		
+		switch(request.action) {
+			case "run":
 				
-				try {
+				var errors = [];
 
-					console.log("Function: " + script);
+				for (var script of request.scripts) {
 					
-					//script();
+					try {
+						
+						(new Function(script)());
+						
+					} catch (err) {
 
-					var f = new Function(script);
-					
-					f();
-					
-				} catch (err) {
-
-					errors.push(err.message);
-
+						errors.push(err.message);
+					}
 				}
-			}
 
-			if (errors.length) {
+				if (errors.length)
+					return Promise.resolve({err: errors});
+				
+				break;
+			case "backup":
 
-				console.log("Content errors.");
-				return Promise.resolve({err: errors});
-			}
-			break;
-		case "backup":
+				self.backup = $("html").html();
+				break;
 
-			backup = $("html").html();
-			break;
+			case "revert":
+				
+				$("html").html(self.backup);
+				break;
+				
+			default:
+				return Promise.reject();
+		}
 
-		case "revert":
+		return Promise.resolve({response: "OK"});
+		
+	};
+}
 
-			/* console.log("reverting: " + backup); */
-			
-			$("html").html(backup);
-			break;
-			
-		default:
-			return Promise.reject();
-	}
+var content_script = new CS();
 
-	return Promise.resolve({response: "OK"});
-	
-});
+browser.runtime.onMessage.addListener(content_script.process);

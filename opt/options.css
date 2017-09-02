@@ -66,6 +66,34 @@ html, body {
 	
 }
 
+.hljs-ln-n::after {
+	content: "  ";
+	white-space: pre;
+}
+
+.hljs-ln-n::before {
+	content: " ";
+	white-space: pre;
+	background-color: #979797;
+}
+
+.hljs-ln-n {
+	font-family: "Courier New, monospace";
+	font-size: 8pt;
+	margin-left: 5px;
+	
+	/* background-color: #474242; */
+	/* color: #F0F0F0; */
+}
+
+.hljs-ln-numbers {
+
+	background-color: #979797;
+	color: #F0F0F0;
+	margin-left: 0 !important;
+}
+
+
 /* .panel-section-formElements { */
 
 /* 	display: block !important; */
@@ -82,7 +110,6 @@ label:after {
 
 	content: '\a';
 	white-space: pre;
-
 }
 
 div {
@@ -107,11 +134,6 @@ ul {
 /*   content: '\a'; */
 /*   white-space: pre; */
 /* } */
-
-pre {
-
-	
-}
 
 code {
 	
@@ -140,6 +162,14 @@ table {
 	
 	padding-left: 50%;
 
+}
+
+.code-uuid {
+	
+	-webkit-user-select: text;  /* Chrome 49+ */
+	-moz-user-select: text;     /* Firefox 43+ */
+	-ms-user-select: text;      /* No support yet */
+	user-select: text;          /* Likely future */
 }
 
 pre {

@@ -43,7 +43,6 @@ function BG_mgr () {
 	
 	this.handle_response = function(response) {
 
-		
 		browser.runtime.sendMessage({
 			message: obj.err ? obj.err : obj.response,
 			err: obj.err ? true : false
@@ -268,8 +267,9 @@ function BG_mgr () {
 	
 	this.showEditor = function (action, cb) {
 
-		/* console.log("Tab before editor: " + currTab); */
-
+		console.log("Tab before editor: ");
+		console.log (self.currTab);
+		
 		self.ignoreChange = true;
 		
 		if (action == "add") {
@@ -290,13 +290,13 @@ function BG_mgr () {
 				
 			).then(response => {
 				
-				this.__openEditor(action, cb);
+				self.__openEditor(action, cb);
 
 			});
 			
 		} else {
 
-			this.__openEditor(action, cb);
+			self.__openEditor(action, cb);
 
 		}
 	};
@@ -381,8 +381,12 @@ function BG_mgr () {
 		
 		global_storage.getDomain(domain => {
 					
-			domain.findScript(uuid).remove();
-			domain.persist();
+			if(!domain.findScript(uuid).remove()) {
+				console.log("Persisting script remove!");
+				domain.persist();
+			} else {
+				console.log("Not persisting script remove!");
+			}
 			
 		}, domain_name);
 	};
@@ -395,12 +399,11 @@ function BG_mgr () {
 	};
 
 	this.storeOptions = function(opts) {
-
+		
 		global_storage.setOptions(opts);
 
-		console.log("Storing opts");
-		if (self.editors.length) 
-			self.editor_msg (-1, "opts", opts.editor);
+		console.log("Storing options!");
+		self.editor_msg (-1, "opts", opts.editor);
 		
 	};
 }

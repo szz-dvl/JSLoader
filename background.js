@@ -7,7 +7,6 @@ function BG_mgr () {
 	this.currTab = null;
 	this.editors = [];
 	this.domains = [];
-	this.options = {};
 	this.eids = 0;
 	
 	global_storage.bg = this;
@@ -326,6 +325,8 @@ function BG_mgr () {
 				domain.getOrCreateSite(url.pathname).upsertScript(literal, uuid);
 			
 			domain.persist();
+
+			self.editor_msg (-1, "script", {uuid: uuid, literal: literal});
 			
 		}, url.hostname);
 		
@@ -402,7 +403,7 @@ function BG_mgr () {
 		
 		global_storage.setOptions(opts);
 
-		console.log("Storing options!");
+		/* console.log("Storing options!"); */
 		self.editor_msg (-1, "opts", opts.editor);
 		
 	};

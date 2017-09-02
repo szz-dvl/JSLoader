@@ -106,7 +106,7 @@ html, body {
 /* 	/\* flex-direction: row !important; *\/ */
 /* 	display: block !important; */
 /* } */
-label:after {
+label.input:after {
 
 	content: '\a';
 	white-space: pre;
@@ -164,13 +164,34 @@ table {
 
 }
 
-.code-uuid {
-	
+label.click {
+
+	width: 85% !important;
+	min-width: 200px;
+	display: inline !important;
+}
+
+.code-uuid, .path-name {
+
 	-webkit-user-select: text;  /* Chrome 49+ */
 	-moz-user-select: text;     /* Firefox 43+ */
 	-ms-user-select: text;      /* No support yet */
 	user-select: text;          /* Likely future */
 }
+
+ul {
+    list-style: none;
+    /* padding: 0px; */
+}
+
+ul li:before
+{
+    content: '';
+	white-space: pre;
+    margin-left: 10%;    /* any design */
+}
+
+
 
 pre {
 

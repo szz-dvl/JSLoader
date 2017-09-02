@@ -37,7 +37,7 @@ Array.prototype.remove = function(from, to) {
 
 };
 
-browser.storage.local.clear();
+//browser.storage.local.clear();
 
 function Storage () {
 
@@ -163,7 +163,7 @@ function Storage () {
 
 				res.domains = [];
 				
-				async.eachSeries(domains, function (domain_name, cb) {
+				async.eachSeries(domains, (domain_name, cb) => {
 
 					self.getDomain(domain => {
 
@@ -172,7 +172,7 @@ function Storage () {
 
 					}, domain_name);
 					
-				}, function () {
+				}, () => {
 					
 					done(res);
 
@@ -195,16 +195,16 @@ function Storage () {
 				case "domains":
 					if (changes[item].newValue)
 						self.bg.domains = changes[item].newValue;
-					else
+					else if (!self.bg.domains)
 						self.bg.domains = [];
 
 					break;
 					
 				case "options":
 					if (changes[item].newValue)
-						self.bg.options = changes[item].newValue;
-					else
-						self.bg.options = {};
+						self.bg.options = new Options(changes[item].newValue);
+					else if (!self.bg.options)
+						self.bg.options = new Options();
 
 					break;
 			}
@@ -219,6 +219,13 @@ var global_storage = new Storage();
 function Options (opt) {
 
 	var self = this;
+
+	this.jsloader = opt.jsloader || {
+
+		uglify: false,
+		uglify_mangle: false,
+		cipher: true
+	};
 	
 	this.editor = opt.editor || {
 
@@ -227,15 +234,16 @@ function Options (opt) {
 		fontSize: 10,
 		collapsed: false,
 		theme: "twilight"
-
 	};
 
 	this.__getDBInfo = function () {
 		
 		return {
 			
-			editor: self.editor
-		}
+			editor: self.editor,
+			jsloader: self.jsloader
+			
+		};
 		
 	};
 }
@@ -247,7 +255,9 @@ function Script (opt) {
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || null; // ? opt.enc.toString() : cipher.encode(this.uuid, opt.code);
 	this.parent = opt.parent || null;
-	this.name = opt.name || null; /* To Do */
+	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
+
+	this.run = opt.code ? new Function(opt.code) : null;
 	
 	/* console.log("Inner code: ");
 	   console.log(this.code.toString()); */
@@ -282,7 +292,7 @@ function Script (opt) {
 			
 			uuid: self.uuid,
 			code: self.code,
-			name: "To Do"
+			name: self.name
 		}
 	};
 }

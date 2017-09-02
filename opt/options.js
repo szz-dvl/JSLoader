@@ -1,15 +1,15 @@
 function OP () {
-
+	
 	var self = this;
 	
 	this.app = angular.module('optionsApp', []);
+	this.__gutterInit;
 	this.editor;
 	this.scripts;
 
 	this.app.controller('editorController', ($scope, data) => {
-
+		
 		self.editor = $scope;
-		$scope.bg = data.bg;
 		
 		$scope.title = "Editor settings";
 		$scope.themes = [
@@ -76,7 +76,7 @@ function OP () {
 
 			ret.editor.theme = $scope.currTheme;
 
-			$scope.bg.storeOptions(ret);
+			self.bg.storeOptions(ret);
 		};
 		
 	});
@@ -85,21 +85,13 @@ function OP () {
 
 		self.scripts = $scope;
 		
-		$scope.bg = data.bg;
 		$scope.domains = data.domains;
-		$scope.opts = data.opts.editor;
 		$scope.title = "Stored scripts"
-		$scope.__gutterInit;
 		
 		$scope.clickSite = function (ev) {
 
-			var elem;
-			
-			if (ev.target.tagName == "LI")
-				elem = $(ev.target);
-			else
-				elem = $(ev.target).parent();
-	
+			var elem = $(ev.currentTarget).parent();
+		
 			if (elem.hasClass("info-shown")) {
 
 				elem.children(".script-list").find(".hidden-elem").hide();
@@ -116,12 +108,7 @@ function OP () {
 
 		$scope.clickScript = function(ev) {
 
-			var elem;
-			
-			if (ev.target.tagName == "LI")
-				elem = $(ev.target);
-			else
-				elem = $(ev.target).parent();
+			var elem = $(ev.currentTarget).parent();
 			
 			if (elem.hasClass("script-shown")) {
 
@@ -140,86 +127,109 @@ function OP () {
 			
 			var id = ev.target.id.split("_").pop();
 			
-			//console.log("Editing " + id);
-			$scope.bg.editScriptFor(id, $(ev.target).data("domain"));
+			self.bg.editScriptFor(id, $(ev.target).data("domain"));
 			
 		};
 		
 		$scope.removeScript = function(ev) {
-			
+					
 			var id = ev.target.id.split("_").pop();
-			
-			/* console.log("Removing " + id); */
-			
-			$scope.bg.removeScriptFor(id, $(ev.target).data("domain"));
-			$("#" + id).parent().remove();
+			var domain_name = $(ev.target).data("domain");
+		
+			var domain = $scope.domains.filter((domain, pos) => {
+				return domain.name == domain_name;
+			})[0];
+
+			var script = domain.findScript(id);
+	
+			if(!script.remove()) {
+					
+				domain.persist();
+				
+			} else {
+
+				$scope.domains.remove($scope.domains.findIndex(domain => {
+					
+					return domain.name == domain_name;
+					
+				}));
+			}
 		};
 
 		$scope.highLightCode = function() {
-
 			
 			$('code').each(function(i, block) {			
 				hljs.highlightBlock(block);
 				
-				if ($scope.opts.showGutter) {
+				if (self.opts.showGutter) {
 					
 					hljs.lineNumbersBlock(block);
-					$scope.__gutterInit = true;
+					self.__gutterInit = true;
 				}
 				
 			});
 			
-			$('code').css("font-size", $scope.opts.fontSize + "pt");
+			$('code').css("font-size", self.opts.fontSize + "pt");
 		};
 		
 	});
 
 	this.newSettings = function(response) {
 
-		if (response.action == "opts") {
+		switch (response.action) {
 			
-			console.log("New settings: ");
-			console.log(response.message);
-			
-			$('code').css("font-size", response.message.fontSize + "pt");
-			
-			if (response.message.showGutter) {
-
-				if (self.scripts.__gutterInit) {
+			case "opts":
+				
+				$('code').css("font-size", response.message.fontSize + "pt");
+				
+				if (response.message.showGutter) {
 					
-					$(".hljs-ln-numbers").show();
+					if (self.__gutterInit) {
+						
+						$(".hljs-ln-numbers").show();
+						
+					} else {
+						
+						
+						$('code').each(function(i, block) {
+							hljs.lineNumbersBlock(block);
+						});
+						
+
+						self.__gutterInit = true;
+					}
 					
 				} else {
-
-
-					$('code').each(function(i, block) {
-						hljs.lineNumbersBlock(block);
-					});
 					
+					$(".hljs-ln-numbers").hide();
 
-					self.scripts.__gutterInit = true;
 				}
-				
-			} else {
-				
-				$(".hljs-ln-numbers").hide();
 
-			}
+				self.opts = response.message;
+				break;
+				
+			case "script":
 
-			self.scripts.opts = response.message;
+				$("#" + response.message.uuid).find("code").text(response.message.literal);
+				break;
+
+			default:
+				break;
 		}
 	};
 
 	/* Init */
 	browser.runtime.getBackgroundPage().then(page => {
 		
-		var bg = page.bg_manager;
+		self.bg = page.bg_manager;
 		
-		bg.getOptPage().then(info => {
+		self.bg.getOptPage().then(info => {
 			
 			angular.element(document).ready( () => {
 				
-				self.app.constant('data', {bg: bg, opts: info.opts, domains: info.domains});
+				self.opts = info.opts.editor;
+				
+				self.app.constant('data', {opts: info.opts, domains: info.domains});
 				
 				angular.bootstrap(document, ['optionsApp']);
 				

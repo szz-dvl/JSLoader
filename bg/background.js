@@ -10,6 +10,13 @@ function BG_mgr () {
 	this.eids = 0;
 	
 	global_storage.bg = this;
+
+	global_storage.__getDomains(function (new_domains) {
+
+		if (new_domains)
+			self.domains = new_domains;
+		
+	});
 	
 	this.editor_msg = function(eid, action, msg, err) {
 
@@ -44,57 +51,91 @@ function BG_mgr () {
 	
 	this.update = function (tabId, changeInfo, tabInfo) {
 
-		domain_mgr.getScriptsForUrl(new URL(tabInfo.url)).
-			then(scripts => {
+		if (self.domains.length) {
 
-				window.setTimeout(() => {
+			for (domain of self.domains) {
 				
-					browser.tabs.sendMessage(
-						
-						parseInt(tabId),
-						{scripts: sources.map(script => {
-							
-							return script.get();
-							
-						}), action: "run"}
-						
-					).then(response => {
-						
-						if (response.err)
-							onError(response.err);
-						
-					}, onError);
+				if ( tabInfo.url.indexOf(domain) >= 0) {
 					
-				}, 500);
-				
-			});
+					global_storage.getDomain(full_domain => {
+
+						var url = new URL(tabInfo.url);
+						var sources = full_domain.scripts;
+						var site = full_domain.has(url.pathname);
+						
+						if (site) 
+							sources = sources.concat(site.scripts);
+						
+						if (sources.length) {
+							
+							window.setTimeout(function() {
+								
+								browser.tabs.sendMessage(
+									
+									parseInt(tabId),
+									{scripts: sources.map(script => {
+
+										return script.get();
+										
+									}), action: "run"}
+									
+								).then(response => {
+
+									if (response.err)
+										onError(response.err);
+									
+								}, onError);
+								
+							}, 500);
+						}
+						
+					}, domain);
+				}
+			}
+		}
 	};
-	
+
 	this.__showPageAction = function (tabInfo) {
 
-		domain_mgr.haveInfoForUrl(new URL(tabInfo.url)).
-			then(any => {
+		for (domain of self.domains) {
+			
+			if ( tabInfo.url.indexOf(domain) >= 0) {
 				
-				if (any)
-					browser.pageAction.show(tabInfo.id);
-				
-			});
+				global_storage.getDomain(full_domain => {
+					
+					var url = new URL(tabInfo.url);
+					
+					if (full_domain.haveScripts() || full_domain.has(url.pathname))
+						browser.pageAction.show(tabInfo.id);
+					
+				}, domain);
+			}
+		}
 	};
-
 	
 	this.getMyScripts = function () {
+		
+		return new Promise (function (resolve, reject) {
 
-		/* Deprecated */
-		return domain_mgr.getEditInfoForUrl(new URL(self.currTab.url));
+			var url = new URL(self.currTab.url);
+					
+			global_storage.getDomain(full_domain => {
+				
+				resolve(full_domain.getEditInfo(url.pathname));
+				
+			}, url.hostname);
+				
+			
+		});
 	};
 
 	this.getOptPage = function () {
 		
 		return new Promise (function (resolve, reject) {
 			
-			domain_mgr.getFullDomains(arr => {
+			global_storage.getOptAndDomains(info => {
 				
-				resolve({domains: arr, opts: option_mgr.getCurrent()});
+				resolve(info);
 				
 			});
 		});
@@ -351,11 +392,12 @@ function BG_mgr () {
 		}, domain_name);
 	};
 
-	/* this.openOptions = function() {
+	this.openOptions = function() {
 
-	   browser.runtime.openOptionsPage();
-	   
-	   }; */
+		/* console.log("Openning options!"); */
+		browser.runtime.openOptionsPage();
+		
+	};
 
 	this.storeOptions = function(opts) {
 		

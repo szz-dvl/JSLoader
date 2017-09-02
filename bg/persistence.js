@@ -151,38 +151,38 @@ function Storage () {
 		this.__set('options', val);
 	};
 
-	/* this.getOptAndDomains = function (done) {
+	this.getOptAndDomains = function (done) {
 
-	   var res = {};
-	   
-	   this.getOptions(opts => {
+		var res = {};
+		
+		this.getOptions(opts => {
 
-	   res.opts = opts;
-	   
-	   self.__getDomains(domains => {
+			res.opts = opts;
+			
+			self.__getDomains(domains => {
 
-	   res.domains = [];
-	   
-	   async.eachSeries(domains, (domain_name, cb) => {
+				res.domains = [];
+				
+				async.eachSeries(domains, (domain_name, cb) => {
 
-	   self.getDomain(domain => {
+					self.getDomain(domain => {
 
-	   res.domains.push(domain);
-	   cb();
+						res.domains.push(domain);
+						cb();
 
-	   }, domain_name);
-	   
-	   }, () => {
-	   
-	   done(res);
+					}, domain_name);
+					
+				}, () => {
+					
+					done(res);
 
-	   });
-	   
-	   });
+				});
+				
+			});
 
-	   });
+		});
 
-	   }; */
+	};
 	
 	this.__emmitChanges = function (changes, area) {
 
@@ -448,8 +448,9 @@ function Domain (opt) {
 		return this.sites.length > 0;
 
 	};
-	
-	this.haveSite = function(url) {
+
+	/* !!! */
+	this.has = function(url) {
 		
 		for (site of this.sites) {
 				
@@ -463,7 +464,7 @@ function Domain (opt) {
 
 	this.getOrCreateSite = function (url) {
 
-		var site = this.haveSite(url);
+		var site = this.has(url);
 		var n;
 		
 		if (site)
@@ -493,6 +494,25 @@ function Domain (opt) {
 
 		return null;
 	};
+
+	/* this.removeScript = function (id) {
+	   
+	   var i = 0;
+	   
+	   for (script of self.scripts) {
+	   
+	   if (script.uuid == id) {
+	   self.scripts.remove(i);
+	   
+	   if (self.isEmpty())
+	   self.remove();
+	   
+	   return;
+	   }
+	   
+	   i ++;
+	   }	
+	   }; */
 
 	this.removeSite = function (url) {
 		
@@ -524,7 +544,7 @@ function Domain (opt) {
 
 		/* The domain must have @url */
 
-		var my_site = self.haveSite(url);
+		var my_site = self.has(url);
 
 		if (my_site)
 			my_site = my_site.__getDBInfo();

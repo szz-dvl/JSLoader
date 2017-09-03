@@ -15,7 +15,15 @@
     },
 	
 	"background": {
-		"scripts": ["deps/async.min.js", "persistence.js", "background.js"]
+		"scripts": [
+			"bg/deps/async.min.js",
+			"bg/model.js",
+			"bg/persistence.js",
+			"bg/tab_mgr.js",
+			"bg/editor_mgr.js",
+			"bg/domain_mgr.js",
+			"bg/option_mgr.js",
+			"bg/background.js"]
 	},
 
 	"browser_action": {
@@ -31,24 +39,24 @@
 	"content_scripts": [
 		{
 			"matches": ["*://*/*"],
-			"js": ["deps/jquery.min.js", "match.js"]
+			"js": ["fg/deps/jquery.min.js", "fg/content_script.js"]
 		}
 	],
 
 	"page_action": {
 		"browser_style": true,
 		"default_icon": {
-			"16": "icons/Diskette_16.png",
-			"32": "icons/Diskette_32.png"
+			"16": "fg/icons/Diskette_16.png",
+			"32": "fg/icons/Diskette_32.png"
 		},
 		
-		"default_popup": "edit/edit.html"
+		"default_popup": "fg/page_action/pa.html"
 	},
 	
 	"options_ui": {
 		"browser_style": true,
 		"open_in_tab": true,
-		"page": "opt/options.html"
+		"page": "fg/opt_page/options.html"
 	},
 
 	"commands": {

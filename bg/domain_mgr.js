@@ -78,7 +78,9 @@ function DomainMgr (bg) {
 				if ( url.hostname == domain_name ) {
 
 					self.storage.getDomain(domain => {
-	
+						console.log ("Domain: ");
+						console.log (domain);
+						
 						var site = domain.haveSite(url.pathname);
 
 						if (site)
@@ -97,33 +99,18 @@ function DomainMgr (bg) {
 	};
 
 	this.createScriptForUrl = function (url) {
-
+		
 		return new Promise ((resolve, reject) => {
+		
+			self.storage.getOrCreateDomain(domain => {
 
-			for (domain_name of self.domains) {
-
-				if ( url.hostname == domain_name ) {
-					
-					self.storage.getDomain(domain => {
-					
-						if (domain) {
-
-							var parent = domain.getOrCreateSite(url.pathname);
-			
-							resolve(parent.createScript());
-							
-						} else {
-							reject(new URIError("Domain info not found for known domain name."));
-						}
+				console.log("New Script: ");
+				console.log(domain);
+				
+				resolve(domain.getOrCreateSite(url.pathname).createScript());
 						
-					}, domain_name);
-
-				}
-			}
-
-			var parent = self.__createParentFor(url);
+			}, url.hostname);
 			
-			resolve(parent.createScript());
 		});
 	};
 

@@ -1,0 +1,232 @@
+html, body {
+	width: 100%;
+	/* flex-direction: column !important; */
+}
+
+#content {
+	width: 100%;
+	height: 100%;
+	display: block !important;
+	/* text-align: centre; */
+	/* position: fixed !important; */
+}
+
+/* .panel { */
+/* 	margin: 5px; */
+/* } */
+
+.hidden-elem {
+	display: none;
+	/* visibility: hidden; */
+}
+
+.hidden-script {
+	display: none;
+	/* visibility: hidden; */
+}
+
+/* .panel-list-item { */
+/* 	align-items: left; */
+/* 	flex-direction: column !important; */
+/* 	/\* position: relative !important; *\/ */
+/* 	display: block !important; */
+/* } */
+
+/* .panel-section-list { */
+/* 	align-items: left !important;  */
+/* 	flex-direction: column !important; */
+/* 	display: block !important; */
+/* } */
+
+.item-wrapper {
+
+	display: block !important;
+}
+
+.path-name {
+
+	display: block !important; 
+	width: 100%;
+	/* min-width: 200px; */
+	align: left;
+	text-align: left;
+}
+
+.site-list {
+
+	display: block !important; 
+	min-width: 200px;
+	align: left;
+	text-align: left;
+}
+
+.btn-panel {
+
+	display: inline-block !important;
+	
+}
+
+.hljs-ln-n::after {
+	content: "  ";
+	white-space: pre;
+}
+
+.hljs-ln-n::before {
+	content: " ";
+	white-space: pre;
+	background-color: #979797;
+}
+
+.hljs-ln-n {
+	font-family: "Courier New, monospace";
+	font-size: 8pt;
+	margin-left: 5px;
+	
+	/* background-color: #474242; */
+	/* color: #F0F0F0; */
+}
+
+.hljs-ln-numbers {
+
+	background-color: #979797;
+	color: #F0F0F0;
+	margin-left: 0 !important;
+}
+
+
+/* .panel-section-formElements { */
+
+/* 	display: block !important; */
+/* 	/\* flex-direction: row !important; *\/ */
+
+/* } */
+
+/* .panel-formElements-item { */
+
+/* 	/\* flex-direction: row !important; *\/ */
+/* 	display: block !important; */
+/* } */
+label.input:after {
+
+	content: '\a';
+	white-space: pre;
+}
+
+div {
+
+	/* flex-direction: column !important; */
+	display: block !important;
+
+}
+
+ul {
+
+	display: block !important;
+
+}
+/* .list-bucket { */
+
+/* 	padding-left: 50px; */
+
+/* } */
+
+/* ul:before { */
+/*   content: '\a'; */
+/*   white-space: pre; */
+/* } */
+
+code {
+	
+	width: 100%;
+	max-height: 400px;
+	overflow-y: scroll;
+	overflow-x: scroll;
+}
+/* .inner-list { */
+/* 	position: relative !important; */
+/* 	display: block !important; */
+/* } */
+
+/* nav { */
+/* 	display: block !important; */
+/* 	position: fixed !important; */
+/* } */
+
+table, tbody {
+
+	display: table;
+	
+}
+
+table {
+	
+	padding-left: 50%;
+
+}
+
+label.click {
+
+	width: 85% !important;
+	min-width: 200px;
+	display: inline !important;
+}
+
+.code-uuid, .path-name {
+
+	-webkit-user-select: text;  /* Chrome 49+ */
+	-moz-user-select: text;     /* Firefox 43+ */
+	-ms-user-select: text;      /* No support yet */
+	user-select: text;          /* Likely future */
+}
+
+ul {
+    list-style: none;
+    /* padding: 0px; */
+}
+
+ul li:before
+{
+    content: '';
+	white-space: pre;
+    margin-left: 10%;    /* any design */
+}
+
+
+
+pre {
+
+	margin-left: 10%;
+	margin-right: 10%;
+	-webkit-user-select: text;  /* Chrome 49+ */
+	-moz-user-select: text;     /* Firefox 43+ */
+	-ms-user-select: text;      /* No support yet */
+	user-select: text;          /* Likely future */   
+}
+
+.jsload-button {
+
+	/* position: absolute; */
+    /* bottom: 2%; */
+	/* align: center; */
+	/* vertical-align: bottom; */
+	/* text-align: center; */
+	/* align-self: center; */
+	display: inline-block !important;
+}
+
+#theme-selector {
+
+	margin-right: 10px;
+
+}
+
+#form-container {
+
+	margin-left: 30px;
+
+}
+
+.mright {
+
+	margin-right: 5px;
+}

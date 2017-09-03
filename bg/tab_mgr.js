@@ -1,10 +1,12 @@
 function JSLTab (tabInfo, parent) {
 
 	var self  = this;
-	
-	this.assing(tabInfo);
+
+	Object.assign(this, tabInfo);
+
 	this.parent = parent;
-	this.url = new Url(this.url);
+	this.url = new URL(this.url);
+	this.id = parseInt(this.id);
 	this.editor;
 
 	self.parent.tabs.push(this);
@@ -116,17 +118,32 @@ function TabMgr (bg) {
 	var self = this;
 
 	this.bg = bg;
-	this.tabs = []
+	this.tabs = [];
+
+	this.getTabAt = function (url) {
+
+		return new Promise ((resolve, reject) => {
+			
+			browser.tabs.query({url: url.href})
+				.then(tab_info => {
+							
+					resolve (new JSLTab(tab_info[0], self));
+						
+				}, reject);
+		});
+
+
+	};
 	
 	this.getTabFor = function (url) {
-
+		
 		for (tab of self.tabs) {
 			
 			if (tab.url.match(url))
 				return tab;
 		}
 		
-		return null;
+		return false;
 	};
 
 	this.getOrCreateTabFor = function (url) {
@@ -140,7 +157,7 @@ function TabMgr (bg) {
 					
 			browser.tabs.create({url: url.href}).then(tab => {
 				
-				resolve({tab: new JSLTab(self, tab), created: true});
+				resolve({tab: new JSLTab(tab, self), created: true});
 					
 			}, reject);
 		});
@@ -171,7 +188,7 @@ function TabMgr (bg) {
 		console.log("Tab " + tabId + " updating, changes: ");
 		console.log(changeInfo);
 		
-		domain_mgr.getScriptsForUrl(url).then(scripts => {
+		self.bg.domain_mgr.getScriptsForUrl(url).then(scripts => {
 
 			if (scripts) {
 				
@@ -202,13 +219,12 @@ function TabMgr (bg) {
 			
 			browser.tabs.query({currentWindow: true, active: true})
 				.then(tab_info => {
-							
-					browser.tabs.get(tab_info.tabId).then(tab => {
-						
-						resolve (new JSLTab(self, tab));
-						
-					}, reject);
+
+					// console.log("currentTab: ");
+					// console.log(tab_info);
 					
+					resolve (new JSLTab(tab_info[0], self));
+						
 				}, reject);
 		});
 		

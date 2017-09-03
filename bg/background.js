@@ -2,13 +2,20 @@
 function BG_mgr () {
 
 	var self = this;
-	
-	this.editor_mgr = new EditorMgr(this);
-	this.domain_mgr = new DomainMgr(this);
-	this.tab_mgr = new TabMgr(this);
-	this.option_mgr = new OptionMgr(this);
 
-	this.app = angular.module('JSLoaderApp', []);
+	this.tab_mgr = new TabMgr(self);
+	this.domain_mgr = new DomainMgr(self);
+	this.option_mgr = new OptionMgr(self);
+	this.editor_mgr = new EditorMgr(self);
+	
+	this.fg = {
+		
+		ba: null,
+		pa: null,
+		op: null
+	}
+	
+	//this.app = angular.module('JSLoaderApp', []);
 	
 	//global_storage.bg = this;
 	
@@ -45,18 +52,21 @@ function BG_mgr () {
 	
 	
 	this.__showPageAction = function (tabInfo) {
-
-		var url = new Url(tabInfo[0].url);
 		
-		if (["http:", "https:"].indexOf(url.protocol) >= 0) {
+		browser.tabs.get(tabInfo.tabId).then(tab => {
 			
-			self.domain_mgr.haveInfoForUrl(url).then(any => {
+			var url = new URL(tab.url);
+			
+			if (["http:", "https:"].indexOf(url.protocol) >= 0) {
 				
-				if (any)
-					browser.pageAction.show(tabInfo.id);
-				
-			});
-		}
+				self.domain_mgr.haveInfoForUrl(url).then(any => {
+					
+					if (any)
+						browser.pageAction.show(tab.id);
+					
+				});
+			}
+		});
 	};
 
 	

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link rel="stylesheet" href="options.css"/>
+		<link rel="stylesheet" href="../deps/highlightjs/default.min.css">
+		<link rel="stylesheet" href="chrome://browser/content/extension.css">
+		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"> -->
+		
+		<script src="../deps/jquery.min.js"></script>
+		<script src="../deps/highlightjs/highlight.min.js"></script>
+		<script src="../deps/highlightjs-line-numbers.min.js"></script>
+		<!-- <script src="../deps/handlebars.js"></script> -->
+		<script src="../deps/angular.min.js"></script>
+		
+		<script src="options.js"></script>
+		
+	</head>
+	
+	<body>
+
+		<div id="content" class="panel-section">
+
+			<div ng-controller="editorController as editor" class="panel-section" ng-cloak>
+				
+				<div class="panel-section" >
+					<div id="settings_head" class="panel-section panel-section-header">
+						<div class="text-section-header"> {{title}} </div>
+					</div>
+				</div><br>
+				
+				<div id="form-container" class="panel-section">
+					
+					<form ng-submit="updtOpts()">
+						
+						<label ng-repeat="opt in boolOpts" class="input">
+							<input type="checkbox" ng-model="opt.value">
+							<span>{{opt.text}}</span>
+						</label><br>
+
+						<label ng-repeat="opt in textOpts" class="input">
+							<span>{{opt.text}}: </span>
+							<input type="text" ng-model="opt.value">
+						</label><br>
+
+						<label class="input">
+							<span> Editor theme: </span>
+							<select ng-model="currTheme" ng-options="theme for theme in themes" ></select><br><br>
+						</label><br><br>
+						
+						<input type="submit" value="Save Options" class="browser-style jsload-button">
+						
+					</form>
+					
+				</div>
+				
+			</div> <!-- editorController -->
+			
+			<div ng-controller="scriptsController" class="panel-section" ng-cloak>
+
+				<div class="panel-section" >
+					<div id="scripts_head" class="panel-section panel-section-header">
+						<div class="text-section-header">{{title}}</div>
+					</div>
+				</div><br>
+				
+				<div class="panel-section" ng-repeat="domain in domains">
+					
+					<h4> {{domain.name}} </h4>
+						
+						<ul> 
+
+							<li class="site-list" ng-if="domain.scripts.length">
+
+								<label class="click" ng-click="clickSite($event)">
+									<bdi class="path-name">/</bdi>
+								</label>
+								
+								<ul class="script-list"> 
+									
+									<li class="script-bucket hidden-elem" ng-repeat="script in domain.scripts"> 
+
+										<label class="click" ng-click="clickScript($event)">
+											<bdi id="{{script.name}}" class="code-uuid hidden-elem"> {{script.name}} </bdi>
+										</label>
+										
+										<div class="code-bucket hidden-script">
+											<pre class="hidden-script"><code class="lang-js"> {{script.code}} </code></pre>
+											<table class="btn-panel hidden-script">
+												<tr align="center">
+													<td class="left">
+														<button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script hidden-script" data-domain="{{domain.name}}" ng-click="editScript($event)"> Edit </button>
+													</td>
+													<td class="right">
+														<button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script hidden-script" data-domain="{{domain.name}}" ng-click="removeScript($event)"> Remove </button>
+													</td>
+												</tr>
+											</table>
+										</div><br>
+									</li>
+									
+								</ul>
+							</li>
+							
+							<li class="site-list" ng-repeat="site in domain.sites" ng-if="site.scripts.length"> 
+
+								<label class="click" ng-click="clickSite($event)">
+									<bdi class="path-name">{{site.url}}</bdi>
+								</label>
+								
+								<ul class="script-list"> 
+									
+									<li class="script-bucket hidden-elem" ng-repeat="script in site.scripts"> 
+
+										<label class="click" ng-click="clickScript($event)">
+											<bdi id="{{script.name}}" class="code-uuid hidden-elem"> {{script.name}} </bdi>
+										</label>
+										
+										<div id="{{script.uuid}}" class="code-bucket hidden-script">
+											<pre class="hidden-script"><code class="lang-js"> {{script.code}} </code></pre>
+											<table class="btn-panel hidden-script">
+												<tr align="center">
+													<td class="left">
+														<button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script hidden-script" data-domain="{{domain.name}}" ng-click="editScript($event)"> Edit </button>
+													</td>
+													<td class="right">
+														<button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script hidden-script" data-domain="{{domain.name}}" ng-click="removeScript($event)"> Remove </button>
+													</td>
+												</tr>
+											</table>
+										</div><br>
+									</li>
+									
+								</ul>
+							</li>
+						</ul>
+					<div class="panel-section-separator"> </div>
+				</div>
+
+				<!-- Dirty trick to highlight code after DOM is ready ==> https://stackoverflow.com/questions/12304291/angularjs-how-to-run-additional-code-after-angularjs-has-rendered-a-template -->
+				<span ng-show="highLightCode()"></span>
+				
+			</div> <!-- scriptsController -->
+		</div> <!-- content -->
+		
+	</body>
+</html>

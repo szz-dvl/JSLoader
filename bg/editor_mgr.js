@@ -19,6 +19,7 @@ function Editor (parent, script, tab) {
 	self.parent.editors.push(this);
 	
 	var createData = {
+
 		type: "panel",
 		state: "normal",
 		url: browser.extension.getURL("editor/editor.html?" + self.id),
@@ -37,14 +38,14 @@ function Editor (parent, script, tab) {
 			
 			else {
 				
-				self.parent.bg.tab_mgr.getOrCreateTabFor(self.script.getUrl())
+				self.parent.bg.tab_mgr.getOrCreateTabFor(self.script.getUrl()) /* scope.target */
 					.then(info => {
 						
 						self.tab = info.tab;
-
+						
 						if (info.created)
 							self.tab.attachEditor(self);
-
+						
 						resolve(self.tab);
 						
 					}, reject);
@@ -53,7 +54,7 @@ function Editor (parent, script, tab) {
 		});
 	};
 	
-	this.runInMyTab() {
+	this.runInMyTab = function () {
 		
 		return new Promise ((resolve, reject) => { 
 			
@@ -67,22 +68,25 @@ function Editor (parent, script, tab) {
 
 	this.editorClose = function() {
 
-		self.tab.deattachEditor().then(response => {
+		return new Promise((resolve, reject) => {
+			
+			self.tab.deattachEditor().then(response => {
 
-			self.parent.editors.remove(
-				self.parent.editors.findIndex(
-					editor => {
-						
-						return editor.id == self.id;
-						
-					});
-			);
+				self.parent.editors.remove(
+					self.parent.editors.findIndex(
+						editor => {
+							
+							return editor.id == self.id;
+							
+						})
+				);
 			
-			resolve(response);
+				resolve(response);
 			
-		}, reject); /* Error handling */		
+			}, reject); /* Error handling */		
+		});
+		
 	};
-	
 }
 
 function EditorMgr (bg) {
@@ -101,21 +105,23 @@ function EditorMgr (bg) {
 	
 	this.openEditorInstance = function (script) {
 
-		/* @script must be present here. */
+		if (!script)
+			return Primose.reject({err: "No script for Editor."});
 
 		return new Promise ((resolve, reject) => {
-			self.bg.tab_mgr.getTabFor(self.script.getUrl())
-				.then(tab => {
 
-					var editor;
+			console.log ("getting tab for: " + script.getUrl() + "bg: ");
+			
+			self.bg.tab_mgr.getTabAt(script.getUrl())
+				.then(tab => {
 					
 					if (tab) {
 						
 						if (tab.editor) {
 							
 							tab.editor.script = script;
-							
 							resolve(tab.editor);
+							
 						}
 						
 						resolve(new Editor(self, script, tab));

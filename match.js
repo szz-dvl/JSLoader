@@ -11,11 +11,12 @@ function CS() {
 				
 				var errors = [];
 
-				for (var script of request.scripts) {
+				for (script of request.scripts) {
 					
 					try {
-						
-						(new Function(script)());
+
+						script.run();
+						/* (new Function(script)()); */
 						
 					} catch (err) {
 
@@ -38,7 +39,7 @@ function CS() {
 				break;
 				
 			default:
-				return Promise.reject();
+				return Promise.reject({err: ["Invalid cmd: " + request.action]});
 		}
 
 		return Promise.resolve({response: "OK"});

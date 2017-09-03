@@ -3,7 +3,7 @@ function DomainArray (domains) {
 	var self = this;
 	
 	Array.call(this);
-
+	
 	domains.forEach(domain => {
 		
 		this.push(domain);
@@ -26,6 +26,20 @@ function DomainArray (domains) {
 					
 		}));
 	};
+
+	this.findScript = function (uuid) {
+
+		for (domain of self) {
+
+			var script = domain.findScript(uuid);
+			
+			if (script)
+				return script;
+			
+		}
+
+		return null;
+	};
 }
 
 function DomainMgr (bg) {
@@ -43,13 +57,25 @@ function DomainMgr (bg) {
 		
 	});
 
+	this.__createParentFor = function (url) {
+
+		var parent;
+		
+		if (url.pathname == "/")
+			parent = new Domain ({name: url.hostname });
+		else
+			parent = new Domain ({name: url.hostname, sites: [{name: url.pathname}] }).sites[0];
+
+		return parent;
+	};
+	
 	this.getScriptsForUrl = function (url) {
 
 		return new Promise ((resolve, reject) => {
 
 			for (domain_name of self.domains) {
 
-				if ( url.hostname == domain ) {
+				if ( url.hostname == domain_name ) {
 
 					self.storage.getDomain(domain => {
 	
@@ -67,6 +93,37 @@ function DomainMgr (bg) {
 			}
 
 			resolve(null);
+		});
+	};
+
+	this.createScriptForUrl = function (url) {
+
+		return new Promise ((resolve, reject) => {
+
+			for (domain_name of self.domains) {
+
+				if ( url.hostname == domain_name ) {
+					
+					self.storage.getDomain(domain => {
+					
+						if (domain) {
+
+							var parent = domain.getOrCreateSite(url.pathname);
+			
+							resolve(parent.createScript());
+							
+						} else {
+							reject(new URIError("Domain info not found for known domain name."));
+						}
+						
+					}, domain_name);
+
+				}
+			}
+
+			var parent = self.__createParentFor(url);
+			
+			resolve(parent.createScript());
 		});
 	};
 
@@ -93,6 +150,7 @@ function DomainMgr (bg) {
 
 	};
 
+	/* !!! */
 	this.getEditInfoForUrl = function (url) {
 
 		return new Promise ((resolve, reject) => {

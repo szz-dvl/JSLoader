@@ -37,6 +37,12 @@ Array.prototype.remove = function(from, to) {
 
 };
 
+Url.prototype.match = function(url) {
+
+	return this.pathname == url.pathname && this.hostname == url.hostname;
+
+};
+
 //browser.storage.local.clear();
 
 function Storage () {
@@ -285,13 +291,28 @@ function Script (opt) {
 		return self.parent.removeScript(self.uuid);
 				
 	};
+
+	this.ensureExecutable = function () {
+
+		if (!self.run)
+			self.run = new Function(self.code);
+		
+		return self;
+
+	};
+
+	this.updateExecutable = function () {
+
+		self.run = new Function(self.code);
+			
+	};
 	
 	this.__getDBInfo = function () {
 
 		return {
 			
 			uuid: self.uuid,
-			code: self.code,
+			code: self.run.toString(),
 			name: self.name
 		}
 	};
@@ -333,7 +354,7 @@ function Site (opt) {
 				if (self.isEmpty()) { 
 
 					self.remove();
-					return self.isDomain();
+					return self.isDomain(); /* self.parent.persist() !!!*/
 					
 				}
 				
@@ -369,7 +390,7 @@ function Site (opt) {
 		else 
 			return !self.parent.scripts.length && !self.parent.sites.length;
 	};
-	
+
 	this.upsertScript = function (literal, uuid) {
 
 		if (uuid) 	
@@ -475,7 +496,34 @@ function Domain (opt) {
 		
 		return n;
 	};
+	
+	this.getOrCreateScript = function (code, uuid) {
 
+		
+		var script;
+		var literal = code ? unescape(code.toString()) : "";
+
+		if (uuid) {
+			script = self.findScript(uuid);
+
+			/* Must never happen */
+			if (!script) { 	
+
+				script = new Script({ code: literal, uuid: uuid } );
+				self.scripts.push(script);
+
+			}
+			
+		} else {
+			
+			script = new Script({ code: literal } );
+			self.scripts.push(script);
+		}
+		
+		return script;
+		
+	};
+	
 	this.findScript = function (id) {
 
 		for (script of self.scripts) {

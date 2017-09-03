@@ -2,12 +2,11 @@ function OP () {
 	
 	var self = this;
 	
-	this.app = angular.module('optionsApp', []);
 	this.__gutterInit;
 	this.editor;
 	this.scripts;
-
-	this.app.controller('editorController', ($scope, data) => {
+	
+	this.editorController = function ($scope) {
 		
 		self.editor = $scope;
 		
@@ -50,16 +49,16 @@ function OP () {
 			"vibrant_ink",
 			"xcode"];
 		
-		$scope.currTheme = data.opts.editor.theme;
+		$scope.currTheme = self.data.opts.editor.theme;
 		
 		$scope.boolOpts = [
-			{text:'Print margin line', value: data.opts.editor.showPrintMargin, id: "showPrintMargin"},
-			{text:'Collapse header by default', value: data.opts.editor.collapsed, id: "collapsed"},
-			{text:'Show gutter line', value: data.opts.editor.showGutter, id: "showGutter"}
+			{text:'Print margin line', value: self.data.opts.editor.showPrintMargin, id: "showPrintMargin"},
+			{text:'Collapse header by default', value: self.data.opts.editor.collapsed, id: "collapsed"},
+			{text:'Show gutter line', value: self.data.opts.editor.showGutter, id: "showGutter"}
 		];
 
 		$scope.textOpts = [
-			{text:'Font size', value: data.opts.editor.fontSize, type: "text", id: "fontSize"}
+			{text:'Font size', value: self.data.opts.editor.fontSize, type: "text", id: "fontSize"}
 		];
 		
 		$scope.updtOpts = function() {
@@ -81,11 +80,11 @@ function OP () {
 		
 	});
 
-	this.app.controller('scriptsController', ($scope, data) => {
+	this.scriptsController = function ($scope) {
 
 		self.scripts = $scope;
 		
-		$scope.domains = data.domains;
+		$scope.domains = self.data.domains;
 		$scope.title = "Stored scripts"
 		
 		$scope.clickSite = function (ev) {
@@ -210,9 +209,10 @@ function OP () {
 				
 			case "script":
 
-				$("#" + response.message.uuid).find("code").text(response.message.literal);
+				//$("#" + response.message.uuid).find("code").text(response.message.literal);
+				self.scripts.domains.findScript(response.message.uuid).code = response.message.literal;
 				break;
-
+				
 			default:
 				break;
 		}
@@ -228,10 +228,13 @@ function OP () {
 			angular.element(document).ready( () => {
 				
 				self.opts = info.opts.editor;
+				self.data = info;
 				
-				self.app.constant('data', {opts: info.opts, domains: info.domains});
+				/* self.bg.app.constant('data', {opts: info.opts, domains: info.domains}); */
+				self.bg.app.controller('scriptsController', self.scriptsController);
+				self.bg.app.controller('editorController', self.editorController);
 				
-				angular.bootstrap(document, ['optionsApp']);
+				angular.bootstrap(document, ['JSLoaderApp']);
 				
 			});
 		});

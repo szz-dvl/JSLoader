@@ -8,7 +8,7 @@ function Storage () {
 
 	/* To do cacth error */
 	var self = this;
-	
+
 	this.__get = function (cb, key) {
 		
 		var gettingSites = browser.storage.local.get(key);
@@ -19,7 +19,8 @@ function Storage () {
 			console.log(values[key]);
 
 			cb(values[key]);
-		});
+			
+		}, onError);
 		
 	};
 
@@ -31,15 +32,15 @@ function Storage () {
 		var obj = {};
 		obj[key] = val;
 		
-		browser.storage.local.set(obj).then(null, onError);
+		return browser.storage.local.set(obj);
 	};
 
 	this.__remove = function (key) {
 
 		console.log("Removing: " + key);
-		/* this.__set(key, {}); */
 		
-		browser.storage.local.remove(key).then(null, onError);
+		browser.storage.local.remove(key)
+			.then(null, onError);
 	};
 
 	this.__getDomains = function (cb) {
@@ -50,12 +51,12 @@ function Storage () {
 
 	this.__setDomains = function (val) {
 		
-		this.__set('domains', val);
+		return this.__set('domains', val);
 	};
 
 	this.__upsertDomain = function (name, val) {
 		
-		this.__set('domain-' + name, val);
+		return this.__set('domain-' + name, val);
 	};
 
 	this.getDomain = function (cb, name) {
@@ -76,14 +77,13 @@ function Storage () {
 
 		this.getDomain (domain => {
 
-			
 			if (Object.keys(domain).length) {	
 				
 				cb(domain);
 				
 			} else {
-
-				cb(new Domain({name: name}));
+				
+				cb(new Domain( {name: name} ) );
 			}
 			
 		}, name);
@@ -98,70 +98,8 @@ function Storage () {
 
 	this.setOptions = function (val) {
 
-		self.__set('options', val);
+		return self.__set('options', val);
 	};
-
-	/* this.getOptAndDomains = function (done) {
-
-	   var res = {};
-	   
-	   this.getOptions(opts => {
-
-	   res.opts = opts;
-	   
-	   self.__getDomains(domains => {
-
-	   res.domains = [];
-	   
-	   async.eachSeries(domains, (domain_name, cb) => {
-
-	   self.getDomain(domain => {
-
-	   res.domains.push(domain);
-	   cb();
-
-	   }, domain_name);
-	   
-	   }, () => {
-	   
-	   done(res);
-
-	   });
-	   
-	   });
-
-	   });
-
-	   }; */
-	
-	// this.__emmitChanges = function (changes, area) {
-
-	// 	if (area != "local")
-	// 		return;
-		
-	// 	for (item of Object.keys(changes)) {
-
-	// 		switch (item) {
-	// 			case "domains":
-	// 				if (changes[item].newValue)
-	// 					self.bg.domains = changes[item].newValue;
-	// 				else if (!self.bg.domains)
-	// 					self.bg.domains = [];
-
-	// 				break;
-					
-	// 			case "options":
-	// 				if (changes[item].newValue)
-	// 					self.bg.options = new Options(changes[item].newValue);
-	// 				else if (!self.bg.options)
-	// 					self.bg.options = new Options();
-
-	// 				break;
-	// 		}
-	// 	}
-	// };
-
-	// browser.storage.onChanged.addListener(this.__emmitChanges);
 }
 
 var global_storage = new Storage();

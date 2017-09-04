@@ -1,10 +1,9 @@
 function Options (opt) {
 
 	this.jsloader = opt.jsloader || {
-
+		
 		uglify: false,
-		uglify_mangle: false,
-		cipher: true
+		uglify_mangle: false
 	};
 	
 	this.editor = opt.editor || {
@@ -15,19 +14,7 @@ function Options (opt) {
 		collapsed: false,
 		theme: "twilight"
 	};
-
-	// this.__getDBInfo = function () {
-		
-	// 	return {
-			
-	// 		editor: self.editor,
-	// 		jsloader: self.jsloader
-			
-	// 	};
-		
-	// };
 }
-
 
 function OptionMgr (bg) {
 
@@ -37,10 +24,9 @@ function OptionMgr (bg) {
 	this.storage = global_storage;
 	
 	this.opts = {};
-
 	
 	this.storage.getOptions(new_options => {
-
+		
 		self.opts = new Options(new_options || {});
 		
 	});
@@ -72,7 +58,12 @@ function OptionMgr (bg) {
 	this.setCurrentEditor = function (val) {
 
 		self.opts.editor = val
-		self.storage.setOptions(self.opts);
+		self.storage.setOptions(self.opts)
+			.then(() => {
+
+				self.bg.broadcastEditors(self.opts.editor);
+				
+			});
 		
 	};
 

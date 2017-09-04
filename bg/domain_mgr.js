@@ -2,13 +2,13 @@ function DomainArray (domains) {
 
 	var self = this;
 	
-	Array.call(this);
+	Array.call(this, domains);
 	
-	domains.forEach(domain => {
+	// domains.forEach(domain => {
 		
-		this.push(domain);
+	// 	this.push(domain);
 		
-	});
+	// });
 	
 	this.get = function (domain_name) {
 
@@ -78,8 +78,6 @@ function DomainMgr (bg) {
 				if ( url.hostname == domain_name ) {
 
 					self.storage.getDomain(domain => {
-						console.log ("Domain: ");
-						console.log (domain);
 						
 						var site = domain.haveSite(url.pathname);
 
@@ -99,17 +97,14 @@ function DomainMgr (bg) {
 	};
 
 	this.createScriptForUrl = function (url) {
-		
+	
 		return new Promise ((resolve, reject) => {
 		
 			self.storage.getOrCreateDomain(domain => {
-
-				console.log("New Script: ");
-				console.log(domain);
-				
+						
 				resolve(domain.getOrCreateSite(url.pathname).createScript());
 						
-			}, url.hostname);
+			}, url.hostname || url.href);
 			
 		});
 	};
@@ -168,8 +163,16 @@ function DomainMgr (bg) {
 			done(res);
 			
 		});
-	}
+	};
 
+	this.storeNewDomains = function (changes, action) {
+
+		if (area != "local")
+	 		return;
+
+		if(changes.domains)
+			self.domains = changes.domains.newValue;
+	};
 	
-
+	browser.storage.onChanged.addListener(this.storeNewDomains);
 }

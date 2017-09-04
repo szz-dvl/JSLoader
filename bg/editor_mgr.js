@@ -1,16 +1,21 @@
-function Editor (parent, script, tab) {
+function onError (err) {
+	console.error(err);
+};
+
+function Editor (opt) {
 
 	var self = this;
 
-	this.parent = parent;
-	this.script = script;
+	this.parent = opt.parent;
+	this.script = opt.script;
 	
 	this.id = this.parent.__getEID();
-	this.tab = tab || null;
-
+	this.tab = opt.tab || null;
+	
 	if (this.tab)
-		this.tab.attachEditor(this);
-
+		this.tab.attachEditor(this).then(null, onError);
+	
+	this.mode = opt.mode;
 	this.opts = self.parent.bg.option_mgr.getCurrentEditor();
 	
 	/* if (!this.script)
@@ -20,15 +25,19 @@ function Editor (parent, script, tab) {
 	
 	var createData = {
 
-		type: "panel",
+		type: "popup",
 		state: "normal",
-		url: browser.extension.getURL("editor/editor.html?" + self.id),
+		url: browser.extension.getURL("fg/editor/editor.html?" + self.id),
 		width: 900, /* get wdw width */
 		height: 350 /* 40% height?  */
 	};
 	
-	browser.windows.create(createData); /* get the window from the view better than here. */
-
+	browser.windows.create(createData).then(wdw => {
+		
+		self.wdw = wdw;
+		
+	});
+	
 	this.__getMyTab = function () {
 		
 		return new Promise ((resolve, reject) => {
@@ -54,19 +63,38 @@ function Editor (parent, script, tab) {
 		});
 	};
 	
-	this.runInMyTab = function () {
+	this.runInTab = function () {
+		
+		return new Promise ((resolve, reject) => { 
+			
+			self.__getMyTab().then(
+				tab => {
+					
+					tab.run(self.script)
+						.then(
+							response => {
+								
+								console.log(response);
+								resolve(response);
+								
+							}, reject);
+				});
+		});
+	};
+
+	this.tabToOriginalState = function () {
 		
 		return new Promise ((resolve, reject) => { 
 			
 			self.__getMyTab().then(tab => {
 				
-				tab.run(self.script.ensureRunnable())
+				tab.revertChanges()
 					.then(resolve, reject);
 			});
 		});
 	};
 
-	this.editorClose = function() {
+	this.editorClose = function () {
 
 		return new Promise((resolve, reject) => {
 			
@@ -87,6 +115,20 @@ function Editor (parent, script, tab) {
 		});
 		
 	};
+
+	this.setWdw = function (wdw) {
+
+		self.wdw.child = wdw;
+		self.wdw.child.onbeforeunload = self.editorClose;
+
+	}
+
+	this.updateContent = function () {
+
+		/* URL, script, mode*/
+		console.log("Unimplemented");
+
+	}
 }
 
 function EditorMgr (bg) {
@@ -103,33 +145,17 @@ function EditorMgr (bg) {
 		
 	};
 	
-	this.openEditorInstance = function (script) {
-
-		if (!script)
-			return Primose.reject({err: "No script for Editor."});
+	this.openEditorInstanceForTab = function (tab) {
 
 		return new Promise ((resolve, reject) => {
 
-			console.log ("getting tab for: " + script.getUrl() + "bg: ");
-			
-			self.bg.tab_mgr.getTabAt(script.getUrl())
-				.then(tab => {
-					
-					if (tab) {
+			self.bg.domain_mgr.createScriptForUrl(tab.url)
+				.then(
+					script => {
 						
-						if (tab.editor) {
-							
-							tab.editor.script = script;
-							resolve(tab.editor);
-							
-						}
+						resolve(new Editor({parent: self, script: script, tab: tab, mode: true}));
 						
-						resolve(new Editor(self, script, tab));
-					}
-					
-					resolve(new Editor(self, script));
-					
-				}, reject);
+					}, reject);
 		});
 	};
 

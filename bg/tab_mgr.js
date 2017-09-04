@@ -1,12 +1,23 @@
-function JSLTab (tabInfo, parent) {
+function BaseTab (tabInfo) {
 
-	var self  = this;
-
+	var self = this;
+	
 	Object.assign(this, tabInfo);
-
-	this.parent = parent;
+	
 	this.url = new URL(this.url);
 	this.id = parseInt(this.id);
+	
+	/* Run scripts in content here, either with jsloader or via tabs.executeScript */
+}
+
+
+function JSLTab (tabInfo, parent) {
+	
+	var self  = this;
+	
+	BaseTab.call(this, tabInfo);
+
+	this.parent = parent;
 	this.editor;
 
 	self.parent.tabs.push(this);
@@ -16,22 +27,26 @@ function JSLTab (tabInfo, parent) {
 		return new Promise((resolve, reject) => {
 
 			if (!self.editor)
-				reject ( {err: ["No editor found."]} );
+				reject ( {err: "No editor found."} );
 			else {
-				
+
+				console.log(self.editor.script.code);
 				browser.tabs.sendMessage(
 					
 					self.id,
-					{ action: "run", scripts: [self.editor.script] }
+					{ action: "run", scripts: {arr: [self.editor.script.code]} }
 					
-				).then(response => {
+				).then(
+					response => {
+
+						/* On receiving end does not exists try: tabs.executeScript*/
 					
-					if (response.err)
-						self.editor.errorMsg(response.err);
+						if (response.err)
+							self.editor.message(response.err[0], true);
+						
+						resolve(response);
 					
-					resolve(response);
-					
-				}, reject);
+					}, reject);
 			}
 		});
 	};
@@ -43,20 +58,20 @@ function JSLTab (tabInfo, parent) {
 			/* Must never happen */
 			if (self.editor)
 
-				reject ({err: ["Editor already present."]});
+				reject({err: "Editor already present."});
 			
 			else {
 				
 				browser.tabs.sendMessage(
-				
+					
 					self.id,
 					{ action: "backup" }
 				
 				).then(response => {
-				
+
 					self.editor = editor;
 					
-					response.editor = editor;
+					response.editor = self.editor;
 					resolve(response);
 					
 				}, reject);
@@ -71,13 +86,15 @@ function JSLTab (tabInfo, parent) {
 			/* Must never happen */
 			if (!self.editor)
 
-				reject ({err: ["No editor found."]});
+				reject ({err: "No editor found."});
 			
 			else {
 
 				self.revertChanges().then(response => {
 
 					self.editor = null;
+
+					/* Remove from mgr !!! */
 					resolve(response);
 						
 				}, reject);
@@ -92,7 +109,7 @@ function JSLTab (tabInfo, parent) {
 			/* Must never happen */
 			if (!self.editor)
 
-				reject ({err: ["No editor found."]});
+				reject ({err: "No editor found."});
 			
 			else {
 
@@ -175,18 +192,18 @@ function TabMgr (bg) {
 
 	this.updateTabs = function (tabId, changeInfo, tabInfo) {
 
-		var tab = self.__getTabById(tabId);
+		var tab = self.__getTabById(tabId) || new JSL;
 		var url = new URL(tabInfo.url);
 		
 		if (tab) {
 			
 			if (changeInfo.url) 
-				tab.editor.target = url.hostname + url.pathname;
+				tab.editor.scope.user_action.target = url.hostname + url.pathname;
 
 		}
 
-		console.log("Tab " + tabId + " updating, changes: ");
-		console.log(changeInfo);
+		// console.log("Tab " + tabId + " updating, changes: ");
+		// console.log(changeInfo);
 		
 		self.bg.domain_mgr.getScriptsForUrl(url).then(scripts => {
 
@@ -221,10 +238,15 @@ function TabMgr (bg) {
 				.then(tab_info => {
 
 					// console.log("currentTab: ");
-					// console.log(tab_info);
+					// console.log(tab_info[0]);
+
+					resolve(self.tabs.filter(
+						tab => {
+							
+							return tab.id == tab_info.id;
+							
+						})[0] || new JSLTab(tab_info[0], self));
 					
-					resolve (new JSLTab(tab_info[0], self));
-						
 				}, reject);
 		});
 		

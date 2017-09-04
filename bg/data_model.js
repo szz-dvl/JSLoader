@@ -47,24 +47,12 @@ function Script (opt) {
 	var self = this;
 	
 	this.uuid = opt.uuid || UUID.generate();
-	this.code = opt.code || null; // ? opt.enc.toString() : cipher.encode(this.uuid, opt.code);
+	this.code = opt.code || "/* JS code (jQuery available) ...*/\n";
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
 
 	this.run = opt.code ? new Function(opt.code) : null;
 	
-	/* console.log("Inner code: ");
-	   console.log(this.code.toString()); */
-	
-	this.get = function () {
-
-		/* var res = cipher.decode(this.uuid, this.code.toString());
-		   console.log("Inner DeCoded: ");
-		   console.log(res); */
-		return self.code;//res;
-
-	};
-
 	this.getUrl = function () {
 
 		if (self.parent.isDomain())
@@ -75,35 +63,23 @@ function Script (opt) {
 	};
 
 	this.remove = function () {
-
-		return self.parent.removeScript(self.uuid);
-				
-	};
-
-	this.ensureExecutable = function () {
-
-		if (!self.run)
-			self.run = new Function(self.code);
 		
-		return self;
-
+		self.parent.removeScript(self.uuid);
+		
 	};
 
-	this.updateExecutable = function () {
+	/* ¿¿?? */
+	this.updateCode = function (literal) {
 
+		self.code = literal;
 		self.run = new Function(self.code);
-			
-	};
+	}
 	
-	this.__getDBInfo = function () {
+	this.persist = function () {
 
-		return {
-			
-			uuid: self.uuid,
-			code: self.run.toString(),
-			name: self.name
-		}
-	};
+		self.parent.persist();
+		
+	}
 }
 
 function Site (opt) {
@@ -132,42 +108,45 @@ function Site (opt) {
 
 	this.removeScript = function (id) {
 		
-		var i = 0;
-		
-		for (script of self.scripts) {
-			
-			if (script.uuid == id) {
-				self.scripts.remove(i);
+		self.scripts.remove(
+			self.scripts.findIndex(
+				script => {
 				
-				if (self.isEmpty()) { 
-
-					self.remove();
-					return self.isDomain(); /* self.parent.persist() !!!*/
+					return script.uuid = id;
 					
 				}
-				
-				return false;
-			}
-			
-			i ++;
-		}
+			)
+		);
 
-		return false;
+		if (self.isEmpty()) { 
+
+			self.remove();
+			self.parent.persist();
+					
+		}
+			
 	};
 
-	this.findS = function (id) {
-               
-        for (script of self.scripts) {
-            if (script.uuid == id)
-                return script;
-        }
+	this.findScript = function (id) {
 
-        return null;
+		return self.scripts.filter(
+			script => {
+				
+				return script.uuid = id;
+				
+			}
+		)[0];
     };
 
 	this.remove = function () {
 
 		self.parent.removeSite(self.url);
+		
+	};
+
+	this.persist = function () {
+
+		self.parent.persist();
 		
 	};
 	
@@ -179,42 +158,21 @@ function Site (opt) {
 			return !self.parent.scripts.length && !self.parent.sites.length;
 	};
 
-	this.upsertScript = function (literal, uuid) {
-
-		if (uuid) 	
-			self.findS(uuid).code = unescape(literal.toString());
-		else 
-			self.scripts.push(new Script({code: unescape(literal.toString() ) } ) );
-		
-	};
 
 	this.createScript = function () {
 
 		return new Script({parent: self});
 		
 	}
-	
-	this.__getDBInfo = function () {
-		
-		return {
-			
-			url: self.url,
-			scripts: self.scripts.map(script => {
-				
-				return script.__getDBInfo();
-				
-			})
-		}
-	};
 }
 
 function Domain (opt) {
 
 	var self = this;
-
+	
 	if (!opt || !opt.name)
 		return null;
-
+	
 	Site.call(this, {url: "/", parent: this, scripts: opt.scripts});
 	
 	this.name = opt.name;
@@ -234,7 +192,7 @@ function Domain (opt) {
 	
 	this.persist = function () {
 		
-		self.storage.__upsertDomain(self.name, self.__getDBInfo());
+		self.storage.__upsertDomain(self.name, self);
 	};
 	
 	this.remove = function () {
@@ -289,7 +247,7 @@ function Domain (opt) {
 		
 		n = new Site ({url: url, parent: self});
 		
-		this.sites.push(n);
+		self.sites.push(n);
 		
 		return n;
 	};
@@ -330,7 +288,7 @@ function Domain (opt) {
 
 		for (site of self.sites) {
 
-			var script = site.findS(id);
+			var script = site.findScript(id);
 
 			if (script)
 				return script;
@@ -358,46 +316,11 @@ function Domain (opt) {
 			}
 			
 		} else {
-			
 			self.remove();
-			
 		}
-		
 	};
+
+	// console.log("Done creating Domain: " + opt.name);
+	// console.log(self);
 	
-	this.getEditInfo = function (url) {
-
-		/* The domain must have @url */
-
-		var my_site = self.haveSite(url);
-
-		if (my_site)
-			my_site = my_site.__getDBInfo();
-		
-		return {
-			name: self.name,
-			site: my_site,
-			scripts: self.scripts.map(script => {
-				return script.__getDBInfo();
-			})
-		}
-	};
-	
-	this.__getDBInfo = function () {
-		
-		return {
-			
-			name: self.name,
-			sites: self.sites.map(site => {
-
-				return site.__getDBInfo();
-
-			}),
-			scripts: self.scripts.map(script => {
-
-				return script.__getDBInfo();
-
-			})
-		}
-	};
 }

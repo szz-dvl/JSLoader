@@ -4,42 +4,42 @@ function CS() {
 	
 	this.process = function (request) {
 		
-		console.log("Content script");
-		
 		switch(request.action) {
-			case "run":
-				
-				var errors = [];
+		case "run":
 
-				for (script of request.scripts) {
+			console.log(request.scripts.arr);
+			
+			var errors = [];
+			
+			for (script of request.scripts.arr) {
+				
+				try {
+
+					// script.run();
+					(new Function(script)());
 					
-					try {
+				} catch (err) {
 
-						script.run();
-						/* (new Function(script)()); */
-						
-					} catch (err) {
-
-						errors.push(err.message);
-					}
+					errors.push(err.message);
 				}
+			}
 
-				if (errors.length)
-					return Promise.resolve({err: errors});
-				
-				break;
-			case "backup":
+			if (errors.length)
+				return Promise.resolve({err: errors});
+			
+			break;
+		case "backup":
 
-				self.backup = $("html").html();
-				break;
+			self.backup = $("html").html();
+			break;
 
-			case "revert":
-				
-				$("html").html(self.backup);
-				break;
-				
-			default:
-				return Promise.reject({err: ["Invalid cmd: " + request.action]});
+		case "revert":
+			
+			$("html").html(self.backup);
+			break;
+			
+		default:
+			return Promise.reject({err: "Invalid cmd: " + request.action});
 		}
 
 		return Promise.resolve({response: "OK"});

@@ -1,51 +1,53 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-
-		<meta charset="utf-8">
-		<link rel="stylesheet" href="chrome://browser/content/extension.css"></script>
-		<link rel="stylesheet" href="editor.css"/>
-		<script src="../deps/jquery.min.js"></script>
-		<script src="../deps/shortcut.js"></script>
-		<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-		
-	</head>
+  <head>
 	
-	<body spellcheck=false>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="chrome://browser/content/extension.css">
+	<link rel="stylesheet" href="editor.css"/>
 
-		<bdi id="dropdown-header"> </bdi>
-		<div id="editor-header" class="panel-section panel-section-header">
-			<div class="text-section-header"> JSLoader || 
-				<span>
-					<bdi id="user_action" class="bold"></bdi>
-					<bdi id="url_pattern" contenteditable="true"></bdi>
-				</span>
-			</div>
-		</div>
-		
-		<div id="code_container" class="panel-section">
-			
-			<pre id="code_area" ></pre>
-			
-		</div>
-
-		<!-- <div id="btns_panel" class="panel-section-separator"></div>-->
-		
-		<div id="btns_panel" class="panel-section hidden-elem">
-			
-			<button id="save_btn" class="hidden-elem browser-style mright jsload_button"> Save </button>
-			<button id="test_btn" class="hidden-elem browser-style mright jsload_button"> Run in Page </button>
-			<button id="revert_btn" class="hidden-elem browser-style mright jsload_button"> Revert changes </button>
-			
-		</div>
-
-		<div class="info-container">
-			<bdi id="result-info" class="status-text"></bdi>
-		</div>
-
-		<script src="editor.js"></script>
-		
-	</body>
+	<script src="../deps/jquery.min.js"></script>
+	<script src="../deps/angular.min.js"></script>
 	
+	<script src="../deps/shortcut.js"></script>
+	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+	
+  </head>
+  
+  <body spellcheck=false ng-controller="editorController as editor" ng-cloak>
+	
+	<bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
+	<div id="editor-header" class="panel-section panel-section-header">
+	  <div class="text-section-header"> {{label}} || 
+		<span>
+		  <bdi id="user_action" class="bold"> {{user_action.text}} </bdi>
+		  <bdi id="url_pattern" contenteditable="true">{{user_action.target}}</bdi>
+		</span>
+	  </div>
+	</div>
+	
+	<div id="code_container" class="panel-section">
+	  
+	  <pre id="code_area"> {{script.code}} </pre>
+	  
+	</div>
+		
+	<div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()">
+
+	  <button ng-repeat="button in buttons.arr" id="{{button.id}}" class="hidden-elem browser-style mright jsload_button" ng-click="buttonClick($event)"> {{button.text}} </button>
+	  
+	</div>
+	
+	<div class="info-container">
+	  <bdi id="result-info" class="status-text"> {{error}} </bdi>
+	</div>
+
+	<!-- ¿¿?? -->
+	<span ng-show="onDone()"></span>
+	
+	<script src="editor.js"></script>
+	
+  </body>
+  
 </html>

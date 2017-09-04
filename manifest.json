@@ -17,7 +17,7 @@
 	"background": {
 		"scripts": [
 			"bg/deps/async.min.js",
-			"bg/model.js",
+			"bg/data_model.js",
 			"bg/persistence.js",
 			"bg/tab_mgr.js",
 			"bg/editor_mgr.js",
@@ -33,13 +33,13 @@
 			"32": "icons/Diskette_32.png"
 		},
 
-		"default_popup": "menu/menu.html"
+		"default_popup": "fg/browser_action/ba.html"
 	},
 
 	"content_scripts": [
 		{
 			"matches": ["*://*/*"],
-			"js": ["fg/deps/jquery.min.js", "fg/content_script.js"]
+			"js": ["fg/deps/jquery.min.js", "bg/content_script.js"]
 		}
 	],
 

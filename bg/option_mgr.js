@@ -59,11 +59,13 @@ function OptionMgr (bg) {
 
 		self.opts.editor = val
 		self.storage.setOptions(self.opts)
-			.then(() => {
+			.then(
+				() => {
 
-				self.bg.broadcastEditors(self.opts.editor);
+					self.bg.broadcastEditors({action: "options", message: self.opts.editor});
 				
-			});
+				}
+			);
 		
 	};
 

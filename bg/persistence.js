@@ -28,7 +28,7 @@ function Storage () {
 
 		console.log("Persisting: " + key);
 		console.log(val);
-
+		
 		var obj = {};
 		obj[key] = val;
 		
@@ -45,7 +45,11 @@ function Storage () {
 
 	this.__getDomains = function (cb) {
 		
-		this.__get(cb, 'domains');
+		this.__get(arr => {
+
+			cb(arr || []);
+
+		}, 'domains');
 
 	};
 
@@ -75,18 +79,19 @@ function Storage () {
 
 	this.getOrCreateDomain = function (cb, name) {
 
-		this.getDomain (domain => {
+		this.getDomain (
+			domain => {
 
-			if (Object.keys(domain).length) {	
+				if (Object.keys(domain).length) {	
 				
-				cb(domain);
+					cb(domain);
 				
-			} else {
+				} else {
+					
+					cb(new Domain( {name: name} ) );
+				}
 				
-				cb(new Domain( {name: name} ) );
-			}
-			
-		}, name);
+			}, name);
 		
 	};
 

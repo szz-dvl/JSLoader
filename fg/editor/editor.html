@@ -15,7 +15,7 @@
 	
   </head>
   
-  <body spellcheck=false ng-controller="editorController as editor" ng-cloak>
+  <body spellcheck=false ng-controller="editorController as editor" ng-click="bodyClick($event)" ng-cloak> <!-- ng-angular-ready -->
 	
 	<bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
 	<div id="editor-header" class="panel-section panel-section-header">
@@ -42,12 +42,8 @@
 	<div class="info-container">
 	  <bdi id="result-info" class="status-text"> {{error}} </bdi>
 	</div>
-
-	<!-- ¿¿?? -->
-	<span ng-show="onDone()"></span>
 	
 	<script src="editor.js"></script>
 	
   </body>
-  
 </html>

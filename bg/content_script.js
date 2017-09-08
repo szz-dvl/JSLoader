@@ -1,36 +1,52 @@
 function CS() {
 
 	var self = this;
+	this.status = true;
+	this.errors = [];
+	
+	this.run = function (code) {
+
+		try {
+
+			// script.run();
+			(new Function(code)());
+					
+		} catch (err) {
+
+			self.errors.push(err.message);
+			
+		}
+	};
 	
 	this.process = function (request) {
+
+		self.message = null;
+		self.status = true;
 		
 		switch(request.action) {
 		case "run":
 
-			console.log(request.scripts.arr);
+			self.errors = [];
 			
-			var errors = [];
-			
-			for (script of request.scripts.arr) {
+			for (script of request.scripts) 
+				self.run(script);
 				
-				try {
-
-					// script.run();
-					(new Function(script)());
-					
-				} catch (err) {
-
-					errors.push(err.message);
-				}
+			if (self.errors.length) {
+				
+				self.message = self.errors;
+				self.status = false;
 			}
-
-			if (errors.length)
-				return Promise.resolve({err: errors});
 			
 			break;
 		case "backup":
 
 			self.backup = $("html").html();
+			break;
+
+		case "check":
+
+			// self.run("console.log($);");
+			self.message = window.location.toString();
 			break;
 
 		case "revert":
@@ -42,7 +58,7 @@ function CS() {
 			return Promise.reject({err: "Invalid cmd: " + request.action});
 		}
 
-		return Promise.resolve({response: "OK"});
+		return Promise.resolve({status: self.status, message: self.message, action: request.action});
 		
 	};
 }

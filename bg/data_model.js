@@ -1,4 +1,3 @@
-
 /**
  * Fast UUID generator, RFC4122 version 4 compliant.
  * @author Jeff Ward (jcward.com).
@@ -35,31 +34,47 @@ Array.prototype.remove = function(from, to) {
 
 };
 
+Array.prototype.insert = function(elem) {
+	
+	if (this.indexOf(elem) >= 0)
+		return;
+	else
+		return this.push.apply(this, elem);
+	
+};
+
 URL.prototype.match = function(url) {
 
-	return this.pathname == url.pathname && this.hostname == url.hostname;
+	return (this.pathname == url.pathname && this.hostname == url.hostname);
 
 };
 
 
 function Script (opt) {
-
+	
 	var self = this;
 	
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || "/* JS code (jQuery available) ...*/\n";
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
-
+	
 	this.run = opt.code ? new Function(opt.code) : null;
 	
 	this.getUrl = function () {
-
-		if (self.parent.isDomain())
-			return self.parent.name;
-		else 
-			return self.parent.parent.name + self.parent.url;
 		
+		if (self.parent) {
+			
+			if (self.parent.isDomain())
+				return new URL('http://' + self.parent.name);
+			else 
+				return new URL('http://' + self.parent.parent.name + self.parent.url);
+		} else {
+
+			console.log("Script parent: ");
+			console.log(self.parent);
+			return null;
+		}
 	};
 
 	this.remove = function () {
@@ -68,18 +83,44 @@ function Script (opt) {
 		
 	};
 
-	/* ¿¿?? */
-	this.updateCode = function (literal) {
+	/* !!! */
+	this.updateParent = function (url) {
 
-		self.code = literal;
-		self.run = new Function(self.code);
-	}
+		return new Promise (
+			(resolve, reject) => {
+				
+				global_storage.getOrCreateDomain(
+					domain => {
+						
+						console.error("Update Parent (" + url.hostname + "): ");
+						console.error(domain);
+
+						if (self.parnt)
+							self.remove();
+						
+						resolve(domain.getOrCreateSite(url.pathname).upsertScript(self));
+						
+						//self.persist().then(resolve, reject);
+						
+					}, url.hostname || url.href);
+			});
+	};
 	
 	this.persist = function () {
-
-		self.parent.persist();
+	
+		return self.parent.persist();
 		
-	}
+	};
+
+	this.__getDBInfo = function () {
+
+		return {
+			
+			uuid: self.uuid,
+			code: self.code,
+			name: self.name
+		}
+	};
 }
 
 function Site (opt) {
@@ -105,38 +146,26 @@ function Site (opt) {
 		return self.url == "/";
 		
 	};
-
+	
 	this.removeScript = function (id) {
 		
 		self.scripts.remove(
 			self.scripts.findIndex(
 				script => {
-				
+					
 					return script.uuid = id;
 					
 				}
 			)
 		);
 
-		if (self.isEmpty()) { 
-
+		if (self.isEmpty())  
 			self.remove();
-			self.parent.persist();
+		
+		self.parent.persist();
 					
-		}
 			
 	};
-
-	this.findScript = function (id) {
-
-		return self.scripts.filter(
-			script => {
-				
-				return script.uuid = id;
-				
-			}
-		)[0];
-    };
 
 	this.remove = function () {
 
@@ -146,7 +175,7 @@ function Site (opt) {
 
 	this.persist = function () {
 
-		self.parent.persist();
+		return self.parent.persist();
 		
 	};
 	
@@ -159,11 +188,55 @@ function Site (opt) {
 	};
 
 
-	this.createScript = function () {
-
-		return new Script({parent: self});
+	this.upsertScript = function (script) {
 		
-	}
+		var idx = self.scripts.findIndex(
+			exe => {
+				return script.uuid == exe.uuid;
+			}
+		);
+
+		if (idx >= 0)
+			self.scripts[idx] = script;
+		else { 	
+			
+			script.parent = self;
+			self.scripts.push(script);
+			
+		}
+			
+		return script;
+		
+	};
+
+	this.haveScripts = function () {
+		
+		return self.scripts.length > 0;
+
+	};
+	
+	this.haveScript = function (id) {
+
+		return self.scripts.filter(
+			script => {
+				
+				return script.uuid == id;
+				
+			}
+		)[0] || false;
+    };
+	
+	this.__getDBInfo = function () {
+
+		return {
+			url: self.url,
+			scripts: self.scripts.map(
+				script => {
+					return script.__getDBInfo();
+				}
+			)
+		}
+	};
 }
 
 function Domain (opt) {
@@ -191,8 +264,70 @@ function Domain (opt) {
 	this.storage = global_storage;
 	
 	this.persist = function () {
-		
-		self.storage.__upsertDomain(self.name, self);
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				self.storage.__getDomains(
+					arr => {
+
+						if (!arr.includes(self.name)) {
+					
+							arr.push(self.name);
+							self.storage.__setDomains(arr);
+						}
+				
+						self.storage.__upsertDomain(self.name, self.__getDBInfo())
+							.then(
+								() => {
+
+									resolve(self);
+								},
+								err => {
+									
+									console.error(err);
+									reject(err);
+									
+								}
+							);
+					}
+				);
+			}
+		);
+	};
+
+	this.update = function () {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				global_storage.getDomain(
+					
+					domain => {
+						
+						self.scripts = domain.scripts.map (
+							script => {
+
+								script.parent = this;
+								return new Script(script);
+								
+							}
+						) || [];
+						
+						self.sites = domain.sites.map(
+							site => {
+
+								site.parent = this;
+								return new Site(site);
+								
+							}
+						) || [];
+
+						resolve(self);
+						
+					}, self.name);
+			}
+		);
 	};
 	
 	this.remove = function () {
@@ -210,113 +345,93 @@ function Domain (opt) {
 		});		
 	};
 	
-	this.haveScripts = function () {
-		
-		return self.scripts.length > 0;
-
-	};
-
 	this.haveSites = function () {
 		
 		return self.sites.length > 0;
 
 	};
 	
-	this.haveSite = function(url) {
-		
-		for (site of self.sites) {
-				
-			if (site.url == url)
-				return site;
-			
-		}
-		
-		return null;
+	this.haveSite = function(pathname) {
+
+		return self.sites.filter(
+			site => {	
+				return site.url == pathname;
+			})[0] || false;
 	};
 
-	this.getOrCreateSite = function (url) {
+	this.getOrCreateSite = function (pathname) {
 
-		if (url == "/")
+		if (pathname == "/")
 			return self;
 		
-		var site = self.haveSite(url);
+		var site = self.haveSite(pathname);
 		var n;
 		
 		if (site)
 			return site;
 		
-		n = new Site ({url: url, parent: self});
-		
+		n = new Site ({url: pathname, parent: self});
 		self.sites.push(n);
 		
 		return n;
 	};
 	
-	this.getOrCreateScript = function (code, uuid) {
-
+	this.haveScript = function (id) {
 		
-		var script;
-		var literal = code ? unescape(code.toString()) : "";
-
-		if (uuid) {
-			script = self.findScript(uuid);
-
-			/* Must never happen */
-			if (!script) { 	
-
-				script = new Script({ code: literal, uuid: uuid } );
-				self.scripts.push(script);
-
-			}
-			
-		} else {
-			
-			script = new Script({ code: literal } );
-			self.scripts.push(script);
-		}
-		
-		return script;
-		
-	};
-	
-	this.findScript = function (id) {
-
-		for (script of self.scripts) {
-			if (script.uuid == id)
-				return script;
-		}
-
-		for (site of self.sites) {
-
-			var script = site.findScript(id);
-
-			if (script)
-				return script;
-		}
-
-		return null;
-	};
-
-	this.removeSite = function (url) {
-		
-		if (url != "/") {
-			
-			var i = 0;
-			for (site of self.sites) {
+		return self.scripts.filter(
+			script => {
 				
-				if (site.url == url) {
-					
-					self.sites.remove(i);
-					
-					if (self.isEmpty())
-						self.remove();
-					
-					return;
-				}
+				return script.uuid == id;
+				
 			}
-			
-		} else {
+		)[0] ||
+			self.sites.map(
+				site => {
+					
+					return site.haveScript(id);
+					
+				}).filter(
+					script => {
+						
+						return script;
+						
+					}
+				)[0] ||
+			false;
+	};
+
+	this.removeSite = function (pathname) {
+
+		if (pathname != "/") {
+
 			self.remove();
+			return;
+
+		}
+		
+		self.sites.remove(
+			self.sites.findIndex(
+				site => {
+					return site.url == pathname;
+				}
+			)
+		);
+		
+		if (self.isEmpty())
+			self.remove();
+		
+	};
+
+	this.__getDBInfo = function () {
+
+		return {
+			name: self.name,
+			sites: self.sites.map(site => {
+				return site.__getDBInfo();
+			}),
+			scripts: self.scripts.map(script => {
+				return script.__getDBInfo();
+			})
 		}
 	};
 

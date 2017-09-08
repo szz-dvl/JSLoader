@@ -14,6 +14,20 @@ function BG_mgr () {
 		pa: null,
 		op: null
 	}
+
+	this.notification_ID = "jsloader-notification";
+
+	this.notifyUser = function (title, message) {
+		
+		browser.notifications.create(self.notification_ID, {
+			"type": "basic",
+			"iconUrl": browser.extension.getURL("fg/icons/Diskette_32.png"),
+			"priority": 2,
+			"title": title,
+			"message": message
+		});
+
+	};
 	
 	this.__showPageAction = function (tabInfo) {
 		
@@ -41,36 +55,81 @@ function BG_mgr () {
 		return new Promise (
 			(resolve, reject) => {
 				
-				domain_mgr.getFullDomains(
+				self.domain_mgr.getFullDomains(
 					arr => {
-				
-						resolve({domains: arr, opts: option_mgr.getCurrent()});
 						
-					});
-			});
+						console.log(arr);
+						resolve({domains: arr, opts: self.option_mgr.getCurrent()});
+						
+					}
+				);
+			}
+		);
+	};
+
+	this.logJSLError = function (err) {
+		
+		console.error(err);
+	}
+
+	this.informApp = function (action, message) {
+		
+		console.log(self.app); /* !! */
+		
+		for (key of Object.keys(self.app)) {
+			console.log("typeof " +  key + "= " + typeof(self.app[key]));
+
+			if (self.app[key]) {
+				
+				switch (action) {
+				case "script":
+					
+					try {
+						self.app[key].scriptChange(message.domain_name, message.uuid);
+					} catch (err) {
+
+						console.error(err);
+
+						if (err.message.includes("dead object"))
+							self.app[key] = null;
+					}
+
+					console.error("Script change for: ");
+					console.log(message);
+					
+				default:
+					console.log("");
+					break;
+				}
+
+			} 	
+		}
+
 	};
 	
 	this.showEditorForCurrentTab = function () {
-
+		
 		self.tab_mgr.getCurrentTab()
-			.then(tab => {
-				
-				if (tab.editor)
-					tab.editor.wdw.child.focus();
-				else {
+			.then(
+				tab => {
 					
-					self.editor_mgr.openEditorInstanceForTab(tab)
+					console.error("Got Tab!");
+					console.error(tab);
+					
+					if (tab.editor)
+						tab.editor.wdw.child.focus();
+					else 
+						self.editor_mgr.openEditorInstanceForTab(tab)
 						.then(null, self.logJSLError);
-				}
-				
-			}, self.logJSLError);
+					
+				}, self.logJSLError);
 	};
 
 	this.broadcastEditors = function (message) {
 
 		browser.runtime.sendMessage(message);
 		
-	}
+	};
 }
 
 var bg_manager = new BG_mgr();		

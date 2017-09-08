@@ -1,47 +1,3 @@
-function DomainArray (domains) {
-
-	var self = this;
-	
-	Array.call(this, domains);
-	
-	// domains.forEach(domain => {
-		
-	// 	this.push(domain);
-		
-	// });
-	
-	this.get = function (domain_name) {
-
-		return self.filter(domain => {
-			return domain.name == domain_name;
-		})[0];
-
-	};
-
-	this.erase = function (domain_name) {
-
-		self.remove(self.findIndex(domain => {
-					
-			return domain.name == domain_name;
-					
-		}));
-	};
-
-	this.findScript = function (uuid) {
-
-		for (domain of self) {
-
-			var script = domain.findScript(uuid);
-			
-			if (script)
-				return script;
-			
-		}
-
-		return null;
-	};
-}
-
 function DomainMgr (bg) {
 
 	var self = this;
@@ -71,107 +27,126 @@ function DomainMgr (bg) {
 	
 	this.getScriptsForUrl = function (url) {
 
-		return new Promise ((resolve, reject) => {
+		return new Promise (
+			(resolve, reject) => {
 
-			for (domain_name of self.domains) {
-
-				if ( url.hostname == domain_name ) {
+				if (self.domains.indexOf(url.hostname) >= 0) {
 
 					self.storage.getDomain(domain => {
+					
+						var site = domain.haveSite(url.pathname),
+							scripts = domain.scripts;
 						
-						var site = domain.haveSite(url.pathname);
-
 						if (site)
-							scripts = domain.scripts.concat(site.scripts);
+							scripts = scripts.concat(site.scripts);
 						
 						resolve(scripts);
 						
-					}, domain_name);
+					}, url.hostname);
 
-				}
-				
-			}
-
-			resolve(null);
-		});
+				} else
+					resolve(null);
+			});
 	};
 
-	this.createScriptForUrl = function (url) {
-	
-		return new Promise ((resolve, reject) => {
-		
-			self.storage.getOrCreateDomain(domain => {
+	this.storeScript = function (script) {
+
+		return new Promise (
+			(resolve, reject) => {
+
+				var url = script.getUrl();
+
+				console.log(url);
+				
+				if (self.domains.indexOf(url.hostname) >= 0) {
+
+					self.storage.getOrCreateDomain(
+						domain => {
 						
-				resolve(domain.getOrCreateSite(url.pathname).createScript());
+							console.error("Domain: ");
+							console.error(domain);
 						
-			}, url.hostname || url.href);
-			
-		});
+							resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
+						
+						}, url.hostname || url.href);
+				
+				} else
+					resolve(self.__createParentFor(url).upsertScript(script));
+			}
+		);
 	};
 
 	this.haveInfoForUrl = function (url) {
 
 		return new Promise ((resolve, reject) => {
 
-			for (domain_name of self.domains) {
-				
-				if ( url.hostname == domain_name) {
+
+			if (self.domains.indexOf(url.hostname) >= 0) {
 					
-					global_storage.getDomain(domain => {
-						
+				global_storage.getDomain(
+					domain => {
+					
 						if (domain.haveScripts() || domain.haveSite(url.pathname))
 							resolve(true);
-						
-					}, domain_name);
-				}
-			}
-
-			resolve(false);
+						else
+							resolve(false);
+					
+					}, url.hostname);
+				
+			} else
+				resolve(false);
 			
 		});
 
 	};
 
 	/* !!! */
-	this.getEditInfoForUrl = function (url) {
+	// this.getEditInfoForUrl = function (url) {
 
-		return new Promise ((resolve, reject) => {
+	// 	return new Promise ((resolve, reject) => {
 					
-			self.storage.getDomain(domain => {
+	// 		self.storage.getDomain(domain => {
 				
-				resolve(domain.getEditInfo(url.pathname));
+	// 			resolve(domain.getEditInfo(url.pathname));
 				
-			}, url.hostname);
-		});
-	};
-
+	// 		}, url.hostname);
+	// 	});
+	// };
+	
 	this.getFullDomains = function (done) {
 
-		var res = new DomainArray();
+		var res = [];
 		
-		async.eachSeries(self.domains, (domain_name, cb) => {
+		async.eachSeries(self.domains,
+						 (domain_name, cb) => {
+							 
+							 self.storage.getDomain(
+								 domain => {
+								 
+									 res.push(domain);
+									 cb();
+									 
+								 }, domain_name);
 			
-			self.storage.getDomain(domain => {
-				
-				res.push(domain);
-				cb();
-				
-			}, domain_name);
-			
-		}, () => {
-			
-			done(res);
-			
-		});
+						 }, () => {
+							 
+							 console.log(res);
+							 done(res);
+							 
+						 });
 	};
 
-	this.storeNewDomains = function (changes, action) {
+	this.storeNewDomains = function (changes, area) {
 
 		if (area != "local")
 	 		return;
+		
+		if(changes.domains) {
 
-		if(changes.domains)
+			console.log("New Domains!");
+			console.log(changes.domains);
 			self.domains = changes.domains.newValue;
+		}
 	};
 	
 	browser.storage.onChanged.addListener(this.storeNewDomains);

@@ -7,7 +7,36 @@ function BaseTab (tabInfo) {
 	this.url = new URL(this.url);
 	this.id = parseInt(this.id);
 	
-	/* Run scripts in content here, either with jsloader or via tabs.executeScript */
+	this.runScripts = function (scripts, runForEditor) {
+		
+		return new Promise((resolve, reject) => {
+				
+			browser.tabs.sendMessage(
+				
+				self.id,
+				{ action: "run", scripts: scripts.map(
+					script => {
+						return script.code;
+					})
+				}
+				
+			).then (
+				response => {
+						
+					if (!response.status) {
+						
+						if (self.editor && runForEditor)
+							self.editor.message(response.message[0], true);
+						else
+							console.error(response.message); /* Notify? */
+					}
+					
+					resolve(response);
+						
+				}, reject)
+		});
+		
+	};
 }
 
 
@@ -19,65 +48,49 @@ function JSLTab (tabInfo, parent) {
 
 	this.parent = parent;
 	this.editor;
-
+	
 	self.parent.tabs.push(this);
-
-	this.run = function () {
+	
+	this.runForEditor = function () {
 		
-		return new Promise((resolve, reject) => {
-
-			if (!self.editor)
-				reject ( {err: "No editor found."} );
-			else {
-
-				console.log(self.editor.script.code);
-				browser.tabs.sendMessage(
-					
-					self.id,
-					{ action: "run", scripts: {arr: [self.editor.script.code]} }
-					
-				).then(
-					response => {
-
-						/* On receiving end does not exists try: tabs.executeScript*/
-					
-						if (response.err)
-							self.editor.message(response.err[0], true);
-						
-						resolve(response);
-					
-					}, reject);
-			}
-		});
+		if (!self.editor)
+			return Promise.reject ( {err: "No editor found."} );
+		else 
+			return self.runScripts([self.editor.script], true);
 	};
 
 	this.attachEditor = function (editor) {
 
-		return new Promise((resolve, reject) => {
+		return new Promise(
+			(resolve, reject) => {
 
-			/* Must never happen */
-			if (self.editor)
-
-				reject({err: "Editor already present."});
+				/* Must never happen */
+				if (self.editor)
+				
+					reject({err: "Editor already present."});
 			
-			else {
+				else {
 				
-				browser.tabs.sendMessage(
+					browser.tabs.sendMessage(
 					
-					self.id,
-					{ action: "backup" }
-				
-				).then(response => {
+						self.id,
+						{ action: "backup" }
+					
+					).then (
+						response => {
 
-					self.editor = editor;
-					
-					response.editor = self.editor;
-					resolve(response);
-					
-				}, reject);
-			}
-		});
-	}
+							console.log("Atacched editor: ");
+							console.log(response);
+
+							self.editor = editor;
+						
+							response.editor = self.editor;
+							resolve(response);
+						
+						}, reject);
+				}
+			});
+	};
 
 	this.deattachEditor = function () {
 
@@ -90,44 +103,46 @@ function JSLTab (tabInfo, parent) {
 			
 			else {
 
-				self.revertChanges().then(response => {
+				self.revertChanges()
+					.then(
+						response => {
+							
+							self.editor = null;
 
-					self.editor = null;
-
-					/* Remove from mgr !!! */
-					resolve(response);
-						
-				}, reject);
+							console.log("Removing tab " + self.id);
+							
+							self.parent.tabs.remove(
+								self.parent.tabs.findIndex(
+									tab => {
+										return tab.id == self.id;
+									}
+								)
+							);
+							
+							resolve(response);
+							
+						}, reject);
 			}
 		});
 	}
 
 	this.revertChanges = function () {
-
-		return new Promise((resolve, reject) => {
-
-			/* Must never happen */
-			if (!self.editor)
-
-				reject ({err: "No editor found."});
+		
+		/* Must never happen */
+		if (!self.editor)
 			
-			else {
+			return Promise.reject ({err: "No editor found."});
+		
+		else {
 
-				browser.tabs.sendMessage(
-						
-					self.id,
-					{action: "revert"}
-			
-				).then(response => {
+			return browser.tabs.sendMessage(
 				
-					resolve(response);
-					
-				}, reject);
-			}
-		});
+				self.id,
+				{action: "revert", backup: self.editor.backup}
+				
+			);
+		}
 	};
-			
-			
 }
 
 function TabMgr (bg) {
@@ -153,34 +168,39 @@ function TabMgr (bg) {
 	};
 	
 	this.getTabFor = function (url) {
-		
-		for (tab of self.tabs) {
-			
-			if (tab.url.match(url))
-				return tab;
-		}
-		
-		return false;
+
+		self.tabs.filter(
+			tab => {
+				return tab.url.match(url);
+			}
+		)[0] || null;
 	};
 
 	this.getOrCreateTabFor = function (url) {
 
-		return new Promise ( (resolve, reject) => {
-
-			var tab = self.getTabFor(url);
+		return new Promise (
+			(resolve, reject) => {
 			
-			if (tab)
-				resolve({tab: tab, created: false});
-					
-			browser.tabs.create({url: url.href}).then(tab => {
-				
-				resolve({tab: new JSLTab(tab, self), created: true});
-					
-			}, reject);
-		});
-		
-	};
+				var tab = self.getTabFor(url);
+			
+				if (tab)
+					resolve({tab: tab, created: false});
 
+				else {
+					
+					browser.tabs.create({url: url.href})
+						.then(
+							tab => {
+				
+								resolve({tab: new JSLTab(tab, self), created: true});
+								
+							}, reject
+						);
+				}
+			}
+		);
+	};
+	
 	this.__getTabById = function (tid) {
 
 		return self.tabs.filter(tab => {
@@ -192,65 +212,110 @@ function TabMgr (bg) {
 
 	this.updateTabs = function (tabId, changeInfo, tabInfo) {
 
-		var tab = self.__getTabById(tabId) || new JSL;
-		var url = new URL(tabInfo.url);
+		var tab = self.__getTabById(tabId);
 		
 		if (tab) {
-			
-			if (changeInfo.url) 
-				tab.editor.scope.user_action.target = url.hostname + url.pathname;
 
-		}
+			/* Changing angular view from here ignored! */
+			if (changeInfo.url) 
+				tab.url = new URL(changeInfo.url);
+
+			if (changeInfo.status == "complete") {
+
+				console.log("tab: " + tabInfo.url + " COMPLETE!");
+				console.log(tabInfo);
+				tab.status = "complete";
+				
+				tab.attachEditor(self.bg.editor_mgr.getEditorForTab(tab))
+					.then(null,
+						  err => {
+
+							  console.error("Complete attach rejected!!");
+							  console.log(err)
+
+						  });
+				
+			}
+			
+		} else
+			tab = new BaseTab(tabInfo);
 
 		// console.log("Tab " + tabId + " updating, changes: ");
 		// console.log(changeInfo);
-		
-		self.bg.domain_mgr.getScriptsForUrl(url).then(scripts => {
 
-			if (scripts) {
-				
-				window.setTimeout(() => {
-					
-					browser.tabs.sendMessage(
-					
-						tabId,
-						{scripts: scripts, action: "run"}
-						
-					).then(response => {
-						
-						if (response.err)
-							self.bg.logContentError(response.err);
-					
-					}, self.bg.logJSLError);
-					
-				}, 500);
-
-			}
+		if (tab.status == "complete") {
 			
-		});
+			self.bg.domain_mgr.getScriptsForUrl(tab.url)
+				.then(
+					scripts => {
+						
+						if (scripts) {
+							
+							tab.runScripts(scripts, false)
+								.then(
+									response => {
+										
+										console.log("Scripts run: ");
+										console.log(response);
+										
+									},
+									err => {
+										
+										/* Must never happen */
+										console.log("Script rejection run: ");
+										console.log(err);
+
+									});
+						}
+						
+					});
+		}
 	};
 
+	this.checkTab = function (id) {
+		
+		return browser.tabs.sendMessage (
+					
+			id,
+			{ action: "check" }
+			
+		);
+			
+	};
+							 
 	this.getCurrentTab = function () {
 
 		return new Promise ((resolve, reject) => {
 			
 			browser.tabs.query({currentWindow: true, active: true})
 				.then(tab_info => {
-
-					// console.log("currentTab: ");
-					// console.log(tab_info[0]);
-
-					resolve(self.tabs.filter(
-						tab => {
-							
-							return tab.id == tab_info.id;
-							
-						})[0] || new JSLTab(tab_info[0], self));
 					
-				}, reject);
-		});
+					console.log("currentTab: ");
+					console.log(tab_info);
+
+					self.checkTab(parseInt(tab_info[0].id))
+						.then(
+							response => {
+								
+								resolve(self.tabs.filter(
+									tab => {
+										
+										return tab.id == tab_info[0].id;
+										
+									})[0] || new JSLTab(tab_info[0], self));
+
+							},
+							err => {
+
+								self.bg.notifyUser("CSP Block", "Unable to open editor for tab ..." + tab_info[0].id);
+								console.error(err);
+								reject(err);
+							}
+						);
+				});
 		
-	}
+		});
+	};
 	
 	browser.tabs.onUpdated.addListener(self.updateTabs);
 }

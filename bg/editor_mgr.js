@@ -2,6 +2,34 @@ function onError (err) {
 	console.error(err);
 };
 
+function EditorWdw (opt) {
+
+	return new Promise (
+		(resolve, reject) => {
+
+			var editor = new Editor(opt);
+			browser.windows.create({
+							
+				type: "popup",
+				state: "normal",
+				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
+				width: 900, /* get wdw width */
+				height: 350 /* 40% height?  */
+				
+			}).then (
+				wdw => {
+
+					console.error("Got wdw!");
+					console.log(wdw);
+					
+					editor.wdw = wdw;
+
+					resolve (editor);
+					
+				}, reject);
+		});
+}
+
 function Editor (opt) {
 
 	var self = this;
@@ -10,76 +38,80 @@ function Editor (opt) {
 	this.script = opt.script;
 	
 	this.id = this.parent.__getEID();
-	this.tab = opt.tab || null;
-	
-	if (this.tab)
-		this.tab.attachEditor(this).then(null, onError);
-	
-	this.mode = opt.mode;
+	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	this.opts = self.parent.bg.option_mgr.getCurrentEditor();
 	
-	/* if (!this.script)
-	   this.tab = this.parent.bg.tab_mgr.attachEditor(this); */
-	
-	self.parent.editors.push(this);
-	
-	var createData = {
+	this.tab = opt.tab || null;
 
-		type: "popup",
-		state: "normal",
-		url: browser.extension.getURL("fg/editor/editor.html?" + self.id),
-		width: 900, /* get wdw width */
-		height: 350 /* 40% height?  */
-	};
-	
-	browser.windows.create(createData).then(wdw => {
+	self.parent.editors.push(self);
+
+	if (this.tab.status == "complete") {
 		
-		self.wdw = wdw;
-		
-	});
+		this.tab.attachEditor(this)
+			.then(null,
+				  err => {
+				  
+					  console.error("Attach rejected!!");
+					  console.error(err);
+					  
+				  });
+	}
 	
 	this.__getMyTab = function () {
 		
-		return new Promise ((resolve, reject) => {
+		return new Promise (
+			(resolve, reject) => {
 			
-			if (self.tab)
-				resolve (self.tab);
+				if (self.tab)
+					resolve (self.tab);
 			
-			else {
-				
-				self.parent.bg.tab_mgr.getOrCreateTabFor(self.script.getUrl()) /* scope.target */
-					.then(info => {
+				else {
+
+					console.log("No Tab, creating!");
+					self.parent.bg.tab_mgr.getOrCreateTabFor(self) /* scope.target */
+						.then(
+							info => {
 						
-						self.tab = info.tab;
+								self.tab = info.tab;
 						
-						if (info.created)
-							self.tab.attachEditor(self);
+								if (info.created)
+									self.tab.attachEditor(self);
 						
-						resolve(self.tab);
+								resolve(self.tab);
 						
-					}, reject);
-			}
+							}, reject);
+				}
 			
-		});
+			});
 	};
 	
 	this.runInTab = function () {
-		
-		return new Promise ((resolve, reject) => { 
+
+		/* New script created on run */
+		return new Promise (
+			(resolve, reject) => { 
 			
-			self.__getMyTab().then(
-				tab => {
-					
-					tab.run(self.script)
-						.then(
-							response => {
-								
-								console.log(response);
-								resolve(response);
-								
-							}, reject);
-				});
-		});
+				self.__getMyTab()
+					.then(
+						tab => {
+							tab.runForEditor(self.script)
+								.then(
+									response => {
+										
+										console.log(response);
+										resolve(response);
+										
+									},
+									err => {
+										
+										console.error(err);
+										reject(err);
+									}
+								);
+						}
+					);
+			}
+		);
 	};
 
 	this.tabToOriginalState = function () {
@@ -98,37 +130,47 @@ function Editor (opt) {
 
 		return new Promise((resolve, reject) => {
 			
-			self.tab.deattachEditor().then(response => {
+			self.tab.deattachEditor()
+				.then(
+					response => {
+						
+						console.log("Removing editor " + self.id);
+						
+						self.parent.editors.remove(
+							self.parent.editors.findIndex(
+								editor => {
+									
+									return editor.id == self.id;
+									
+								}
+							)
+						);
 
-				self.parent.editors.remove(
-					self.parent.editors.findIndex(
-						editor => {
-							
-							return editor.id == self.id;
-							
-						})
-				);
-			
-				resolve(response);
-			
-			}, reject); /* Error handling */		
-		});
-		
+						resolve(response);
+				
+					}, err => {
+
+						console.log("Error removing editor: ");
+						console.log(err);
+
+					}); /* Error handling */		
+		});	
 	};
 
 	this.setWdw = function (wdw) {
-
+		
 		self.wdw.child = wdw;
 		self.wdw.child.onbeforeunload = self.editorClose;
-
-	}
+		
+	};
 
 	this.updateContent = function () {
 
 		/* URL, script, mode*/
 		console.log("Unimplemented");
+	};
 
-	}
+
 }
 
 function EditorMgr (bg) {
@@ -146,26 +188,52 @@ function EditorMgr (bg) {
 	};
 	
 	this.openEditorInstanceForTab = function (tab) {
-
-		return new Promise ((resolve, reject) => {
-
-			self.bg.domain_mgr.createScriptForUrl(tab.url)
-				.then(
-					script => {
-						
-						resolve(new Editor({parent: self, script: script, tab: tab, mode: true}));
-						
-					}, reject);
-		});
+		
+		return new EditorWdw({parent: self, script: new Script({}), tab: tab, mode: true});
+		
 	};
 
-	this.getEditorById = function (eid) {
-		
-		return self.editors.filter(editor => {
-			
-			return editor.id == eid;
+	this.openEditorInstanceForScript = function (script) {
 
-		})[0];
+		return new Promise (
+			(resolve, reject) => {
+				
+				self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
+					.then(
+						response => {
+							
+							// console.error("Got Tab!");
+							// console.error(response);
+							
+							new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
+								.then(resolve, reject);
+							
+						}, reject);
+			}
+		);
+	};
+	
+	this.getEditorById = function (eid) {
+
+		console.error("Getting editor " + eid + ": ");
+		console.error(self.editors);
+		
+		return self.editors.filter(
+			editor => {
+			
+				return editor.id == eid;
+				
+			})[0] || null;
+	};
+
+	this.getEditorForTab = function (tab) {
+		
+		return self.editors.filter(
+			editor => {
+				
+				return editor.tab.id == tab.id;
+				
+			})[0] || null;
 	};
 	
 } 

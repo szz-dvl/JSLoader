@@ -25,7 +25,7 @@ body {
 #code_container {
 
 	position: absolute;
-	top: 10%;
+	top: 0;/* 10%; */
 	left: 0; 
 	display: block;
 	min-width: 100%;
@@ -42,7 +42,7 @@ body {
 
 #editor-header {
 
-	position: absolute;
+	position: fixed;
 	top: 0;
 	left: 0; 
 	height: 50px !important;
@@ -87,18 +87,6 @@ body {
 	max-width: 55%;
 	display: inline-block;
 	padding-top: 5px;
-}
-
-.status-error {
-
-	color: red;
-	
-}
-
-.status-success {
-
-	color: green;
-	
 }
 
 .sel-container {
@@ -191,8 +179,18 @@ body {
 	position: absolute;
 	bottom: 0;
 	right: 0;
+	width: 40% !important;
+	min-width: 40% !important;
+	max-width: 40% !important;
 	z-index: 99999999;
 
+}
+
+#result-info {
+	float: right !important;
+	margin-right: 20px;
+	margin-bottom: 20px;
+	
 }
 
 /* .hidden_elem { */

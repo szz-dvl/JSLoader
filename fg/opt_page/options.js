@@ -1,12 +1,30 @@
-function OP () {
+function Option (opt) {
+
+	var self = this;
+
+	this.text = opt.text;
+	this.value = opt.value;
+	this.id = opt.id;
+
+	
+
+}
+
+
+function OP (bg, info) {
 	
 	var self = this;
 	
 	this.__gutterInit;
+	this.data = info;
+	this.bg = bg;
+	
 	this.editor;
 	this.scripts;
 	
-	this.editorController = function ($scope) {
+	this.app = angular.module('OptionsApp', []);
+
+	this.app.controller('editorController', function ($scope) {
 		
 		self.editor = $scope;
 		
@@ -50,37 +68,36 @@ function OP () {
 			"xcode"];
 		
 		$scope.currTheme = self.data.opts.editor.theme;
-		
-		$scope.boolOpts = [
-			{text:'Print margin line', value: self.data.opts.editor.showPrintMargin, id: "showPrintMargin"},
-			{text:'Collapse header by default', value: self.data.opts.editor.collapsed, id: "collapsed"},
-			{text:'Show gutter line', value: self.data.opts.editor.showGutter, id: "showGutter"}
-		];
 
-		$scope.textOpts = [
+		$scope.opts = [
+
+			{text:'Print margin line', value: self.data.opts.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"},
+			{text:'Collapse header by default', value: self.data.opts.editor.collapsed, type: "checkbox", id: "collapsed"},
+			{text:'Show gutter line', value: self.data.opts.editor.showGutter, type: "checkbox", id: "showGutter"},
 			{text:'Font size', value: self.data.opts.editor.fontSize, type: "text", id: "fontSize"}
+			
 		];
 		
 		$scope.updtOpts = function() {
 			
-			var ret = {editor: {}};
+			var ret = $scope.opts.map(opt => {
+				
+				var aux = {};
+
+				aux[opt.id] = opt.value; 
+
+				return aux;
+				
+			});
 			
-			angular.forEach($scope.boolOpts, opt => {
-				ret.editor[opt.id] = opt.value;
-			});
-
-			angular.forEach($scope.textOpts, opt => {
-				ret.editor[opt.id] = opt.value;
-			});
-
 			ret.editor.theme = $scope.currTheme;
-
-			self.bg.storeOptions(ret);
+			
+			self.bg.option_mgr.setCurrentEditor(ret);
 		};
 		
 	});
 
-	this.scriptsController = function ($scope) {
+	this.app.controller('scriptsController', function ($scope, $interpolate, $timeout) {
 
 		self.scripts = $scope;
 		
@@ -125,8 +142,15 @@ function OP () {
 		$scope.editScript = function(ev) {
 			
 			var id = ev.target.id.split("_").pop();
+			var domain_name = $(ev.target).data("domain");
 			
-			self.bg.editScriptFor(id, $(ev.target).data("domain"));
+			var domain = $scope.domains.filter(
+				domain => {
+					return domain.name == domain_name;
+				})[0];
+
+			
+			self.bg.editor_mgr.openEditorInstanceForScript(domain.haveScript(id));
 			
 		};
 		
@@ -134,33 +158,26 @@ function OP () {
 					
 			var id = ev.target.id.split("_").pop();
 			var domain_name = $(ev.target).data("domain");
-		
-			var domain = $scope.domains.filter((domain, pos) => {
-				return domain.name == domain_name;
-			})[0];
 
-			var script = domain.findScript(id);
-	
-			if(!script.remove()) {
-					
-				domain.persist();
-				
-			} else {
+			console.log("Removing script for: " + domain_name);
+			
+			$scope.domains.filter(
+				domain => {
 
-				$scope.domains.remove($scope.domains.findIndex(domain => {
-					
 					return domain.name == domain_name;
 					
-				}));
-			}
+				})[0].haveScript(id).remove();
+			
 		};
 
-		$scope.highLightCode = function() {
+
+		/* After interpolation ready ... */
+		$timeout(function () {
 			
 			$('code').each(function(i, block) {			
 				hljs.highlightBlock(block);
 				
-				if (self.opts.showGutter) {
+				if (self.data.opts.editor.showGutter) {
 					
 					hljs.lineNumbersBlock(block);
 					self.__gutterInit = true;
@@ -168,79 +185,104 @@ function OP () {
 				
 			});
 			
-			$('code').css("font-size", self.opts.fontSize + "pt");
-		};
+			$('code').css("font-size", self.data.opts.editor.fontSize + "pt");
+			
+		});
 		
 	});
 
 	this.newSettings = function(response) {
-
+		
 		switch (response.action) {
 			
-			case "opts":
+		case "opts":
+			
+			$('code').css("font-size", response.message.fontSize + "pt");
+			
+			if (response.message.showGutter) {
 				
-				$('code').css("font-size", response.message.fontSize + "pt");
-				
-				if (response.message.showGutter) {
+				if (self.__gutterInit) {
 					
-					if (self.__gutterInit) {
-						
-						$(".hljs-ln-numbers").show();
-						
-					} else {
-						
-						
-						$('code').each(function(i, block) {
-							hljs.lineNumbersBlock(block);
-						});
-						
-
-						self.__gutterInit = true;
-					}
+					$(".hljs-ln-numbers").show();
 					
 				} else {
 					
-					$(".hljs-ln-numbers").hide();
+					
+					$('code').each(function(i, block) {
+						hljs.lineNumbersBlock(block);
+					});
+					
 
+					self.__gutterInit = true;
 				}
-
-				self.opts = response.message;
-				break;
 				
-			case "script":
-
-				//$("#" + response.message.uuid).find("code").text(response.message.literal);
-				self.scripts.domains.findScript(response.message.uuid).code = response.message.literal;
-				break;
+			} else {
 				
-			default:
-				break;
+				$(".hljs-ln-numbers").hide();
+				
+			}
+
+			self.data.opts.editor = response.message;
+			break;
+			
+		case "script":
+
+			$("#" + response.message.uuid).find("code").text(response.message.literal);
+			//self.scripts.domains.haveScript(response.message.uuid).code = response.message.literal;
+			break;
+				
+		default:
+			break;
 		}
 	};
 
-	/* Init */
-	browser.runtime.getBackgroundPage().then(page => {
+	
+	this.scriptChange = function (domain_name, uuid) {
+
+		var script = self.scripts.domains.filter(
+			domain => {
+				
+				return domain.name == domain_name;
+				
+			})[0].haveScript(uuid);
+
+		var elem = $("#" + uuid);
+
+		console.log(elem);
 		
-		self.bg = page.bg_manager;
-		
-		self.bg.getOptPage().then(info => {
+		elem.find("code").text(script.code);
+		elem.find("code").each(function (i, block) {
 			
-			angular.element(document).ready( () => {
-				
-				self.opts = info.opts.editor;
-				self.data = info;
-				
-				/* self.bg.app.constant('data', {opts: info.opts, domains: info.domains}); */
-				self.bg.app.controller('scriptsController', self.scriptsController);
-				self.bg.app.controller('editorController', self.editorController);
-				
-				angular.bootstrap(document, ['JSLoaderApp']);
-				
-			});
+			hljs.highlightBlock(block);
+			
+			if (self.data.opts.editor.showGutter) 
+				hljs.lineNumbersBlock(block);
+			
 		});
-	});
+		
+		console.log("Script change: ");
+		console.log(script);	
+		
+	};
+	
+	angular.element(document).ready(
+		() => {
+			
+			angular.bootstrap(document, ['OptionsApp']);
+		}
+	);
 }
 
-var options_page = new OP();
+browser.runtime.getBackgroundPage()
+		.then(
+			page => {
+				page.bg_manager.getOptPage()
+					.then(
+						info => {
+							
+							page.bg_manager.app.op = new OP(page.bg_manager, info);
+							browser.runtime.onMessage.addListener(page.bg_manager.app.op.newSettings);
+							
+						});
+			});
 
-browser.runtime.onMessage.addListener(options_page.newSettings);

@@ -193,10 +193,15 @@ ul li:before
 
 
 
-pre {
+hljs-search {
 
 	margin-left: 10%;
 	margin-right: 10%;
+
+}
+
+pre {
+	
 	-webkit-user-select: text;  /* Chrome 49+ */
 	-moz-user-select: text;     /* Firefox 43+ */
 	-ms-user-select: text;      /* No support yet */

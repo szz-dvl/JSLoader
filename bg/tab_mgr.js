@@ -87,9 +87,11 @@ function JSLTab (tabInfo, parent) {
 							response.editor = self.editor;
 							resolve(response);
 						
-						}, reject);
+						}, reject
+					);
 				}
-			});
+			}
+		);
 	};
 
 	this.deattachEditor = function () {

@@ -106,8 +106,18 @@ function EditorFG (editor, bg) {
 	
 	this.editor.updateTarget = function () {
 		
-		self.editor.script.updateParent(self.editor.tab.url);
-		self.target.text(self.editor.tab.url.hostname + self.editor.tab.url.pathname);	
+		self.editor.script.updateParent(self.editor.tab.url)
+			.then(
+				script => {
+
+					var url = script.getUrl();
+			
+					self.target.text(url.hostname + url.pathname);
+					self.editor.scope.user_action.target = url.hostname + url.pathname;
+
+				}
+			);
+			
 	};
 	
 	this.isCollapsed = function () {
@@ -162,17 +172,13 @@ function EditorFG (editor, bg) {
 	};
 
 	this.handleMessage = function (request) {
-
+		
 		switch (request.action) {
 		case "opts":
-			self.editor.opts = request.message;
-			self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
-			self.editor.ace.renderer.setShowGutter(self.editor.opts.showGutter);
-			self.editor.ace.setOptions({
-				fontSize: self.editor.opts.fontSize + "pt"
-			});
 			
-			self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme);
+			console.log("New opts!");
+			self.editor.opts = request.message;
+			self.resetAce();
 			
 		default:
 			break;
@@ -188,23 +194,29 @@ function EditorFG (editor, bg) {
 	
 	this.saveCurrent = function () {
 
-		self.editor.script.code = self.editor.ace.getValue().toString().trim();
-
-		console.log("New Code: " + self.editor.script.code);
-		
-		self.bg.domain_mgr.storeScript(self.editor.script)
+		self.editor.script.setParent(self.editor.tab.url)
 			.then(
 				script => {
 
-					console.log("Persisting: " + script.uuid);
-					
-					script.persist().then(
-						domain => {
+					script.code = self.editor.ace.getValue().toString().trim();
 
-							self.bg.informApp("script", {domain_name: domain.name, uuid: script.uuid});
-						}
-					);
+					console.log(script);
 					
+					self.bg.domain_mgr.storeScript(script)
+						.then(
+							script => {
+					
+								console.log("Persisting: " + script.uuid);
+								
+								script.persist().then(
+									domain => {
+										self.bg.informApp("script");
+									}
+								);
+					
+							}
+						);
+
 				}
 			);
 	};
@@ -224,10 +236,21 @@ function EditorFG (editor, bg) {
 
 		self.editor.ace.resize();
 	};
+
+	this.resetAce = function () {
+
+		self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
+		self.editor.ace.renderer.setShowGutter(self.editor.opts.showGutter);
+		self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme);
+			
+		self.editor.ace.setOptions({
+			fontSize: self.editor.opts.fontSize + "pt"
+		});
+	}
 	
 	this.app = angular.module('EditorApp', []);
 	
-	this.app.controller('editorController', function ($scope, $timeout) {
+	this.app.controller('editorController', ($scope, $timeout) => {
 		
 		self.editor.scope = $scope;
 
@@ -255,6 +278,33 @@ function EditorFG (editor, bg) {
 		};
 		
 		$scope.dd_text = "<";
+
+		$scope.targetChange = function () {
+
+			if ($scope.targetTID)
+				clearTimeout ($scope.targetTID);
+			
+			$scope.targetTID = setTimeout(
+				() => {
+
+					self.editor.script.updateParent(new URL("http://" + self.target.text()))
+						.then(
+							script => {
+								
+								var url = script.getUrl();
+
+								console.log("New Url: ");
+								console.log(url);
+								
+								//$scope.user_action.target = url.hostname + url.pathname;
+								self.target.text(url.hostname + url.pathname);
+							}
+						);
+					
+				}, 500);
+			
+			
+		};
 		
 		$scope.dropdownClick = function () {
 
@@ -286,17 +336,18 @@ function EditorFG (editor, bg) {
 			
 		};
 
+		$scope.bodyClick = function () {
+				
+			if (!$scope.buttons.shown)
+				self.toggleButtons();
+				
+		};
+		
 		/* After interpolation ready ... */
 		$timeout(function () {
 			
 			$scope.editor.ace = ace.edit("code_area");
-			$scope.editor.ace.setShowPrintMargin($scope.editor.opts.showPrintMargin);
-			$scope.editor.ace.renderer.setShowGutter($scope.editor.opts.showGutter);
-			$scope.editor.ace.setTheme("ace/theme/" + $scope.editor.opts.theme);
 			$scope.editor.ace.session.setMode("ace/mode/javascript");
-			$scope.editor.ace.setOptions({
-				fontSize: $scope.editor.opts.fontSize + "pt"
-			});
 			
 			$scope.editor.ace.getSession()
 				.on('change',
@@ -305,6 +356,8 @@ function EditorFG (editor, bg) {
 						if ($scope.buttons.shown)
 							self.toggleButtons();
 					});
+			
+			self.resetAce();
 			
 			$scope.editor.ace.find($scope.script.code);
 			$scope.editor.ace.focus();
@@ -320,24 +373,12 @@ function EditorFG (editor, bg) {
 			
 			if (!$scope.editor.opts.collapsed) 
 				self.collapseHeader();
-					
-			$scope.bodyClick = function () {
-				
-				if (!$scope.buttons.shown)
-					self.toggleButtons();
-				
-			};
 
-			/* protocol missing */
-			if (self.editor.mode) {
+			self.target.on('input', () => {
 				
-				console.log("Tab url: ");
-				
-				console.log(self.editor.tab.url);
-				self.editor.script.updateParent(self.editor.tab.url);
-				
-			}
-				
+				$scope.targetChange();
+							   
+			});
 		});
 		
 	});

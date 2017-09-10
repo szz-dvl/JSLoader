@@ -1,5 +1,5 @@
 function onError (error) {
-	console.log(`Error: ${error}`);
+	console.error(`Persistence Error: ${error}`);
 }
 
 //browser.storage.local.clear();
@@ -10,18 +10,18 @@ function Storage () {
 	var self = this;
 
 	this.__get = function (cb, key) {
-		
-		var gettingSites = browser.storage.local.get(key);
-		
-		gettingSites.then((values) => {
+				
+		browser.storage.local.get(key)
+			.then(
+				values => {
+					
+					console.log("Getting: " + key);
+					console.log(values[key]);
 
-			console.log("Getting: " + key);
-			console.log(values[key]);
-
-			cb(values[key]);
+					cb(values[key]);
 			
-		}, onError);
-		
+				}, onError
+			);	
 	};
 
 	this.__set = function (key, val) {
@@ -65,11 +65,12 @@ function Storage () {
 
 	this.getDomain = function (cb, name) {
 		
-		this.__get(domain => {
-			
-			cb(new Domain(domain));
-
-		}, 'domain-' + name);
+		this.__get(
+			domain => {
+				
+				cb(new Domain(domain));
+				
+			}, 'domain-' + name);
 	};
 
 	this.__removeDomain = function (name) {
@@ -79,20 +80,14 @@ function Storage () {
 
 	this.getOrCreateDomain = function (cb, name) {
 
-		this.getDomain (
-			domain => {
-
-				if (Object.keys(domain).length) {	
-				
-					cb(domain);
-				
-				} else {
-					
-					cb(new Domain( {name: name} ) );
-				}
-				
-			}, name);
-		
+		this.getDomain(function (domain) {
+	
+			if (Object.keys(domain).length)
+				cb(domain);
+			else 
+				cb(new Domain({name: name}));
+			
+		}, name);
 	};
 
 	this.getOptions = function (cb) {

@@ -23,56 +23,68 @@ function OptionMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	
-	this.opts = {};
-	
-	this.storage.getOptions(new_options => {
-		
-		self.opts = new Options(new_options || {});
-		
-	});
+	this.storage.getOptions(
 
+		new_options => {
+			
+			Options.call(self, new_options || {});
+		}
+	);
+
+	this.__persist = function () {
+
+		return self.storage.setOptions(new Options({editor: self.editor, jsloader: self.jsloader}));
+
+	};
+	
 	this.getCurrent = function () {
 
-		return self.opts;
+		return {editor: self.editor, jsloader: self.jsloader};
 		
 	};
 
 	this.getCurrentEditor = function () {
 
-		return self.opts.editor;
+		return self.editor;
 		
 	};
 
 	this.getCurrentApp = function () {
 
-		return self.opts.jsloader;
+		return self.jsloader;
 		
 	};
 
 	this.setCurrent = function (val) {
 
-		self.opts = val
-		self.storage.setOptions(self.opts);
+		Object.assign(self, val);
+		self.__persist();
 	};
 
 	this.setCurrentEditor = function (val) {
 
-		self.opts.editor = val
-		self.storage.setOptions(self.opts)
-			.then(
-				() => {
+		Object.assign(self.editor, val);
+		return new Promise (
+			(resolve, reject) => {
 
-					self.bg.broadcastEditors({action: "options", message: self.opts.editor});
-				
-				}
-			);
+				self.__persist()
+					.then(
+						() => {
+							
+							self.bg.broadcastEditors({action: "opts", message: self.editor});
+							resolve(self.editor);
+							
+						}, reject
+					);
+			}
+		);
 		
 	};
 
 	this.setCurrentApp = function (val) {
-
-		self.opts.jsloader = val
-		self.storage.setOptions(self.opts);
+		
+		Object.assign(self.jsloader, val);
+		self.__persist();
 		
 	};
 
@@ -81,5 +93,4 @@ function OptionMgr (bg) {
 		browser.runtime.openOptionsPage();
 		
 	};
-
 }

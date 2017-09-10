@@ -14,13 +14,13 @@ function DomainMgr (bg) {
 	});
 
 	this.__createParentFor = function (url) {
-
+		
 		var parent;
 		
 		if (url.pathname == "/")
 			parent = new Domain ({name: url.hostname });
 		else
-			parent = new Domain ({name: url.hostname, sites: [{name: url.pathname}] }).sites[0];
+			parent = new Domain ({name: url.hostname, sites: [{url: url.pathname}] }).sites[0];
 
 		return parent;
 	};
@@ -30,23 +30,26 @@ function DomainMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 
-				if (self.domains.indexOf(url.hostname) >= 0) {
-
-					self.storage.getDomain(domain => {
+				if (self.domains.includes(url.hostname)) {
 					
-						var site = domain.haveSite(url.pathname),
-							scripts = domain.scripts;
+					self.storage.getDomain(
+						domain => {
+					
+							var site = domain.haveSite(url.pathname),
+								scripts = domain.scripts;
 						
-						if (site)
-							scripts = scripts.concat(site.scripts);
+							if (site)
+								scripts = scripts.concat(site.scripts);
 						
-						resolve(scripts);
+							resolve(scripts);
 						
-					}, url.hostname);
+						}, url.hostname
+					);
 
 				} else
 					resolve(null);
-			});
+			}
+		);
 	};
 
 	this.storeScript = function (script) {
@@ -58,9 +61,9 @@ function DomainMgr (bg) {
 
 				console.log(url);
 				
-				if (self.domains.indexOf(url.hostname) >= 0) {
+				if (self.domains.includes(url.hostname)) {
 
-					self.storage.getOrCreateDomain(
+					self.storage.getDomain(
 						domain => {
 						
 							console.error("Domain: ");
@@ -118,6 +121,7 @@ function DomainMgr (bg) {
 		var res = [];
 		
 		async.eachSeries(self.domains,
+						 
 						 (domain_name, cb) => {
 							 
 							 self.storage.getDomain(
@@ -126,11 +130,11 @@ function DomainMgr (bg) {
 									 res.push(domain);
 									 cb();
 									 
-								 }, domain_name);
-			
+								 }, domain_name
+							 );
+							 
 						 }, () => {
 							 
-							 console.log(res);
 							 done(res);
 							 
 						 });
@@ -145,7 +149,7 @@ function DomainMgr (bg) {
 
 			console.log("New Domains!");
 			console.log(changes.domains);
-			self.domains = changes.domains.newValue;
+			self.domains = changes.domains.newValue || [];
 		}
 	};
 	

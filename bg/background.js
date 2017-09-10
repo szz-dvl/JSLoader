@@ -51,16 +51,14 @@ function BG_mgr () {
 
 	
 	this.getOptPage = function () {
-		
+
+		self.app.op = null;
 		return new Promise (
 			(resolve, reject) => {
 				
 				self.domain_mgr.getFullDomains(
 					arr => {
-						
-						console.log(arr);
 						resolve({domains: arr, opts: self.option_mgr.getCurrent()});
-						
 					}
 				);
 			}
@@ -74,37 +72,34 @@ function BG_mgr () {
 
 	this.informApp = function (action, message) {
 		
-		console.log(self.app); /* !! */
 		
 		for (key of Object.keys(self.app)) {
-			console.log("typeof " +  key + "= " + typeof(self.app[key]));
-
+		
 			if (self.app[key]) {
 				
 				switch (action) {
 				case "script":
 					
 					try {
-						self.app[key].scriptChange(message.domain_name, message.uuid);
+						self.app[key].scriptChange();
 					} catch (err) {
-
+						
 						console.error(err);
 
 						if (err.message.includes("dead object"))
 							self.app[key] = null;
 					}
 
-					console.error("Script change for: ");
-					console.log(message);
+					break;
 					
 				default:
-					console.log("");
+					console.error("Bad action: " + action);
 					break;
 				}
 
 			} 	
 		}
-
+		
 	};
 	
 	this.showEditorForCurrentTab = function () {

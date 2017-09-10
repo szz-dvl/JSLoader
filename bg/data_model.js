@@ -59,7 +59,7 @@ function Script (opt) {
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
 	
-	this.run = opt.code ? new Function(opt.code) : null;
+	// this.run = opt.code ? new Function(opt.code) : null;
 	
 	this.getUrl = function () {
 		
@@ -69,12 +69,9 @@ function Script (opt) {
 				return new URL('http://' + self.parent.name);
 			else 
 				return new URL('http://' + self.parent.parent.name + self.parent.url);
-		} else {
 
-			console.log("Script parent: ");
-			console.log(self.parent);
+		} else
 			return null;
-		}
 	};
 
 	this.remove = function () {
@@ -86,24 +83,37 @@ function Script (opt) {
 	/* !!! */
 	this.updateParent = function (url) {
 
+		console.log("update Prent Url: ");
+		console.log(url);
+
+		if (self.parent)
+			self.remove();
+		
 		return new Promise (
 			(resolve, reject) => {
-				
+	
 				global_storage.getOrCreateDomain(
 					domain => {
 						
-						console.error("Update Parent (" + url.hostname + "): ");
-						console.error(domain);
-
-						if (self.parnt)
-							self.remove();
-						
 						resolve(domain.getOrCreateSite(url.pathname).upsertScript(self));
+
+						console.error("Update Parent (" + url.hostname + "): ");
+						console.error(self.parent);
 						
 						//self.persist().then(resolve, reject);
 						
-					}, url.hostname || url.href);
-			});
+					}, url.hostname || url.href
+				);
+			}
+		);
+	};
+
+	this.setParent = function (url) {
+		
+		if (self.parent)
+			return Promise.resolve(self);
+		else
+			return self.updateParent(url);
 	};
 	
 	this.persist = function () {
@@ -112,6 +122,7 @@ function Script (opt) {
 		
 	};
 
+	/* Stringify */
 	this.__getDBInfo = function () {
 
 		return {
@@ -133,14 +144,14 @@ function Site (opt) {
 	this.scripts = [];
 	if (opt.scripts) {
 
-		for (script of opt.scripts ) {
+		for (script of opt.scripts) {
 
 			script.parent = this;
 			this.scripts.push(new Script(script));
 		}
 
 	} 
-
+	
 	this.isDomain = function() {
 
 		return self.url == "/";
@@ -163,8 +174,6 @@ function Site (opt) {
 			self.remove();
 		
 		self.parent.persist();
-					
-			
 	};
 
 	this.remove = function () {
@@ -187,7 +196,7 @@ function Site (opt) {
 			return !self.parent.scripts.length && !self.parent.sites.length;
 	};
 
-
+	
 	this.upsertScript = function (script) {
 		
 		var idx = self.scripts.findIndex(
@@ -204,15 +213,15 @@ function Site (opt) {
 			self.scripts.push(script);
 			
 		}
-			
+		
 		return script;
 		
 	};
-
+	
 	this.haveScripts = function () {
 		
 		return self.scripts.length > 0;
-
+		
 	};
 	
 	this.haveScript = function (id) {
@@ -227,7 +236,7 @@ function Site (opt) {
     };
 	
 	this.__getDBInfo = function () {
-
+		
 		return {
 			url: self.url,
 			scripts: self.scripts.map(
@@ -242,14 +251,16 @@ function Site (opt) {
 function Domain (opt) {
 
 	var self = this;
+
 	
 	if (!opt || !opt.name)
 		return null;
+
 	
 	Site.call(this, {url: "/", parent: this, scripts: opt.scripts});
-	
-	this.name = opt.name;
 
+	this.name = opt.name;
+	
 	this.sites = [];
 	if (opt.sites) {
 
@@ -260,7 +271,7 @@ function Domain (opt) {
 		}
 
 	}
-
+	
 	this.storage = global_storage;
 	
 	this.persist = function () {
@@ -276,7 +287,7 @@ function Domain (opt) {
 							arr.push(self.name);
 							self.storage.__setDomains(arr);
 						}
-				
+						
 						self.storage.__upsertDomain(self.name, self.__getDBInfo())
 							.then(
 								() => {
@@ -370,9 +381,9 @@ function Domain (opt) {
 		if (site)
 			return site;
 		
-		n = new Site ({url: pathname, parent: self});
+		n = new Site ({url: pathname, parent: self});	
 		self.sites.push(n);
-		
+	
 		return n;
 	};
 	
@@ -423,19 +434,21 @@ function Domain (opt) {
 	};
 
 	this.__getDBInfo = function () {
-
+		
 		return {
+			
 			name: self.name,
-			sites: self.sites.map(site => {
-				return site.__getDBInfo();
-			}),
-			scripts: self.scripts.map(script => {
-				return script.__getDBInfo();
-			})
+			sites: self.sites.map(
+				site => {
+					return site.__getDBInfo();
+				}
+			),
+			scripts: self.scripts.map(
+				script => {
+					return script.__getDBInfo();
+				}
+			)
 		}
 	};
-
-	// console.log("Done creating Domain: " + opt.name);
-	// console.log(self);
 	
 }

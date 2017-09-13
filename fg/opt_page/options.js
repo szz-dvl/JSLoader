@@ -1,21 +1,19 @@
-function OP (bg, info) {
+function OP (bg, domains, port) {
 	
 	var self = this;
 	
-	this.data = info;
 	this.bg = bg;
 	
 	this.editor;
-	this.scripts;
+	this.domain_list;
 	this.themes;
-
-	console.log(self.data.opts);
 	
-	this.app = angular.module('OptionsApp', ['hljsSearch']);
+	this.app = angular.module('OptionsApp', ['jslScriptList']);
 
 	this.app.controller('themeController', ($scope, $compile) => {
 
 		self.themes = $scope;
+		$scope.page = self;
 		
 		/* Ace editor rules here, highlightjs will share theme if available */
 		$scope.list = [
@@ -68,22 +66,18 @@ function OP (bg, info) {
 			)[0] || null;
 		};
 		
-		$scope.current = $scope.getTheme(self.data.opts.editor.theme);
-
+		$scope.current = $scope.getTheme($scope.page.bg.option_mgr.editor.theme.name);
+		
 		$scope.themeChange = function () {
-
-			var to_remove = $('link').find('[ng-href]');
-			var parent = to_remove.parent();
 			
-			to_remove.remove();
-
 			var link = $scope.current.knownToHl ?
 				'<link rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">' :
 				'<link rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">';
 			
-			parent.prepend($compile(link)($scope));
+			$('link')
+				.find('[ng-href]')
+				.replaceWith($compile(link)($scope));
 		};
-		
 	});
 	
 	this.app.controller('editorController', $scope => {
@@ -94,140 +88,82 @@ function OP (bg, info) {
 		$scope.title = "Editor settings";
 		
 		$scope.opts = [
-
-			{text:'Print margin line', value: self.data.opts.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"},
-			{text:'Collapse header by default', value: self.data.opts.editor.collapsed, type: "checkbox", id: "collapsed"},
-			{text:'Show gutter line', value: self.data.opts.editor.showGutter, type: "checkbox", id: "showGutter"},
-			{text:'Font size', value: self.data.opts.editor.fontSize, type: "text", id: "fontSize",
+			
+			{text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"},
+			{text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"},
+			{text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter"},
+			{text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
 			 change: ()  => {
 				 $('code').each(
 					 (i, block) => {
-						 $(block).css("font-size", $scope.getOptVal('fontSize') + "pt");
+						 $(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
 					 }
 				 );
 			 }}
 		];
 		
-		$scope.getOptVal = function (key) {
-			
-			return $scope.opts.filter(
-				opt => {
-					return opt.id == key;	
-				}
-			)[0].value || null;
-		};
-		
 		$scope.updtOpts = function() {
+
+			console.log($scope.page.bg.option_mgr.editor);
+
+			$scope.page.bg.option_mgr.editor.theme = new Theme ($scope.page.themes.current);
 			
-			var ret = {};
-			
-			$scope.opts.forEach(
-				opt => {
-					ret[opt.id] = opt.value; 	
-				}
-			);
-			
-			ret.theme = $scope.page.themes.current.name;
-			
-			return self.bg.option_mgr.setCurrentEditor(ret);
+			// Object.assign($scope.page.bg.option_mgr.editor.theme, $scope.page.themes.current);
+			$scope.page.bg.option_mgr.persist();
 		};
 		
 	});
 
-	this.app.controller('scriptsController', ($scope, $timeout) => {
+	this.app.controller('domainController', ($scope, $timeout) => {
 
-		self.scripts = $scope;
+		$scope.page = self;
+		$scope.page.domain_list = $scope;
 		
-		$scope.domains = self.data.domains;
+		$scope.domains = domains;
 		
 		$scope.title = "Stored scripts";
 		
-		$scope.clickSite = function (ev) {
-			
-			var elem = $(ev.currentTarget).parent();
-			
-			if (elem.hasClass("info-shown")) {
-				
-				elem.children(".script-list").find(".hidden-elem").hide();
-				elem.removeClass("info-shown");
-				
-			} else {
-				
-				elem.children(".script-list").find(".hidden-elem").show();
-				elem.addClass("info-shown");
-				
-			}
-			
-		};
-		
-		$scope.clickScript = function (ev) {
-
-			var elem = $(ev.currentTarget).parent() || ev;
-			
-			if (elem.hasClass("script-shown")) {
-
-				elem.find(".hidden-script").hide();
-				elem.removeClass("script-shown");
-				
-			} else {
-				
-				elem.find(".hidden-script").show();
-				elem.addClass("script-shown");
-			}
-			
-		};
-		
-		$scope.editScript = function(ev) {
-			
-			var id = ev.target.id.split("_").pop();
-			var domain_name = $(ev.target).data("domain");
-			
-			var domain = $scope.domains.filter(
-				domain => {
-					return domain.name == domain_name;
-				})[0];
-			
-			self.bg.editor_mgr.openEditorInstanceForScript(domain.haveScript(id));
-			
-		};
-		
-		$scope.removeScript = function(ev) {
-					
-			var id = ev.target.id.split("_").pop();
-			var domain_name = $(ev.target).data("domain");
-
-			console.log("Removing script for: " + domain_name);
-			
-			$scope.domains.filter(
-				domain => {
-
-					return domain.name == domain_name;
-					
-				})[0].haveScript(id).remove();
-			
-		};
-
 		$timeout(() => {
 
 			$('code').each(
 				(i, block) => {
-					$(block).css("font-size", self.editor.getOptVal('fontSize') + "pt");
+					$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
 				}
 			);
-		});
-		
+		});	
 	});
 
-	this.scriptChange = function () {
-		
-		/* 
-		   Underlying structures already updated by editor, need to trigger $scope.$digest() to re-render data however ...
-		   ?? => scriptsController not aware of changes made in other pages, even for the same "object"??
-		*/
-		
-		self.scripts.$digest();
-		
-	};
+	self.bg.app.op.onMessage.addListener(
+		(args) => {
+
+			switch (args.action) {
+			case "script":
+				
+				/* 
+				   Underlying structures already updated by editor, need to trigger $scope.$digest() to re-render data however ...
+				   ?? => "scriptsController" not aware of changes made in other pages, even for the same "object"??
+				*/
+				
+				self.domain_list.$digest();
+				break;
+				
+			case "domain":
+
+				var idx = self.domain_list.domains.findIndex(
+					stored => {
+						return stored.name == message.name;
+					}
+				)
+
+				if (idx >= 0) 	
+					self.domain_list.domains[idx] = domain;
+				else
+					self.domain_list.domains.push(new Domain(domain));
+				
+				break;
+			}	
+		}
+	);
 	
 	angular.element(document).ready(
 		() => {
@@ -238,19 +174,25 @@ function OP (bg, info) {
 }
 
 browser.runtime.getBackgroundPage()
-		.then(
-			page => {
-				page.bg_manager.getOptPage()
-					.then(
-						info => {
-							
-							page.bg_manager.app.op = new OP(page.bg_manager, info);
+	.then(
+		page => {
 
-							window.onbeforeunload = function () {
-								page.bg_manager.app.op = null;
-							}
+			page.bg_manager.app.op = browser.runtime.connect({name:"option-page"});
+			
+			page.bg_manager.getOptPage()
+				.then(
+					domains => {
+							
+						new OP(page.bg_manager, domains);
+						
+						window.onbeforeunload = function () {
+
+							page.bg_manager.app.op.disconnect();
+							page.bg_manager.app.op = null;
+
 						}
-					);
-			}
-		);
+					}
+				);
+		}
+	);
 

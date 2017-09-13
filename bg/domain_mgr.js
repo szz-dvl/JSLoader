@@ -58,20 +58,21 @@ function DomainMgr (bg) {
 			(resolve, reject) => {
 
 				var url = script.getUrl();
-
-				console.log(url);
+				
+				//console.log(url);
 				
 				if (self.domains.includes(url.hostname)) {
 
 					self.storage.getDomain(
 						domain => {
 						
-							console.error("Domain: ");
-							console.error(domain);
-						
+							// console.error("Domain: ");
+							// console.error(domain);
+							
 							resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
 						
-						}, url.hostname || url.href);
+						}, url.hostname || url.href
+					);
 				
 				} else
 					resolve(self.__createParentFor(url).upsertScript(script));
@@ -81,40 +82,40 @@ function DomainMgr (bg) {
 
 	this.haveInfoForUrl = function (url) {
 
-		return new Promise ((resolve, reject) => {
+		return new Promise (
+			(resolve, reject) => {
 
 
-			if (self.domains.indexOf(url.hostname) >= 0) {
+				if (self.domains.includes(url.hostname)) {
 					
-				global_storage.getDomain(
-					domain => {
+					global_storage.getDomain(
+						domain => {
+
+							resolve (!domain.isEmpty());
+						
+						}, url.hostname);
 					
-						if (domain.haveScripts() || domain.haveSite(url.pathname))
-							resolve(true);
-						else
-							resolve(false);
-					
-					}, url.hostname);
+				} else
+					resolve(false);
 				
-			} else
-				resolve(false);
-			
-		});
-
+			}
+		);
 	};
 
-	/* !!! */
-	// this.getEditInfoForUrl = function (url) {
+	this.getEditInfoForUrl = function (url) {
 
-	// 	return new Promise ((resolve, reject) => {
+		return new Promise (
+			(resolve, reject) => {
 					
-	// 		self.storage.getDomain(domain => {
+				self.storage.getDomain(
+					domain => {
 				
-	// 			resolve(domain.getEditInfo(url.pathname));
-				
-	// 		}, url.hostname);
-	// 	});
-	// };
+						resolve(domain.getOrCreateSite(url.pathname));
+					
+					}, url.hostname);
+			}
+		);
+	};
 	
 	this.getFullDomains = function (done) {
 
@@ -140,16 +141,19 @@ function DomainMgr (bg) {
 						 });
 	};
 
+	
 	this.storeNewDomains = function (changes, area) {
 
 		if (area != "local")
 	 		return;
 		
-		if(changes.domains) {
+		for (key of Object.keys(changes)) {
 
-			console.log("New Domains!");
-			console.log(changes.domains);
-			self.domains = changes.domains.newValue || [];
+			if (key == "domains") 
+				self.domains = changes.domains.newValue || [];
+			else if (key.includes("domain-"))
+				self.bg.informApp("domain", changes[key].newValue || {})
+
 		}
 	};
 	

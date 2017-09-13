@@ -1,8 +1,3 @@
-function onError (error) {
-	
-	throw new Error(error);
-}
-
 function Action (opt) {
 
 	var self = this;
@@ -20,7 +15,7 @@ function Action (opt) {
 			
 		}) : [];
 	
-	this.onClick = opt.onClick;
+	this.onClick = opt.onClick || (() => {});
 	
 	this.canHide = function () {
 		
@@ -37,7 +32,7 @@ function Action (opt) {
 		self.pointed = true;
 		
 		if (!self.subaction) 
-			$("#" + self.id).find( ".hidden-elem" ).fadeIn();
+			$("#" + self.id).find( ".hidden-elem" ).show();
 	}
 
 	this.onLeave = function () {
@@ -45,7 +40,7 @@ function Action (opt) {
 		self.pointed = false;
 		
 		if (!self.subaction && self.canHide()) 
-			$("#" + self.id).find( ".hidden-elem" ).fadeOut();
+			$("#" + self.id).find( ".hidden-elem" ).hide();
 		
 	}
 	
@@ -58,24 +53,7 @@ function Menu (bg) {
 	this.bg = bg;
 	this.menu;
 	this.app = angular.module('MenuApp', []);
-
-	this.getActionById = function (id) {
-
-		for (action of self.menu.user_actions) {
-			
-			if (action.id == id) 
-				return action;
-			
-			for (subaction of action.submenu) {
-
-				if (subaction.id == id)
-					return subaction;
-				
-			}	
-		}
-			
-	};
-
+	
 	this.app.controller('menuController', function ($scope) {
 		
 		self.menu = $scope;
@@ -110,41 +88,39 @@ function Menu (bg) {
 						}
 					   })
 		];
-		
-		$scope.actionClick = function (ev) {
-
-			var action = self.getActionById(ev.currentTarget.id);
-			
-			if (action.onClick)
-				action.onClick();	
-		};
-
-		$scope.actionEnter = function (ev) {
-
-			self.getActionById(ev.currentTarget.id).onEnter();
-			
-		};
-
-		$scope.actionLeave = function (ev) {
-
-			self.getActionById(ev.currentTarget.id).onLeave();
-			
-		};
 	});
 	
-	
-	/* Init */
-	
-	angular.element(document).ready( () => {
+	self.bg.app.ba.onMessage.addListener(
+		args => {
 			
-		angular.bootstrap(document, ['MenuApp']);
+			console.log("BA received: ");
+			console.log(args);
+		}
+	);
+	
+	angular.element(document)
+		.ready(
+			() => {
 			
-	});
-		
+				angular.bootstrap(document, ['MenuApp']);
+			
+			}
+		);
 }
 
-browser.runtime.getBackgroundPage().then(page => {
+browser.runtime.getBackgroundPage()
+	.then(
+		page => {
+			
+			page.bg_manager.app.ba = browser.runtime.connect({name:"browser-action"});
+			
+			window.onbeforeunload = function () {
 
-	page.bg_manager.app.ba = new Menu(page.bg_manager);
-	
-}, onError);
+				page.bg_manager.app.pa.disconnect();
+				page.bg_manager.app.pa = null;
+				
+			}
+			
+			new Menu(page.bg_manager);	
+		}
+	);

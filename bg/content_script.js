@@ -3,14 +3,17 @@ function CS() {
 	var self = this;
 	this.status = true;
 	this.errors = [];
+	this.cnt = 0;
 	
 	this.run = function (code) {
 
+		self.cnt ++;
+		
 		try {
 
 			// script.run();
 			(new Function(code)());
-					
+			
 		} catch (err) {
 
 			self.errors.push(err.message);
@@ -38,20 +41,17 @@ function CS() {
 			}
 			
 			break;
-		case "backup":
-
-			self.backup = $("html").html();
-			break;
 
 		case "check":
-
-			// self.run("console.log($);");
+			
 			self.message = window.location.toString();
 			break;
 
 		case "revert":
 			
-			$("html").html(self.backup);
+			if (self.cnt)
+				window.location.reload();
+
 			break;
 			
 		default:

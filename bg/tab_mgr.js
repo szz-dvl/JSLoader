@@ -25,7 +25,7 @@ function BaseTab (tabInfo) {
 						
 					if (!response.status) {
 						
-						if (self.editor && runForEditor)
+						if (runForEditor)
 							self.editor.message(response.message[0], true);
 						else
 							console.error(response.message); /* Notify? */
@@ -74,19 +74,24 @@ function JSLTab (tabInfo, parent) {
 					browser.tabs.sendMessage(
 					
 						self.id,
-						{ action: "backup" }
+						{ action: "check" }
 					
 					).then (
 						response => {
 
-							console.log("Atacched editor: ");
-							console.log(response);
+							// console.log("Atacched editor: ");
+							// console.log(response);
 
-							self.editor = editor;
+							if (response.message == self.url.href) {
+
+								self.editor = editor;
 						
-							response.editor = self.editor;
-							resolve(response);
-						
+								response.editor = self.editor;
+								resolve(response);
+
+							} else
+								reject ({err: "Bad check url. (" + response.message + ")"});
+							
 						}, reject
 					);
 				}
@@ -96,36 +101,25 @@ function JSLTab (tabInfo, parent) {
 
 	this.deattachEditor = function () {
 
-		return new Promise((resolve, reject) => {
+		if (!self.editor)
 
-			/* Must never happen */
-			if (!self.editor)
-
-				reject ({err: "No editor found."});
+			return {err: "No editor found."};
 			
-			else {
+		else {
 
-				self.revertChanges()
-					.then(
-						response => {
+			self.editor = null;
+			
+			//console.log("Removing tab " + self.id);
+			
+			self.parent.tabs.remove(
+				self.parent.tabs.findIndex(
+					tab => {
+						return tab.id == self.id;
+					}
+				)
+			);
 							
-							self.editor = null;
-
-							console.log("Removing tab " + self.id);
-							
-							self.parent.tabs.remove(
-								self.parent.tabs.findIndex(
-									tab => {
-										return tab.id == self.id;
-									}
-								)
-							);
-							
-							resolve(response);
-							
-						}, reject);
-			}
-		});
+		}
 	}
 
 	this.revertChanges = function () {
@@ -140,7 +134,7 @@ function JSLTab (tabInfo, parent) {
 			return browser.tabs.sendMessage(
 				
 				self.id,
-				{action: "revert", backup: self.editor.backup}
+				{action: "revert"}
 				
 			);
 		}
@@ -219,23 +213,34 @@ function TabMgr (bg) {
 		if (tab) {
 
 			/* Changing angular view from here ignored! */
-			if (changeInfo.url) 
+			if (changeInfo.url) {
+
 				tab.url = new URL(changeInfo.url);
 
+				if (tab.editor) {
+					
+					/* check for CSP ... */
+					tab.editor.updateTarget();
+				}
+			}
+			
 			if (changeInfo.status == "complete") {
-
-				console.log("tab: " + tabInfo.url + " COMPLETE!");
-				console.log(tabInfo);
+				
+				// console.log("tab: " + tabInfo.url + " COMPLETE!");
+				// console.log(tabInfo);
 				tab.status = "complete";
 				
-				tab.attachEditor(self.bg.editor_mgr.getEditorForTab(tab))
-					.then(null,
-						  err => {
+				if (!tab.editor) {
 
-							  console.error("Complete attach rejected!!");
-							  console.log(err)
-
-						  });
+					tab.attachEditor(self.bg.editor_mgr.getEditorForTab(tab))
+						.then(null,
+							  err => {
+								  
+								  console.error("Complete attach rejected!!");
+								  console.log(err)
+								  
+							  });
+				}
 				
 			}
 			
@@ -292,8 +297,8 @@ function TabMgr (bg) {
 			browser.tabs.query({currentWindow: true, active: true})
 				.then(tab_info => {
 					
-					console.log("currentTab: ");
-					console.log(tab_info);
+					// console.log("currentTab: ");
+					// console.log(tab_info);
 
 					self.checkTab(parseInt(tab_info[0].id))
 						.then(
@@ -310,13 +315,25 @@ function TabMgr (bg) {
 							err => {
 
 								self.bg.notifyUser("CSP Block", "Unable to open editor for tab ..." + tab_info[0].id);
-								console.error(err);
+								// console.error(err);
 								reject(err);
 							}
 						);
 				});
 		
 		});
+	};
+
+	this.getCurrentUrl = function () {
+
+		return new Promise ((resolve, reject) => {
+			
+			browser.tabs.query({currentWindow: true, active: true})
+				.then(tab_info => {
+					resolve(new URL(tab_info[0].url));
+				}, reject)
+		});
+
 	};
 	
 	browser.tabs.onUpdated.addListener(self.updateTabs);

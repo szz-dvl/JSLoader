@@ -1,41 +1,35 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
+	<head ng-controller="headController">
+	
 		<meta charset="utf-8">
-		<link rel="stylesheet" href="pa.css"/>
-		<link rel="stylesheet" href="../deps/highlightjs/default.min.css">
-		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"> -->
-		
+		<link rel="stylesheet" href="pa.css">
+		<link rel="stylesheet" href="chrome://browser/content/extension.css">
+		<link ng-if="!page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
+		<link ng-if="page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{page.bg.option_mgr.editor.theme.knownToHl}}.min.css">		
+		<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
 		<script src="../deps/jquery.min.js"></script>
+		<script src="../deps/angular.min.js"></script>
 		<script src="../deps/highlightjs/highlight.min.js"></script>
+		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
+		<script src="../partials/script-list/script-list.js"></script>
 		
 	</head>
 	
-	<body>
+	<body >
 			
-		<!-- <div class="panel-section panel-section-header">
+	  <div class="panel-section panel-section-header">
 		<div class="text-section-header">JSLoader</div>
-		</div> -->
-
-		<div id="content" class="panel-section">
-			
-			<div id="domain_cont" class="panel-section panel-section-header hidden-elem">
-				<div class="text-section-header"><bdi id="domain_name"> </bdi></div>
-			</div>
-			
-			<ul id="domain_scripts" class="panel-section-list"> </ul>
-			
-			<div id="site_cont" class="panel-section panel-section-header hidden-elem">
-				<div class="text-section-header"><bdi id="site_name"> </bdi></div>
-			</div>
-			
-			<ul id="site_scripts" class="panel-section-list"> </ul>
-		
-		</div>
-				
-		<script src="pa.js"></script>
-		
+	  </div>
+	  
+	  <div id="content" class="panel-section" ng-controller="siteController">
+		<script-list list="site.parent.scripts" parent="site.parent" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>
+		<script-list list="site.scripts" parent="site" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>	
+	  </div>
+	  
+	  <script src="pa.js"></script>
+	  
 	</body>
 
 </html>

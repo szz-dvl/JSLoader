@@ -11,28 +11,42 @@
 	
 	<body>
 
-		<div class="panel-section panel-section-header">
-				<div class="text-section-header">JSLoader</div>
-		</div>
+	  <div class="panel-section panel-section-header">
+		<div class="text-section-header">JSLoader</div>
+	  </div>
 	
-		<div id="content" class="panel" ng-controller="menuController as menu" ng-cloak>
-			
-			<nav id="menu">
-				<ul class="panel-section-list browser-style"> 
-					<li id="{{action.id}}" class="panel-list-item" ng-repeat="action in user_actions" ng-click="actionClick($event)" ng-mouseenter="actionEnter($event)" ng-mouseleave="actionLeave($event)">
-						<label> {{action.val}} </label>
-						<ul class="panel-section-list browser-style hidden-elem" ng-if="action.submenu">
-							<li id="{{subaction.id}}" class="panel-list-item" ng-repeat="subaction in action.submenu" ng-click="actionClick($event)" ng-mouseenter="actionEnter($event)" ng-mouseleave="actionLeave($event)">
-								<label> {{subaction.val}} </label>
-							</li><br>
-						</ul>
-					</li><br>
-				</ul>
-			</nav>
-		</div>
+	  <div id="content" class="panel" ng-controller="menuController as menu" ng-cloak>
+		
+		<nav id="menu">
+		  <ul class="panel-section-list browser-style"> 
+			<li id="{{action.id}}"
+				class="panel-list-item"
+				ng-repeat="action in user_actions"
+				ng-click="action.onClick($event)"
+				ng-mouseenter="action.onEnter($event)"
+				ng-mouseleave="action.onLeave($event)">
+			  
+			  <label> {{action.val}} </label>
+
+			  <ul class="panel-section-list browser-style hidden-elem" ng-if="action.submenu">
 				
-		<script src="ba.js"></script>
+				<li id="{{subaction.id}}"
+					class="panel-list-item"
+					ng-repeat="subaction in action.submenu"
+					ng-click="subaction.onClick($event)"
+					ng-mouseenter="subaction.onEnter($event)"
+					ng-mouseleave="subaction.onLeave($event)">
+				  
+				  <label> {{subaction.val}} </label>
+				  
+				</li><br>
+			  </ul>
+			</li><br>
+		  </ul>
+		</nav>
+	  </div>
+		
+	  <script src="ba.js"></script>
 		
 	</body>
-
 </html>

@@ -16,7 +16,10 @@
 	
 	"background": {
 		"scripts": [
+			
+			"utils/deps/EventEmitter/EventEmitter.min.js",
 			"bg/deps/async.min.js",
+			"utils/jsloader-utils.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
 			"bg/tab_mgr.js",

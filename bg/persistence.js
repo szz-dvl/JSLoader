@@ -8,7 +8,7 @@ function Storage () {
 
 	/* To do cacth error */
 	var self = this;
-
+	
 	this.__get = function (cb, key) {
 				
 		browser.storage.local.get(key)
@@ -39,8 +39,7 @@ function Storage () {
 
 		console.log("Removing: " + key);
 		
-		browser.storage.local.remove(key)
-			.then(null, onError);
+		return browser.storage.local.remove(key);
 	};
 
 	this.__getDomains = function (cb) {
@@ -59,7 +58,7 @@ function Storage () {
 	};
 
 	this.__upsertDomain = function (name, val) {
-		
+
 		return this.__set('domain-' + name, val);
 	};
 
@@ -75,7 +74,7 @@ function Storage () {
 
 	this.__removeDomain = function (name) {
 		
-		this.__remove('domain-' + name);
+		return this.__remove('domain-' + name);
 	};
 
 	this.getOrCreateDomain = function (cb, name) {

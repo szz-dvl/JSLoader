@@ -93,13 +93,14 @@ function EditorFG (editor, bg) {
 		/* !!! */
 		setTimeout(
 			() => {
-				self.res_box.fadeOut(800, "swing",
-									 () => {
+				self.res_box
+					.fadeOut(800, "swing",
+							 () => {
 										 
-										 self.res_box.css("visibility", "hidden");
-										 self.res_box.css("display", "block");
+								 self.res_box.css("visibility", "hidden");
+								 self.res_box.css("display", "block");
 										 
-									 });
+							 });
 				
 			}, 5000);
 	};
@@ -115,6 +116,9 @@ function EditorFG (editor, bg) {
 					self.target.text(url.hostname + url.pathname);
 					self.editor.scope.user_action.target = url.hostname + url.pathname;
 
+				}, err => {
+
+					self.editor.message(err, true); 
 				}
 			);
 			
@@ -241,7 +245,7 @@ function EditorFG (editor, bg) {
 
 		self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
 		self.editor.ace.renderer.setShowGutter(self.editor.opts.showGutter);
-		self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme);
+		self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme.name);
 			
 		self.editor.ace.setOptions({
 			fontSize: self.editor.opts.fontSize + "pt"
@@ -287,6 +291,8 @@ function EditorFG (editor, bg) {
 			$scope.targetTID = setTimeout(
 				() => {
 
+					var old = self.editor.script.getUrl();
+					
 					self.editor.script.updateParent(new URL("http://" + self.target.text()))
 						.then(
 							script => {
@@ -298,10 +304,15 @@ function EditorFG (editor, bg) {
 								
 								//$scope.user_action.target = url.hostname + url.pathname;
 								self.target.text(url.hostname + url.pathname);
+							},
+							err => {
+
+								self.editor.message(err.err, true);
+								self.target.text(old.hostname + old.pathname);
 							}
 						);
 					
-				}, 500);
+				}, 1500);
 			
 			
 		};

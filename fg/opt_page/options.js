@@ -8,7 +8,7 @@ function OP (bg, domains, port) {
 	this.domain_list;
 	this.themes;
 	
-	this.app = angular.module('OptionsApp', ['jslScriptList']);
+	this.app = angular.module('OptionsApp', ['jslPartials']);
 
 	this.app.controller('themeController', ($scope, $compile) => {
 
@@ -118,10 +118,26 @@ function OP (bg, domains, port) {
 
 		$scope.page = self;
 		$scope.page.domain_list = $scope;
-		
+		$scope.port = port;
 		$scope.domains = domains;
+
+		$scope.shown = [];
 		
 		$scope.title = "Stored scripts";
+
+		// $scope.findScript = function (uuid) {
+
+		// 	for (domain of $scope.domains) {
+
+		// 		var script = domain.haveScript(uuid);
+				
+		// 		if (script)
+		// 			return script;
+
+		// 	}
+
+		// 	return null;
+		// }
 		
 		$timeout(() => {
 
@@ -130,69 +146,56 @@ function OP (bg, domains, port) {
 					$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
 				}
 			);
-		});	
+		});
+		
+		$scope.port.onMessage.addListener(
+
+			(args) => {
+				
+				switch (args.action) {
+					
+				case "cache-update":
+					
+					$scope.$digest();
+					console.log("cache-update for: " + args.message);
+					console.log($scope.port);
+					
+					$scope.port.postMessage({action: "list-update", message: args.message});
+					
+					break;
+				}
+			}
+		);
 	});
-
-	self.bg.app.op.onMessage.addListener(
-		(args) => {
-
-			switch (args.action) {
-			case "script":
-				
-				/* 
-				   Underlying structures already updated by editor, need to trigger $scope.$digest() to re-render data however ...
-				   ?? => "scriptsController" not aware of changes made in other pages, even for the same "object"??
-				*/
-				
-				self.domain_list.$digest();
-				break;
-				
-			case "domain":
-
-				var idx = self.domain_list.domains.findIndex(
-					stored => {
-						return stored.name == message.name;
-					}
-				)
-
-				if (idx >= 0) 	
-					self.domain_list.domains[idx] = domain;
-				else
-					self.domain_list.domains.push(new Domain(domain));
-				
-				break;
-			}	
-		}
-	);
 	
 	angular.element(document).ready(
 		() => {
 			
 			angular.bootstrap(document, ['OptionsApp']);
+			
 		}
 	);
 }
 
+
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-
-			page.bg_manager.app.op = browser.runtime.connect({name:"option-page"});
-			
-			page.bg_manager.getOptPage()
+			page.getOptPage()
 				.then(
 					domains => {
-							
-						new OP(page.bg_manager, domains);
-						
+
+						var port = browser.runtime.connect(browser.runtime.id, {name:"option-page"});
+
 						window.onbeforeunload = function () {
 
-							page.bg_manager.app.op.disconnect();
-							page.bg_manager.app.op = null;
-
+							port.disconnect();
+							
 						}
+
+						OP.call(this, page, domains, port);
 					}
-				);
+				);		
 		}
 	);
-
+	

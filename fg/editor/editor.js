@@ -174,21 +174,6 @@ function EditorFG (editor, bg) {
 		
 		self.editor.scope.buttons.shown = !self.editor.scope.buttons.shown
 	};
-
-	this.handleMessage = function (request) {
-		
-		switch (request.action) {
-		case "opts":
-			
-			console.log("New opts!");
-			self.editor.opts = request.message;
-			self.resetAce();
-			
-		default:
-			break;
-		}
-
-	};
 	
 	this.runCurrent = function () {
 		
@@ -214,7 +199,8 @@ function EditorFG (editor, bg) {
 								
 								script.persist().then(
 									domain => {
-										self.bg.informApp("script");
+										
+										self.bg.domain_mgr.cacheDomain(domain);
 									}
 								);
 					
@@ -393,6 +379,23 @@ function EditorFG (editor, bg) {
 		});
 		
 	});
+
+	browser.runtime.onMessage.addListener(
+
+		request => {
+			
+			switch (request.action) {
+			case "opts":
+			
+				console.log("New opts!");
+				self.editor.opts = request.message; /* ?? */
+				self.resetAce();
+				
+			default:
+				break;
+			}
+		}
+	);
 	
 	angular.element(document).ready( () => {
 		
@@ -412,11 +415,9 @@ browser.runtime.getBackgroundPage()
 		page => {
 
 			var id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
-			var editor = page.bg_manager.editor_mgr.getEditorById(id);
-	
-			browser.runtime.onMessage.addListener(
-				new EditorFG(editor, page.bg_manager)
-					.handleMessage);
+			var editor = page.editor_mgr.getEditorById(id);
+
+			EditorFG.call(this, editor, page);
 	
 		}, onError
 	);

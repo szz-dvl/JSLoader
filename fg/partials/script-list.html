@@ -1,0 +1,29 @@
+<div class="site-list" ng-if="list.length">
+  
+  <label id="{{list_uuid}}" class="click" ng-click="clickParent($event)">
+	<bdi class="path-name">{{parent.url}}</bdi>
+  </label>
+  
+  <ul class="script-list hidden-elem">
+	<li class="script-bucket hidden-elem" ng-repeat="script in list">
+	  
+	  <label id="{{script.uuid}}" class="click" ng-click="clickScript($event)">
+		<bdi id="{{script.name}}" class="code-uuid hidden-elem"> {{script.name}} </bdi>
+	  </label>
+	  
+	  <div class="code-bucket hidden-script">
+		<hljs-search class="hidden-script" code="script.code" language="'javascript'" linenumber="bg.option_mgr.editor.showGutter"></hljs-search>
+		<table class="btn-panel hidden-script">
+		  <tr align="center">
+			<td class="left">
+			  <button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script hidden-script" data-domain="{{script.parent.parent.name}}" ng-click="editScript($event)"> Edit </button>
+			</td>
+			<td class="right">
+			  <button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script hidden-script" data-domain="{{script.parent.parent.name}}" ng-click="removeScript($event)"> Remove </button>
+			</td>
+		  </tr>
+		</table>
+	  </div><br></br>
+	</li>
+  </ul>
+</div><br></br>

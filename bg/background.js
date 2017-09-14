@@ -7,14 +7,6 @@ function BG_mgr () {
 	this.domain_mgr = new DomainMgr(self);
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
-	this.events = new EventEmitter();
-	
-	this.app = {
-		
-		ba: null,
-		pa: null,
-		op: null
-	}
 
 	this.notification_ID = "jsloader-notification";
 
@@ -90,17 +82,6 @@ function BG_mgr () {
 		console.error(err);
 
 	};
-
-	this.informApp = function (action, message) {
-
-		for (key of Object.keys(self.app)) {
-			
-			var port = self.app[key];
-			
-			if (port) 
-				port.postMessage({action: action, message: message});
-		}
-	};
 	
 	this.showEditorForCurrentTab = function () {
 		
@@ -122,9 +103,13 @@ function BG_mgr () {
 		browser.runtime.sendMessage(message);
 		
 	};
-}
 
-var bg_manager = new BG_mgr();		
+	this.toDomain = function (desc) {
+		return new Domain (desc);
+	}
+}		
 
-browser.tabs.onActivated.addListener(bg_manager.__showPageAction);
-browser.commands.onCommand.addListener(bg_manager.showEditorForCurrentTab);
+BG_mgr.call(this);
+
+browser.tabs.onActivated.addListener(this.__showPageAction);
+browser.commands.onCommand.addListener(this.showEditorForCurrentTab);

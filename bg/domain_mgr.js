@@ -5,13 +5,17 @@ function DomainMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	this.domains = [];
+	this.cache = []; /* Alive instances. */
+	
 
-	this.storage.__getDomains(new_domains => {
+	this.storage.__getDomains(
+		new_domains => {
 
-		if (new_domains)
-			self.domains = new_domains;
+			if (new_domains)
+				self.domains = new_domains;
 		
-	});
+		}
+	);
 
 	this.__createParentFor = function (url) {
 		
@@ -32,20 +36,19 @@ function DomainMgr (bg) {
 
 				if (self.domains.includes(url.hostname)) {
 					
-					self.storage.getDomain(
-						domain => {
-					
-							var site = domain.haveSite(url.pathname),
-								scripts = domain.scripts;
+					self.getOrBringCached(url.hostname)
+						.then(
+							domain => {
+								
+								var site = domain.haveSite(url.pathname),
+									scripts = domain.scripts;
 						
-							if (site)
-								scripts = scripts.concat(site.scripts);
+								if (site)
+									scripts = scripts.concat(site.scripts);
 						
-							resolve(scripts);
-						
-						}, url.hostname
-					);
-
+								resolve(scripts);
+							}
+						);
 				} else
 					resolve(null);
 			}
@@ -62,18 +65,19 @@ function DomainMgr (bg) {
 				//console.log(url);
 				
 				if (self.domains.includes(url.hostname)) {
-
-					self.storage.getDomain(
-						domain => {
-						
-							// console.error("Domain: ");
-							// console.error(domain);
+					
+					self.getOrBringCached(url.hostname || url.href)
+						.then(
+							domain => {
+								
+								// console.error("Domain: ");
+								// console.error(domain);
 							
-							resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
-						
-						}, url.hostname || url.href
-					);
-				
+								resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
+								
+							}
+						);
+					
 				} else
 					resolve(self.__createParentFor(url).upsertScript(script));
 			}
@@ -84,76 +88,148 @@ function DomainMgr (bg) {
 
 		return new Promise (
 			(resolve, reject) => {
-
-
+				
 				if (self.domains.includes(url.hostname)) {
 					
-					global_storage.getDomain(
-						domain => {
+					self.getOrBringCached(url.hostname)
+						.then(
+							domain => {
 
-							resolve (!domain.isEmpty());
-						
-						}, url.hostname);
+								resolve (!domain.isEmpty());
+								
+							}
+						);
 					
 				} else
-					resolve(false);
-				
+					resolve(false);	
 			}
 		);
 	};
 
+	this.getOrBringCached = function (domain_name) {
+
+		var cached = self.cache.filter(
+			cached => {
+				return cached.name == domain_name;
+			}
+		)[0];
+
+		if (cached) 
+			return Promise.resolve(cached);	
+		else
+			return self.getAndCacheDomain(domain_name);
+		
+	};
+	
 	this.getEditInfoForUrl = function (url) {
 
 		return new Promise (
 			(resolve, reject) => {
 					
-				self.storage.getDomain(
-					domain => {
-				
-						resolve(domain.getOrCreateSite(url.pathname));
-					
-					}, url.hostname);
+				self.getOrBringCached(url.hostname)
+					.then(
+						domain => {
+							
+							resolve(domain.getOrCreateSite(url.pathname));
+							
+						}
+					);
 			}
 		);
+	};
+
+	this.removeCached = function (domain_name) {
+
+		console.log("Remove from cache: " + domain_name);
+		self.cache.remove(
+			self.cache.findIndex(
+				cached => {
+					return cached.name == domain_name;
+				}
+			)
+		);
+	}
+
+	this.getAndCacheDomain = function (domain_name) {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				self.storage.getDomain(
+					domain => {
+						
+						self.cacheDomain(domain);
+						resolve(domain);
+						
+					}, domain_name
+				);
+			}
+		);
+	};
+
+	this.cacheDomain = function (domain) {
+		
+		var cached = self.cache.filter(
+			cached => {
+				return cached.name == domain.name;
+			}
+		)[0];
+
+		var ret = cached ? false : self.cache.push(domain);
+		
+		self.bg.option_mgr.sendMessage("cache-update", domain.name);
+
+		return ret;
+	};
+
+	this.getCachedNames = function () {
+		
+		return self.cache.map(
+			cached => {
+				return cached.name;
+			}
+		); 
 	};
 	
 	this.getFullDomains = function (done) {
 
-		var res = [];
+		var missing = _.difference(self.domains, self.getCachedNames());
 		
-		async.eachSeries(self.domains,
-						 
+		async.eachSeries(missing,
 						 (domain_name, cb) => {
 							 
-							 self.storage.getDomain(
-								 domain => {
-								 
-									 res.push(domain);
-									 cb();
+							 self.getAndCacheDomain(domain_name)
+								 .then(
+									 domain => {
+										 
+										 cb();
 									 
-								 }, domain_name
-							 );
+									 }
+								 );
+						 },
+						 () => {
 							 
-						 }, () => {
-							 
-							 done(res);
+							 done(self.cache);
 							 
 						 });
 	};
-
 	
 	this.storeNewDomains = function (changes, area) {
-
+		
 		if (area != "local")
 	 		return;
 		
 		for (key of Object.keys(changes)) {
-
+			
 			if (key == "domains") 
 				self.domains = changes.domains.newValue || [];
-			else if (key.includes("domain-"))
-				self.bg.informApp("domain", changes[key].newValue || {})
-
+			else if (key.includes("domain-")) {
+				
+				/* domain removed */
+				if (!changes[key].newValue)
+					self.removeCached(changes[key].oldValue.name);
+			}
+			
 		}
 	};
 	

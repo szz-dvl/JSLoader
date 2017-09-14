@@ -78,7 +78,7 @@ function Menu (bg) {
 			
 			new Action({val: "Options", id: "options_page",
 						onClick: function () {
-							browser.runtime.openOptionsPage();
+							self.bg.option_mgr.openPage();
 						}
 					   }),
 			
@@ -89,14 +89,6 @@ function Menu (bg) {
 					   })
 		];
 	});
-	
-	self.bg.app.ba.onMessage.addListener(
-		args => {
-			
-			console.log("BA received: ");
-			console.log(args);
-		}
-	);
 	
 	angular.element(document)
 		.ready(
@@ -112,15 +104,6 @@ browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			
-			page.bg_manager.app.ba = browser.runtime.connect({name:"browser-action"});
-			
-			window.onbeforeunload = function () {
-
-				page.bg_manager.app.pa.disconnect();
-				page.bg_manager.app.pa = null;
-				
-			}
-			
-			new Menu(page.bg_manager);	
+			Menu.call(this, page);	
 		}
 	);

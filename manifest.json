@@ -7,17 +7,15 @@
 	
 	"applications": {
 		"gecko": {
-			"id": "jsloader@something.com",
-			"strict_min_version": "29.0a1",
-			"strict_max_version": "55.*",
-			"update_url": "https://example.com/updates.json"
+			"id": "{7c7674e3-ec49-472b-8bab-5c981aa3cc94}",
+			"strict_min_version": "42.0",
+			"strict_max_version": "55.*"
 		}
     },
 	
 	"background": {
 		"scripts": [
-			
-			"utils/deps/EventEmitter/EventEmitter.min.js",
+			"utils/deps/underscore-min.js",
 			"bg/deps/async.min.js",
 			"utils/jsloader-utils.js",
 			"bg/data_model.js",
@@ -74,7 +72,7 @@
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
-
+	
 	"permissions": ["storage", "tabs", "notifications", "<all_urls>"]
-
+	
 }

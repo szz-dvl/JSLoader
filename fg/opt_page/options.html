@@ -18,8 +18,8 @@
 		<script src="../deps/angular.min.js"></script>
 		<script src="../deps/highlightjs/highlight.min.js"></script>
 		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
-		<script src="../partials/script-list/script-list.js"></script>
-
+		<script src="../partials/partials.js"></script>
+		
 		<script src="../../utils/jsloader-utils.js"></script>
 		
   </head>
@@ -75,8 +75,8 @@
 		  
 		  <h4> {{domain.name}} </h4>
 		  
-		  <script-list list="domain.scripts" parent="domain" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>
-		  <script-list ng-repeat="site in domain.sites" list="site.scripts" parent="site" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>
+		  <script-list ng-if="domain.scripts.length" list="domain.scripts" parent="domain" editor="page.bg.editor_mgr.openEditorInstanceForScript" port="port" shown="shown"></script-list>
+		  <script-list ng-repeat="site in domain.sites" ng-if="site.scripts.length" list="site.scripts" parent="site" editor="page.bg.editor_mgr.openEditorInstanceForScript" port="port" shown="shown"></script-list>
 
 		</div>
 		

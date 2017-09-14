@@ -4,12 +4,9 @@ function PA (bg, site) {
 
 	this.bg = bg;
 	this.site = site;
-
-	console.log("My site!");
-	console.log(this.site);
 	
-	this.app = angular.module('pageActionApp', ['jslScriptList']); /*'jslScriptList'*/
-
+	this.app = angular.module('pageActionApp', ['jslPartials']); /*'jslScriptList'*/
+	
 	this.app.controller('headController', $scope => {
 		
 		$scope.page = self;
@@ -22,14 +19,6 @@ function PA (bg, site) {
 		$scope.site = self.site;
 		
 	});
-
-	self.bg.app.pa.onMessage.addListener(
-		args => {
-
-			console.log("PA received: ");
-			console.log(args);
-		}
-	);
 	
 	angular.element(document).ready(
 		() => {
@@ -43,21 +32,12 @@ function PA (bg, site) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-
-			page.bg_manager.app.pa = browser.runtime.connect({name:"page-action"});
-
-			page.bg_manager.getPASite()
+			page.getPASite()
 				.then(
 					site => {
 						
-						new PA(page.bg_manager, site);
-
-						window.onbeforeunload = function () {
-
-							page.bg_manager.app.pa.disconnect();
-							page.bg_manager.app.pa = null;
-							
-						}
+						PA.call(this, page, site);
+						
 					}
 				);						
 		}

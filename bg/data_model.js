@@ -51,6 +51,9 @@ function Script (opt) {
 		/* !!! After promise ?? */
 		return new Promise (
 			(resolve, reject) => {
+
+				// console.error("Old Parent: ");
+				// console.error(self.parent);
 				
 				self.remove()
 					.then(
@@ -132,23 +135,20 @@ function Site (opt) {
 	};
 	
 	this.remove = function () {
-		
+
 		return self.parent.removeSite(self.url);
 		
 	};
 
 	this.persist = function () {
-		
+	
 		return self.parent.persist();
 		
 	};
 	
 	this.isEmpty = function () {
-
-		if (!self.isDomain())
-			return !self.scripts.length;
-		else 
-			return !self.parent.scripts.length && !self.parent.sites.length;
+		
+		return !self.scripts.length;
 	};
 
 	this.removeScript = function (id) {
@@ -174,10 +174,13 @@ function Site (opt) {
 				return script.uuid == exe.uuid;
 			}
 		);
+		
+		if (idx >= 0) {
 
-		if (idx >= 0)
-			self.scripts[idx] = script;
-		else { 	
+			self.scripts[idx].name = script.name;
+			self.scripts[idx].code = script.code;
+
+		} else { 	
 			
 			script.parent = self;
 			self.scripts.push(script);
@@ -241,6 +244,12 @@ function Domain (opt) {
 	}
 	
 	this.storage = global_storage;
+	
+	this.isEmpty = function () {
+		
+		return !self.scripts.length && !self.sites.length;
+		
+	};
 	
 	this.persist = function () {
 
@@ -356,7 +365,7 @@ function Domain (opt) {
 
 	this.removeSite = function (pathname) {
 		
-		if (pathname != "/")
+		if (pathname == "/")
 			return self.remove();
 		
 		self.sites.remove(
@@ -366,7 +375,7 @@ function Domain (opt) {
 				}
 			)
 		);
-
+		
 		return self.isEmpty() ?
 			self.remove() :
 			self.persist();		

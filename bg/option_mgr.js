@@ -54,4 +54,27 @@ function OptionMgr (bg) {
 		browser.runtime.openOptionsPage();
 		
 	};
+
+	this.sendMessage = function(action, message) {
+
+		if (self.port)
+			self.port.postMessage({action: action, message: message});
+		
+	};
+
+	browser.runtime.onConnect
+		.addListener(
+			port => {
+
+				self.port = port;
+				self.port.onDisconnect.addListener(
+					() => {
+						
+						self.port = null;
+						console.log("Disconnecting port!");
+					}
+				);
+			}
+		);
 }
+

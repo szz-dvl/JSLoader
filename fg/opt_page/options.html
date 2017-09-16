@@ -75,8 +75,24 @@
 		  
 		  <h4> {{domain.name}} </h4>
 		  
-		  <script-list ng-if="domain.scripts.length" list="domain.scripts" parent="domain" editor="page.bg.editor_mgr.openEditorInstanceForScript" port="port" shown="shown"></script-list>
-		  <script-list ng-repeat="site in domain.sites" ng-if="site.scripts.length" list="site.scripts" parent="site" editor="page.bg.editor_mgr.openEditorInstanceForScript" port="port" shown="shown"></script-list>
+		  <script-list ng-if="domain.scripts.length"
+					   list="domain.scripts"
+					   parent="domain"
+					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+					   port="port"
+					   shown="shown"
+					   opts="page.bg.option_mgr.editor">
+		  </script-list>
+		  
+		  <script-list ng-repeat="site in domain.sites"
+					   ng-if="site.scripts.length"
+					   list="site.scripts"
+					   parent="site"
+					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+					   port="port"
+					   shown="shown"
+					   opts="page.bg.option_mgr.editor">
+		  </script-list>
 
 		</div>
 		

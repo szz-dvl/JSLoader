@@ -1,3 +1,26 @@
+function Option (opt, page) {
+
+	var self = this;
+	
+	this.text = opt.text || "";
+	this.type = opt.type || "checkbox";
+	this.id = opt.id || null;
+	this.value = opt.value || null;
+
+	this.__onChange = opt.change || null; 
+
+	this.change = function () {
+
+		page.bg.option_mgr.editor[self.id] = self.value;
+
+		if (self.__onChange)
+			self.__onChange();
+
+	}
+	
+}
+
+
 function OP (bg, domains, port) {
 	
 	var self = this;
@@ -89,23 +112,43 @@ function OP (bg, domains, port) {
 		
 		$scope.opts = [
 			
-			{text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"},
-			{text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"},
-			{text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter"},
-			{text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
-			 change: ()  => {
-				 $('code').each(
-					 (i, block) => {
-						 $(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
-					 }
-				 );
-			 }}
+			new Option({text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.page),
+			new Option({text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.page),
+			new Option({text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter",
+						change: () => {
+							console.log($scope.page.bg.option_mgr.editor);
+						}}, $scope.page
+					  ),
+			new Option({text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
+						change: ()  => {
+							$('code').each(
+								(i, block) => {
+									$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
+								}
+							);
+						}}, $scope.page 
+					  )
 		];
+
+		// $scope.getOptVal = function (id) {
+
+		// 	return $scope.opts.filter(
+		// 		opt => {
+
+		// 			return opt.id == id;
+					
+		// 		}
+		// 	)[0] || null;
+
+		// };
 		
 		$scope.updtOpts = function() {
 
 			console.log($scope.page.bg.option_mgr.editor);
 
+			
+			
+			
 			$scope.page.bg.option_mgr.editor.theme = new Theme ($scope.page.themes.current);
 			
 			// Object.assign($scope.page.bg.option_mgr.editor.theme, $scope.page.themes.current);
@@ -120,11 +163,22 @@ function OP (bg, domains, port) {
 		$scope.page.domain_list = $scope;
 		$scope.port = port;
 		$scope.domains = domains;
-
+		
 		$scope.shown = [];
 		
 		$scope.title = "Stored scripts";
 
+		// $scope.digest_cnt = 0;
+
+		// $scope.$watch('digest_cnt', function(newValue, oldValue) {
+
+		// 	$scope.digest_cnt ++;
+
+		// 	if (newValue !== oldValue)
+		// 		$scope.port.postMessage({action: "list-update", message: "caca de la vaca"});
+			
+		// });
+		
 		// $scope.findScript = function (uuid) {
 
 		// 	for (domain of $scope.domains) {
@@ -151,16 +205,19 @@ function OP (bg, domains, port) {
 		$scope.port.onMessage.addListener(
 
 			(args) => {
-				
+
 				switch (args.action) {
 					
-				case "cache-update":
-					
+				case "update-page":
+
+					console.log("update-page");
 					$scope.$digest();
-					console.log("cache-update for: " + args.message);
-					console.log($scope.port);
+					//console.log("cache-update for: " + args.message + ", ");
+					// console.log($scope.port);
 					
-					$scope.port.postMessage({action: "list-update", message: args.message});
+					//$scope.port.postMessage({action: "list-update", message: args.message});
+
+					//$scope.port.postMessage({action: "list-update", message: args.message});
 					
 					break;
 				}

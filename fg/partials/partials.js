@@ -7,14 +7,14 @@ angular.module('jslPartials', ['hljsSearch'])
 			restrict: 'E',
 
 			// require: ['hljsSearch'],
-			
 			scope: {
 				
 				list: "=list",
 				parent: "=parent",
 				editor: "=editor",
 				port: "=port",
-				shown: "=shown"
+				shown: "=shown",
+				opts: "=opts"
 			},
 			
 			templateUrl: function (elem, attr) {
@@ -22,9 +22,10 @@ angular.module('jslPartials', ['hljsSearch'])
 			},
 			
 			controller: function ($scope, $timeout, $anchorScroll, $location) {
-
+				
 				$scope.list_uuid = UUID.generate();
 				$scope.list_shown = false;
+				$scope.last_length = $scope.list.length;
 				
 				console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
 				
@@ -55,7 +56,7 @@ angular.module('jslPartials', ['hljsSearch'])
 					} else {
 						
 						elem.find(".hidden-script")
-							.show(
+							.show(400,
 								() => {
 									if (cb)
 										cb();
@@ -88,6 +89,7 @@ angular.module('jslPartials', ['hljsSearch'])
 				$scope.removeScript = function (ev) {
 					
 					var id = ev.target.id.split("_").pop();
+					
 					$scope.list.filter(
 						script => {
 							
@@ -95,7 +97,13 @@ angular.module('jslPartials', ['hljsSearch'])
 
 						}
 					)[0].remove();
+
+					//console.log("New List Length: " + $scope.list.length + "(" + $scope.last_length + ")");
 					
+					if (!$scope.list.length)
+						$scope.$destroy();
+					else
+						$scope.last_length = $scope.list.length;
 				};
 				
 				$scope.editScript = function (ev) {
@@ -169,21 +177,33 @@ angular.module('jslPartials', ['hljsSearch'])
 							
 							switch (args.action) {
 								
-							case "list-update":
+							case "cache-update":
 
-								console.log(args.action + " for " + args.message);
+								//console.log("List " + $scope.list_uuid + " received: " + args.action + " for " + args.message);
 								
 								/* 
 								   Underlying structures already updated by editor, need to trigger $scope.$digest() to re-render data however ...
 								   ?? => "scriptsController" not aware of changes made in other pages, even for the same "object"??
 								*/
-
-								
 								
 								if (args.message == $scope.parent.parent.name) {
-									
-									$scope.$digest();
-									
+
+									if ($scope.list.length && ($scope.list.length != $scope.last_length)) {
+
+										console.log("List (" + $scope.list.length + ") " + $scope.list_uuid);
+										console.log($scope.list);
+
+										if ($scope.list_shown) {
+
+											console.log("Performing click click!");
+											$("#" + $scope.list_uuid).click();
+											$("#" + $scope.list_uuid).click();
+										}
+										
+										// $scope.port.postMessage({action: "update-page"});
+										$scope.last_length = $scope.list.length;
+										
+									}
 								}
 								
 								break;

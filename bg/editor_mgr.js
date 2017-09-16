@@ -114,6 +114,9 @@ function EditorMgr (bg) {
 
 	this.openEditorInstanceForScript = function (script) {
 
+		console.log("Editor: ");
+		console.log(script);
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -126,6 +129,8 @@ function EditorMgr (bg) {
 							
 							new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
 								.then(resolve, reject);
+							
+							
 							
 						}, reject
 					);

@@ -10,7 +10,7 @@ function BaseTab (tabInfo) {
 	this.runScripts = function (scripts, runForEditor) {
 		
 		return new Promise((resolve, reject) => {
-				
+			
 			browser.tabs.sendMessage(
 				
 				self.id,
@@ -174,6 +174,8 @@ function TabMgr (bg) {
 
 	this.getOrCreateTabFor = function (url) {
 
+		console.log(url);
+		
 		return new Promise (
 			(resolve, reject) => {
 			
@@ -181,17 +183,41 @@ function TabMgr (bg) {
 			
 				if (tab)
 					resolve({tab: tab, created: false});
-
 				else {
-					
-					browser.tabs.create({url: url.href})
+
+					browser.tabs.query({url: ['http://' + url.name(), 'https://' + url.name()]})
 						.then(
 							tab => {
-				
-								resolve({tab: new JSLTab(tab, self), created: true});
+
+								tab = tab[0];
 								
-							}, reject
-						);
+								console.log("Tab found: ");
+								console.log(tab);
+								
+								if (tab) {
+
+									browser.tabs.update(tab.id, {active: true})
+										.then(
+											tab => {
+									
+												resolve({tab: new JSLTab(tab, self), created: false});
+
+											}
+										);
+									
+								} else {
+
+									browser.tabs.create({url: url.href})
+										.then(
+											tab => {
+													
+												resolve({tab: new JSLTab(tab, self), created: true});
+												
+											}, reject
+										)	
+								}
+							}
+						)
 				}
 			}
 		);
@@ -250,33 +276,33 @@ function TabMgr (bg) {
 		// console.log("Tab " + tabId + " updating, changes: ");
 		// console.log(changeInfo);
 
-		if (tab.status == "complete") {
+		// if (tab.status == "complete") { !!valid!!
 			
-			self.bg.domain_mgr.getScriptsForUrl(tab.url)
-				.then(
-					scripts => {
+		// 	self.bg.domain_mgr.getScriptsForUrl(tab.url)
+		// 		.then(
+		// 			scripts => {
 						
-						if (scripts) {
+		// 				if (scripts) {
 							
-							tab.runScripts(scripts, false)
-								.then(
-									response => {
+		// 					tab.runScripts(scripts, false)
+		// 						.then(
+		// 							response => {
 										
-										console.log("Scripts run: ");
-										console.log(response);
+		// 								console.log("Scripts run: ");
+		// 								console.log(response);
 										
-									},
-									err => {
+		// 							},
+		// 							err => {
 										
-										/* Must never happen */
-										console.log("Script rejection run: ");
-										console.log(err);
+		// 								/* Must never happen */
+		// 								console.log("Script rejection run: ");
+		// 								console.log(err);
 
-									});
-						}
+		// 							});
+		// 				}
 						
-					});
-		}
+		// 			});
+		// }
 	};
 
 	this.checkTab = function (id) {

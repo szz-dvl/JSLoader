@@ -61,14 +61,25 @@ function OptionMgr (bg) {
 			self.port.postMessage({action: action, message: message});
 		
 	};
-
+	
 	browser.runtime.onConnect
 		.addListener(
 			port => {
 
 				self.port = port;
+
+				self.port.onMessage.addListener(
+					args => {
+						
+						if (args.action == "update-page")
+							self.sendMessage("update-page", args.message);
+					}
+				);
+				
 				self.port.onDisconnect.addListener(
 					() => {
+
+						self.port.onMessage.removeListener(self.informLists);
 						
 						self.port = null;
 						console.log("Disconnecting port!");

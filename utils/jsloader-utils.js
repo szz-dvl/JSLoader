@@ -33,7 +33,7 @@ Array.prototype.remove = function(from, to) {
 	var rest = this.slice((to || from) + 1 || this.length);
 	this.length = from; //from < 0 ? this.length + from : from;
 
-	return this.push.apply(this, rest);
+	return this.push.apply(this, rest);; 
 
 };
 
@@ -42,13 +42,19 @@ Array.prototype.insert = function(elem) {
 	if (this.includes(elem))
 		return this.length;
 	else
-		return this.push.apply(this, elem);
+		return this.push(elem);
 	
 };
 
 URL.prototype.match = function(url) {
 
 	return (this.pathname == url.pathname && this.hostname == url.hostname);
+
+};
+
+URL.prototype.name = function() {
+
+	return this.hostname + this.pathname;
 
 };
 

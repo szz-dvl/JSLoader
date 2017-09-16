@@ -3,7 +3,7 @@ function Script (opt) {
 	var self = this;
 	
 	this.uuid = opt.uuid || UUID.generate();
-	this.code = opt.code || "/* JS code (jQuery available) ...*/\n";
+	this.code = opt.code || "/* JS code (jQuery available) ...*/\n" + this.uuid;
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
 	
@@ -11,14 +11,9 @@ function Script (opt) {
 	
 	this.getUrl = function () {
 		
-		if (self.parent) {
-			
-			if (self.parent.isDomain())
-				return new URL('http://' + self.parent.name);
-			else 
-				return new URL('http://' + self.parent.parent.name + self.parent.url);
-
-		} else
+		if (self.parent)
+			return new URL('http://' + self.parent.parent.name + self.parent.url);
+		else
 			return null;
 	};
 
@@ -31,6 +26,8 @@ function Script (opt) {
 	};
 
 	this.updateParent = function (url) {
+
+		console.log("New parent: " + url.href);
 		
 		if (!url)
 			return Promise.reject({err: "Bad URL provided."});
@@ -51,9 +48,9 @@ function Script (opt) {
 		/* !!! After promise ?? */
 		return new Promise (
 			(resolve, reject) => {
-
-				// console.error("Old Parent: ");
-				// console.error(self.parent);
+				
+				console.error("Old Parent: ");
+				console.error(self.parent);
 				
 				self.remove()
 					.then(
@@ -69,7 +66,6 @@ function Script (opt) {
 									// console.error(self.parent);
 						
 								}, url.hostname || url.href
-								
 							);
 
 						}, err => {
@@ -156,12 +152,12 @@ function Site (opt) {
 		self.scripts.remove(
 			self.scripts.findIndex(
 				script => {
-					
-					return script.uuid = id;
+				
+					return script.uuid == id;
 				}
 			)
 		);
-
+		
 		return self.isEmpty() ?
 			self.remove() :
 			self.persist();
@@ -177,6 +173,7 @@ function Site (opt) {
 		
 		if (idx >= 0) {
 
+			console.log ("Udating script: " + idx);
 			self.scripts[idx].name = script.name;
 			self.scripts[idx].code = script.code;
 

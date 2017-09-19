@@ -5,7 +5,7 @@ function PA (bg, site) {
 	this.bg = bg;
 	this.site = site;
 	
-	this.app = angular.module('pageActionApp', ['jslPartials']); /*'jslScriptList'*/
+	this.app = angular.module('pageActionApp', ['jslPartials']);
 	
 	this.app.controller('headController', $scope => {
 		
@@ -17,6 +17,8 @@ function PA (bg, site) {
 		
 		$scope.page = self;
 		$scope.site = self.site;
+		
+		$scope.shown = [];
 		
 	});
 	

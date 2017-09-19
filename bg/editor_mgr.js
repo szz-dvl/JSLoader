@@ -114,28 +114,46 @@ function EditorMgr (bg) {
 
 	this.openEditorInstanceForScript = function (script) {
 
-		console.log("Editor: ");
-		console.log(script);
+		// console.log("Editor: ");
+		// console.log(script);
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
-					.then(
-						response => {
+				var alive = self.getOwnerOf(script);
+				
+				if (alive)
+					resolve(alive);
+				else {
+
+					self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
+						.then(
+							response => {
 							
-							// console.error("Got Tab!");
-							// console.error(response);
+								// console.error("Got Tab!");
+								// console.error(response);
 							
-							new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
-								.then(resolve, reject);
+								new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
+									.then(resolve, reject);
 							
-							
-							
-						}, reject
-					);
+							}, reject
+						);
+				}
 			}
 		);
+	};
+
+
+	this.getOwnerOf = function (script) {
+
+		return self.editors.filter(
+			editor => {
+
+				return editor.script.uuid == script.uuid;
+
+			}
+		)[0] || null;
+		
 	};
 	
 	this.getEditorById = function (eid) {

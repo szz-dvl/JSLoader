@@ -14,6 +14,8 @@
 		<script src="../deps/highlightjs/highlight.min.js"></script>
 		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 		<script src="../partials/partials.js"></script>
+		<script src="../../utils/jsloader-utils.js"></script>
+		<script src="../../utils/deps/async.min.js"></script>
 		
 	</head>
 	
@@ -24,8 +26,21 @@
 	  </div>
 	  
 	  <div id="content" class="panel-section" ng-controller="siteController">
-		<script-list list="site.parent.scripts" parent="site.parent" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>
-		<script-list list="site.scripts" parent="site" editor="page.bg.editor_mgr.openEditorInstanceForScript"></script-list>	
+		<script-list ng-if="site.parent.scripts.length"
+					 list="site.parent.scripts"
+					 parent="site.parent"
+					 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+					 shown="shown"
+					 opts="page.bg.option_mgr.editor">
+		</script-list>
+		
+		<script-list ng-if="site.scripts.length && !site.isDomain()"
+					 list="site.scripts"
+					 parent="site"
+					 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+					 shown="shown"
+					 opts="page.bg.option_mgr.editor">
+		</script-list>
 	  </div>
 	  
 	  <script src="pa.js"></script>

@@ -150,15 +150,17 @@ function TabMgr (bg) {
 
 	this.getTabAt = function (url) {
 
-		return new Promise ((resolve, reject) => {
+		return new Promise (
+			(resolve, reject) => {
 			
-			browser.tabs.query({url: url.href})
-				.then(tab_info => {
+				browser.tabs.query({url: url.href})
+					.then(tab_info => {
 							
-					resolve (new JSLTab(tab_info[0], self));
+						resolve (new JSLTab(tab_info[0], self));
 						
-				}, reject);
-		});
+					}, reject);
+			}
+		);
 
 
 	};
@@ -276,33 +278,33 @@ function TabMgr (bg) {
 		// console.log("Tab " + tabId + " updating, changes: ");
 		// console.log(changeInfo);
 
-		// if (tab.status == "complete") { !!valid!!
+		if (tab.status == "complete") {
 			
-		// 	self.bg.domain_mgr.getScriptsForUrl(tab.url)
-		// 		.then(
-		// 			scripts => {
+			self.bg.domain_mgr.getScriptsForUrl(tab.url)
+				.then(
+					scripts => {
 						
-		// 				if (scripts) {
+						if (scripts) {
 							
-		// 					tab.runScripts(scripts, false)
-		// 						.then(
-		// 							response => {
+							tab.runScripts(scripts, false)
+								.then(
+									response => {
 										
-		// 								console.log("Scripts run: ");
-		// 								console.log(response);
+										console.log("Scripts run: ");
+										console.log(response);
 										
-		// 							},
-		// 							err => {
+									},
+									err => {
 										
-		// 								/* Must never happen */
-		// 								console.log("Script rejection run: ");
-		// 								console.log(err);
+										/* Must never happen */
+										console.log("Script rejection run: ");
+										console.log(err);
 
-		// 							});
-		// 				}
+									});
+						}
 						
-		// 			});
-		// }
+					});
+		}
 	};
 
 	this.checkTab = function (id) {

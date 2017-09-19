@@ -11,9 +11,10 @@ function Options (opt) {
 		showPrintMargin: false,
 		showGutter: false,
 		fontSize: 10,
-		collapsed: false,
-		theme: new Theme({})
+		collapsed: false
 	};
+
+	this.editor.theme = new Theme(opt.editor.theme) || new Theme({});
 }
 
 function OptionMgr (bg) {
@@ -26,6 +27,9 @@ function OptionMgr (bg) {
 	this.storage.getOptions(
 
 		new_options => {
+
+			// console.log("Init Opts: ");
+			// console.log(new_options);
 			
 			Options.call(self, new_options || {});
 		}
@@ -34,10 +38,13 @@ function OptionMgr (bg) {
 	this.persist = function () {
 		
 		return new Promise (
-			
 			(resolve, reject) => {
+
+				// console.log("Persisting opts: ");
+				// console.log({editor: self.editor, jsl: self.jsl});
+				
 				self.storage
-					.setOptions(new Options({editor: self.editor, jsl: self.jsl}))
+					.setOptions({editor: self.editor, jsl: self.jsl})
 					.then(
 						() => {
 							
@@ -54,7 +61,12 @@ function OptionMgr (bg) {
 		browser.runtime.openOptionsPage();
 		
 	};
-
+	
+	this.getFullOpts = function () {
+		
+		return {editor: self.editor, jsl: self.jsl};
+	};
+	
 	this.sendMessage = function(action, message) {
 
 		if (self.port)
@@ -70,16 +82,27 @@ function OptionMgr (bg) {
 
 				self.port.onMessage.addListener(
 					args => {
-						
-						if (args.action == "update-page")
-							self.sendMessage("update-page", args.message);
+
+						switch (args.action) {
+						case "list-update":
+							self.sendMessage("list-update", args.message);
+							
+							break;
+							
+						case "import-opts":
+							self.sendMessage("import-opts", args.message);
+							
+							break;
+						default:
+							break;
+						}
 					}
 				);
 				
 				self.port.onDisconnect.addListener(
 					() => {
 
-						self.port.onMessage.removeListener(self.informLists);
+						//self.port.onMessage.removeListener(self.informLists);
 						
 						self.port = null;
 						console.log("Disconnecting port!");
@@ -87,5 +110,16 @@ function OptionMgr (bg) {
 				);
 			}
 		);
+
+	// this.storeNewOpts = function (changes, area) {
+		
+	// 	if (area != "local")
+	//  		return;
+		
+	// 	if (changes.options) 
+	// 		Options.call(self, changes.options.newValue || {});
+	// };
+
+	// browser.storage.onChanged.addListener(this.storeNewOpts);
 }
 

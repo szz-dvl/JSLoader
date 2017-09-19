@@ -33,7 +33,7 @@ Array.prototype.remove = function(from, to) {
 	var rest = this.slice((to || from) + 1 || this.length);
 	this.length = from; //from < 0 ? this.length + from : from;
 
-	return this.push.apply(this, rest);; 
+	return this.push.apply(this, rest);
 
 };
 
@@ -60,7 +60,16 @@ URL.prototype.name = function() {
 
 function Theme (theme) {
 
+	var self = this;
+	
 	this.name = theme.name || "monokai";
 	this.knownToHl = theme.knownToHl || "monokai-sublime";
 	this.title = theme.title || "Hightlights available";
+
+	this.update = function (theme) {
+
+		this.name = theme.name;
+		this.knownToHl = theme.knownToHl;
+		this.title = theme.title;
+	}
 }

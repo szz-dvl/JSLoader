@@ -1,25 +1,59 @@
-function Option (opt, page) {
+function Option (opt, section) {
 
 	var self = this;
 	
 	this.text = opt.text || "";
 	this.type = opt.type || "checkbox";
 	this.id = opt.id || null;
-	this.value = opt.value || null;
-
-	this.__onChange = opt.change || null; 
+	this.value = opt.value || false;
+	this.shown = opt.shown;
+	
+	this.__onChange = opt.change || null;
+	this.sub_opts = opt.subopts ?
+		opt.subopts.map(
+			opt => {
+				
+				opt.shown = self.value;
+				return new Option(opt, section);	
+			}
+		) : [];
 
 	this.change = function () {
 
-		page.bg.option_mgr.editor[self.id] = self.value;
+		section[self.id] = self.value;
 
 		if (self.__onChange)
-			self.__onChange();
+			self.__onChange(self);
 
-	}
+		for (subopt of self.sub_opts) { 
+
+			if (self.value)
+				subopt.show();
+			else
+				subopt.hide();
+		}
+	};
 	
-}
+	this.setVal = function (value) {
+		
+		section[self.id] = self.value = value;
+		
+		console.log("Opt " + self.id + " setting value to: " + self.value);
+		
+	};
 
+	/* Subopts */
+	this.show = function () {
+
+		self.shown = true;
+	};
+
+	this.hide = function () {
+
+		self.shown = false;
+	};
+
+}
 
 function OP (bg, domains, port) {
 	
@@ -27,11 +61,11 @@ function OP (bg, domains, port) {
 	
 	this.bg = bg;
 	
-	this.editor;
 	this.domain_list;
 	this.themes;
+	this.settings;
 	
-	this.app = angular.module('OptionsApp', ['jslPartials']);
+	this.app = angular.module('OptionsApp', ['jslPartials', 'td.tabs']);
 
 	this.app.controller('themeController', ($scope, $compile) => {
 
@@ -79,7 +113,7 @@ function OP (bg, domains, port) {
 			{name: "xcode", knownToHl: "xcode", title: "Hightlights available"}
 			
 		];
-
+		
 		$scope.getTheme = function (name) {
 
 			return $scope.list.filter(
@@ -87,6 +121,19 @@ function OP (bg, domains, port) {
 					return theme.name == name;	
 				}
 			)[0] || null;
+		};
+
+		/* Import */
+		$scope.setTheme = function (name) {
+
+			$scope.current = $scope.list.filter(
+				theme => {
+					return theme.name == name;	
+				}
+			)[0] || null;
+
+			$scope.page.bg.option_mgr.editor.theme.update($scope.current);
+			$scope.$digest();
 		};
 		
 		$scope.current = $scope.getTheme($scope.page.bg.option_mgr.editor.theme.name);
@@ -100,61 +147,94 @@ function OP (bg, domains, port) {
 			$('link')
 				.find('[ng-href]')
 				.replaceWith($compile(link)($scope));
-		};
+		};	
+
 	});
 	
-	this.app.controller('editorController', $scope => {
+	this.app.controller('settingsController', ($scope, $timeout) => {
+
+		self.settings = $scope;
 		
-		self.editor = $scope;
 		$scope.page = self;
+		$scope.port = port;
 		
-		$scope.title = "Editor settings";
+		$scope.title = "Settings";
 		
-		$scope.opts = [
-			
-			new Option({text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.page),
-			new Option({text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.page),
-			new Option({text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter",
-						change: () => {
-							console.log($scope.page.bg.option_mgr.editor);
-						}}, $scope.page
-					  ),
-			new Option({text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
-						change: ()  => {
-							$('code').each(
-								(i, block) => {
-									$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
-								}
-							);
-						}}, $scope.page 
-					  )
-		];
+		$scope.submenus = [
 
-		// $scope.getOptVal = function (id) {
-
-		// 	return $scope.opts.filter(
-		// 		opt => {
-
-		// 			return opt.id == id;
+			{
+				key: 'jsl',
+				title: "JSLoader Settings",
+				opts: [
 					
-		// 		}
-		// 	)[0] || null;
+					new Option({text:'Uglify code', value: $scope.page.bg.option_mgr.jsl.uglify, type: "checkbox", id: "uglify",								
+								subopts: [{text:'Uglify mangle', value: $scope.page.bg.option_mgr.jsl.uglify_mangle, type: "checkbox", id: "uglify_mangle"}]
+							   }, $scope.page.bg.option_mgr.jsl)
+				]
+			},
+			{
+				key: 'editor',
+				title: "Editor Settings",
+				opts: [
+			
+					new Option({text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.page.bg.option_mgr.editor),
+					new Option({text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.page.bg.option_mgr.editor),
+					new Option({text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter"}, $scope.page.bg.option_mgr.editor),
+					
+					new Option({text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
+								change: that => {
 
-		// };
+									if (that.ToID)
+										clearTimeout(that.ToID);
+									
+									that.ToID = setTimeout(
+										() => {
+											$('code').each(
+												(i, block) => {
+													$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
+												}
+											);									
+										}, 1000
+									);
+									
+								}}, $scope.page.bg.option_mgr.editor)
+				]
+			}
+		];
 		
-		$scope.updtOpts = function() {
+		$scope.importOpts = function (newVals) {
 
-			console.log($scope.page.bg.option_mgr.editor);
-
+			$scope.port.postMessage({action: "import-opts", message: newVals});
 			
-			
-			
-			$scope.page.bg.option_mgr.editor.theme = new Theme ($scope.page.themes.current);
-			
-			// Object.assign($scope.page.bg.option_mgr.editor.theme, $scope.page.themes.current);
-			$scope.page.bg.option_mgr.persist();
+			$scope.page.themes.setTheme(newVals.editor.theme.name);
 		};
 		
+		$scope.settingsFile = function (ev) {
+			
+			var reader = new FileReader();
+			
+			reader.onload = function () {
+				
+				$scope.importOpts(JSON.parse(reader.result));
+			}
+			
+			reader.readAsText(this.files[0]);
+		};
+
+		$scope.updtOpts = function() {
+			
+			$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
+			$scope.page.bg.option_mgr.persist();
+			
+		};
+		
+		$timeout(
+			() => {
+				
+				$("#import_settings").on('change', $scope.settingsFile);
+				
+			}
+		);
 	});
 
 	this.app.controller('domainController', ($scope, $timeout) => {
@@ -168,39 +248,26 @@ function OP (bg, domains, port) {
 		
 		$scope.title = "Stored scripts";
 
-		// $scope.digest_cnt = 0;
+		$scope.import_button = false;
 
-		// $scope.$watch('digest_cnt', function(newValue, oldValue) {
+		$scope.applyImport = function () {
 
-		// 	$scope.digest_cnt ++;
-
-		// 	if (newValue !== oldValue)
-		// 		$scope.port.postMessage({action: "list-update", message: "caca de la vaca"});
+			var reader = new FileReader();
 			
-		// });
+			reader.onload = function () {
+
+				$scope.page.bg.domain_mgr.importDomains(JSON.parse(reader.result));
+				$scope.import_button = false;
+			}
+			
+			reader.readAsText($("#import_scripts")[0].files[0]);
+		};
 		
-		// $scope.findScript = function (uuid) {
+		$scope.scriptsFile = function (ev) {
 
-		// 	for (domain of $scope.domains) {
-
-		// 		var script = domain.haveScript(uuid);
-				
-		// 		if (script)
-		// 			return script;
-
-		// 	}
-
-		// 	return null;
-		// }
-		
-		$timeout(() => {
-
-			$('code').each(
-				(i, block) => {
-					$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
-				}
-			);
-		});
+			$scope.import_button = true;
+			$scope.$digest();
+		};
 		
 		$scope.port.onMessage.addListener(
 
@@ -208,21 +275,27 @@ function OP (bg, domains, port) {
 
 				switch (args.action) {
 					
-				case "update-page":
-
-					console.log("update-page");
-					$scope.$digest();
-					//console.log("cache-update for: " + args.message + ", ");
-					// console.log($scope.port);
+				case "cache-update":
 					
-					//$scope.port.postMessage({action: "list-update", message: args.message});
-
-					//$scope.port.postMessage({action: "list-update", message: args.message});
+					$scope.$digest();
+					//console.log("cache-update for: " + args.message);
+					$scope.port.postMessage({action: "list-update", message: args.message});
 					
 					break;
 				}
 			}
 		);
+
+		$timeout(() => {
+			
+			$('code').each(
+				(i, block) => {
+					$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
+				}
+			);
+
+			$("#import_scripts").on('change', $scope.scriptsFile);
+		});	
 	});
 	
 	angular.element(document).ready(
@@ -246,6 +319,10 @@ browser.runtime.getBackgroundPage()
 
 						window.onbeforeunload = function () {
 
+							// console.log("OnBeforeUnload Editor: ");
+							// console.log(this.bg.option_mgr);
+							// console.log(this.bg.option_mgr.editor);
+							
 							port.disconnect();
 							
 						}

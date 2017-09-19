@@ -86,6 +86,12 @@ html, body {
 	/* color: #F0F0F0; */
 }
 
+.input_import {
+
+	display: inline-block;
+	
+}
+
 .hljs-ln-numbers {
 
 	background-color: #979797;
@@ -93,6 +99,13 @@ html, body {
 	margin-left: 0 !important;
 }
 
+.sub_settings {
+
+	align-self: center;
+	font-size: 1.185em;
+	font-weight: lighter;
+	
+}
 
 /* .panel-section-formElements { */
 
@@ -106,6 +119,7 @@ html, body {
 /* 	/\* flex-direction: row !important; *\/ */
 /* 	display: block !important; */
 /* } */
+
 label.input:after {
 
 	content: '\a';
@@ -182,7 +196,7 @@ label.click {
 ul {
     list-style: none;
     /* padding: 0px; */
-}
+} 
 
 ul li:before
 {
@@ -191,13 +205,10 @@ ul li:before
     margin-left: 10%;    /* any design */
 }
 
-
-
 hljs-search {
 
 	margin-left: 10%;
 	margin-right: 10%;
-
 }
 
 pre {

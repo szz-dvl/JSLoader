@@ -1,4 +1,3 @@
-
 function BG_mgr () {
 
 	var self = this;
@@ -107,6 +106,39 @@ function BG_mgr () {
 	this.toDomain = function (desc) {
 		return new Domain (desc);
 	}
+
+	this.exportScripts = function () {
+
+		self.domain_mgr.getFullDomains(
+			domains => {
+				
+				var text = ["["];
+				
+				for (domain of domains) {
+					text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
+					text.push(",");
+				}
+
+				text.pop(); // last comma
+				text.push("]");
+				
+				browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) });
+			}
+		);
+	};
+
+	this.exportSettings = function () {
+				
+		browser.downloads.download(
+			{ url: URL.createObjectURL(
+				new File(
+					JSON.stringify(self.option_mgr.getFullOpts()).split('\n'),
+					"settings.json",
+					{type: "application/json"}
+				)
+			)}
+		);
+	};
 }		
 
 BG_mgr.call(this);

@@ -7,10 +7,11 @@
 		<link rel="stylesheet" href="options.css"/>
 		<!-- <link rel="stylesheet" href="../deps/highlightjs/default.min.css"> -->
 		<link rel="stylesheet" href="chrome://browser/content/extension.css">
+		<link rel="stylesheet" href="../deps/ng-tabs/tabs.css">
 		
 		<link ng-if="!current.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
 		<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
-
+		
 		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"> -->
 		<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
 		
@@ -21,53 +22,68 @@
 		<script src="../partials/partials.js"></script>
 		
 		<script src="../../utils/jsloader-utils.js"></script>
+		<script src="../../utils/deps/async.min.js"></script>
+
+		<script src="../deps/ng-tabs/tabs.js"></script>
 		
   </head>
-	
+  
   <body>
 
 	<div id="content" class="panel-section">
-
-	  <div ng-controller="editorController as editor" class="panel-section" ng-cloak>
-		
-		<div class="panel-section" >
-		  <div id="settings_head" class="panel-section panel-section-header">
-			<div class="text-section-header"> {{title}} </div>
-		  </div>
-		</div><br>
-		
-		<div id="form-container" class="panel-section">
-		  
-		  <form ng-submit="updtOpts()">
-			
-			<label ng-repeat="opt in opts" class="input">
-
-			  <span ng-if="['text'].includes(opt.type)">{{opt.text}}: </span>
-			  <input id="{{opt.id}}" type="{{opt.type}}" ng-model="opt.value" ng-change="opt.change()">
-			  <span ng-if="['checkbox'].includes(opt.type)" >{{opt.text}}</span>
-			  
-			</label><br>
-			
-			<label class="input">
-
-			  <span> Editor theme: </span>
-			  <select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select><br><br>
-
-			</label><br><br>
-			
-			<input type="submit" value="Save Options" class="browser-style jsload-button">
-			
-		  </form>
-		  
-		</div>
-		
-	  </div> <!-- editorController -->
 	  
+	  <div ng-controller="settingsController as settings" class="panel-section" ng-cloak>
+		
+		<!-- <div class="panel-section" > class="panel-section-header"-->
+		  <div id="settings_head" class="panel-section-header">
+			<div class="text-section-header"> {{title}}
+			  <label class="input_import">
+				<input id="import_settings" type="file">
+			  </label>
+			</div>
+		  </div>
+		<!-- </div><br> -->
+
+		
+		<form ng-submit="updtOpts()">
+
+		  <tabs tab-default="1">
+			
+			<tab-nav></tab-nav>
+			
+			<tab-content ng-repeat="submenu in submenus" tab-index="{{$index + 1}}" tab-title="{{submenu.title}}">
+			  <option-menu list="submenu.opts" title="submenu.title" key="submenu.key" port="port"></option-menu>
+			  
+			  <label class="input" ng-if="submenu.key == 'editor'">
+			
+				<span> Editor theme: </span>
+				<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
+			
+			  </label>
+			  
+			</tab-content>
+
+			
+		  </tabs>
+		  
+		  
+		  
+		  <input type="submit" value="Save Options" class="browser-style jsload-button">
+		  
+		</form>
+		
+	  </div> <!-- settingsController -->
+
 	  <div ng-controller="domainController" class="panel-section" ng-cloak>
 
 		<div class="panel-section" >
 		  <div id="scripts_head" class="panel-section panel-section-header">
-			<div class="text-section-header">{{title}}</div>
+			<div class="text-section-header">{{title}}
+			  <label class="input_import">
+				<input id="import_scripts" type="file">
+			  </label>
+			  <button class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+			</div>
 		  </div>
 		</div><br>
 		
@@ -96,9 +112,10 @@
 
 		</div>
 		
-	  </div> <!-- scriptsController -->
+	  </div> <!-- domainController -->
 	</div> <!-- content -->
 
 	<script src="options.js"></script>
+	
   </body>
 </html>

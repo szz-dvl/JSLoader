@@ -4,14 +4,15 @@
 	<bdi class="path-name">{{parent.url}}</bdi>
   </label>
   
-  <ul class="script-list hidden-elem">
+  <ul class="script-list">
 	<li class="script-bucket hidden-elem" ng-repeat="script in list">
 	  
-	  <label id="{{script.uuid}}" class="click" ng-click="clickScript($event)">
+	  <label id="{{script.uuid}}">
 		<bdi id="{{script.name}}" class="code-uuid hidden-elem"> {{script.name}} </bdi>
+		<bdi id="{{script.uuid}}_dd" ng-click="clickScript($event)">{{script.state}}</bdi>
 	  </label>
 	  
-	  <div class="code-bucket hidden-script">
+	  <div class="code-bucket hidden-script" ng-show="script.shown">
 		<hljs-search class="hidden-script" code="script.code" language="'javascript'" linenumber="opts.showGutter"></hljs-search>
 		<table class="btn-panel hidden-script">
 		  <tr align="center">

@@ -139,8 +139,8 @@ function DomainMgr (bg) {
 	};
 
 	this.removeCached = function (domain_name) {
-
-		console.log("Remove from cache: " + domain_name);
+		
+		// console.log("Remove from cache: " + domain_name);
 		self.cache.remove(
 			self.cache.findIndex(
 				cached => {
@@ -148,6 +148,8 @@ function DomainMgr (bg) {
 				}
 			)
 		);
+
+		self.bg.option_mgr.sendMessage("cache-update", domain_name);
 	}
 
 	this.getAndCacheDomain = function (domain_name) {
@@ -177,7 +179,7 @@ function DomainMgr (bg) {
 
 		var ret = cached ? false : self.cache.push(domain);
 		
-		self.bg.option_mgr.sendMessage("cache-update", domain.name);
+		self.bg.option_mgr.sendMessage("cache-update", domain.name); /* !!! */
 
 		return ret;
 	};
@@ -189,6 +191,19 @@ function DomainMgr (bg) {
 				return cached.name;
 			}
 		); 
+	};
+
+	/* Only when importing domains, "cache-update" message will be broadcasted by "storeNewDomains" on domain persist. */
+	this.updateCache = function (domain) {
+		
+		var idx = self.cache.findIndex(
+			cached => {
+				return cached.name == domain.name;
+			}
+		);
+		
+		self.cache[idx] = domain;
+		self.cache[idx].persist();
 	};
 	
 	this.getFullDomains = function (done) {
@@ -213,6 +228,13 @@ function DomainMgr (bg) {
 							 
 						 });
 	};
+
+	this.importDomains = function (arr) {
+
+		for (domain_info of arr) 
+			self.updateCache(new Domain (domain_info));
+		
+	};
 	
 	this.storeNewDomains = function (changes, area) {
 		
@@ -228,6 +250,8 @@ function DomainMgr (bg) {
 				/* domain removed */
 				if (!changes[key].newValue)
 					self.removeCached(changes[key].oldValue.name);
+				// else 
+				// 	self.bg.option_mgr.sendMessage("cache-update", changes[key].newValue.name);
 			}
 			
 		}

@@ -66,14 +66,17 @@ function Menu (bg) {
 						}
 					   }),
 			
-			new Action({val: "Import ...", id: "import", submenu: [
-				{val: "Scripts", id: "import_scripts"},
-				{val: "Settings", id: "import_settings"}
-			]}),
-			
 			new Action({val: "Export ...", id: "export", submenu: [
-				{val: "Scripts", id: "export_scripts"},
-				{val: "Settings", id: "export_settings"}
+				{val: "Scripts", id: "export_scripts",
+				 onClick: function () {
+					 self.bg.exportScripts();
+				 }
+				},
+				{val: "Settings", id: "export_settings",
+				 onClick: function () {
+					 self.bg.exportSettings();
+				 }
+				}
 			]}),
 			
 			new Action({val: "Options", id: "options_page",
@@ -93,9 +96,9 @@ function Menu (bg) {
 	angular.element(document)
 		.ready(
 			() => {
-			
+				
 				angular.bootstrap(document, ['MenuApp']);
-			
+				
 			}
 		);
 }

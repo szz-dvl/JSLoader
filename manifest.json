@@ -15,6 +15,7 @@
 	
 	"background": {
 		"scripts": [
+			"utils/deps/async.min.js",
 			"utils/deps/underscore-min.js",
 			"bg/deps/async.min.js",
 			"utils/jsloader-utils.js",
@@ -73,6 +74,6 @@
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 	
-	"permissions": ["storage", "tabs", "notifications", "<all_urls>"]
+	"permissions": [ "storage", "tabs", "notifications", "<all_urls>", "downloads" ]
 	
 }

@@ -5,12 +5,10 @@ function Action (opt) {
 	this.val = opt.val;
 	this.id = opt.id;
 	this.pointed = false;
-	this.subaction = opt.subaction || false;
 	
 	this.submenu = opt.submenu ? opt.submenu.map(
 		subaction => {
 			
-			subaction.subaction = true;
 			return new Action(subaction);
 			
 		}) : [];
@@ -30,18 +28,11 @@ function Action (opt) {
 	this.onEnter = function () {
 		
 		self.pointed = true;
-		
-		if (!self.subaction) 
-			$("#" + self.id).find( ".hidden-elem" ).show();
 	}
 
 	this.onLeave = function () {
 	
-		self.pointed = false;
-		
-		if (!self.subaction && self.canHide()) 
-			$("#" + self.id).find( ".hidden-elem" ).hide();
-		
+		self.pointed = false;		
 	}
 	
 };

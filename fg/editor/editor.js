@@ -96,7 +96,7 @@ function EditorFG (editor, bg) {
 				self.res_box
 					.fadeOut(800, "swing",
 							 () => {
-										 
+								 
 								 self.res_box.css("visibility", "hidden");
 								 self.res_box.css("display", "block");
 										 
@@ -107,21 +107,12 @@ function EditorFG (editor, bg) {
 	
 	this.editor.updateTarget = function () {
 		
-		self.editor.script.updateParent(self.editor.tab.url)
-			.then(
-				script => {
-
-					var url = script.getUrl();
-			
-					self.target.text(url.hostname + url.pathname);
-					self.editor.scope.user_action.target = url.hostname + url.pathname;
-
-				}, err => {
-
-					self.editor.message(err, true); 
-				}
-			);
-			
+		var err = self.editor.script.badParent(tab.url);
+		
+		if(err)
+			self.editor.message("Tab url outdated: " + err, true);
+		else
+			self.editor.scope.updateTarget(tab.url);	
 	};
 	
 	this.isCollapsed = function () {
@@ -131,13 +122,14 @@ function EditorFG (editor, bg) {
 	};
 	
 	this.collapseHeader = function () {
-
+		
 		//console.log("collapseHeader header: " + self.editor.scope.dd_text);
 		
 		if (self.isCollapsed()) {
 
 			self.dropdown.text("v");
 			self.editor.scope.dd_text = "v"; //fails from shortcut.
+
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
 			
@@ -145,6 +137,7 @@ function EditorFG (editor, bg) {
 
 			self.dropdown.text("<");
 			self.editor.scope.dd_text = "<"; //fails from shortcut.
+
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
 		}
@@ -160,8 +153,9 @@ function EditorFG (editor, bg) {
 				
 				self.btn_panel.find( ".hidden-elem" ).css("visibility", "hidden");
 				self.btn_panel.find( ".hidden-elem" ).css("display", "block");			
+
 				self.dropdown.fadeOut();
-		
+				
 			});
 			
 		} else {
@@ -169,6 +163,7 @@ function EditorFG (editor, bg) {
 			self.btn_panel.find( ".hidden-elem" ).css("display", "none");
 			self.btn_panel.find( ".hidden-elem" ).css("visibility", "visible");
 			self.btn_panel.find( ".hidden-elem" ).fadeIn();	
+
 			self.dropdown.fadeIn();
 		}
 		
@@ -182,31 +177,19 @@ function EditorFG (editor, bg) {
 	};
 	
 	this.saveCurrent = function () {
-
-		self.editor.script.setParent(self.editor.tab.url)
+		
+		self.editor.script.updateParent(self.editor.scope.url)
 			.then(
 				script => {
-
+					
 					script.code = self.editor.ace.getValue().toString().trim();
-
-					console.log(script);
 					
 					self.bg.domain_mgr.storeScript(script)
 						.then(
 							script => {
-					
-								console.log("Persisting: " + script.uuid);
-								
-								script.persist().then(
-									domain => {
-										
-										self.bg.domain_mgr.cacheDomain(domain);
-									}
-								);
-					
+								script.persist();
 							}
 						);
-
 				}
 			);
 	};
@@ -247,14 +230,14 @@ function EditorFG (editor, bg) {
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
 		
-		var url = $scope.script.getUrl() || self.editor.tab.url;
+		$scope.url = $scope.script.getUrl() || self.editor.tab.url;
 		
 		$scope.label = "JSLoader";
 		
 		$scope.user_action = {
 			
 			text: self.editor.mode ? "Adding script for: " : "Editing script for: ", /* To wdw title!! */
-			target: url.hostname + url.pathname
+			target: $scope.url.name()
 
 		};
 
@@ -270,41 +253,30 @@ function EditorFG (editor, bg) {
 		$scope.dd_text = "<";
 
 		$scope.targetChange = function () {
-
+			
 			if ($scope.targetTID)
 				clearTimeout ($scope.targetTID);
 			
 			$scope.targetTID = setTimeout(
 				() => {
-
-					var old = self.editor.script.getUrl();
 					
-					self.editor.script.updateParent(new URL("http://" + self.target.text()))
-						.then(
-							script => {
-								
-								var url = script.getUrl();
+					var url = new URL("http://" + self.target.text());
+					var err = self.editor.script.badParent(url);
 
-								console.log("New Url: ");
-								console.log(url);
-								
-								//$scope.user_action.target = url.hostname + url.pathname;
-								self.target.text(url.hostname + url.pathname);
-							},
-							err => {
-
-								self.editor.message(err.err, true);
-								self.target.text(old.hostname + old.pathname);
-							}
-						);
+					if (err) {
+						
+						$scope.updateTarget(self.editor.script.getUrl() || $scope.url);
+						self.editor.message(err, true);
+						
+					} else 
+						$scope.updateTarget(url);
 					
-				}, 1500);
-			
-			
+					
+				}, 750);
 		};
 		
 		$scope.dropdownClick = function () {
-
+			
 			self.collapseHeader();
 			
 		};
@@ -313,7 +285,6 @@ function EditorFG (editor, bg) {
 
 			if (!self.editor.scope.buttons.shown)
 				self.toggleButtons();
-			
 		};
 		
 		$scope.buttonClick = function (ev) {
@@ -333,8 +304,16 @@ function EditorFG (editor, bg) {
 			
 		};
 
+		$scope.updateTarget = function (url) {
+
+			$scope.url = url;
+			$scope.user_action.traget = url.name();
+			
+			//self.target.text(url.name());
+		};
+		
 		$scope.bodyClick = function () {
-				
+			
 			if (!$scope.buttons.shown)
 				self.toggleButtons();
 				
@@ -377,7 +356,6 @@ function EditorFG (editor, bg) {
 							   
 			});
 		});
-		
 	});
 
 	browser.runtime.onMessage.addListener(
@@ -386,7 +364,7 @@ function EditorFG (editor, bg) {
 			
 			switch (request.action) {
 			case "opts":
-			
+				
 				console.log("New opts!");
 				self.editor.opts = request.message; /* ?? */
 				self.resetAce();

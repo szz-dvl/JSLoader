@@ -1,3 +1,64 @@
+/* Represents an entity in a view. */
+function Element (parent_id, shown, owner) {
+
+	var self = this;
+
+	this.parent_id = parent_id;
+	this.owner = owner;
+	this.view_state = shown;
+	
+	this.id = this.owner ? this.owner.uuid : null;
+	this.shown = this.id ? this.view_state.includes(this.id) : false;
+	this.state = this.shown ? "v" : ">";
+	// this.available = this.owner ? this.owner.disabled ? "Enable" : "Disable" : "None";
+	
+	this.show = function () {
+
+		self.shown = true;
+		self.state = "v";
+
+		if (self.id) {
+			
+			if (!self.view_state.includes(self.id))
+				self.view_state.push(self.id);		
+		}
+	};
+
+	this.hide = function () {
+
+		self.shown = false;
+		self.state = ">";
+
+		if (self.id) {
+			
+			if (self.view_state.includes(self.id))
+				self.view_state.remove(self.view_state.indexOf(self.id));
+		}
+	};
+
+	this.toggle = function () {
+		
+		if (self.shown)
+			self.hide();
+		else
+			self.show();
+	};
+
+	this.isShown = function () {
+
+		return self.shown;
+		
+	};
+
+	this.getEnabled = function () {
+
+		if (self.owner)
+			return self.owner.disabled ? "Enable" : "Disable";
+		else
+			return "None"; /* Must never be reached. */
+	}
+};
+
 function Script (opt) {
 	
 	var self = this;
@@ -5,7 +66,10 @@ function Script (opt) {
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || "/* JS code (jQuery available) ...*/\n" + this.uuid;
 	this.parent = opt.parent || null;
-	this.name = opt.name || this.uuid.split("-").pop(); /* To Do */
+	this.name = opt.name || this.uuid.split("-").pop(); 
+	this.disabled = opt.disabled || false;
+	this.elems = [];
+	
 	
 	// this.run = opt.code ? new Function(opt.code) : null;
 	
@@ -18,39 +82,50 @@ function Script (opt) {
 	};
 
 	this.remove = function () {
+
+		if (self.elems.length)
+			self.elems = [];
 		
 		return self.parent ?
 			self.parent.removeScript(self.uuid) :
 			Promise.resolve();
-		
 	};
-
-	this.updateParent = function (url) {
-
-		console.log("New parent: " + url.href);
+	
+	this.badParent = function (url) {
 		
 		if (!url)
-			return Promise.reject({err: "Bad URL provided."});
+			return "Bad URL provided.";
 		
 		if (self.parent) {
-
-			if (url.hostname != self.parent.parent.name) {
 			
-				return Promise.reject({err: "Changing target domain not allowed."});
-
-			} else if (url.match(self.getUrl())) {
-
-				return Promise.resolve(self);
-				
-			}
+			if (url.hostname != self.parent.parent.name) 	
+				return "Changing target domain not allowed.";
 		}
 		
-		/* !!! After promise ?? */
+		return false;	
+	};
+	
+	this.updateParent = function (url) {
+		
+		//console.log("New parent: " + url.href);
+		
+		var err = self.badParent(url);
+		
+		if (err)
+			return Promise.reject({err: err});
+		
+		if (self.parent) {
+			
+			if (url.match(self.getUrl())) 
+				return Promise.resolve(self);	
+		
+		}
+		
 		return new Promise (
 			(resolve, reject) => {
 				
-				console.error("Old Parent: ");
-				console.error(self.parent);
+				// console.error("Old Parent: ");
+				// console.error(self.parent);
 				
 				self.remove()
 					.then(
@@ -70,8 +145,8 @@ function Script (opt) {
 
 						}, err => {
 
-							console.err("Update parent reject");
-							console.err(err);
+							// console.err("Update parent reject");
+							// console.err(err);
 							
 							reject(err);
 						}
@@ -79,6 +154,21 @@ function Script (opt) {
 			}
 		);
 	};
+
+	this.toggleDisable = function () {
+		
+		self.disabled = !self.disabled;
+
+		if (self.persistTID)
+			clearTimeout(self.persistTID);
+
+		self.persistTID = setTimeout(
+			() => {
+
+				self.persist();
+			
+			}, 1000); 
+	}
 	
 	this.setParent = function (url) {
 		
@@ -94,6 +184,35 @@ function Script (opt) {
 		
 	};
 
+	/* Views */
+	this.elemFor = function (list_uuid) {
+
+		return self.elems.filter(
+			elem => {
+				return elem.parent_id == list_uuid;
+			}
+		)[0] || null;
+	};
+
+	this.insertElem = function (parent_id, page_shown) {
+		
+		var exists = self.elems.filter(
+			stored => {
+				return stored.parent_id == parent_id;
+			}
+		)[0];
+
+		if (exists)
+			return exists;
+		else {
+
+			var elem = new Element(parent_id, page_shown, self);
+			self.elems.push(elem);
+
+			return elem;
+		}
+	};
+	
 	/* Stringify */
 	this.__getDBInfo = function () {
 
@@ -101,39 +220,42 @@ function Script (opt) {
 			
 			uuid: self.uuid,
 			code: self.code,
-			name: self.name
+			name: self.name,
+			disabled: self.disabled
 		}
 	};
 }
 
 function Site (opt) {
-
+	
 	var self = this;
-
+	
 	this.url = opt.url || null;
 	this.parent = opt.parent || null;
+	this.elems = [];
 	
 	this.scripts = [];
 	if (opt.scripts) {
-
+		
 		for (script of opt.scripts) {
-
+			
 			script.parent = this;
 			this.scripts.push(new Script(script));
 		}
-
 	} 
 	
 	this.isDomain = function() {
-
+		
 		return self.url == "/";
 		
 	};
 	
 	this.remove = function () {
-
-		return self.parent.removeSite(self.url);
 		
+		if (self.elems.length)
+			self.elems = [];
+		
+		return self.parent.removeSite(self.url);	
 	};
 
 	this.persist = function () {
@@ -172,11 +294,11 @@ function Site (opt) {
 		);
 		
 		if (idx >= 0) {
-
-			console.log ("Udating script: " + idx);
+			
 			self.scripts[idx].name = script.name;
 			self.scripts[idx].code = script.code;
-
+			self.scripts[idx].disabled = script.disabled;
+			
 		} else { 	
 			
 			script.parent = self;
@@ -204,7 +326,43 @@ function Site (opt) {
 			}
 		)[0] || false;
     };
-	
+
+	this.mergeInfo = function (imported) {
+
+		for (script of imported.scripts)
+			self.upsertScript(script);
+		
+	}
+
+	/* Views */
+	this.elemFor = function (list_uuid) {
+
+		return self.elems.filter(
+			elem => {
+				return elem.parent_id == list_uuid;
+			}
+		)[0] || null;
+	};
+
+	this.insertElem = function (parent_id, page_shown) {
+		
+		var exists = self.elems.filter(
+			stored => {
+				return stored.parent_id == parent_id;
+			}
+		)[0];
+		
+		if (!exists)
+			self.elems.push(new Element(parent_id, page_shown));
+	};
+
+	this.shownFor = function (list_uuid) {
+
+		return self.elemFor(list_uuid).shown; 
+
+	};
+
+	/* Stringify */
 	this.__getDBInfo = function () {
 		
 		return {
@@ -359,7 +517,7 @@ function Domain (opt) {
 				)[0] ||
 			false;
 	};
-
+	
 	this.removeSite = function (pathname) {
 		
 		if (pathname == "/")
@@ -378,6 +536,16 @@ function Domain (opt) {
 			self.persist();		
 	};
 
+	this.mergeInfo = function (imported) {
+
+		for (script of imported.scripts)
+			self.upsertScript(script);
+
+		for (site of imported.sites) 	
+			self.getOrCreateSite(site.url).mergeInfo(site);
+		
+	};
+	
 	this.__getDBInfo = function () {
 		
 		return {

@@ -4,7 +4,7 @@ function DomainMgr (bg) {
 
 	this.bg = bg;
 	this.storage = global_storage;
-	this.domains = [];
+	this.domains = []; /* Known domain names. */
 	this.cache = []; /* Alive instances. */
 	
 
@@ -25,7 +25,9 @@ function DomainMgr (bg) {
 			parent = new Domain ({name: url.hostname });
 		else
 			parent = new Domain ({name: url.hostname, sites: [{url: url.pathname}] }).sites[0];
-
+		
+		self.cacheDomain(parent.parent);
+		
 		return parent;
 	};
 	
@@ -41,11 +43,23 @@ function DomainMgr (bg) {
 							domain => {
 								
 								var site = domain.haveSite(url.pathname),
-									scripts = domain.scripts;
+									scripts = domain.scripts.filter(
+										script => {
+											
+											return !script.disabled;
+											
+										}
+									);
 						
-								if (site)
-									scripts = scripts.concat(site.scripts);
-						
+								if (site) {
+									scripts.push.apply(scripts,
+													   site.scripts.filter(
+														   script => {
+															   return !script.disabled;
+														   }
+													   ));
+								}
+								
 								resolve(scripts);
 							}
 						);
@@ -56,7 +70,7 @@ function DomainMgr (bg) {
 	};
 
 	this.storeScript = function (script) {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 
@@ -94,9 +108,8 @@ function DomainMgr (bg) {
 					self.getOrBringCached(url.hostname)
 						.then(
 							domain => {
-
-								resolve (!domain.isEmpty());
 								
+								resolve (!domain.isEmpty());
 							}
 						);
 					
@@ -177,11 +190,11 @@ function DomainMgr (bg) {
 			}
 		)[0];
 
-		var ret = cached ? false : self.cache.push(domain);
+		return cached ? false : self.cache.push(domain);
 		
-		self.bg.option_mgr.sendMessage("cache-update", domain.name); /* !!! */
+		//self.bg.option_mgr.sendMessage("cache-update", domain.name); /* !!! */
 
-		return ret;
+		//return ret;
 	};
 
 	this.getCachedNames = function () {
@@ -195,15 +208,20 @@ function DomainMgr (bg) {
 
 	/* Only when importing domains, "cache-update" message will be broadcasted by "storeNewDomains" on domain persist. */
 	this.updateCache = function (domain) {
-		
-		var idx = self.cache.findIndex(
-			cached => {
-				return cached.name == domain.name;
-			}
-		);
-		
-		self.cache[idx] = domain;
-		self.cache[idx].persist();
+
+		self.getOrBringCached(domain.name)
+			.then(
+				cached => {
+
+					if (cached)
+						cached.mergeInfo(domain);			
+					else {
+						
+						self.cacheDomain(domain);
+						domain.persist();
+					}
+				}
+			);
 	};
 	
 	this.getFullDomains = function (done) {
@@ -230,10 +248,10 @@ function DomainMgr (bg) {
 	};
 
 	this.importDomains = function (arr) {
-
-		for (domain_info of arr) 
-			self.updateCache(new Domain (domain_info));
 		
+		for (domain_info of arr)
+			self.updateCache(new Domain (domain_info));
+			
 	};
 	
 	this.storeNewDomains = function (changes, area) {
@@ -250,8 +268,8 @@ function DomainMgr (bg) {
 				/* domain removed */
 				if (!changes[key].newValue)
 					self.removeCached(changes[key].oldValue.name);
-				// else 
-				// 	self.bg.option_mgr.sendMessage("cache-update", changes[key].newValue.name);
+				else 
+					self.bg.option_mgr.sendMessage("cache-update", changes[key].newValue.name);
 			}
 			
 		}

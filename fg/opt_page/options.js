@@ -197,7 +197,8 @@ function OP (bg, domains, port) {
 										}, 1000
 									);
 									
-								}}, $scope.page.bg.option_mgr.editor)
+								}}, $scope.page.bg.option_mgr.editor
+							  )
 				]
 			}
 		];
@@ -288,13 +289,8 @@ function OP (bg, domains, port) {
 
 		$timeout(() => {
 			
-			$('code').each(
-				(i, block) => {
-					$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
-				}
-			);
-
 			$("#import_scripts").on('change', $scope.scriptsFile);
+			
 		});	
 	});
 	

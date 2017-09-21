@@ -22,20 +22,20 @@
 			<li id="{{action.id}}"
 				class="panel-list-item"
 				ng-repeat="action in user_actions"
-				ng-click="action.onClick($event)"
-				ng-mouseenter="action.onEnter($event)"
-				ng-mouseleave="action.onLeave($event)">
+				ng-click="action.onClick()"
+				ng-mouseenter="action.onEnter()"
+				ng-mouseleave="action.onLeave()">
 			  
 			  <label> {{action.val}} </label>
 
-			  <ul class="panel-section-list browser-style hidden-elem" ng-if="action.submenu">
+			  <ul class="panel-section-list browser-style" ng-if="action.submenu" ng-show="action.pointed" ng-hide="!action.pointed && action.canHide()">
 				
 				<li id="{{subaction.id}}"
 					class="panel-list-item"
 					ng-repeat="subaction in action.submenu"
-					ng-click="subaction.onClick($event)"
-					ng-mouseenter="subaction.onEnter($event)"
-					ng-mouseleave="subaction.onLeave($event)">
+					ng-click="subaction.onClick()"
+					ng-mouseenter="subaction.onEnter()"
+					ng-mouseleave="subaction.onLeave()">
 				  
 				  <label> {{subaction.val}} </label>
 				  

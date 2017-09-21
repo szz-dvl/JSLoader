@@ -14,7 +14,7 @@ function Options (opt) {
 		collapsed: false
 	};
 
-	this.editor.theme = new Theme(opt.editor.theme) || new Theme({});
+	this.editor.theme = opt.editor ? new Theme(opt.editor.theme) : new Theme({});
 }
 
 function OptionMgr (bg) {
@@ -27,11 +27,13 @@ function OptionMgr (bg) {
 	this.storage.getOptions(
 
 		new_options => {
-
+			
 			// console.log("Init Opts: ");
 			// console.log(new_options);
 			
 			Options.call(self, new_options || {});
+
+			console.log(self);
 		}
 	);
 
@@ -77,16 +79,16 @@ function OptionMgr (bg) {
 	browser.runtime.onConnect
 		.addListener(
 			port => {
-
+				
 				self.port = port;
-
+				
 				self.port.onMessage.addListener(
 					args => {
-
+						
 						switch (args.action) {
 						case "list-update":
 							self.sendMessage("list-update", args.message);
-							
+							 
 							break;
 							
 						case "import-opts":

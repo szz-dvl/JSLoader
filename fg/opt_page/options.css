@@ -133,11 +133,11 @@ div {
 
 }
 
-ul {
+/* ul { */
 
-	display: block !important;
+/* 	display: block !important; */
 
-}
+/* } */
 /* .list-bucket { */
 
 /* 	padding-left: 50px; */
@@ -193,17 +193,17 @@ label.click {
 	user-select: text;          /* Likely future */
 }
 
-ul {
-    list-style: none;
-    /* padding: 0px; */
-} 
+/* ul { */
+/*     list-style: none; */
+/*     /\* padding: 0px; *\/ */
+/* }  */
 
-ul li:before
-{
-    content: '';
-	white-space: pre;
-    margin-left: 10%;    /* any design */
-}
+/* ul li:before */
+/* { */
+/*     content: ''; */
+/* 	white-space: pre; */
+/*     margin-left: 10%;    /\* any design *\/ */
+/* } */
 
 hljs-search {
 

@@ -70,7 +70,6 @@ function Script (opt) {
 	this.disabled = opt.disabled || false;
 	this.elems = [];
 	
-	
 	// this.run = opt.code ? new Function(opt.code) : null;
 	
 	this.getUrl = function () {
@@ -531,6 +530,7 @@ function Domain (opt) {
 			)
 		);
 		
+		/* to Log */
 		return self.isEmpty() ?
 			self.remove() :
 			self.persist();		
@@ -551,11 +551,13 @@ function Domain (opt) {
 		return {
 			
 			name: self.name,
+			
 			sites: self.sites.map(
 				site => {
 					return site.__getDBInfo();
 				}
 			),
+			
 			scripts: self.scripts.map(
 				script => {
 					return script.__getDBInfo();

@@ -28,6 +28,7 @@ function DomainMgr (bg) {
 		
 		self.cacheDomain(parent.parent);
 		
+		
 		return parent;
 	};
 	
@@ -59,11 +60,11 @@ function DomainMgr (bg) {
 														   }
 													   ));
 								}
-								
+	
 								resolve(scripts);
 							}
 						);
-				} else
+				} else 
 					resolve(null);
 			}
 		);
@@ -75,9 +76,7 @@ function DomainMgr (bg) {
 			(resolve, reject) => {
 
 				var url = script.getUrl();
-				
-				//console.log(url);
-				
+					
 				if (self.domains.includes(url.hostname)) {
 					
 					self.getOrBringCached(url.hostname || url.href)
@@ -86,7 +85,6 @@ function DomainMgr (bg) {
 								
 								// console.error("Domain: ");
 								// console.error(domain);
-							
 								resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
 								
 							}
@@ -97,7 +95,7 @@ function DomainMgr (bg) {
 			}
 		);
 	};
-
+	
 	this.haveInfoForUrl = function (url) {
 
 		return new Promise (
@@ -108,7 +106,8 @@ function DomainMgr (bg) {
 					self.getOrBringCached(url.hostname)
 						.then(
 							domain => {
-								
+
+								console.log ("Info for " + domain.name + " " + (domain.isEmpty() ? "Empty." : "OK."));
 								resolve (!domain.isEmpty());
 							}
 						);
@@ -181,7 +180,7 @@ function DomainMgr (bg) {
 			}
 		);
 	};
-
+	
 	this.cacheDomain = function (domain) {
 		
 		var cached = self.cache.filter(
@@ -212,8 +211,8 @@ function DomainMgr (bg) {
 		self.getOrBringCached(domain.name)
 			.then(
 				cached => {
-
-					if (cached)
+	
+					if (Object.keys(cached).length)
 						cached.mergeInfo(domain);			
 					else {
 						
@@ -268,7 +267,7 @@ function DomainMgr (bg) {
 				/* domain removed */
 				if (!changes[key].newValue)
 					self.removeCached(changes[key].oldValue.name);
-				else 
+				else
 					self.bg.option_mgr.sendMessage("cache-update", changes[key].newValue.name);
 			}
 			

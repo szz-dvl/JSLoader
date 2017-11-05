@@ -2,12 +2,10 @@ function CS() {
 
 	var self = this;
 	this.status = true;
+	this.modified = false;
 	this.errors = [];
-	this.cnt = 0;
 	
 	this.run = function (code) {
-
-		self.cnt ++;
 		
 		try {
 
@@ -19,6 +17,13 @@ function CS() {
 			self.errors.push(err.message);
 			
 		}
+	};
+
+	this.runAll = function (scripts) {
+
+		
+		for (script of scripts)
+			self.run(script)
 	};
 	
 	this.process = function (request) {
@@ -37,9 +42,14 @@ function CS() {
 			if (self.errors.length) {
 				
 				self.message = self.errors;
+				
+				// console.error("Content script errors: ");
+				// console.log(self.message);
+				
 				self.status = false;
 			}
-			
+
+			self.modified = true;
 			break;
 
 		case "check":
@@ -49,7 +59,7 @@ function CS() {
 
 		case "revert":
 			
-			if (self.cnt)
+			if (self.modified)
 				window.location.reload();
 
 			break;
@@ -61,8 +71,26 @@ function CS() {
 		return Promise.resolve({status: self.status, message: self.message, action: request.action});
 		
 	};
+
+
+	this.port = browser.runtime.connect({name:"content-script"});
+	
+	this.port.onMessage.addListener(
+		args => {
+
+			console.log("Running stored scripts: ");
+			console.log(args.literals);
+			
+			self.runAll(args.literals);
+
+			/* Error reporting */
+			
+			this.port.disconnect();
+		}
+	);
+	
+	this.port.postMessage({action: "get-info", message: window.location.toString()});
 }
 
-var content_script = new CS();
-
-browser.runtime.onMessage.addListener(content_script.process);
+CS.call(this);
+browser.runtime.onMessage.addListener(this.process);

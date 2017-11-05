@@ -11,6 +11,8 @@
 	<link rel="stylesheet" href="chrome://browser/content/extension.css">
 	<link rel="stylesheet" href="../deps/ng-tabs/tabs.css">
 	
+	<link rel="stylesheet" href="../styles/script-list.css">
+	
 	<link ng-if="!current.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
 	<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
 	
@@ -30,7 +32,7 @@
 	
   </head>
   
-  <body>
+  <body spellcheck="false">
 
 	<div id="content" class="panel-section">
 	  
@@ -97,6 +99,7 @@
 					   port="port"
 					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
 					   shown="shown"
+					   pa="page.bg.updatePA"
 					   opts="page.bg.option_mgr.editor">
 		  </script-list>
 		  
@@ -107,6 +110,7 @@
 					   port="port"
 					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
 					   shown="shown"
+					   pa="page.bg.updatePA"
 					   opts="page.bg.option_mgr.editor">
 		  </script-list>
 

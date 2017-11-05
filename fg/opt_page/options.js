@@ -278,9 +278,10 @@ function OP (bg, domains, port) {
 					
 				case "cache-update":
 					
-					$scope.$digest();
+					
 					//console.log("cache-update for: " + args.message);
 					$scope.port.postMessage({action: "list-update", message: args.message});
+					$scope.$digest();
 					
 					break;
 				}

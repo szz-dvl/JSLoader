@@ -79,37 +79,46 @@ function OptionMgr (bg) {
 	browser.runtime.onConnect
 		.addListener(
 			port => {
-				
-				self.port = port;
-				
-				self.port.onMessage.addListener(
-					args => {
-						
-						switch (args.action) {
-						case "list-update":
-							self.sendMessage("list-update", args.message);
-							 
-							break;
-							
-						case "import-opts":
-							self.sendMessage("import-opts", args.message);
-							
-							break;
-						default:
-							break;
-						}
-					}
-				);
-				
-				self.port.onDisconnect.addListener(
-					() => {
 
-						//self.port.onMessage.removeListener(self.informLists);
+				if (port.name === "option-page") {
+					
+					self.port = port;
+				
+					self.port.onMessage.addListener(
+						args => {
 						
-						self.port = null;
-						console.log("Disconnecting port!");
-					}
-				);
+							switch (args.action) {
+							case "list-update":
+								self.sendMessage("list-update", args.message);
+							 
+								break;
+							
+							case "import-opts":
+								self.sendMessage("import-opts", args.message);
+							
+								break;
+
+							case "update-PA":
+								self.bg.updatePA(args.message);
+							
+								break;
+								
+							default:
+								break;
+							}
+						}
+					);
+				
+					self.port.onDisconnect.addListener(
+						() => {
+
+							//self.port.onMessage.removeListener(self.informLists);
+							
+							self.port = null;
+							console.log("Disconnecting port!");
+						}
+					);
+				}
 			}
 		);
 

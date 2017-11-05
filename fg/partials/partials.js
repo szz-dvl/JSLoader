@@ -7,10 +7,11 @@ angular.module('jslPartials', ['hljsSearch'])
 				   restrict: 'E',
 
 				   scope: {
-					   script: "=script"
+					   script: "=script",
+					   parent: "=parent"
 				   },
 
-				   template: '<bdi id="{{script.uuid}}_name" class="script-name" contenteditable="true"> {{script.name}} </bdi>',
+				   template: '<bdi contenteditable="true"> {{script.name}} </bdi>', //'<a contenteditable="true" href="#{{script.uuid}}">{{script.name}}</a>', id="{{script.uuid}}_name"
 				   
 				   link: function($scope, element, attr) {
 					   
@@ -22,7 +23,7 @@ angular.module('jslPartials', ['hljsSearch'])
 					   // });
 					   
 					   element.on('input', function(ev) {
-
+						   
 						   if ($scope.tID)
 							   clearTimeout($scope.tID);
 						   
@@ -37,6 +38,27 @@ angular.module('jslPartials', ['hljsSearch'])
 					   });
 
 					   element.keypress(ev => { return ev.which != 13; });
+
+					   element.on('click', ev => {
+						   						   
+						   if (ev.pageX > element.width()) {
+							   
+							   console.log("event: " + ev.pageX + " element: " + element.width());
+							   
+							   // console.log($scope.parent);
+							   
+							   // $scope.script.elemFor($scope.parent).toggle();
+							   // $scope.$digest();
+							   
+							   if (element.hasClass("shown"))
+								   element.removeClass("shown");
+							   else
+								   element.addClass("shown");
+							   
+						   } else 
+							   ev.stopImmediatePropagation();							   
+						   
+					   });
 				   }
 			   }
 		   })
@@ -55,7 +77,8 @@ angular.module('jslPartials', ['hljsSearch'])
 						   port: "=port",
 						   editor: "=editor",
 						   shown: "=shown",
-						   opts: "=opts"
+						   opts: "=opts",
+						   pa: "=pa"
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -80,6 +103,15 @@ angular.module('jslPartials', ['hljsSearch'])
 								   return script;
 						   	   }
 						   );
+						   
+						   $scope.removeScript = function(script) {
+
+							   var url = script.getUrl();
+							   script.remove();
+							   
+							   $scope.pa(url.href);
+							   
+						   };
 						   
 						   console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
 						   
@@ -108,10 +140,16 @@ angular.module('jslPartials', ['hljsSearch'])
 										   		   $scope.$destroy();
 											   else {
 												   
-										   		   for(script of $scope.list)	   
-										   			   script.insertElem($scope.list_uuid, $scope.shown);
-										   		   
+										   		   for(script of $scope.list)   
+													   script.insertElem($scope.list_uuid, $scope.shown);
+												   
 										   		   $scope.$digest();
+
+												   $('#' + $scope.list_uuid).find('code').each(
+													   (i, block) => {
+														   $(block).css("font-size", $scope.opts.fontSize + "pt");
+													   }
+												   );
 											   }
 										   }
 										   

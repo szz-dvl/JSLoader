@@ -4,7 +4,8 @@ function BaseTab (tabInfo) {
 	
 	Object.assign(this, tabInfo);
 	
-	this.url = new URL(this.url);
+	this.url = new URL(this.url).sort();
+	
 	this.id = parseInt(this.id);
 	
 	this.runScripts = function (scripts, runForEditor) {
@@ -33,7 +34,11 @@ function BaseTab (tabInfo) {
 					
 					resolve(response);
 						
-				}, reject)
+				}, err => {
+
+					console.error(err);
+					reject(err);
+				});
 		});
 		
 	};
@@ -49,7 +54,7 @@ function JSLTab (tabInfo, parent) {
 	this.parent = parent;
 	this.editor;
 	
-	self.parent.tabs.push(this);
+	this.parent.tabs.push(this);
 	
 	this.runForEditor = function () {
 		
@@ -90,7 +95,7 @@ function JSLTab (tabInfo, parent) {
 								resolve(response);
 
 							} else
-								reject ({err: "Bad check url. (" + response.message + ")"});
+								reject ({err: "Bad check url. (" + response.message + ") / (" + self.url.href + ")"});
 							
 						}, reject
 					);
@@ -174,9 +179,27 @@ function TabMgr (bg) {
 		)[0] || null;
 	};
 
+	/**/
+
+	this.getTabsForURL = function (url) {
+
+		return new Promise(
+			(resolve,reject) => {
+				browser.tabs.query({url: "*://*." + url.name() + "*"})
+					.then(
+						tabs => {
+							
+							resolve(tabs);
+							
+						}
+					)
+			}
+		)
+	};
+	
 	this.getOrCreateTabFor = function (url) {
 
-		console.log(url);
+		// console.log(url);
 		
 		return new Promise (
 			(resolve, reject) => {
@@ -193,8 +216,8 @@ function TabMgr (bg) {
 
 								tab = tab[0];
 								
-								console.log("Tab found: ");
-								console.log(tab);
+								//console.log("Tab found: ");
+								//console.log(tab);
 								
 								if (tab) {
 
@@ -243,7 +266,7 @@ function TabMgr (bg) {
 			/* Changing angular view from here ignored! */
 			if (changeInfo.url) {
 
-				tab.url = new URL(changeInfo.url);
+				tab.url = new URL(changeInfo.url).sort();
 
 				if (tab.editor) {
 					
@@ -253,9 +276,7 @@ function TabMgr (bg) {
 			}
 			
 			if (changeInfo.status == "complete") {
-				
-				// console.log("tab: " + tabInfo.url + " COMPLETE!");
-				// console.log(tabInfo);
+
 				tab.status = "complete";
 				
 				if (!tab.editor) {
@@ -265,45 +286,12 @@ function TabMgr (bg) {
 							  err => {
 								  
 								  console.error("Complete attach rejected!!");
-								  console.log(err)
+								  console.log(err);
 								  
 							  });
 				}
 				
-			}
-			
-		} else
-			tab = new BaseTab(tabInfo);
-
-		// console.log("Tab " + tabId + " updating, changes: ");
-		// console.log(changeInfo);
-
-		if (tab.status == "complete") {
-			
-			self.bg.domain_mgr.getScriptsForUrl(tab.url)
-				.then(
-					scripts => {
-						
-						if (scripts) {
-							
-							tab.runScripts(scripts, false)
-								.then(
-									response => {
-										
-										console.log("Scripts run: ");
-										console.log(response);
-										
-									},
-									err => {
-										
-										/* Must never happen */
-										console.log("Script rejection run: ");
-										console.log(err);
-
-									});
-						}
-						
-					});
+			}	
 		}
 	};
 
@@ -363,6 +351,72 @@ function TabMgr (bg) {
 		});
 
 	};
+
+	this.getIdsForURL = function (url) {
+
+		return new Promise(
+			(resolve, reject) => {
+				self.getTabsForURL(url).then(
+					tabs => {
+
+						resolve(tabs.map(
+							tab => {
+
+								return tab.id;
+								
+							}));
+					}
+				);
+			}
+		)
+	};
+
+	browser.runtime.onConnect
+		.addListener(
+			port => {
+				
+				if (port.name === 'content-script') {
+					
+					port.onMessage.addListener(
+						args => {
+							
+							switch (args.action) {
+							case "get-info":
+								{
+
+									self.bg.domain_mgr.getScriptsForUrl(new URL(args.message).sort())
+										.then(
+											scripts => {
+
+												if (scripts)
+													self.bg.updatePA(new URL(args.message).sort());
+												
+												port.postMessage({literals:
+																  (scripts || []).map(
+																	  script => {
+																		  
+																		  return script.code;
+														
+																	  }
+																  )
+																 });
+												
+											});
+
+								}
+								break;
+								
+							case "post-results":
+								console.error("Unimplemented");
+								break;
+							default:
+								break;
+							}
+						}
+					);
+				}	
+			}
+		);
 	
 	browser.tabs.onUpdated.addListener(self.updateTabs);
 }

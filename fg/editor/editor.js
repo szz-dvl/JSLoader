@@ -187,7 +187,14 @@ function EditorFG (editor, bg) {
 					self.bg.domain_mgr.storeScript(script)
 						.then(
 							script => {
-								script.persist();
+								script.persist()
+									.then(
+										domain => {
+											console.log("Updating PA for " + script.getUrl().href);
+											self.bg.updatePA(script.getUrl());
+											
+										}
+									);
 							}
 						);
 				}
@@ -195,7 +202,7 @@ function EditorFG (editor, bg) {
 	};
 
 	this.onResize = function () {
-
+		
 		if (self.isCollapsed()) {
 
 			self.editor_bucket.css("top", 0);
@@ -231,6 +238,8 @@ function EditorFG (editor, bg) {
 		$scope.script = self.editor.script;
 		
 		$scope.url = $scope.script.getUrl() || self.editor.tab.url;
+
+		console.log("My url: " + $scope.url.name() + " hostname: " + $scope.url.hostname + " pathname: " + $scope.url.pathname);
 		
 		$scope.label = "JSLoader";
 		
@@ -307,7 +316,7 @@ function EditorFG (editor, bg) {
 		$scope.updateTarget = function (url) {
 
 			$scope.url = url;
-			$scope.user_action.traget = url.name();
+			$scope.user_action.target = url.name();
 			
 			//self.target.text(url.name());
 		};
@@ -338,7 +347,7 @@ function EditorFG (editor, bg) {
 			$scope.editor.ace.find($scope.script.code);
 			$scope.editor.ace.focus();
 			
-			window.onresize = $scope.onResize;
+			window.onresize = self.onResize;
 			$scope.editor.setWdw(window);
 			
 			self.shotcuts = self.shortcuts.map(

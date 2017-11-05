@@ -1,16 +1,18 @@
-<div id="{{list_uuid}}" class="site-list" ng-if="list.length">
+<div class="list-container" id="{{list_uuid}}" ng-if="list.length">
   
-  <label class="click" ng-click="parent.elemFor(list_uuid).toggle()">
-	<bdi class="path-name">{{parent.url}}</bdi>
+  <label ng-click="parent.elemFor(list_uuid).toggle()">
+	<bdi class="black">{{parent.url}}</bdi>
   </label>
   
-  <ul class="script-list" ng-show="parent.elemFor(list_uuid).shown">
-	<li class="script-bucket" ng-repeat="script in list">
+  <ul ng-show="parent.elemFor(list_uuid).shown">
+	<li ng-repeat="script in list">
 	  
-	  <label id="{{script.uuid}}">
-		<script-name script="script"></script-name>
-		<bdi id="{{script.uuid}}_dd" ng-click="script.elemFor(list_uuid).toggle()">{{script.elemFor(list_uuid).state}}</bdi>
-	  </label>
+	  <script-name class="black-slim" parent="list_uuid" script="script" ng-click="script.elemFor(list_uuid).toggle()"></script-name>
+	  
+	  <!-- <label id="{{script.uuid}}"> -->
+	  <!-- 	<script-name script="script"></script-name> -->
+	  <!-- 	<bdi id="{{script.uuid}}_dd" ng-click="script.elemFor(list_uuid).toggle()">{{script.elemFor(list_uuid).state}}</bdi> -->
+	  <!-- </label> -->
 	  
 	  <div class="code-bucket" ng-show="script.elemFor(list_uuid).shown">
 		<hljs-search code="script.code" language="'javascript'" linenumber="opts.showGutter"></hljs-search>
@@ -20,7 +22,7 @@
 			  <button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script" data-domain="{{script.parent.parent.name}}" ng-click="editor(script)"> Edit </button>
 			</td>
 			<td>
-			  <button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script" data-domain="{{script.parent.parent.name}}" ng-click="script.remove()"> Remove </button>
+			  <button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script" data-domain="{{script.parent.parent.name}}" ng-click="removeScript(script)"> Remove </button>
 			</td>
 			<td>
 			  <button id="disable-btn_{{script.uuid}}" class="browser-style mright remove-script" data-domain="{{script.parent.parent.name}}" ng-click="script.toggleDisable()"> {{script.elemFor(list_uuid).getEnabled()}} </button>

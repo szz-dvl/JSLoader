@@ -23,29 +23,40 @@ function BG_mgr () {
 	
 	this.__showPageAction = function (tabInfo) {
 		
-		browser.tabs.get(tabInfo.tabId)
+		console.log("__showPageAction: tabInfo => ");
+		console.log(tabInfo);
+		
+		browser.tabs.get(tabInfo.tabId || tabInfo)
 			.then(
 				tab => {
-			
-					var url = new URL(tab.url);
+					
+					var url = new URL(tab.url).sort();
 					
 					if (["http:", "https:"].includes(url.protocol)) {
-					
+						
 						self.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
+									console.log((any ? "Info" : "No Info") + " for " + url.href);
 									
 									if (any)
 										browser.pageAction.show(tab.id);
 									else 
 										browser.pageAction.hide(tab.id);
+								}, err => {
+
+									console.error("haveInfoForUrl rejected!");
+									console.error("err");
+
 								}
-							);
-					}
+							)	
+
+					} else
+						console.error("Bad URL: " + url.href);
 				}
+				
 			);
 	};
-
 	
 	this.getOptPage = function () {
 		
@@ -54,6 +65,11 @@ function BG_mgr () {
 				
 				self.domain_mgr.getFullDomains(
 					domains => {
+
+						/* !!! */
+						console.log("Full domains: ");
+						console.log(domains);
+						
 						resolve(domains);
 					}
 				);
@@ -105,7 +121,7 @@ function BG_mgr () {
 
 	this.toDomain = function (desc) {
 		return new Domain (desc);
-	}
+	};
 
 	this.exportScripts = function () {
 
@@ -115,8 +131,10 @@ function BG_mgr () {
 				var text = ["["];
 				
 				for (domain of domains) {
+					
 					text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
 					text.push(",");
+
 				}
 
 				text.pop(); // last comma
@@ -128,7 +146,7 @@ function BG_mgr () {
 	};
 
 	this.exportSettings = function () {
-				
+		
 		browser.downloads.download(
 			{ url: URL.createObjectURL(
 				new File(
@@ -139,9 +157,59 @@ function BG_mgr () {
 			)}
 		);
 	};
-}		
+
+	this.updatePA = function (url) {
+
+		if (typeof(url) === "string")
+			url = new URL(url);
+		
+		self.tab_mgr
+			.getTabsForURL(url)
+			.then(
+				tabs => {
+
+					console.log("updating tabs for " + url.name());
+					console.log(tabs);
+					
+					for (tab of tabs) 
+						self.__showPageAction(tab.id);
+					
+				}
+			);
+	};
+
+	this.sendScriptsForURL = function (url) {
+
+		self.domain_mgr.getScriptsForUrl(url)
+			.then(
+				scripts => {
+
+					self.tab_mgr.getIdsForURL(url).then(
+						ids => {
+							
+							for (id of ids) {
+								browser.tabs.sendMessage(
+						
+									id,
+									{ action: "run", scripts: scripts.map(
+										script => {
+											return script.code;
+										})
+									}
+								)
+							}
+						}
+					)
+				}
+			)
+	};
+
+}
 
 BG_mgr.call(this);
 
 browser.tabs.onActivated.addListener(this.__showPageAction);
+//browser.tabs.onCreated.addListener(this.__showPageAction);
+//browser.tabs.onUpdated.addListener(this.__showPageAction);
 browser.commands.onCommand.addListener(this.showEditorForCurrentTab);
+browser.runtime.onMessage.addListener(this.sendScriptsForURL);

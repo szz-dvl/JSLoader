@@ -96,7 +96,6 @@ function GroupMgr (bg) {
 								subdomain => {
 									
 									group[func + "Site"](subdomain);
-									subdomain[func + "Group"](group);
 									
 									subdomain.persist();
 									group.persist();
@@ -118,8 +117,7 @@ function GroupMgr (bg) {
 										console.log("Created site(" + url.pathname + "):");
 										console.log(site);
 										
-										group[func + "Site"](site);
-										site[func + "Group"](group);								
+										group[func + "Site"](site);								
 
 										site.persist();
 										group.persist();

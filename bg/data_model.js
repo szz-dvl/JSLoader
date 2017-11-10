@@ -414,6 +414,12 @@ function Site (opt) {
 		
 		self.groups.remove(self.groups.indexOf(group.name));
 		group.sites.remove(group.sites.indexOf(self.siteName()));
+
+		if (self.isEmpty())
+			self.remove();
+
+		if (group.isEmpty())
+			group.remove();
 		
 	};
 	
@@ -701,6 +707,12 @@ function AllSubDomainsFor (opt) {
 		
 		self.groups.remove(self.groups.indexOf(group.name));
 		group.sites.remove(group.sites.indexOf(self.name));
+		
+		if (self.isEmpty())
+			self.remove();
+
+		if (group.isEmpty())
+			group.remove();
 	};
 	
 	this.__getDBInfo = function () {
@@ -782,12 +794,15 @@ function Group (opt) {
 	};
 
 	this.removeSite = function (site) {
-
-		console.log("Removing: ");
-		console.log(site);
-		
+	
 		self.sites.remove(self.sites.indexOf(site.name));
 		site.groups.remove(site.groups.indexOf(self.name));
+
+		if (self.isEmpty())
+			self.remove();
+
+		if (site.isEmpty())
+			site.remove();
 		
 	};
 

@@ -6,7 +6,7 @@ function onError (error) {
 
 function Storage () {
 
-	/* To do cacth error */
+	/* To do: cacth error */
 	var self = this;
 	
 	this.__get = function (cb, key) {
@@ -44,7 +44,7 @@ function Storage () {
 
 	this.__getDomains = function (cb) {
 		
-		this.__get(arr => {
+		self.__get(arr => {
 
 			cb(arr || []);
 
@@ -54,34 +54,34 @@ function Storage () {
 
 	this.__setDomains = function (val) {
 		
-		return this.__set('domains', val);
+		return self.__set('domains', val);
 	};
 
 	this.__upsertDomain = function (name, val) {
 
-		return this.__set('domain-' + name, val);
+		return self.__set('domain-' + name, val);
 	};
-
+	
 	this.getDomain = function (cb, name) {
 		
-		this.__get(
+		self.__get(
 			domain => {
 				
-				cb(new Domain(domain));
+				cb(domain ? new Domain(domain) : null);
 				
 			}, 'domain-' + name);
 	};
 
 	this.__removeDomain = function (name) {
 		
-		return this.__remove('domain-' + name);
+		return self.__remove('domain-' + name);
 	};
 
 	this.getOrCreateDomain = function (cb, name) {
-
-		this.getDomain(function (domain) {
+		
+		self.getDomain(function (domain) {
 	
-			if (Object.keys(domain).length)
+			if (domain)
 				cb(domain);
 			else 
 				cb(new Domain({name: name}));
@@ -99,6 +99,98 @@ function Storage () {
 
 		return self.__set('options', val);
 	};
+
+	this.removeOptions = function () {
+	
+		return browser.storage.local.remove('options');
+	};
+	
+	this.getGroups = function (cb) {
+		
+		self.__get(arr => {
+			
+			cb(arr || []);
+
+		}, 'groups');
+		
+	};
+
+	this.setGroups = function (val) {
+
+		return self.__set('groups', val);
+	};
+
+	/* Groups: Revisar este y domains */
+	this.getGroup = function (cb, name) {
+		
+		self.__get(
+			group => {
+				
+				cb(group ? new Group(group) : null);
+				
+			}, 'group-' + name);
+		
+	};
+	
+	this.upsertGroup = function (val) {
+		
+		return self.__set('group-' + val.name, val);
+		
+	};
+	
+	this.removeGroup = function (name) {
+		
+		return self.__remove('group-' + name);
+	};
+
+	this.getOrCreateGroup = function (cb, name) { 
+		
+		self.getGroup(function (group) {
+			
+			if (group)
+				cb(group);
+			else 
+				cb(new Group({name: name}));
+			
+		}, name);
+	}
+
+	/* Subdomains: */
+	this.getSubDomain = function (cb, keyname) {
+		
+		self.__get(
+			subdomain => {
+
+				cb(subdomain ? new AllSubDomainsFor(subdomain) : null);
+				
+			}, 'subdomain-' + keyname);
+		
+	};
+	
+	this.upsertSubDomain = function (keyname, val) {
+		
+		return self.__set('subdomain-' + keyname, val);
+		
+	};
+	
+	this.removeSubDomain = function (keyname) {
+		
+		return self.__remove('subdomain-' + keyname);
+	};
+
+	this.getOrCreateSubDomain = function (cb, keyname) { 
+		
+		self.getSubDomain(
+			subdomain => {
+			
+				if (subdomain)
+					cb(subdomain);
+				else 
+					cb(new AllSubDomainsFor({name: "*." + keyname, groups: []}));
+				
+			}, keyname);
+	};
+	
 }
 
 var global_storage = new Storage();

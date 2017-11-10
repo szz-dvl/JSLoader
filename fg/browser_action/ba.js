@@ -44,6 +44,20 @@ function Menu (bg) {
 	this.bg = bg;
 	this.menu;
 	this.app = angular.module('MenuApp', []);
+
+	this.groups = this.bg.group_mgr.groups.map(
+		group => {
+			
+			return {val: group, id: "add_grp_" + group,
+					onClick: function () {
+						self.bg.showUnattachedEditor(group);
+					}};
+		});
+
+	this.groups.push({val: "New Group", id: "add_new_grp",
+					  onClick: function () {
+						  self.bg.showUnattachedEditor();
+					  }});
 	
 	this.app.controller('menuController', function ($scope) {
 		
@@ -51,10 +65,18 @@ function Menu (bg) {
 		
 		$scope.user_actions = [
 			
-			new Action({val: "Add script For ...", id: "add_script",
+			new Action({val: "Add script for this page", id: "add_script",
 						onClick: function () {
 							self.bg.showEditorForCurrentTab();
 						}
+					   }),
+			
+			new Action({ val: "Add script to group", id: "add_script_gr", submenu: self.groups }),
+			
+			new Action({ val: "Add this page to group", id: "add_site_to_grp",
+						 onClick: function () {
+							 self.bg.addSiteToGroup();
+						 }
 					   }),
 			
 			new Action({val: "Export ...", id: "export", submenu: [
@@ -76,10 +98,33 @@ function Menu (bg) {
 						}
 					   }),
 			
-			new Action({val: "Clean", id: "clean",
-						onClick: function () {
+			new Action({val: "Clean", id: "clean", submenu:
+						[{val: "Groups", id: "clean_groups",
+						  onClick: function (ev) {
+							  ev.stopPropagation();
+							  self.bg.group_mgr.clear();
+							  
+						  }},
+						 {val: "Settings", id: "clean_settings",
+						  onClick: function (ev) {
+							  ev.stopPropagation();
+							  self.bg.option_mgr.clear();
+							  
+						  }},
+						 {val: "Domains", id: "clean_domains",
+						  onClick: function (ev) {
+							  ev.stopPropagation(ev);
+							  self.bg.domain_mgr.clear();
+							  
+						  }}],
+						
+						onClick: function (ev) {
+							ev.stopPropagation();
 							browser.storage.local.clear();
+							
+							
 						}
+						
 					   })
 		];
 	});
@@ -97,7 +142,6 @@ function Menu (bg) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			
-			Menu.call(this, page);	
+			Menu.call(this, page);
 		}
 	);

@@ -43,33 +43,44 @@ function Editor (opt) {
 	this.tab = opt.tab || null;
 	
 	self.parent.editors.push(self);
-	
-	if (this.tab.status == "complete") {
+
+	if (this.tab) {
+
+		if (this.tab.status == "complete") {
 		
-		this.tab.attachEditor(this)
-			.then(null,
-				  err => {
+			this.tab.attachEditor(this)
+				.then(null,
+					  err => {
+						  
+						  console.error("Attach rejected!!");
+						  console.error(err);
 					  
-					  console.error("Attach rejected!!");
-					  console.error(err);
-					  
-				  });
+					  });
+		}
+
 	}
 	
 	this.runInTab = function () {
 
-		return self.tab.runForEditor(self.script);
-						
+		if (tab)
+			return self.tab.runForEditor(self.script);
+		else
+			return Promise.resolve();
+			
 	};
 
 	this.tabToOriginalState = function () {
 
-		return self.tab.revertChanges();
+		if (tab)
+			return self.tab.revertChanges();
+		else
+			return Promise.resolve();
 	};
 
 	this.editorClose = function () {
-			
-		self.tab.deattachEditor();
+
+		if (self.tab)
+			self.tab.deattachEditor();
 			
 		//console.log("Removing editor " + self.id);
 		
@@ -126,23 +137,36 @@ function EditorMgr (bg) {
 					resolve(alive);
 				else {
 
-					self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
-						.then(
-							response => {
+					if (!script.parent.isGroup()) {
+
+						self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
+							.then(
+								response => {
 							
-								// console.error("Got Tab!");
-								// console.error(response);
+									// console.error("Got Tab!");
+									// console.error(response);
 							
-								new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
-									.then(resolve, reject);
+									new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
+										.then(resolve, reject);
 							
-							}, reject
-						);
+								}, reject
+							);
+						
+					} else {
+
+						new EditorWdw({parent: self, script: script, tab: null, mode: false})
+							.then(resolve, reject);
+					}
 				}
 			}
 		);
 	};
 
+	this.openEditorInstanceForGroup = function (group) {
+
+		return new EditorWdw({parent: self, script: group.upsertScript(new Script({})), tab: null, mode: true});
+
+	}
 
 	this.getOwnerOf = function (script) {
 

@@ -78,12 +78,13 @@ function CS() {
 	this.port.onMessage.addListener(
 		args => {
 
-			console.log("Running stored scripts: ");
-			console.log(args.literals);
+			//console.log("Running stored scripts for " + window.location.toString() + ": ");
+			//console.log(args.literals);
 			
 			self.runAll(args.literals);
-
-			/* Error reporting */
+			
+			for (error of errors)
+				console.error(error);
 			
 			this.port.disconnect();
 		}

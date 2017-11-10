@@ -210,7 +210,7 @@ function TabMgr (bg) {
 					resolve({tab: tab, created: false});
 				else {
 
-					browser.tabs.query({url: ['http://' + url.name(), 'https://' + url.name()]})
+					browser.tabs.query({url: "*://*." + url.name() + "*"})
 						.then(
 							tab => {
 
@@ -266,13 +266,13 @@ function TabMgr (bg) {
 			/* Changing angular view from here ignored! */
 			if (changeInfo.url) {
 
+				var old = tab.url;
 				tab.url = new URL(changeInfo.url).sort();
 
-				if (tab.editor) {
-					
-					/* check for CSP ... */
-					tab.editor.updateTarget();
-				}
+				if (tab.editor) 	
+					/* check for CSP ¿? ... */
+					tab.editor.updateTarget(old);
+				
 			}
 			
 			if (changeInfo.status == "complete") {
@@ -330,7 +330,7 @@ function TabMgr (bg) {
 							},
 							err => {
 
-								self.bg.notifyUser("CSP Block", "Unable to open editor for tab ..." + tab_info[0].id);
+								self.bg.notifyUser("CSP Block", "Unable to open editor for tab " + tab_info[0].id);
 								// console.error(err);
 								reject(err);
 							}
@@ -376,6 +376,8 @@ function TabMgr (bg) {
 			port => {
 				
 				if (port.name === 'content-script') {
+
+					console.log("New CS");
 					
 					port.onMessage.addListener(
 						args => {
@@ -384,19 +386,31 @@ function TabMgr (bg) {
 							case "get-info":
 								{
 
-									self.bg.domain_mgr.getScriptsForUrl(new URL(args.message).sort())
+									var url = new URL(args.message).sort();
+
+									console.log("Sending scripts for: " + url.href);
+									
+									self.bg.domain_mgr.getScriptsForUrl(url)
 										.then(
 											scripts => {
 
 												if (scripts)
-													self.bg.updatePA(new URL(args.message).sort());
+													self.bg.updatePA(url);
+
+												///console.log(scripts);
 												
 												port.postMessage({literals:
-																  (scripts || []).map(
+																  (scripts || [])
+																  .filter(
+																	  script => {
+																		  return !script.disabled;
+																	  }
+																  )
+																  .map(
 																	  script => {
 																		  
 																		  return script.code;
-														
+
 																	  }
 																  )
 																 });

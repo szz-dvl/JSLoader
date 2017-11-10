@@ -122,6 +122,11 @@ function OptionMgr (bg) {
 			}
 		);
 
+	this.clear = function () {
+
+		self.storage.removeOptions();
+	};
+	
 	// this.storeNewOpts = function (changes, area) {
 		
 	// 	if (area != "local")

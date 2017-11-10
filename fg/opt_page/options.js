@@ -55,13 +55,14 @@ function Option (opt, section) {
 
 }
 
-function OP (bg, domains, port) {
+function OP (bg, domains, groups, port) {
 	
 	var self = this;
 	
 	this.bg = bg;
 	
 	this.domain_list;
+	this.group_list;
 	this.themes;
 	this.settings;
 	
@@ -239,7 +240,7 @@ function OP (bg, domains, port) {
 	});
 
 	this.app.controller('domainController', ($scope, $timeout) => {
-
+		
 		$scope.page = self;
 		$scope.page.domain_list = $scope;
 		$scope.port = port;
@@ -295,6 +296,46 @@ function OP (bg, domains, port) {
 		});	
 	});
 	
+	this.app.controller('groupController', ($scope, $timeout) => {
+
+		$scope.page = self;
+		$scope.page.group_list = $scope;
+
+		$scope.port = port;
+		$scope.groups = groups;
+
+		$scope.shown = [];
+		
+		$scope.title = "Stored groups";
+		
+		$scope.import_gr_button = false;
+		
+		$scope.applyGrImport = function () {
+
+			var reader = new FileReader();
+			
+			reader.onload = function () {
+				
+				$scope.page.bg.domain_mgr.importDomains(JSON.parse(reader.result));
+				$scope.import_button = false;
+			}
+			
+			reader.readAsText($("#import_groups")[0].files[0]);
+		};
+		
+		$scope.groupsFile = function (ev) {
+
+			$scope.import_gr_button = true;
+			$scope.$digest();
+		};
+
+		$timeout(() => {
+			
+			$("#import_groups").on('change', $scope.groupsFile);
+			
+		});	
+	});
+	
 	angular.element(document).ready(
 		() => {
 			
@@ -304,27 +345,25 @@ function OP (bg, domains, port) {
 	);
 }
 
-
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			page.getOptPage()
 				.then(
-					domains => {
-
+					data => {
+						
 						var port = browser.runtime.connect(browser.runtime.id, {name:"option-page"});
-
+						
 						window.onbeforeunload = function () {
-
-							// console.log("OnBeforeUnload Editor: ");
-							// console.log(this.bg.option_mgr);
-							// console.log(this.bg.option_mgr.editor);
 							
 							port.disconnect();
 							
 						}
 
-						OP.call(this, page, domains, port);
+						console.log("My data: ");
+						console.log(data);
+						
+						OP.call(this, page, data.domains, data.groups, port);
 					}
 				);		
 		}

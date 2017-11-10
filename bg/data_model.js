@@ -74,7 +74,7 @@ function Script (opt) {
 	
 	this.getUrl = function () {
 		
-		if (self.parent)
+		if (self.parent && !self.parent.isGroup())
 			return new URL('http://' + self.parent.parent.name + self.parent.url);
 		else
 			return null;
@@ -107,7 +107,7 @@ function Script (opt) {
 	this.updateParent = function (url) {
 		
 		//console.log("New parent: " + url.href);
-		
+
 		var err = self.badParent(url);
 		
 		if (err)
@@ -154,6 +154,37 @@ function Script (opt) {
 		);
 	};
 
+	this.updateGroup = function (name) {
+
+		console.log("update Group!, parent: " + self.parent.name + " new: " + name);
+		
+		if (self.parent.name != name) {
+	
+			return new Promise (
+				(resolve, reject) => {
+					
+					self.remove()
+						.then(
+							() => {
+								
+								global_storage.getOrCreateGroup(
+									
+									group => {
+										
+										resolve(group.upsertScript(self));
+										
+									}, name
+								);
+
+							}, reject
+						);
+				}
+			);
+
+		} else
+			return Promise.resolve(self);
+	};
+	
 	this.toggleDisable = function () {
 		
 		self.disabled = !self.disabled;
@@ -182,6 +213,12 @@ function Script (opt) {
 		return self.parent.persist();
 		
 	};
+
+	this.getParentName = function () {
+
+		return self.isGroup() ? self.parent.name : self.parent.parent.name;
+
+	}
 
 	/* Views */
 	this.elemFor = function (list_uuid) {
@@ -225,55 +262,28 @@ function Script (opt) {
 	};
 }
 
-function Site (opt) {
-	
+function __Script_Bucket (scripts) {
+
 	var self = this;
-	
-	this.url = opt.url || null;
-	this.parent = opt.parent || null;
+
 	this.elems = [];
-	
 	this.scripts = [];
-	if (opt.scripts) {
+	
+	if (scripts) {
 		
-		for (script of opt.scripts) {
+		for (script of scripts) {
 			
 			script.parent = this;
 			this.scripts.push(new Script(script));
 		}
 	} 
 	
-	this.isDomain = function() {
-		
-		return self.url == "/";
-		
-	};
-	
-	this.remove = function () {
-		
-		if (self.elems.length)
-			self.elems = [];
-		
-		return self.parent.removeSite(self.url);	
-	};
-
-	this.persist = function () {
-	
-		return self.parent.persist();
-		
-	};
-	
-	this.isEmpty = function () {
-		
-		return !self.scripts.length;
-	};
-
 	this.removeScript = function (id) {
 		
 		self.scripts.remove(
 			self.scripts.findIndex(
 				script => {
-				
+					
 					return script.uuid == id;
 				}
 			)
@@ -305,15 +315,14 @@ function Site (opt) {
 			
 		}
 		
-		return script;
-		
+		return script;	
 	};
 	
-	this.haveScripts = function () {
+	// this.haveScripts = function () {
 		
-		return self.scripts.length > 0;
+	// 	return self.scripts.length > 0;
 		
-	};
+	// };
 	
 	this.haveScript = function (id) {
 
@@ -326,23 +335,16 @@ function Site (opt) {
 		)[0] || false;
     };
 
-	this.mergeInfo = function (imported) {
-
-		for (script of imported.scripts)
-			self.upsertScript(script);
-		
-	}
-
 	/* Views */
 	this.elemFor = function (list_uuid) {
-
+		
 		return self.elems.filter(
 			elem => {
 				return elem.parent_id == list_uuid;
 			}
 		)[0] || null;
 	};
-
+	
 	this.insertElem = function (parent_id, page_shown) {
 		
 		var exists = self.elems.filter(
@@ -356,16 +358,94 @@ function Site (opt) {
 	};
 
 	this.shownFor = function (list_uuid) {
-
+		
 		return self.elemFor(list_uuid).shown; 
-
+		
 	};
+	
+}
+
+function Site (opt) {
+	
+	var self = this;
+	
+	this.url = opt.url || null;
+	this.parent = opt.parent || null;
+	
+	__Script_Bucket.call(this, opt.scripts || []);
+	
+	this.groups = opt.groups || [];
+	
+	this.isDomain = function() {
+		
+		return self.url == "/";
+		
+	};
+	
+	this.isGroup = function() {
+		
+		return false;
+		
+	};
+
+	this.siteName = function () {
+		
+		return self.parent.name + self.url;
+		
+	};
+	
+	this.isEmpty = function () {
+		
+		return !self.scripts.length && !self.groups.length; 
+		
+	};
+
+	this.appendGroup = function (group) {
+		
+		if (!self.groups.includes(group.name))
+			self.groups.push(group.name);
+
+		if (group.sites.includes(self.siteName()))
+			group.sites.push(self.siteName());
+		
+	};
+
+	this.removeGroup = function (group) {
+		
+		self.groups.remove(self.groups.indexOf(group.name));
+		group.sites.remove(group.sites.indexOf(self.siteName()));
+		
+	};
+	
+	this.remove = function () {
+		
+		if (self.elems.length)
+			self.elems = [];
+		
+		return self.parent.removeSite(self.url);	
+	};
+
+	this.persist = function () {
+	
+		return self.parent.persist();
+		
+	};
+
+	this.mergeInfo = function (imported) {
+
+		for (script of imported.scripts)
+			self.upsertScript(script);
+
+		for (group_name of imported.groups)
+			self.upsertScript(script);
+	}
 
 	/* Stringify */
 	this.__getDBInfo = function () {
 		
 		return {
 			url: self.url,
+			groups: self.groups,
 			scripts: self.scripts.map(
 				script => {
 					return script.__getDBInfo();
@@ -383,7 +463,7 @@ function Domain (opt) {
 		return null;
 	
 	Site.call(this, {url: "/", parent: this, scripts: opt.scripts});
-	
+
 	this.name = opt.name;
 	
 	this.sites = [];
@@ -397,11 +477,15 @@ function Domain (opt) {
 
 	}
 	
-	this.storage = global_storage;
-	
 	this.isEmpty = function () {
+
+		return !self.scripts.length && !self.sites.length && !self.groups.length;
 		
-		return !self.scripts.length && !self.sites.length;
+	};
+
+	this.haveData = function () {
+
+		return self.scripts.length || self.sites.length;
 		
 	};
 	
@@ -410,16 +494,16 @@ function Domain (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.storage.__getDomains(
+				global_storage.__getDomains(
 					arr => {
-
+						
 						if (!arr.includes(self.name)) {
 					
 							arr.push(self.name);
-							self.storage.__setDomains(arr);
+							global_storage.__setDomains(arr);
 						}
 						
-						self.storage.__upsertDomain(self.name, self.__getDBInfo())
+						global_storage.__upsertDomain(self.name, self.__getDBInfo())
 							.then(
 								() => {
 									
@@ -443,16 +527,16 @@ function Domain (opt) {
 		return new Promise (
 			(resolve, reject) => {
 			
-				self.storage.__getDomains(
+				global_storage.__getDomains(
 					arr => {
 						
 						var idx = arr.indexOf(self.name);
 			
 						if (idx >= 0) {
-					
+							
 							arr.remove(idx);
-							self.storage.__setDomains(arr);
-							self.storage.__removeDomain(self.name)
+							global_storage.__setDomains(arr);
+							global_storage.__removeDomain(self.name)
 								.then(resolve, reject);
 						} else
 							resolve();
@@ -477,8 +561,8 @@ function Domain (opt) {
 	};
 
 	this.getOrCreateSite = function (pathname) {
-
-		if (pathname == "/")
+		
+		if (pathname == "/" || !pathname)
 			return self;
 		
 		var site = self.haveSite(pathname);
@@ -542,7 +626,7 @@ function Domain (opt) {
 			self.upsertScript(script);
 
 		for (site of imported.sites) 	
-			self.getOrCreateSite(site.url).mergeInfo(site);
+			self.getOrCreateSite(site.url).appendGroup(self.name);
 		
 	};
 	
@@ -551,6 +635,7 @@ function Domain (opt) {
 		return {
 			
 			name: self.name,
+			groups: self.groups,
 			
 			sites: self.sites.map(
 				site => {
@@ -567,3 +652,175 @@ function Domain (opt) {
 	};
 	
 }
+
+function AllSubDomainsFor (opt) {
+
+	var self = this;
+	
+	this.name = opt.name || null;
+	this.groups = opt.groups || [];
+	
+	this.persist = function () {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				global_storage.upsertSubDomain(self.name.slice(2), self.__getDBInfo())
+					.then(
+						() => {
+							
+							resolve(self);
+							
+						}, reject);
+			}
+		);
+	};
+	
+	this.remove = function () {
+		
+		return new Promise (
+			(resolve, reject) => {
+				
+				global_storage.removeSubDomain(self.name.slice(2));
+				
+			}
+		);				
+	};
+
+	this.appendGroup = function (group) {
+
+		if (!self.groups.includes(group.name))
+			self.groups.push(group.name);
+
+		if (!group.sites.includes(self.name))
+			group.sites.push(self.name);
+		
+	};
+
+	this.removeGroup = function (group) {
+		
+		self.groups.remove(self.groups.indexOf(group.name));
+		group.sites.remove(group.sites.indexOf(self.name));
+	};
+	
+	this.__getDBInfo = function () {
+		
+		return {
+			
+			name: self.name,
+			groups: self.groups	
+		}
+	};
+}
+
+function Group (opt) {
+
+	var self = this;
+
+	__Script_Bucket.call(this, opt.scripts || []);
+	
+	this.name = opt.name || UUID.generate().split("-").pop();
+	this.sites = opt.sites || [];
+	
+	this.isDomain = function() {
+		
+		return false;
+	};
+	
+	this.isGroup = function() {
+		
+		return true;	
+	};
+
+	this.isEmpty = function () {
+		
+		return !self.sites.length && !self.scripts.length; 
+	};
+	
+	this.persist = function () {
+		
+		global_storage.getGroups(
+			groups => {
+				
+				if (!groups.includes(self.name)) {
+
+					groups.push(self.name);
+					global_storage.setGroups(groups);
+					
+				}
+
+			}
+		);
+		
+		return global_storage.upsertGroup(self.__getDBInfo()); 
+	};
+
+	this.remove = function () {
+
+		global_storage.getGroups(
+			groups => {
+
+				if (groups.includes(self.name)) {
+					
+					groups.remove(groups.indexOf(self.name));
+					global_storage.setGroups(groups);	
+				}
+			}
+		);
+		
+		return global_storage.removeGroup(self.name);
+	};
+
+	this.appendSite = function (site) {
+
+		if (!self.sites.includes(site.name))
+			self.sites.push(site.name);
+
+		if (!site.groups.includes(self.name))
+			site.groups.push(self.name);
+		
+	};
+
+	this.removeSite = function (site) {
+
+		console.log("Removing: ");
+		console.log(site);
+		
+		self.sites.remove(self.sites.indexOf(site.name));
+		site.groups.remove(site.groups.indexOf(self.name));
+		
+	};
+
+	this.haveSite = function (site_name) {
+
+		return self.sites.filter(
+			site => {	
+				return site == site_name;
+			})[0] || false;
+	};
+	
+	this.mergeInfo = function (imported) {
+
+		for (script of imported.scripts)
+			self.upsertScript(script);
+
+		for (site_name of imported.sites) 	
+			self.appendSite(site_name);	
+	};
+	
+	this.__getDBInfo = function () {
+		
+		return {
+			
+			name: self.name,
+			sites: self.sites,
+			scripts: self.scripts.map(
+				script => {
+					return script.__getDBInfo();
+				}
+			)
+		}
+	};
+	
+}
+

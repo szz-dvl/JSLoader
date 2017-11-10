@@ -105,14 +105,17 @@ function EditorFG (editor, bg) {
 			}, 5000);
 	};
 	
-	this.editor.updateTarget = function () {
+	this.editor.updateTarget = function (old) {
 		
-		var err = self.editor.script.badParent(tab.url);
+		if (old == self.editor.scope.url) {
+			
+			var err = self.editor.script.badParent(self.editor.tab.url);
 		
-		if(err)
-			self.editor.message("Tab url outdated: " + err, true);
-		else
-			self.editor.scope.updateTarget(tab.url);	
+			if(err)
+				self.editor.message("Tab url outdated: " + err, true);
+			else
+				self.editor.scope.updateTarget(self.editor.tab.url);
+		}
 	};
 	
 	this.isCollapsed = function () {
@@ -126,18 +129,18 @@ function EditorFG (editor, bg) {
 		//console.log("collapseHeader header: " + self.editor.scope.dd_text);
 		
 		if (self.isCollapsed()) {
-
+			
 			self.dropdown.text("v");
 			self.editor.scope.dd_text = "v"; //fails from shortcut.
-
+			
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
 			
 		} else {
-
+			
 			self.dropdown.text("<");
 			self.editor.scope.dd_text = "<"; //fails from shortcut.
-
+			
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
 		}
@@ -177,28 +180,42 @@ function EditorFG (editor, bg) {
 	};
 	
 	this.saveCurrent = function () {
-		
-		self.editor.script.updateParent(self.editor.scope.url)
-			.then(
-				script => {
+
+		if(self.editor.tab) {
+			
+			self.editor.script.updateParent(self.editor.scope.url)
+				.then(
+					script => {
 					
-					script.code = self.editor.ace.getValue().toString().trim();
+						script.code = self.editor.ace.getValue().toString().trim();
 					
-					self.bg.domain_mgr.storeScript(script)
-						.then(
-							script => {
-								script.persist()
-									.then(
-										domain => {
-											console.log("Updating PA for " + script.getUrl().href);
-											self.bg.updatePA(script.getUrl());
+						self.bg.domain_mgr.storeScript(script)
+							.then(
+								script => {
+									script.persist()
+										.then(
+											domain => {
+												console.log("Updating PA for " + script.getUrl().href);
+												self.bg.updatePA(script.getUrl());
 											
-										}
-									);
-							}
-						);
-				}
-			);
+											}
+										);
+								}
+							);
+					}
+				);
+			
+		} else {
+			
+			self.editor.script.updateGroup(self.editor.scope.user_action.target)
+				.then(
+					script => {
+					
+						script.code = self.editor.ace.getValue().toString().trim();
+						script.persist();
+					}
+				);
+		}
 	};
 
 	this.onResize = function () {
@@ -237,25 +254,25 @@ function EditorFG (editor, bg) {
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
 		
-		$scope.url = $scope.script.getUrl() || self.editor.tab.url;
+		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : self.editor.tab ? self.editor.tab.url.name() : $scope.script.parent.name;
 
-		console.log("My url: " + $scope.url.name() + " hostname: " + $scope.url.hostname + " pathname: " + $scope.url.pathname);
+		//console.log("My url: " + $scope.url.name() + " hostname: " + $scope.url.hostname + " pathname: " + $scope.url.pathname);
 		
 		$scope.label = "JSLoader";
 		
 		$scope.user_action = {
 			
-			text: self.editor.mode ? "Adding script for: " : "Editing script for: ", /* To wdw title!! */
-			target: $scope.url.name()
+			text: self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: ", /* To wdw title!! */
+			target: $scope.url
 
 		};
 
 		$scope.buttons = {
 
 			shown: true,
-			arr: [{id:"save_btn", text:"Save"},
-				  {id:"run_btn", text:"Run in Page"},
-				  {id:"revert_btn", text:"Revert changes"}]
+			arr: [{id:"save_btn", text:"Save", available: true},
+				  {id:"run_btn", text:"Run in Page", available: self.editor.tab},
+				  {id:"revert_btn", text:"Revert changes", available: true}]
 
 		};
 		
@@ -268,18 +285,21 @@ function EditorFG (editor, bg) {
 			
 			$scope.targetTID = setTimeout(
 				() => {
-					
-					var url = new URL("http://" + self.target.text());
-					var err = self.editor.script.badParent(url);
 
-					if (err) {
+					if (self.editor.tab) {
 						
-						$scope.updateTarget(self.editor.script.getUrl() || $scope.url);
-						self.editor.message(err, true);
-						
-					} else 
-						$scope.updateTarget(url);
-					
+						var url = new URL("http://" + self.target.text());
+						var err = self.editor.script.badParent(url);
+
+						if (err) {
+							
+							$scope.updateTarget(self.editor.script.getUrl());
+							self.editor.message(err, true);
+							
+						} else 
+							$scope.updateTarget(url);
+					} else
+						$scope.updateTarget(self.target.text());
 					
 				}, 750);
 		};
@@ -312,11 +332,13 @@ function EditorFG (editor, bg) {
 			}
 			
 		};
-
+		
 		$scope.updateTarget = function (url) {
 
+			
 			$scope.url = url;
-			$scope.user_action.target = url.name();
+			$scope.user_action.target = url.name ? url.name() : url;
+				
 			
 			//self.target.text(url.name());
 		};

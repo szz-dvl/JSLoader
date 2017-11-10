@@ -1,0 +1,18 @@
+<div class="list-container" ng-if="list.length">
+
+  <bdi ng-click="toggleList()">{{ state }}</bdi>
+  <ul ng-show="shown"> 
+	<li ng-repeat="sname in list">
+	  
+	  <label>
+		
+		{{ sname }}
+		
+		<button ng-click="removeSite(sname)"> Remove </button>
+		
+	  </label>
+	  
+	</li>
+  </ul>
+  
+</div><br></br>

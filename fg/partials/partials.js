@@ -103,17 +103,20 @@ angular.module('jslPartials', ['hljsSearch'])
 								   return script;
 						   	   }
 						   );
+
+						   $scope.name = $scope.parent.isGroup() ? $scope.parent.name : $scope.parent.parent.name;
 						   
 						   $scope.removeScript = function(script) {
 
-							   var url = script.getUrl();
+							   var url = script.getUrl(); /* Solve for groups: URL array. */
 							   script.remove();
-							   
-							   $scope.pa(url.href);
+
+							   if (url)
+								   $scope.pa(url.href);
 							   
 						   };
 						   
-						   console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
+						   //console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
 						   
 						   $timeout(() => {
 							   
@@ -132,9 +135,9 @@ angular.module('jslPartials', ['hljsSearch'])
 									   switch (args.action) {
 									   case "list-update":
 
-										   if ($scope.parent.parent.name == args.message) {
+										   if ($scope.name == args.message) {
 
-											   console.log("List update for: " + $scope.parent.parent.name + $scope.parent.url);
+											   //console.log("List update for: " + $scope.parent.parent.name + $scope.parent.url);
 											   
 											   if (!$scope.list.length)
 										   		   $scope.$destroy();
@@ -159,6 +162,47 @@ angular.module('jslPartials', ['hljsSearch'])
 							   )
 						   }
 					   }   
+				   }
+			   })
+
+	.directive('siteIndex',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   
+						   list: "=list",
+						   parent: "=parent",
+						   mgr: "=mgr"
+						   
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/site-index.html");
+					   },
+					   
+					   controller: function ($scope, $timeout) { /* $anchorScroll, $location*/
+
+						   $scope.shown = true;
+						   $scope.state = ">";
+						   
+						   $scope.toggleList = function () {
+
+							   $scope.shown = !$scope.shown;
+							   $scope.state = $scope.state == ">" ? "v" : ">";
+							   
+							   //$scope.$digest();
+						   };
+
+						   $scope.removeSite = function (sname) {
+
+							   $scope.mgr.removeSiteFrom($scope.parent.name, sname);
+							   
+						   };
+					   }
 				   }
 			   })
 

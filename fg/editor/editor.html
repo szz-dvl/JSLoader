@@ -36,7 +36,15 @@
 		
 	<div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()">
 	  
-	  <button ng-repeat="button in buttons.arr" id="{{button.id}}" class="hidden-elem browser-style mright jsload_button" ng-click="buttonClick($event)"> {{button.text}} </button>
+	  <button ng-repeat="button in buttons.arr"
+			  ng-if="button.available"
+			  id="{{button.id}}"
+			  class="hidden-elem browser-style mright jsload_button"
+			  ng-click="buttonClick($event)">
+
+		{{button.text}}
+
+	  </button>
 	  
 	</div>
 	

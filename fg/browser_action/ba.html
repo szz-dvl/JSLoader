@@ -1,52 +1,52 @@
 <!DOCTYPE html>
 
 <html>
-	<head>
-		<meta charset="utf-8">
-		<link rel="stylesheet" href="ba.css"/>
-		<script src="../deps/jquery.min.js"></script>
-		<script src="../deps/angular.min.js"></script>
-		
-	</head>
+  <head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="ba.css"/>
+	<script src="../deps/jquery.min.js"></script>
+	<script src="../deps/angular.min.js"></script>
 	
-	<body>
+  </head>
+  
+  <body>
 
-	  <div class="panel-section panel-section-header">
-		<div class="text-section-header">JSLoader</div>
-	  </div>
+	<div class="panel-section panel-section-header">
+	  <div class="text-section-header">JSLoader</div>
+	</div>
 	
-	  <div id="content" class="panel" ng-controller="menuController as menu" ng-cloak>
-		
-		<nav id="menu">
-		  <ul class="panel-section-list browser-style"> 
-			<li id="{{action.id}}"
-				class="panel-list-item"
-				ng-repeat="action in user_actions"
-				ng-click="action.onClick()"
-				ng-mouseenter="action.onEnter()"
-				ng-mouseleave="action.onLeave()">
+	<div id="content" class="panel" ng-controller="menuController as menu" ng-cloak>
+	  
+	  <nav id="menu">
+		<ul class="panel-section-list browser-style"> 
+		  <li id="{{action.id}}"
+			  class="panel-list-item"
+			  ng-repeat="action in user_actions"
+			  ng-click="action.onClick($event)"
+			  ng-mouseenter="action.onEnter()"
+			  ng-mouseleave="action.onLeave()">
+			
+			<label> {{action.val}} </label>
+
+			<ul class="panel-section-list browser-style" ng-if="action.submenu" ng-show="action.pointed" ng-hide="!action.pointed && action.canHide()">
 			  
-			  <label> {{action.val}} </label>
-
-			  <ul class="panel-section-list browser-style" ng-if="action.submenu" ng-show="action.pointed" ng-hide="!action.pointed && action.canHide()">
+			  <li id="{{subaction.id}}"
+				  class="panel-list-item"
+				  ng-repeat="subaction in action.submenu"
+				  ng-click="subaction.onClick($event)"
+				  ng-mouseenter="subaction.onEnter()"
+				  ng-mouseleave="subaction.onLeave()">
 				
-				<li id="{{subaction.id}}"
-					class="panel-list-item"
-					ng-repeat="subaction in action.submenu"
-					ng-click="subaction.onClick()"
-					ng-mouseenter="subaction.onEnter()"
-					ng-mouseleave="subaction.onLeave()">
-				  
-				  <label> {{subaction.val}} </label>
-				  
-				</li><br>
-			  </ul>
-			</li><br>
-		  </ul>
-		</nav>
-	  </div>
-		
-	  <script src="ba.js"></script>
-		
-	</body>
+				<label> {{subaction.val}} </label>
+				
+			  </li><br>
+			</ul>
+		  </li><br>
+		</ul>
+	  </nav>
+	</div>
+	
+	<script src="ba.js"></script>
+	
+  </body>
 </html>

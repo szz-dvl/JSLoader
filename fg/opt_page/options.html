@@ -36,87 +36,127 @@
 
 	<div id="content" class="panel-section">
 	  
-	  <div ng-controller="settingsController as settings" class="panel-section" ng-cloak>
+	  <tabs tab-default="1">
+		  
+		<tab-nav></tab-nav>
 		
-		<!-- <div class="panel-section" > class="panel-section-header"-->
-		  <div id="settings_head" class="panel-section-header">
-			<div class="text-section-header"> {{title}}
-			  <label class="input_import">
-				<input id="import_settings" type="file">
-			  </label>
-			</div>
-		  </div>
-		<!-- </div><br> -->
-
-		
-		<form ng-submit="updtOpts()">
-
-		  <tabs tab-default="1">
-			
-			<tab-nav></tab-nav>
+		<div ng-controller="settingsController as settings" class="panel-section" ng-cloak>
+		  
+		  <form ng-submit="updtOpts()">	
 			
 			<tab-content ng-repeat="submenu in submenus" tab-index="{{$index + 1}}" tab-title="{{submenu.title}}">
+
+			  <!-- <div class="panel-section" > class="panel-section-header"-->
+			  <div id="settings_head" class="panel-section-header">
+				<div class="text-section-header"> {{title}}
+				  <label class="input_import">
+					<input id="import_settings" type="file">
+				  </label>
+				</div>
+			  </div>
+			  <!-- </div><br> -->
+
 			  <option-menu list="submenu.opts" title="submenu.title" key="submenu.key" port="port"></option-menu>
 			  
 			  <label class="input" ng-if="submenu.key == 'editor'">
-			
+				
 				<span> Editor theme: </span>
 				<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
-			
-			  </label>
+				
+			  </label><br>
+
+			  <input type="submit" value="Save Options" class="browser-style jsload-button">
 			  
 			</tab-content>
-
 			
-		  </tabs>
+		  </form>
 		  
-		  <input type="submit" value="Save Options" class="browser-style jsload-button">
-		  
-		</form>
+		</div> <!-- settingsController -->
 		
-	  </div> <!-- settingsController -->
+		<tab-content tab-index="submenus.length + 1" tab-title="Domains">
+		  
+		  <div ng-controller="domainController" class="panel-section" ng-cloak>
 
-	  <div ng-controller="domainController" class="panel-section" ng-cloak>
+			<div class="panel-section" >
+			  <div id="domain_head" class="panel-section panel-section-header">
+				<div class="text-section-header">{{title}}
+				  <label class="input_import">
+					<input id="import_scripts" type="file">
+				  </label>
+				  <button class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+				</div>
+			  </div>
+			</div><br>
+			
+			<div class="panel-section" ng-repeat="domain in domains" ng-if="domain.haveData()">
+			  
+			  <h4> {{domain.name}} </h4>
 
-		<div class="panel-section" >
-		  <div id="scripts_head" class="panel-section panel-section-header">
-			<div class="text-section-header">{{title}}
-			  <label class="input_import">
-				<input id="import_scripts" type="file">
-			  </label>
-			  <button class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
-			</div>
-		  </div>
-		</div><br>
+			  <script-list ng-if="domain.scripts.length"
+						   list="domain.scripts"
+						   parent="domain"
+						   port="port"
+						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+						   shown="shown"
+						   pa="page.bg.updatePA"
+						   opts="page.bg.option_mgr.editor">
+			  </script-list>
+			  
+			  <script-list ng-repeat="site in domain.sites"
+						   ng-if="site.scripts.length"
+						   list="site.scripts"
+						   parent="site"
+						   port="port"
+						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+						   shown="shown"
+						   pa="page.bg.updatePA"
+						   opts="page.bg.option_mgr.editor">
+			  </script-list>
+			  
+			</div> 
+		  </div> <!-- domainController -->
+
+		</tab-content>
 		
-		<div class="panel-section" ng-repeat="domain in domains" ng-if="!domain.isEmpty()">
-		  
-		  <h4> {{domain.name}} </h4>
-		  
-		  <script-list ng-if="domain.scripts.length"
-					   list="domain.scripts"
-					   parent="domain"
-					   port="port"
-					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-					   shown="shown"
-					   pa="page.bg.updatePA"
-					   opts="page.bg.option_mgr.editor">
-		  </script-list>
-		  
-		  <script-list ng-repeat="site in domain.sites"
-					   ng-if="site.scripts.length"
-					   list="site.scripts"
-					   parent="site"
-					   port="port"
-					   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-					   shown="shown"
-					   pa="page.bg.updatePA"
-					   opts="page.bg.option_mgr.editor">
-		  </script-list>
+		<tab-content tab-index="submenus.length + 2" tab-title="Groups">
 
-		</div>
-		
-	  </div> <!-- domainController -->
+		  <div ng-controller="groupController" class="panel-section" ng-cloak>
+
+			<div class="panel-section" >
+			  <div id="group_head" class="panel-section panel-section-header">
+				<div class="text-section-header">{{title}}
+				  <label class="input_import">
+					<input id="import_groups" type="file">
+				  </label>
+				  <button class="browser-style jsload-button" ng-show="import_gr_button" ng-click="applyGrImport()"> Apply changes </button>
+				</div>
+			  </div>
+			</div><br>
+			
+			<div class="panel-section" ng-repeat="group in groups" ng-if="!group.isEmpty()">
+			  
+			  <script-list ng-if="group.scripts.length"
+						   list="group.scripts"
+						   parent="group"
+						   port="port"
+						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+						   shown="shown"
+						   pa="page.bg.updatePA"
+						   opts="page.bg.option_mgr.editor">
+			  </script-list>
+			  
+			  <site-index ng-if="group.sites.length"
+						  list="group.sites"
+						  parent="group"
+						  mgr="page.bg.group_mgr">
+			  </site-index>
+
+			</div> 
+		  </div> <!-- groupController -->
+		  
+		</tab-content>
+	  </tabs>
+	  
 	</div> <!-- content -->
 
 	<script src="options.js"></script>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+	
+	<link rel="stylesheet" href="chrome://browser/content/extension.css">
+	
+	<meta charset="utf-8">
+	
+	<script src="../deps/jquery.min.js"></script>
+	<script src="../deps/angular.min.js"></script>
+	<script src="../partials/partials.js"></script>
+	
+	<script src="../../utils/jsloader-utils.js"></script>
+	<script src="../../utils/deps/async.min.js"></script>
+	
+  </head>
+  
+  <body spellcheck="false" ng-controller="formController as form">
+	
+	<form style="margin-top: 40px;" ng-submit="addSite()">
+	  
+	  <label class="input">
+		
+		<span> {{action}}ing: </span>
+		<input style="width:55%;" id="site_validator" type="text" ng-model="url" ng-change="validateSite()"></input>
+		
+	  </label>
+	  
+	  <label class="input">
+		
+		<span> to </span>
+		<select ng-model="current" ng-options="group for group in groups"></select>
+		
+	  </label>
+	  
+	  <input id="submit_btn" type="submit" value="{{action}} Site" class="browser-style jsload-button">
+	  
+	</form>
+
+	<script src="chooser.js"></script>
+	
+  </body>
+</html>

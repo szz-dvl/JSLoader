@@ -6,7 +6,8 @@ function BG_mgr () {
 	this.domain_mgr = new DomainMgr(self);
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
-
+	this.group_mgr = new GroupMgr(self);
+	
 	this.notification_ID = "jsloader-notification";
 
 	this.notifyUser = function (title, message) {
@@ -22,9 +23,6 @@ function BG_mgr () {
 	};
 	
 	this.__showPageAction = function (tabInfo) {
-		
-		console.log("__showPageAction: tabInfo => ");
-		console.log(tabInfo);
 		
 		browser.tabs.get(tabInfo.tabId || tabInfo)
 			.then(
@@ -43,13 +41,8 @@ function BG_mgr () {
 										browser.pageAction.show(tab.id);
 									else 
 										browser.pageAction.hide(tab.id);
-								}, err => {
-
-									console.error("haveInfoForUrl rejected!");
-									console.error("err");
-
-								}
-							)	
+									
+								});	
 
 					} else
 						console.error("Bad URL: " + url.href);
@@ -57,20 +50,37 @@ function BG_mgr () {
 				
 			);
 	};
+
+	this.getStoredData = function () {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				self.domain_mgr.getFullDomains(
+					domains => {
+						
+						self.group_mgr.getFullGroups(
+							groups => {
+
+								resolve({domains: domains, groups: groups});
+
+							}
+						);
+					}
+				);
+			}
+		)
+	};
 	
 	this.getOptPage = function () {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.domain_mgr.getFullDomains(
-					domains => {
-
-						/* !!! */
-						console.log("Full domains: ");
-						console.log(domains);
+				self.getStoredData().then(
+					data => {
 						
-						resolve(domains);
+						resolve(data);
 					}
 				);
 			}
@@ -78,13 +88,13 @@ function BG_mgr () {
 	};
 
 	this.getPASite = function () {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 				
 				self.tab_mgr.getCurrentUrl()
 					.then(url => {
-
+						
 						self.domain_mgr.getEditInfoForUrl(url)
 							.then(resolve, reject);
 				
@@ -113,6 +123,42 @@ function BG_mgr () {
 				}, self.logJSLError);
 	};
 
+	this.showUnattachedEditor = function (group_name) {
+
+		self.group_mgr.getOrCreateGroup(group_name)
+			.then(
+				group => {
+					self.editor_mgr.openEditorInstanceForGroup(group);
+				});
+	};
+	
+	this.addSiteToGroup = function () {
+		
+		self.group_mgr.showChooserWdw();
+		
+	};
+	
+	this.receiveCmd = function (command) {
+		
+		switch(command) {
+			
+		case "add-script-for-tab":
+			self.showEditorForCurrentTab();
+			break;
+			
+		case "add-site-to-group":
+			self.addSiteToGroup();
+			break;
+			
+		case "new-group-new-script":
+			self.showUnattachedEditor(null);
+			break;
+			
+		default:
+			break;
+		}
+	};
+	
 	this.broadcastEditors = function (message) {
 		
 		browser.runtime.sendMessage(message);
@@ -158,6 +204,27 @@ function BG_mgr () {
 		);
 	};
 
+	this.exportGroups = function () {
+
+		self.domain_mgr.getFullGroups(
+			groups => {
+				
+				var text = ["["];
+				
+				for (group of groups) {
+					
+					text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
+					text.push(",");
+				}
+
+				text.pop(); // last comma
+				text.push("]");
+				
+				browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) });
+			}
+		);
+	};
+	
 	this.updatePA = function (url) {
 
 		if (typeof(url) === "string")
@@ -178,38 +245,12 @@ function BG_mgr () {
 			);
 	};
 
-	this.sendScriptsForURL = function (url) {
-
-		self.domain_mgr.getScriptsForUrl(url)
-			.then(
-				scripts => {
-
-					self.tab_mgr.getIdsForURL(url).then(
-						ids => {
-							
-							for (id of ids) {
-								browser.tabs.sendMessage(
-						
-									id,
-									{ action: "run", scripts: scripts.map(
-										script => {
-											return script.code;
-										})
-									}
-								)
-							}
-						}
-					)
-				}
-			)
-	};
-
 }
 
 BG_mgr.call(this);
 
 browser.tabs.onActivated.addListener(this.__showPageAction);
 //browser.tabs.onCreated.addListener(this.__showPageAction);
-//browser.tabs.onUpdated.addListener(this.__showPageAction);
-browser.commands.onCommand.addListener(this.showEditorForCurrentTab);
-browser.runtime.onMessage.addListener(this.sendScriptsForURL);
+browser.tabs.onUpdated.addListener(this.__showPageAction);
+browser.commands.onCommand.addListener(this.receiveCmd);
+//browser.runtime.onMessage.addListener(this.sendScriptsForURL);

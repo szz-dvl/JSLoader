@@ -16,14 +16,16 @@
 		"scripts": [
 			"utils/deps/async.min.js",
 			"utils/deps/underscore-min.js",
-			"bg/deps/async.min.js",
+			"utils/deps/async.min.js",
 			"utils/jsloader-utils.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
 			"bg/tab_mgr.js",
 			"bg/editor_mgr.js",
+			"bg/cache_mgr.js",
 			"bg/domain_mgr.js",
 			"bg/option_mgr.js",
+			"bg/group_mgr.js",
 			"bg/background.js"]
 	},
 
@@ -37,15 +39,6 @@
 		"default_popup": "fg/browser_action/ba.html"
 	},
 
-	"content_scripts": [
-		{
-			"matches": ["*://*/*", "<all_urls>"],
-			"js": ["fg/deps/jquery.min.js", "bg/content_script.js"],
-			"all_frames": true,
-			"run_at": "document_start"
-		}
-	],
-
 	"page_action": {
 		"browser_style": true,
 		"default_icon": {
@@ -55,6 +48,15 @@
 		
 		"default_popup": "fg/page_action/pa.html"
 	},
+
+	"content_scripts": [
+		{
+			"matches": ["*://*/*", "<all_urls>"],
+			"js": ["fg/deps/jquery.min.js", "bg/content_script.js"],
+			"all_frames": true,
+			"run_at": "document_start"
+		}
+	],
 	
 	"options_ui": {
 		"browser_style": true,
@@ -63,12 +65,26 @@
 	},
 
 	"commands": {
-		"show-editor": {
+		"add-script-for-tab": {
 			"suggested_key": {
 				"linux": "Alt+Shift+1"
 			},
 			"description": "Open a new editor window, binded to the current tab."
+		},
+		"add-site-to-group": {
+			"suggested_key": {
+				"linux": "Alt+Shift+2"
+			},
+			"description": "Adds site to existing group."
+		},
+		"new-group-new-script": {
+			"suggested_key": {
+				"linux": "Alt+Shift+3"
+			},
+			"description": "Create new group, ¿adds the current site? and bind a new script."
 		}
+
+		
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",

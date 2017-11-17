@@ -9,14 +9,14 @@ function CSMgr (bg) {
 
 		if (domain_name[domain_name.length - 1] != "/")
 			domain_name += "/";
-		
-		self.group_mgr.addSiteTo(domain_name, group_name);
+	
+		self.bg.group_mgr.addSiteTo(group_name, domain_name);
 
 	}
 
 	this.addSiteToGroup = function (port, site_name, group_name) {
 
-		self.group_mgr.addSiteTo(site_name, group_name);
+		self.bg.group_mgr.addSiteTo(group_name, site_name);
 
 	}
 

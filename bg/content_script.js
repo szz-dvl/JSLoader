@@ -1,6 +1,7 @@
 function CS() {
 
 	var self = this;
+	
 	this.status = true;
 	this.modified = false;
 	this.errors = [];
@@ -78,15 +79,14 @@ function CS() {
 	this.port.onMessage.addListener(
 		args => {
 
-			//console.log("Running stored scripts for " + window.location.toString() + ": ");
-			//console.log(args.literals);
+			CSApi.call(self, self.port);
 			
 			self.runAll(args.literals);
 			
 			for (error of errors)
 				console.error(error);
 			
-			this.port.disconnect();
+			//self.port.disconnect();
 		}
 	);
 	
@@ -94,4 +94,5 @@ function CS() {
 }
 
 CS.call(this);
+
 browser.runtime.onMessage.addListener(this.process);

@@ -7,7 +7,7 @@ function BG_mgr () {
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
 	this.group_mgr = new GroupMgr(self);
-	
+	this.content_mgr = new CSMgr(self);
 	
 	this.notification_ID = "jsloader-notification";
 

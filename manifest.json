@@ -25,6 +25,7 @@
 			"bg/domain_mgr.js",
 			"bg/option_mgr.js",
 			"bg/group_mgr.js",
+			"bg/content_mgr.js",
 			"bg/background.js"]
 	},
 
@@ -51,7 +52,7 @@
 	"content_scripts": [
 		{
 			"matches": ["*://*/*", "<all_urls>"],
-			"js": ["fg/deps/jquery.min.js", "utils/deps/async.min.js", "utils/deps/underscore-min.js", "bg/content_script.js"],
+			"js": ["fg/deps/jquery.min.js", "utils/deps/async.min.js", "utils/deps/underscore-min.js", "utils/jsloader-utils.js", "bg/content_api.js", "bg/content_script.js"],
 			"all_frames": true,
 			"run_at": "document_start"
 		}

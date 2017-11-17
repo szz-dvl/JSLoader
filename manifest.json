@@ -16,7 +16,6 @@
 		"scripts": [
 			"utils/deps/async.min.js",
 			"utils/deps/underscore-min.js",
-			"utils/deps/async.min.js",
 			"utils/jsloader-utils.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
@@ -52,7 +51,7 @@
 	"content_scripts": [
 		{
 			"matches": ["*://*/*", "<all_urls>"],
-			"js": ["fg/deps/jquery.min.js", "bg/content_script.js"],
+			"js": ["fg/deps/jquery.min.js", "utils/deps/async.min.js", "utils/deps/underscore-min.js", "bg/content_script.js"],
 			"all_frames": true,
 			"run_at": "document_start"
 		}
@@ -81,7 +80,7 @@
 			"suggested_key": {
 				"linux": "Alt+Shift+3"
 			},
-			"description": "Create new group, ¿adds the current site? and bind a new script."
+			"description": "Create new group, ¿adds the current site? and binds a new script."
 		}
 
 		

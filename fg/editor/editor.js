@@ -182,19 +182,25 @@ function EditorFG (editor, bg) {
 	this.saveCurrent = function () {
 
 		if(self.editor.tab) {
+
+			console.log("Saving current: " + self.editor.scope.url);
 			
-			self.editor.script.updateParent(self.editor.scope.url)
+			self.editor.script.updateParent(new URL('https://' + self.editor.scope.url))
 				.then(
 					script => {
 					
 						script.code = self.editor.ace.getValue().toString().trim();
-					
+						
+						console.log("Storing script: ");
+						console.log(script);
+						
 						self.bg.domain_mgr.storeScript(script)
 							.then(
 								script => {
 									script.persist()
 										.then(
 											domain => {
+												
 												console.log("Updating PA for " + script.getUrl().href);
 												self.bg.updatePA(script.getUrl());
 											
@@ -207,7 +213,7 @@ function EditorFG (editor, bg) {
 			
 		} else {
 			
-			self.editor.script.updateGroup(self.editor.scope.user_action.target)
+			self.editor.script.updateGroup(self.editor.scope.url)
 				.then(
 					script => {
 					
@@ -226,7 +232,7 @@ function EditorFG (editor, bg) {
 			self.editor_bucket.css("height", "100%");
 			
 		} else {
-
+			
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
 		}
@@ -260,19 +266,14 @@ function EditorFG (editor, bg) {
 		
 		$scope.label = "JSLoader";
 		
-		$scope.user_action = {
-			
-			text: self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: ", /* To wdw title!! */
-			target: $scope.url
-
-		};
-
+		$scope.user_action = self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: "; /* To wdw title!! */ 
+		
 		$scope.buttons = {
-
+			
 			shown: true,
 			arr: [{id:"save_btn", text:"Save", available: true},
 				  {id:"run_btn", text:"Run in Page", available: self.editor.tab},
-				  {id:"revert_btn", text:"Revert changes", available: true}]
+				  {id:"revert_btn", text:"Revert changes", available: self.editor.tab}]
 
 		};
 		
@@ -280,25 +281,31 @@ function EditorFG (editor, bg) {
 
 		$scope.targetChange = function () {
 			
+			console.log("targetChange:  ");
+			
 			if ($scope.targetTID)
-				clearTimeout ($scope.targetTID);
+				clearTimeout($scope.targetTID);
 			
 			$scope.targetTID = setTimeout(
 				() => {
 
 					if (self.editor.tab) {
 						
+						console.log("url: " + $scope.url);
+						console.log("target: " + self.target.text());
+						
 						var url = new URL("http://" + self.target.text());
 						var err = self.editor.script.badParent(url);
-
+						
 						if (err) {
 							
-							$scope.updateTarget(self.editor.script.getUrl());
+							$scope.updateTarget(self.editor.script.getUrl() || self.editor.tab.url.name());
 							self.editor.message(err, true);
 							
 						} else 
-							$scope.updateTarget(url);
-					} else
+							$scope.updateTarget(url.name());
+
+					} else 	
 						$scope.updateTarget(self.target.text());
 					
 				}, 750);
@@ -335,10 +342,9 @@ function EditorFG (editor, bg) {
 		
 		$scope.updateTarget = function (url) {
 
+			console.log("Updating target: " + url);
 			
-			$scope.url = url;
-			$scope.user_action.target = url.name ? url.name() : url;
-				
+			$scope.url = url;	
 			
 			//self.target.text(url.name());
 		};

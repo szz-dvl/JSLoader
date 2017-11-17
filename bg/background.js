@@ -1,12 +1,13 @@
 function BG_mgr () {
 
 	var self = this;
-
+	
 	this.tab_mgr = new TabMgr(self);
 	this.domain_mgr = new DomainMgr(self);
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
 	this.group_mgr = new GroupMgr(self);
+	
 	
 	this.notification_ID = "jsloader-notification";
 

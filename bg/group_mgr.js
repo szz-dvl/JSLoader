@@ -36,19 +36,19 @@ function GroupMgr (bg) {
 				self.groups = new_groups;
 		}
 	);
-
-	/* */
+	
 	this.getOrCreateGroup = function (name) {
 
 		return new Promise (
 			(resolve, reject) => {
 
 				if (name) {
-	
-					self.storage.getOrCreateGroup(
 
-						group => {
+					/* cache !! */
+					self.storage.getOrCreateGroup(
 						
+						group => {
+							
 							resolve(group);
 							
 						}, name);
@@ -60,16 +60,16 @@ function GroupMgr (bg) {
 	};
 	
 	this.showChooserWdw = function () {
-
+		
 		if (self.groups.length) {
 			
 			return new Promise (
 				(resolve, reject) => {
-				
+					
 					self.bg.tab_mgr.getCurrentUrl()
 						.then(
 							url => {
-							
+								
 								self.adding = url;
 								new GroupChooserWdw().then(resolve, reject);
 						
@@ -96,9 +96,12 @@ function GroupMgr (bg) {
 								subdomain => {
 									
 									group[func + "Site"](subdomain);
-									
-									subdomain.persist();
-									group.persist();
+
+									if (!subdomain.isEmpty())
+										subdomain.persist();
+
+									if (!group.isEmpty())
+										group.persist();
 									
 								}, url.slice(2)
 							);
@@ -107,21 +110,26 @@ function GroupMgr (bg) {
 
 							var temp = new URL("http://" + url);
 
+							console.log(temp);
 							/* !! */
 							self.bg.domain_mgr.getOrCreateCachedItem(temp.hostname)
 								.then(
 									domain => {
 										
-										var site = domain.getOrCreateSite(url.pathname);
-										
-										console.log("Created site(" + url.pathname + "):");
+										let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+											
 										console.log(site);
-										
-										group[func + "Site"](site);								
 
-										site.persist();
-										group.persist();
-									
+										if (site) {
+
+											group[func + "Site"](site);								
+
+											if (!site.isEmpty()) 
+												site.persist();
+
+											if (!group.isEmpty())
+												group.persist();
+										}
 									} 
 								);
 						};

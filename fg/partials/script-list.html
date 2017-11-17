@@ -1,6 +1,6 @@
 <div class="list-container" id="{{list_uuid}}" ng-if="list.length">
   
-  <label ng-click="parent.elemFor(list_uuid).toggle()">
+  <label id="{{list_uuid}}_SL" ng-click="parent.elemFor(list_uuid).toggle()">
 	<bdi class="black">{{parent.url || parent.name}}</bdi>
   </label>
   

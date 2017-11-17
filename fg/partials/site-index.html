@@ -1,6 +1,7 @@
-<div class="list-container" ng-if="list.length">
+<div id="site_list" class="list-container" ng-if="list.length">
 
-  <bdi ng-click="toggleList()">{{ state }}</bdi>
+  <h4> Group sites  <bdi style="color:red" ng-click="toggleList()">{{ state }}</bdi> </h4>
+  <!-- <bdi ng-click="toggleList()">{{ state }}</bdi> -->
   <ul ng-show="shown"> 
 	<li ng-repeat="sname in list">
 	  

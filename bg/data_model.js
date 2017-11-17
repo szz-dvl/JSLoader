@@ -106,7 +106,7 @@ function Script (opt) {
 	
 	this.updateParent = function (url) {
 		
-		//console.log("New parent: " + url.href);
+		console.log("New parent: " + url.href);
 
 		var err = self.badParent(url);
 		
@@ -123,8 +123,8 @@ function Script (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				// console.error("Old Parent: ");
-				// console.error(self.parent);
+				console.error("Old Parent: ");
+				console.error(self.parent);
 				
 				self.remove()
 					.then(
@@ -405,7 +405,7 @@ function Site (opt) {
 		if (!self.groups.includes(group.name))
 			self.groups.push(group.name);
 
-		if (group.sites.includes(self.siteName()))
+		if (!group.sites.includes(self.siteName()))
 			group.sites.push(self.siteName());
 		
 	};
@@ -560,12 +560,14 @@ function Domain (opt) {
 	
 	this.haveSite = function(pathname) {
 
-		return self.sites.filter(
-			site => {	
-				return site.url == pathname;
-			})[0] || false;
+		return pathname == "/" ?
+			self :
+			self.sites.filter(
+				site => {	
+					return site.url == pathname;
+				})[0] || false;
 	};
-
+	
 	this.getOrCreateSite = function (pathname) {
 		
 		if (pathname == "/" || !pathname)
@@ -693,6 +695,11 @@ function AllSubDomainsFor (opt) {
 		);				
 	};
 
+	this.isEmpty = function () {
+		
+		return !self.groups.length; 
+	};
+	
 	this.appendGroup = function (group) {
 
 		if (!self.groups.includes(group.name))
@@ -713,6 +720,28 @@ function AllSubDomainsFor (opt) {
 
 		if (group.isEmpty())
 			group.remove();
+	};
+
+	this.ownerOf = function (site_name) {
+						   
+		var mod_arr = site_name.split(".");
+		var orig_arr = self.name.split(".");
+		
+		var cursor_mod = mod_arr.length - 1;
+		var cursor_orig = orig_arr.length - 1;
+		
+		while ( (orig_arr[cursor_orig] != "*") &&
+				(mod_arr[cursor_mod] == orig_arr[cursor_orig])
+			  ) {
+			
+			cursor_mod --;
+			cursor_orig --;
+
+			if (cursor_mod < 0)
+				break;
+		}
+		
+		return orig_arr[cursor_orig] == "*";
 	};
 	
 	this.__getDBInfo = function () {
@@ -785,8 +814,8 @@ function Group (opt) {
 
 	this.appendSite = function (site) {
 
-		if (!self.sites.includes(site.name))
-			self.sites.push(site.name);
+		if (!self.sites.includes(site.siteName()))
+			self.sites.push(site.siteName());
 
 		if (!site.groups.includes(self.name))
 			site.groups.push(self.name);
@@ -794,8 +823,8 @@ function Group (opt) {
 	};
 
 	this.removeSite = function (site) {
-	
-		self.sites.remove(self.sites.indexOf(site.name));
+		
+		self.sites.remove(self.sites.indexOf(site.siteName()));
 		site.groups.remove(site.groups.indexOf(self.name));
 
 		if (self.isEmpty())
@@ -822,6 +851,33 @@ function Group (opt) {
 		for (site_name of imported.sites) 	
 			self.appendSite(site_name);	
 	};
+
+	this.isShown = function () {
+
+		return self.elems.filter(
+			elem => {
+				return elem.shown;								
+			}
+		)[0] || false;
+	};
+
+
+	this.ownerOf = function (site_name) {
+
+		return self.sites
+			.filter(
+				site => {
+
+					if (site[0] == "*")
+						return new AllSubDomainsFor({name: site}).ownerOf(site_name);
+					else if (site.split("/").length == 2)
+						return site_name.split("/")[0] == site.split("/")[0];
+					else
+						return site == site_name;
+				}
+				
+			).length > 0;
+	}
 	
 	this.__getDBInfo = function () {
 		

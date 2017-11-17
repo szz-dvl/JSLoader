@@ -1,0 +1,4 @@
+#!/bin/bash
+
+./node_modules/.bin/webpack --config webpack.config.js
+zip -r jsload.xpi *

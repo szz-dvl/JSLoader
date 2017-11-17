@@ -9,10 +9,14 @@
 	
 	<script src="../deps/jquery.min.js"></script>
 	<script src="../deps/angular.min.js"></script>
+
+	<script src="../deps/highlightjs/highlight.min.js"></script>
+	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	<script src="../partials/partials.js"></script>
 	
 	<script src="../../utils/jsloader-utils.js"></script>
 	<script src="../../utils/deps/async.min.js"></script>
+	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
 	
   </head>
   
@@ -20,25 +24,31 @@
 	
 	<form style="margin-top: 40px;" ng-submit="addSite()">
 	  
-	  <label class="input">
+	  <label class="input" style="min-width: 60%; padding-left: 10px;">
 		
 		<span> {{action}}ing: </span>
-		<input style="width:55%;" id="site_validator" type="text" ng-model="url" ng-change="validateSite()"></input>
+		<site-validator style="width:55%;" ev="events" url="url"> </site-validator>
+		
+		<!-- <input style="width:55%;" id="site_validator" type="text" ng-model="url" ng-change="validateSite()"></input> -->
 		
 	  </label>
-	  
-	  <label class="input">
+
+	  <div style="float: right; padding-right: 10px;">
+
+		<label class="input">
 		
-		<span> to </span>
-		<select ng-model="current" ng-options="group for group in groups"></select>
+		  <span> to </span>
+		  <select ng-model="current" ng-options="group for group in groups"></select>
 		
-	  </label>
+		</label>
 	  
-	  <input id="submit_btn" type="submit" value="{{action}} Site" class="browser-style jsload-button">
+		<input id="submit_btn" type="submit" value="{{action}} Site" class="browser-style jsload-button">
+
+	  </div>
 	  
 	</form>
-
-	<script src="chooser.js"></script>
+	
+	<script src="chooser.js"> </script>
 	
   </body>
 </html>

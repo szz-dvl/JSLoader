@@ -1,0 +1,21 @@
+<div class="panel-section">
+  
+  <script-list ng-if="scripts.length"
+			   list="scripts"
+			   parent="parent"
+			   port="port"
+			   editor="editor"
+			   shown="shown"
+			   pa="pa"
+			   opts="opts">
+
+  </script-list>
+  
+  <site-index ng-if="sites.length"
+			  ng-show="parent.isShown()"
+			  list="sites"
+			  parent="parent"
+			  mgr="mgr">
+  </site-index>
+  
+</div>

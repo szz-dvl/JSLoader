@@ -98,7 +98,6 @@ function Cache (opt) {
 			return self.cache.push(item);
 
 		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item_name);
-		
 	};
 
 

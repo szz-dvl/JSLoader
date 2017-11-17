@@ -277,9 +277,8 @@ function OP (bg, domains, groups, port) {
 
 				switch (args.action) {
 					
-				case "cache-update":
-					
-					
+				case "cache-update-domains":
+
 					//console.log("cache-update for: " + args.message);
 					$scope.port.postMessage({action: "list-update", message: args.message});
 					$scope.$digest();
@@ -288,7 +287,7 @@ function OP (bg, domains, groups, port) {
 				}
 			}
 		);
-
+		
 		$timeout(() => {
 			
 			$("#import_scripts").on('change', $scope.scriptsFile);

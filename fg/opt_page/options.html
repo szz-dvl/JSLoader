@@ -55,7 +55,7 @@
 				</div>
 			  </div>
 			  <!-- </div><br> -->
-
+			  
 			  <option-menu list="submenu.opts" title="submenu.title" key="submenu.key" port="port"></option-menu>
 			  
 			  <label class="input" ng-if="submenu.key == 'editor'">
@@ -134,22 +134,19 @@
 			</div><br>
 			
 			<div class="panel-section" ng-repeat="group in groups" ng-if="!group.isEmpty()">
-			  
-			  <script-list ng-if="group.scripts.length"
-						   list="group.scripts"
-						   parent="group"
-						   port="port"
-						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-						   shown="shown"
-						   pa="page.bg.updatePA"
-						   opts="page.bg.option_mgr.editor">
-			  </script-list>
-			  
-			  <site-index ng-if="group.sites.length"
-						  list="group.sites"
+
+			  <group-list ng-if="!group.isEmpty()"
+						  scripts="group.scripts"
+						  parent="group"
+						  port="port"
+						  editor="page.bg.editor_mgr.openEditorInstanceForScript"
+						  shown="shown"
+						  pa="page.bg.updatePA"
+						  opts="page.bg.option_mgr.editor"
+						  sites="group.sites"
 						  parent="group"
 						  mgr="page.bg.group_mgr">
-			  </site-index>
+			  </group-list>
 
 			</div> 
 		  </div> <!-- groupController -->

@@ -1,3 +1,4 @@
+
 function BaseTab (tabInfo) {
 
 	var self = this;
@@ -399,7 +400,7 @@ function TabMgr (bg) {
 
 												///console.log(scripts);
 												
-												port.postMessage({literals:
+												port.postMessage({action: "content-script-run", message:
 																  (scripts || [])
 																  .filter(
 																	  script => {

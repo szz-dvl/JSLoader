@@ -15,13 +15,14 @@ function CS() {
 			
 		} catch (err) {
 
-			self.errors.push(err.message);
+			self.errors.push(err);
 			
 		}
 	};
 
 	this.runAll = function (scripts) {
 
+		self.errors = [];
 		
 		for (script of scripts)
 			self.run(script)
@@ -75,17 +76,26 @@ function CS() {
 
 
 	this.port = browser.runtime.connect({name:"content-script"});
+	CSApi.call(self, self.port);
 	
 	this.port.onMessage.addListener(
 		args => {
 
-			CSApi.call(self, self.port);
+			switch(args.action) {
+				
+			case "content-script-run":
+				
+				self.runAll(args.message);
 			
-			self.runAll(args.literals);
-			
-			for (error of errors)
-				console.error(error);
-			
+				for (error of errors)
+					console.error(error);
+				break;
+
+			default:
+				break;
+				
+			}
+
 			//self.port.disconnect();
 		}
 	);

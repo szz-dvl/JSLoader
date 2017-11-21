@@ -2,7 +2,9 @@ function CSUtils () {
 
 	var self = this;
 
-	this.video = ["webm", "mp4", "ogg"];
+	this.events = new EventEmitter ();
+	
+	this.video = ["webm", "mp4", "ogg", "mkv"];
 	
 	this.isNativeVideoExtension = function (ext) {
 
@@ -10,6 +12,79 @@ function CSUtils () {
 
 	}
 
+	this.sendHttpRequest = function (url) {
+		
+		return new Promise (
+			(resolve, reject) => {
+				
+				let rq = new XMLHttpRequest();
+				rq.open("GET", url);
+                
+				rq.onload = function () {
+					
+					resolve (rq);
+					
+				}
+                
+				rq.onerror = function () {
+					
+					reject (rq);
+					
+				}
+                
+				rq.send();
+			});
+	}
+
+	/* Caller must care about aborting the request if needed. */
+	this.earlyHttpRequest = function (url) {
+		
+		return new Promise (
+			(resolve, reject) => {
+				
+				let rq = new XMLHttpRequest();
+				rq.open("GET", url);
+                
+				rq.onreadystatechange = function () {
+					
+					if (rq.readyState >= 3)
+						resolve (rq);
+					
+				}
+                
+				rq.onerror = function () {
+					
+					reject (rq);
+					
+				}
+                
+				rq.send();
+			});
+	}
+
+	this.postHttpRequest = function (url) {
+		
+		return new Promise (
+			(resolve, reject) => {
+				
+				let rq = new XMLHttpRequest();
+				rq.open("POST", url);
+                
+				rq.onload = function () {
+					
+					resolve (rq);
+					
+				}
+                
+				rq.onerror = function () {
+					
+					reject (rq);
+					
+				}
+                
+				rq.send();
+			});
+	}
 
 }
 
@@ -37,6 +112,30 @@ function CSApi (port) {
 		self.port.postMessage({action: "notify", message: {title: title, body: message}});
 		
 	}
-	
+
+	this.JSLEventNeighbours = function (name, args) {
+		
+		self.port.postMessage({action: "event", message: {name: name, args: args}});
+		
+	}
+
+	self.port.onMessage.addListener(
+
+		request => {
+			
+			switch (request.action) {
+				
+			case "content-script-ev":
+				
+				self.JSLUtils.events.emit(request.message.name, request.message.args);
+
+				break;
+				
+			default:
+				break;
+			}
+		}
+	);
+
 }
 

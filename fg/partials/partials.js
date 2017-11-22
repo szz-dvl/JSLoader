@@ -324,6 +324,242 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+	.directive('globalList',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   //transclude: true,
+					   
+					   scope: {
+
+						   globals: "=globals",
+						   mgr: "=mgr"
+						   
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+
+						   return browser.extension.getURL("fg/partials/global-list.html");
+
+					   },
+					   
+					   controller: function ($scope, $compile) { /* $anchorScroll, $location*/
+						   
+						   $scope.shown = true;
+						   $scope.state = ">";
+						   
+						   // $scope.element =
+						   // 	   '<li>'
+						   // 	   + '<label>'
+						   // 	   + '<global-key global="global"></global-key>'
+						   // 	   + '<global-validator global="global"></global-validator>'
+						   // 	   + '<button ng-click="removeGlobal(global)"> - </button>'
+						   // 	   + '</label>'
+						   // 	   + '</li>';
+						   
+						   $scope.getUniqName = function (name) {
+
+							   let actual_name = name;
+							   let counter = 1;
+							   
+							   let exists = $scope.globals.findIndex(
+								   gl => {
+									   
+									   return gl.key == actual_name;
+									   
+								   }
+							   );
+							   
+							   while (exists >= 0) {
+
+								   actual_name = name + counter.toString();
+								   counter ++;
+								   
+								   exists = $scope.globals.findIndex(
+									   gl => {
+										   return gl.key == actual_name;
+									   }
+								   );
+							   }
+
+							   //console.log("Uniq name for " + name + " = " + actual_name);
+							   return actual_name;
+						   };
+						   
+						   $scope.toggleList = function () {
+							   
+							   $scope.shown = !$scope.shown;
+							   $scope.state = $scope.state == ">" ? "v" : ">";
+						   };
+						   
+						   $scope.addGlobal = function (ev) {
+							   
+							   ev.preventDefault();
+							   $scope.mgr.upsertGlobal({id: UUID.generate().split("-").pop(), key: $scope.getUniqName("key"), value: "value"});
+
+							   console.log("Added globals: ");
+							   console.log($scope.globals);
+							   
+							   //$scope.globals.push({id: UUID.generate().split("-").pop(), key: $scope.getUniqName("key"), value: "value"});
+							   
+						   };
+						   
+						   $scope.removeGlobal = function (global) {
+
+							   $scope.mgr.removeGlobal(global);
+							   
+							   // $scope.globals.remove(
+							   // 	   $scope.globals.findIndex(
+							   // 		   gl => {
+							   // 			   return gl.key == global.key;
+							   // 		   })
+							   // );
+						   };
+					   }
+				   }
+			   })
+
+	.directive('globalKey',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   
+						   global: "=global",
+						   uniq: "=uniq",
+						   mgr: "=mgr"
+					   },
+					   
+					   //transclude: true,
+					   replace: true,
+					   template: '<label> <bdi contenteditable="true"> {{global.key}} </bdi> <span>: </span> </label>',
+
+					   link: function($scope, element) {
+
+						   $scope.el = element.children("bdi");
+						   
+						   $scope.el.on('input', $scope.validateKey);
+					   
+						   $scope.el.keypress(ev => { return ev.which != 13; });
+					   
+						   /* !!! Ctrl-C - Ctrl-V */
+					   },
+				   
+					   controller: function ($scope, $compile) {
+						   
+						   $scope.bk = $scope.global.key;
+
+						   $scope.validateKey = function (ev) {
+							   
+							   if ($scope.myID)
+								   clearTimeout($scope.myID);
+
+							   $scope.myID = setTimeout(
+								   ev => {
+
+									   try {
+										   
+										   (new Function("var " + $scope.el.text().toString().trim() + ";")());
+										   
+										   $scope.global.key = $scope.uniq($scope.el.text().toString().trim());
+										   $scope.bk = $scope.global.key;
+
+										   $scope.mgr.upsertGlobal($scope.global);
+										   
+									   } catch (e) {
+										   
+										   console.error(e);  
+										   $scope.global.key = $scope.bk;
+										   
+									   }
+
+									   $scope.el.text($scope.global.key);
+									   
+								   }, 2500, ev);
+						   };
+					   }
+				   }
+			   })
+
+	.directive('globalValidator',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   //transclude: true,
+					   
+					   scope: {
+						   
+						   global: "=global",
+						   mgr: "=mgr"
+						   
+					   },
+
+					   replace: true,
+					   template: '<label><bdi contenteditable="true"> {{ getRenderVal() }} </bdi></label>',
+
+					   link: function($scope, element) {
+
+						   $scope.el = element.children("bdi");
+						   $scope.el.on('input', $scope.validateValue);
+						   
+						   $scope.el.keypress(ev => { return ev.which != 13; });
+						   
+						   /* !!! Ctrl-C - Ctrl-V */
+					   },
+					   
+					   controller: function ($scope) { /* $anchorScroll, $location*/
+						   
+						   $scope.bk = $scope.global.value;
+						   
+						   $scope.validateValue = function (ev) {
+
+							   if($scope.myID)
+								   clearTimeout($scope.myID);
+
+							   $scope.myID = setTimeout(
+								   ev => {
+
+									   try {
+										   
+										   $scope.global.value = JSON.parse($scope.el.text().toString().trim());
+										   $scope.bk = $scope.global.value;
+
+										   $scope.mgr.upsertGlobal($scope.global);
+										   
+										   console.log("Validated value: " + $scope.global.value);
+										   
+									   } catch (e) {
+
+										   console.error(e);  
+										   $scope.global.value = $scope.bk;
+										   
+										   console.log("Restaured value: " + $scope.global.value);
+										   
+										   $scope.el.text($scope.getRenderVal());
+										   // $scope.$digest();
+									   }
+									   
+								   }, 2500, ev);
+						   };
+
+						   $scope.getRenderVal = function () {
+							   
+							   return JSON.stringify($scope.global.value);
+							   
+						   };
+					   }
+				   }
+			   })
+
 	.directive('groupList',
 			   () => {
 				   

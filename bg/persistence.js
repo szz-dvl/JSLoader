@@ -190,9 +190,62 @@ function Storage () {
 				
 			}, keyname);
 	};
+
+	/* Globals */
+
+	this.getGlobalIDs = function (cb) {
+
+		self.__get(ids => { cb (ids || []) }, 'globals');
+		
+	};
+
+	this.setGlobalIDs = function (ids) {
+
+		self.__set('globals', ids);
+		
+	};
+	
+	this.getGlobal = function (cb, id) {
+		
+		self.__get(cb, 'global-' + id);		
+		
+	};
+	
+	this.setGlobal = function (global) {
+
+		self.getGlobalIDs(
+			ids => {
+				
+				if (!ids.includes(global.id)) {
+
+					ids.push(global.id);
+					self.setGlobalIDs(ids);
+					
+				}
+				
+				self.__set('global-' + global.id, global);
+				
+			});
+	};
+
+	this.removeGlobal = function (global) {
+
+		self.getGlobalIDs(
+			ids => {
+				
+				if (ids.includes(global.id)) {
+
+					ids.remove(ids.indexOf(global.id));
+					self.setGlobalIDs(ids);
+
+					self.__remove('global-' + global.id);
+					
+				}
+			});
+	};
 	
 }
 
-var global_storage = new Storage();
+let global_storage = new Storage();
 
 

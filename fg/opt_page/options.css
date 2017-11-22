@@ -66,16 +66,16 @@ html, body {
 	
 }
 
-.hljs-ln-n::after {
-	content: "  ";
-	white-space: pre;
-}
+/* .hljs-ln-n::after { */
+/* 	content: "  "; */
+/* 	white-space: pre; */
+/* } */
 
-.hljs-ln-n::before {
-	content: " ";
-	white-space: pre;
-	background-color: #979797;
-}
+/* .hljs-ln-n::before { */
+/* 	content: " "; */
+/* 	white-space: pre; */
+/* 	background-color: #979797; */
+/* } */
 
 .hljs-ln-n {
 	font-family: "Courier New, monospace";
@@ -94,8 +94,8 @@ html, body {
 
 .hljs-ln-numbers {
 
-	background-color: #979797;
-	color: #F0F0F0;
+	/* background-color: #979797; */
+	/* color: #F0F0F0; */
 	margin-left: 0 !important;
 }
 
@@ -172,9 +172,46 @@ table, tbody {
 	
 }
 
-table {
+/* To script-list.css !!! */
+table.btn-panel {
 	
 	padding-left: 50%;
+
+}
+
+td.option-col {
+
+	vertical-align: top;
+	padding-left: 25px;
+	padding-right: 25px;
+	border-right: 1px solid black;
+}
+
+
+div.opt-submit-inner {
+
+	display: inline-block;
+	width: 20%;
+	margin-left: 40%;
+	align-self: center;
+}
+
+div.opt-submit-inner input{
+
+	align-self: center;
+	
+
+}
+
+div.opt-submit-outter {
+
+	width: 100%;
+	text-align: center;
+	align: center;
+	vertical-align: bottom;
+	
+	/* padding-right: 40%; */
+	/* padding-top: 50px; */
 
 }
 

@@ -55,7 +55,7 @@ function Option (opt, section) {
 
 }
 
-function OP (bg, domains, groups, port) {
+function OP (bg, domains, groups, globals, port) {
 	
 	var self = this;
 	
@@ -68,6 +68,16 @@ function OP (bg, domains, groups, port) {
 	
 	this.app = angular.module('OptionsApp', ['jslPartials', 'td.tabs']);
 
+	this.app.controller('globalsController', $scope => {
+
+		$scope.page = self;
+		$scope.list = globals;
+		
+		// console.log("My globals: ");
+		// console.log($scope.page.bg.content_mgr.globals);
+		
+	});
+	
 	this.app.controller('themeController', ($scope, $compile) => {
 
 		self.themes = $scope;
@@ -158,7 +168,6 @@ function OP (bg, domains, groups, port) {
 		
 		$scope.page = self;
 		$scope.port = port;
-		
 		$scope.title = "Settings";
 		
 		$scope.submenus = [
@@ -226,7 +235,7 @@ function OP (bg, domains, groups, port) {
 		$scope.updtOpts = function() {
 			
 			$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
-			$scope.page.bg.option_mgr.persist();
+			$scope.page.bg.option_mgr.persist(); /* !!! */
 			
 		};
 		
@@ -352,8 +361,12 @@ browser.runtime.getBackgroundPage()
 					data => {
 						
 						var port = browser.runtime.connect(browser.runtime.id, {name:"option-page"});
+						let globs = page.content_mgr.globals;
 						
 						window.onbeforeunload = function () {
+
+							console.log("Globals before unload: ");
+							console.log(page.content_mgr.globals);
 							
 							port.disconnect();
 							
@@ -361,8 +374,11 @@ browser.runtime.getBackgroundPage()
 
 						console.log("My data: ");
 						console.log(data);
+
+						console.log("My globals: ");
+						console.log(globs);
 						
-						OP.call(this, page, data.domains, data.groups, port);
+						OP.call(this, page, data.domains, data.groups, globs, port);
 					}
 				);		
 		}

@@ -119,6 +119,18 @@ function CSApi (port) {
 		
 	}
 
+	this.JSLGetGlobal = function (key) {
+		
+		self.port.postMessage({action: "get-global", message: {key: key}});
+		
+	}
+
+	this.JSLSetGlobal = function (key, val) {
+		
+		self.port.postMessage({action: "set-global", message: {key: key, value: val}});
+		
+	}
+
 	self.port.onMessage.addListener(
 
 		request => {
@@ -128,6 +140,12 @@ function CSApi (port) {
 			case "content-script-ev":
 				
 				self.JSLUtils.events.emit(request.message.name, request.message.args);
+
+				break;
+
+			case "content-script-global":
+				
+				self.JSLUtils.events.emit("global-request", request.message);
 
 				break;
 				

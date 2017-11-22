@@ -7,7 +7,7 @@ function Options (opt) {
 	};
 	
 	this.editor = opt.editor || {
-
+		
 		showPrintMargin: false,
 		showGutter: false,
 		fontSize: 10,

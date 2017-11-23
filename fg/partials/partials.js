@@ -190,13 +190,14 @@ angular.module('jslPartials', ['hljsSearch'])
 					   
 					   link: function($scope, element) {
 					   
-						   element.css({
-						   	   "min-width": ((window.innerWidth/2) - 30) + "px"
-						   });
+						   // element.css({
+						   // 	   "min-width": ((window.innerWidth/2) - 30) + "px"
+						   // });
 						   
 						   element.on('input', $scope.validateSite);
 						   
 						   element.keypress(ev => { return ev.which != 13; });
+						   element.click(ev => { return false; });
 						   
 						   /* !!! Ctrl-C - Ctrl-V */
 					   },
@@ -237,7 +238,9 @@ angular.module('jslPartials', ['hljsSearch'])
 						   $scope.validateSite = function (ev) {
 
 							   $scope.url = $scope.trimStart(" ", $(ev.target).text().trim());
-							   $scope.ev.emitEvent("validation_start", [$scope.url]);
+
+							   if ($scope.ev)
+								   $scope.ev.emitEvent("validation_start", [$scope.url]);
 							   
 							   if($scope.changeID)
 								   clearTimeout($scope.changeID);
@@ -272,8 +275,10 @@ angular.module('jslPartials', ['hljsSearch'])
 									   }	  
 									   
 									   $(ev.target).text($scope.url);
+
+									   if ($scope.ev)
+										   $scope.ev.emitEvent("validation_ready", [$scope.url]);
 									   
-									   $scope.ev.emitEvent("validation_ready", [$scope.url]);
 									   $scope.$digest();
 									   
 								   }, 500, ev);
@@ -304,8 +309,8 @@ angular.module('jslPartials', ['hljsSearch'])
 						   return browser.extension.getURL("fg/partials/site-index.html");
 					   },
 					   
-					   controller: function ($scope) { /* $anchorScroll, $location*/
-						   
+					   controller: function ($scope) {
+
 						   $scope.shown = true;
 						   $scope.state = ">";
 						   
@@ -320,6 +325,7 @@ angular.module('jslPartials', ['hljsSearch'])
 							   $scope.mgr.removeSiteFrom($scope.parent.name, sname);
 							   
 						   };
+						   
 					   }
 				   }
 			   })
@@ -346,19 +352,10 @@ angular.module('jslPartials', ['hljsSearch'])
 
 					   },
 					   
-					   controller: function ($scope, $compile) { /* $anchorScroll, $location*/
+					   controller: function ($scope, $compile) {
 						   
 						   $scope.shown = true;
 						   $scope.state = ">";
-						   
-						   // $scope.element =
-						   // 	   '<li>'
-						   // 	   + '<label>'
-						   // 	   + '<global-key global="global"></global-key>'
-						   // 	   + '<global-validator global="global"></global-validator>'
-						   // 	   + '<button ng-click="removeGlobal(global)"> - </button>'
-						   // 	   + '</label>'
-						   // 	   + '</li>';
 						   
 						   $scope.getUniqName = function (name) {
 
@@ -384,8 +381,7 @@ angular.module('jslPartials', ['hljsSearch'])
 									   }
 								   );
 							   }
-
-							   //console.log("Uniq name for " + name + " = " + actual_name);
+							   
 							   return actual_name;
 						   };
 						   
@@ -399,11 +395,6 @@ angular.module('jslPartials', ['hljsSearch'])
 							   
 							   ev.preventDefault();
 							   $scope.mgr.upsertGlobal({id: UUID.generate().split("-").pop(), key: $scope.getUniqName("key"), value: "value"});
-
-							   console.log("Added globals: ");
-							   console.log($scope.globals);
-							   
-							   //$scope.globals.push({id: UUID.generate().split("-").pop(), key: $scope.getUniqName("key"), value: "value"});
 							   
 						   };
 						   
@@ -411,13 +402,9 @@ angular.module('jslPartials', ['hljsSearch'])
 
 							   $scope.mgr.removeGlobal(global);
 							   
-							   // $scope.globals.remove(
-							   // 	   $scope.globals.findIndex(
-							   // 		   gl => {
-							   // 			   return gl.key == global.key;
-							   // 		   })
-							   // );
 						   };
+
+						   
 					   }
 				   }
 			   })
@@ -438,8 +425,8 @@ angular.module('jslPartials', ['hljsSearch'])
 					   
 					   //transclude: true,
 					   replace: true,
-					   template: '<label> <bdi contenteditable="true"> {{global.key}} </bdi> <span>: </span> </label>',
-
+					   template: '<label> <bdi contenteditable="true">{{global.key}}</bdi><span>: </span></label>',
+					   
 					   link: function($scope, element) {
 
 						   $scope.el = element.children("bdi");
@@ -516,7 +503,7 @@ angular.module('jslPartials', ['hljsSearch'])
 						   /* !!! Ctrl-C - Ctrl-V */
 					   },
 					   
-					   controller: function ($scope) { /* $anchorScroll, $location*/
+					   controller: function ($scope) {
 						   
 						   $scope.bk = $scope.global.value;
 						   

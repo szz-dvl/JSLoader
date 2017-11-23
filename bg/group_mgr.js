@@ -81,73 +81,82 @@ function GroupMgr (bg) {
 	}
 	
 	this.__siteOps = function (group_name, url, func) {
-		
-		self.getOrBringCached(group_name)
-			.then(
-				group => {
-				
-					if (! group)
-						console.error("Group " + group_name + " not existent, site: " + url + " not added.");
-					else {
-						
-						if (url[0] == '*') {
+
+		return new Promise (
+
+			(resolve, reject) => {
+
+				self.getOrBringCached(group_name)
+					.then(
+						group => {
 							
-							self.storage.getOrCreateSubDomain(
-								subdomain => {
+							if (! group)
+								console.error("Group " + group_name + " not existent, site: " + url + " not added.");
+							else {
+								
+								if (url[0] == '*') {
 									
-									group[func + "Site"](subdomain);
-
-									if (!subdomain.isEmpty())
-										subdomain.persist();
-
-									if (!group.isEmpty())
-										group.persist();
-									
-								}, url.slice(2)
-							);
-
-						} else {
-
-							var temp = new URL("http://" + url);
-
-							console.log(temp);
-							/* !! */
-							self.bg.domain_mgr.getOrCreateCachedItem(temp.hostname)
-								.then(
-									domain => {
-										
-										let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+									self.storage.getOrCreateSubDomain(
+										subdomain => {
 											
-										console.log(site);
+											group[func + "Site"](subdomain);
 
-										if (site) {
-
-											group[func + "Site"](site);								
-
-											if (!site.isEmpty()) 
-												site.persist();
+											if (!subdomain.isEmpty())
+												subdomain.persist();
 
 											if (!group.isEmpty())
 												group.persist();
-										}
-									} 
-								);
-						};
-					}
-					
-				}, group_name
-			);	
+
+											resolve();
+											
+										}, url.slice(2)
+									);
+
+								} else {
+
+									var temp = new URL("http://" + url);
+
+									console.log(temp);
+									/* !! */
+									self.bg.domain_mgr.getOrCreateCachedItem(temp.hostname)
+										.then(
+											domain => {
+												
+												let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+												
+												console.log(site);
+
+												if (site) {
+
+													group[func + "Site"](site);								
+
+													if (!site.isEmpty()) 
+														site.persist();
+
+													if (!group.isEmpty())
+														group.persist();
+												}
+
+												resolve();
+											} 
+										);
+								};
+							}
+							
+						}, group_name
+					);
+			});
 	};
 
 	this.addSiteTo = function (group_name, url) {
 
-		self.__siteOps(group_name, url, "append");
+		return self.__siteOps(group_name, url, "append");
 
 	}
 
 	this.removeSiteFrom = function (group_name, url) {
 
-		self.__siteOps(group_name, url, "remove");
+		return self.__siteOps(group_name, url, "remove");
 
 	}
 

@@ -39,18 +39,6 @@ function CSMgr (bg) {
 
 	}
 
-	this.addSiteToGroup = function (port, site_name, group_name) {
-
-		self.bg.group_mgr.addSiteTo(group_name, site_name);
-
-	}
-
-	this.notifyUser = function (port, title, message) {
-
-		self.bg.notifyUser(title, message);
-
-	}
-
 	this.removeGlobal = function (global) {
 
 		
@@ -82,12 +70,12 @@ function CSMgr (bg) {
 			mygl.value = global.value;
 			
 		} else 
-			self.globals.push(Object.assign({}, global)); /* Copy global here, otherwise objects created in an angular controllers become dead after the controller dies.*/
+			self.globals.push(Object.assign({}, global)); /* Copy global here, otherwise objects created in an angular controllers become dead after the controller dies. (X-Ray ??)*/
 			
 		return self.storage.setGlobal(global);
 		
 	};
-
+ 
 	this.__findGlobalByKey = function (key) {
 
 		return self.globals.filter(
@@ -98,22 +86,78 @@ function CSMgr (bg) {
 			})[0] || null;
 	};
 
-	this.contentGetGlobal = function (port, key) {
+	this.__postTaggedResponse = function (port, tag, message) {
+
+		port.postMessage({action: "response", message: message, tag: tag});
+
+	};
+	
+	this.contentGetGlobal = function (port, tag, key) {
 
 		let global = self.__findGlobalByKey(key);
-		
-		port.postMessage({action: "content-script-global", message: {key: key, value: global ? global.value : null}});
+
+		self.__postTaggedResponse(port, tag, {status: global ? true : false, content: {key: key, value: global ? global.value : undefined}});
 
 	};
 
-	this.contentSetGlobal = function (key, value) {
+	this.contentSetGlobal = function (port, tag, key, value) {
+		
+		try {
+										   
+			(new Function("var " + key + ";")());
+			
+			let global = self.__findGlobalByKey(key) || {id: UUID.generate().split("-").pop(), key: key};
+			global.value = value;
 
-		let global = self.__findGlobalByKey(key);
-		let ngl = global || {id: UUID.generate().split("-").pop(), key: key, value: value};
+			self.upsertGlobal(global);
 
-		ngl.value = value;
+			self.__postTaggedResponse(port, tag, {status: true , content: {key: key, value: value}});
+			
+		} catch (e) {
 
-		self.upsertGlobal(ngl);
+			self.__postTaggedResponse(port, tag, {status: false , content: e.message});
+			
+		}
+	};
+
+	this.addSiteToGroup = function (port, tag, site_name, group_name) {
+
+		var url;
+
+		try {
+			
+			if (site_name.includes("://"))
+				url = site_name.split("://")[1];
+			else
+				url = site_name;
+
+			if (url[0] != "*") {
+				
+				let aux = new URL("http://" + url); 
+
+				if (aux.pathname == "/" && site_name[site_name.length - 1] != "/")
+					site_name += "/";
+			}
+			
+			self.bg.group_mgr.addSiteTo(group_name, site_name)
+				.then(
+					() => {
+						
+						self.__postTaggedResponse(port, tag, {status: true , content: {site: site_name, group: group_name}});
+						
+					}
+				)
+			
+		} catch (e) {
+
+			self.__postTaggedResponse(port, tag, {status: false , content: e.message});
+
+		}
+	};
+
+	this.notifyUser = function (title, message) {
+		
+		self.bg.notifyUser(title, message);
 		
 	};
 	
@@ -125,20 +169,20 @@ function CSMgr (bg) {
 					
 					self.alive.push(port);
 					
+					console.log("New CS Port: ");
+					console.log(port);
+					
 					port.onMessage.addListener(
 						args => {
 							
 							switch (args.action) {
-							case "domain-to-group":
-								self.addDomainToGroup(port, args.message.domain, args.message.group);
-								break;
 								
 							case "site-to-group":
-								self.addSiteToGroup(port, args.message.site, args.message.group);
+								self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
 								break;
 								
 							case "notify":
-								self.notifyUser(port, args.message.title, args.message.body);
+								self.notifyUser(args.message.title, args.message.body);
 								break;
 								
 							case "event":
@@ -157,11 +201,11 @@ function CSMgr (bg) {
 								break;
 								
 							case "get-global":
-								self.contentGetGlobal(port, args.message.key);
+								self.contentGetGlobal(port, args.tag, args.message.key);
 								break;
-
+								
 							case "set-global":
-								self.contentSetGlobal(args.message.key, args.message.value);
+								self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
 								break;
 								
 							default:
@@ -169,27 +213,7 @@ function CSMgr (bg) {
 							}
 						}
 					);
-					
 				}
 			});
-
-	// this.storeNewGlobals = function (changes, area) {
-		
-	// 	if (area != "local")
-	//  		return;
-		
-	// 	for (key of Object.keys(changes)) {
-			
-	// 		if (key.includes("global-")) {
-				
-	// 			/* domain removed */
-	// 			if (!changes[key].newValue)
-	// 				self.__deadGlobal(changes[key].oldValue);
-	// 		}
-			
-	// 	}
-	// };
-	
-	// browser.storage.onChanged.addListener(this.storeNewGlobals);
 
 }

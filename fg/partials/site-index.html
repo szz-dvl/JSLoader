@@ -3,16 +3,14 @@
   <h4> Group sites  <bdi style="color:red" ng-click="toggleList()">{{ state }}</bdi> </h4>
   <!-- <bdi ng-click="toggleList()">{{ state }}</bdi> -->
   <ul ng-show="shown"> 
-	<li ng-repeat="sname in list">
+	<li ng-repeat="sname in list" name="sname">
 	  
 	  <label>
 		
 		{{ sname }}
-		
-		<button ng-click="removeSite(sname)"> Remove </button>
+		<button class="site-remove-btn" ng-click="removeSite(sname)"> Remove </button>
 		
 	  </label>
-	  
 	</li>
   </ul>
   

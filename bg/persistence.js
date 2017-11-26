@@ -311,6 +311,20 @@ function Storage () {
 				}
 			});
 	};
+
+	/* User definitions: */
+	this.getUserDefs = function (cb) {
+
+		self.__get(defs => { cb(defs || "") }, 'userdefs');
+		
+	}
+
+	this.setUserDefs = function (literal) {
+
+		self.__set('userdefs', literal);
+		
+	}
+	
 	
 }
 

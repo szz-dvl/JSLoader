@@ -1,6 +1,7 @@
 html, body {
 	width: 100%;
 	/* flex-direction: column !important; */
+	overflow-y: auto;
 }
 
 #content {
@@ -282,4 +283,45 @@ pre {
 .mright {
 
 	margin-right: 5px;
+}
+
+
+#defs_area {
+
+	width: 100%;
+	height: 100%;
+	margin: 0 auto;
+	
+}
+
+#defs_container {
+
+	position: absolute;
+	width: 90%;
+	height: 55%;
+	top: 15%;
+	right: 0;
+	left: 5%;
+	bottom: 15%;
+	
+}
+
+#globs_area {
+
+	width: 100%;
+	height: 100%;
+	margin: 0 auto;
+	
+}
+
+#globs_container {
+
+	position: absolute;
+	width: 90%;
+	height: 20%;
+	top: 70%;
+	right: 0;
+	left: 5%;
+	bottom: 0;
+	
 }

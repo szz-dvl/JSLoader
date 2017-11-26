@@ -55,7 +55,7 @@ function Option (opt, section) {
 
 }
 
-function OP (bg, domains, groups, globals, port) {
+function OP (bg, domains, groups, port) {
 	
 	var self = this;
 	
@@ -68,24 +68,80 @@ function OP (bg, domains, groups, globals, port) {
 	
 	this.app = angular.module('OptionsApp', ['jslPartials', 'td.tabs']);
 
-	this.app.controller('globalsController', $scope => {
+	this.app.controller('userdefsController', ($scope, $timeout) => {
 
 		$scope.page = self;
-		$scope.list = globals;
-
+		$scope.list = $scope.page.bg.content_mgr.globals;
+		$scope.definitions = $scope.page.bg.content_mgr.defs;
+		$scope.defs_shown = true;
+		
 		$scope.dumpStorage = function () {
 
 			browser.storage.local.get(null)
 				.then(contents => {
-
+					
 					console.log("My contents: ");
 					console.log(contents);
 		
+				});	
+		};
+
+		$scope.toggleDefs = function () {
+
+			$scope.defs_shown = !$scope.defs_shown;
+			//$scope.$digest();
+
+		};
+
+		$scope.statusDefs = function () {
+
+			return $scope.defs_shown ? "v" : ">";
+			//$scope.$digest();
+
+		};
+
+		$scope.saveDefs = function () {
+
+			$scope.page.bg.content_mgr.setUserDefs($scope.ace_defs.getValue().toString().trim())
+			
+		};
+
+		$scope.saveDefs = function () {
+
+			console.error("Com mola!");
+			
+		};
+
+		$timeout(
+
+			() => {
+
+				$scope.ace_defs = ace.edit("defs_area");
+				$scope.ace_defs.session.setMode("ace/mode/javascript");
+				$scope.ace_defs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
+				$scope.ace_defs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
+				$scope.ace_defs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
+				
+				$scope.ace_defs.setOptions({
+					
+					fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
+					
+				});
+
+				$scope.ace_globs = ace.edit("globs_area");
+				$scope.ace_globs.session.setMode("ace/mode/javascript");
+				$scope.ace_globs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
+				$scope.ace_globs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
+				$scope.ace_globs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
+				
+				$scope.ace_globs.setOptions({
+					
+					fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
+					
 				});
 			
-		}
-		// console.log("My globals: ");
-		// console.log($scope.page.bg.content_mgr.globals);
+			}
+		);
 		
 	});
 	
@@ -299,7 +355,7 @@ function OP (bg, domains, groups, globals, port) {
 					
 				case "cache-update-domains":
 
-					//console.log("cache-update for: " + args.message);
+					/* To event emitter. */
 					$scope.port.postMessage({action: "list-update", message: args.message});
 					$scope.$digest();
 					
@@ -372,24 +428,18 @@ browser.runtime.getBackgroundPage()
 					data => {
 						
 						var port = browser.runtime.connect(browser.runtime.id, {name:"option-page"});
-						let globs = page.content_mgr.globals;
 						
 						window.onbeforeunload = function () {
-
-							console.log("Globals before unload: ");
-							console.log(page.content_mgr.globals);
-							
+	
 							port.disconnect();
 							
 						}
-
+						
 						console.log("My data: ");
 						console.log(data);
-
-						console.log("My globals: ");
-						console.log(globs);
 						
-						OP.call(this, page, data.domains, data.groups, globs, port);
+						OP.call(this, page, data.domains, data.groups, port);
+						
 					}
 				);		
 		}

@@ -24,7 +24,8 @@
 	<script src="../deps/highlightjs/highlight.min.js"></script>
 	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	<script src="../partials/partials.js"></script>
-	
+
+	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../utils/jsloader-utils.js"></script>
 	<script src="../../utils/deps/async.min.js"></script>
 
@@ -168,12 +169,30 @@
 		  
 		</tab-content>
 
-		<tab-content tab-index="3" tab-title="Globals">
+		<tab-content tab-index="3" tab-title="User Definitions">
 
-		  <div ng-controller="globalsController as globals">
+		  <div ng-controller="userdefsController">
+
 			<global-list globals="list" mgr="page.bg.content_mgr"></global-list>
 
+			<!-- <h4> Globals </h4> -->
+			<!-- <div id="globs_container"> -->
+
+			<!--   <pre id="globs_area"> {{list.toString()}} </pre> -->
+			<!--   <button ng-click="saveGlobs()"> Save </button> <\!-- !!! -\-> -->
+			
+			<!-- </div> -->
+			
+			<h4> Definitions </h4>
+			<div id="defs_container">
+
+			  <pre id="defs_area"> {{definitions}} </pre>
+			  <button ng-click="saveDefs()"> Save </button> <!-- !!! -->
+			
+			</div>
+			
 			<button ng-click="dumpStorage()"> show storage </button> <!-- !!! -->
+			
 		  </div>
 		  
 		</tab-content>

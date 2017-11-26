@@ -1,6 +1,6 @@
 function ContentScript() {
 
-	var self = this;
+	let self = this;
 	
 	this.id = UUID.generate();
 	
@@ -38,8 +38,8 @@ function ContentScript() {
 			
 			switch(args.action) {
 				
-			case "content-script-run":
-
+			case "run":
+				
 				let errors = self.runAll(args.message);
 				
 				for (error of errors)
@@ -48,6 +48,20 @@ function ContentScript() {
 				this.port.postMessage({action: "post-results", status: errors.length, errors: errors});
 				
 				break;
+
+			case "info":
+
+				try {
+
+					new Function(args.message).call(self);
+					
+				} catch (e) {
+					
+					this.port.postMessage({action: "bad-user-defs", message: e.message});
+					
+				}
+
+				this.port.postMessage({action: "get-jobs", message: {url: window.location.toString() }});
 				
 			default:
 				break;
@@ -56,7 +70,7 @@ function ContentScript() {
 		}
 	);
 	
-	this.port.postMessage({action: "get-info", message: {url: window.location.toString() }});
+	this.port.postMessage({action: "get-info", message: {id: self.id}});
 }
 
 ContentScript.call(this);

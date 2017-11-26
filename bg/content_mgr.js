@@ -25,7 +25,7 @@ function CS (port) {
 			
 				self.port.onMessage.addListener(my_listener);
 				
-				self.port.postMessage({ action: "content-script-run",
+				self.port.postMessage({ action: "run",
 										message: scripts });
 			}
 		);
@@ -35,7 +35,7 @@ function CS (port) {
 
 function CSMgr (bg) {
 	
-	var self = this;
+	let self = this;
 
 	this.bg = bg;
 	this.alive = [];
@@ -62,18 +62,29 @@ function CSMgr (bg) {
 			
 		});
 	
+	this.storage.getUserDefs(
+		defs => {
+				
+			self.defs = defs;
+			
+		});
+	
+	this.setUserDefs = function (literal) {
+		
+		self.defs = literal;
+		return this.storage.setUserDefs(literal);
+		
+	};
+	
 	this.addDomainToGroup = function (port, domain_name, group_name) {
-
-
+		
 		if (domain_name[domain_name.length - 1] != "/")
 			domain_name += "/";
 	
 		self.bg.group_mgr.addSiteTo(group_name, domain_name);
-
-	}
+	};
 
 	this.removeGlobal = function (global) {
-
 		
 		self.globals.remove(
 			self.globals.findIndex(
@@ -101,7 +112,7 @@ function CSMgr (bg) {
 			mygl.value = global.value;
 			
 		} else 
-			self.globals.push(Object.assign({}, global)); /* Copy global here, otherwise objects created in an angular controllers become dead after the controller dies. (X-Ray ??)*/
+			self.globals.push(Object.assign({}, global)); /* Copy global here, otherwise objects created in an angular controllers become dead after the controller dies.*/
 			
 		return self.storage.setGlobal(global);
 		
@@ -235,7 +246,7 @@ function CSMgr (bg) {
 						});
 			});
 	};
-
+	
 	browser.runtime.onConnect
 		.addListener(
 			port => {
@@ -249,9 +260,17 @@ function CSMgr (bg) {
 
 							case "get-info":
 								{
-
-									self.alive.push(new CS(port));
 									
+									self.alive.push(new CS(port));
+									port.postMessage({action: "info", message: self.defs });
+
+								}
+								
+								break;
+								
+							case "get-jobs":
+								{
+
 									let url = new URL(args.message.url).sort();
 									
 									self.bg.domain_mgr.getScriptsForUrl(url)
@@ -261,7 +280,7 @@ function CSMgr (bg) {
 												if (scripts)
 													self.bg.updatePA(url);
 												
-												port.postMessage({action: "content-script-run",
+												port.postMessage({action: "run",
 																  message: (scripts || [])
 																  .filter(
 																	  script => {
@@ -316,7 +335,9 @@ function CSMgr (bg) {
 							case "set-global":
 								self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
 								break;
-								
+							case "bad-user-defs":
+								self.bg.notifyUser("Error [Bad user defs]", args.message);
+								break
 							default:
 								break;
 							}

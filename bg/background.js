@@ -27,7 +27,8 @@ function BG_mgr () {
 		browser.tabs.get(tabInfo.tabId || tabInfo)
 			.then(
 				tab => {
-					
+
+					/* Update editors if necessary */
 					var url = new URL(tab.url).sort();
 					
 					if (["http:", "https:"].includes(url.protocol)) {
@@ -46,7 +47,6 @@ function BG_mgr () {
 					} else
 						console.error("Bad URL: " + url.href);
 				}
-				
 			);
 	};
 	
@@ -264,8 +264,7 @@ function BG_mgr () {
 			}
 		)
 	};
-
-	/* Script as param!*/
+	
 	this.updatePA = function (script) {
 
 		var url;
@@ -274,9 +273,8 @@ function BG_mgr () {
 			url = new URL(url);
 		else if (typeof(script) === "function") {
 
-			if (parent.isDomain()) 
-				url = parent.getUrl();
-
+			if (script.parent.isDomain()) 
+				url = script.parent.getUrl();
 		}
 
 		if (url) {
@@ -292,7 +290,6 @@ function BG_mgr () {
 				);
 		}
 	};
-
 }
 
 BG_mgr.call(this);

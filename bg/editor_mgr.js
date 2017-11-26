@@ -15,7 +15,8 @@ function JSLTab (tabInfo, feeding) {
 	this.run = function (scripts) {
 		
 		let pr = [];
-			
+
+		/* Match only the frame matching a given url? */
 		for (let frame of self.feeding(self.id))
 			pr.push(frame.run(scripts));
 
@@ -37,12 +38,12 @@ function EditorWdw (opt) {
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: 1024, 
+				width: 1512, 
 				height: 656 
 				
 			}).then (
 				wdw => {
-								
+
 					editor.wdw = wdw;
 					resolve (editor);
 					

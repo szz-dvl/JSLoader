@@ -40,25 +40,13 @@ function CSMgr (bg) {
 	this.bg = bg;
 	this.alive = [];
 	this.storage = global_storage;
-	this.globals = [];
+	this.globals = {};
 	
-	this.storage.__getGlobalIDs(
+	this.storage.getGlobals(
 		
 		globals => {
 
-			async.eachSeries(globals,
-							 (id, next) => {
-								 
-								 self.storage.getGlobal(
-									 global => {
-										 
-										 self.globals.push(global);
-										 next();
-										 
-									 }, id);
-								 
-
-							 });
+			self.globals = globals || {};
 			
 		});
 	
@@ -73,6 +61,13 @@ function CSMgr (bg) {
 		
 		self.defs = literal;
 		return this.storage.setUserDefs(literal);
+		
+	};
+
+	this.setGlobals = function (literal) {
+		
+		self.globals = JSON.parse(literal); /* Validated in view */
+		return this.storage.setGlobals(self.globals);
 		
 	};
 	
@@ -118,14 +113,10 @@ function CSMgr (bg) {
 		
 	};
  
-	this.__findGlobalByKey = function (key) {
+	this.haveGlobal = function (key) {
 
-		return self.globals.filter(
-			gl => {
-
-				return gl.key == key;
-
-			})[0] || null;
+		return typeof(self.globals[key]) !== 'undefined';
+		
 	};
 
 	this.__postTaggedResponse = function (port, tag, message) {
@@ -136,30 +127,50 @@ function CSMgr (bg) {
 	
 	this.contentGetGlobal = function (port, tag, key) {
 
-		let global = self.__findGlobalByKey(key);
-
-		self.__postTaggedResponse(port, tag, {status: global ? true : false, content: {key: key, value: global ? global.value : undefined}});
+		self.__postTaggedResponse(port, tag,
+								  {status: self.globals[key] ? true : false,
+								   content: {
+									   key: key,
+									   value: self.globals[key]
+								   }
+								  });
 
 	};
 
 	this.contentSetGlobal = function (port, tag, key, value) {
+
+		let created = !haveGlobal(key);
 		
-		try {
-										   
-			(new Function("var " + key + ";")());
-			
-			let global = self.__findGlobalByKey(key) || {id: UUID.generate().split("-").pop(), key: key};
-			global.value = value;
+		self.globals[key] = value;
+		
+		this.storage.setGlobals(self.globals)
+			.then(
+				() => {
+					
+					self.__postTaggedResponse(port, tag,
+											  {
+												  status: true,
+												  content: {
+													  key: key,
+													  value: value,
+													  created: created
+												  }
+											  });
+				
+				},
+				() => {
 
-			self.upsertGlobal(global);
-
-			self.__postTaggedResponse(port, tag, {status: true , content: {key: key, value: value}});
-			
-		} catch (e) {
-
-			self.__postTaggedResponse(port, tag, {status: false , content: e.message});
-			
-		}
+					self.__postTaggedResponse(port, tag,
+											  {
+												  status: false,
+												  content: {
+													  err: "Persist error",
+													  key: key,
+													  value: value,
+													  created: created
+												  }
+											  });
+				});
 	};
 
 	this.addSiteToGroup = function (port, tag, site_name, group_name) {
@@ -185,14 +196,29 @@ function CSMgr (bg) {
 				.then(
 					() => {
 						
-						self.__postTaggedResponse(port, tag, {status: true , content: {site: site_name, group: group_name}});
+						self.__postTaggedResponse(port, tag,
+												  {
+													  status: true,
+													  content: {
+														  site: site_name,
+														  group: group_name
+													  }
+												  });
 						
 					}
 				)
 			
 		} catch (e) {
 
-			self.__postTaggedResponse(port, tag, {status: false , content: e.message});
+			self.__postTaggedResponse(port, tag,
+									  {
+										  status: false,
+										  content: {
+											  err: e.message,
+											  site: site_name,
+											  group: group_name
+										  }
+									  });
 
 		}
 	};

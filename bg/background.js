@@ -271,10 +271,11 @@ function BG_mgr () {
 		
 		if (typeof(script) === "string")
 			url = new URL(url);
+		
 		else if (typeof(script) === "function") {
 
 			if (script.parent.isDomain()) 
-				url = script.parent.getUrl();
+				url = script.getUrl();
 		}
 
 		if (url) {

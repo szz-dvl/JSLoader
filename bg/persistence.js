@@ -261,55 +261,22 @@ function Storage () {
 	};
 
 	/* Globals: */
-	this.__getGlobalIDs = function (cb) {
-
-		self.__get(ids => { cb (ids || []) }, 'globals');
+	this.getGlobals = function (cb) {
 		
-	};
-
-	this.__setGlobalIDs = function (ids) {
-
-		self.__set('globals', ids);
+		self.__get(cb, 'globals');		
 		
 	};
 	
-	this.getGlobal = function (cb, id) {
-		
-		self.__get(cb, 'global-' + id);		
+	this.setGlobals = function (globals) {
+
+		self.__set('globals', globals);
 		
 	};
 	
-	this.setGlobal = function (global) {
-
-		self.__getGlobalIDs(
-			ids => {
-				
-				if (!ids.includes(global.id)) {
-
-					ids.push(global.id);
-					self.__setGlobalIDs(ids);
-					
-				}
-				
-				self.__set('global-' + global.id, global);
-				
-			});
-	};
-
-	this.removeGlobal = function (global) {
-
-		self.__getGlobalIDs(
-			ids => {
-				
-				if (ids.includes(global.id)) {
-
-					ids.remove(ids.indexOf(global.id));
-					self.__setGlobalIDs(ids);
-
-					self.__remove('global-' + global.id);
-					
-				}
-			});
+	this.removeGlobal = function (globals) {
+		
+		self.__remove('globals', globals);
+		
 	};
 
 	/* User definitions: */

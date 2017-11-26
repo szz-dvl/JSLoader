@@ -387,10 +387,10 @@ function EditorFG (editor, bg) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-
+			
 			var id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
 			var editor = page.editor_mgr.getEditorById(id);
-
+			
 			EditorFG.call(this, editor, page);
 	
 		}, onError

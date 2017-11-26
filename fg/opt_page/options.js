@@ -74,6 +74,7 @@ function OP (bg, domains, groups, port) {
 		$scope.list = $scope.page.bg.content_mgr.globals;
 		$scope.definitions = $scope.page.bg.content_mgr.defs;
 		$scope.defs_shown = true;
+		$scope.globs_shown = true;
 		
 		$scope.dumpStorage = function () {
 
@@ -100,48 +101,50 @@ function OP (bg, domains, groups, port) {
 
 		};
 
-		$scope.saveDefs = function () {
+		$scope.toggleGlobs = function () {
 
-			$scope.page.bg.content_mgr.setUserDefs($scope.ace_defs.getValue().toString().trim())
-			
+			$scope.globs_shown = !$scope.globs_shown;
+			//$scope.$digest();
+
 		};
 
-		$scope.saveDefs = function () {
+		$scope.statusGlobs = function () {
 
-			console.error("Com mola!");
-			
+			return $scope.globs_shown ? "v" : ">";
+			//$scope.$digest();
+
 		};
 
-		$timeout(
+		// $timeout(
 
-			() => {
+		// 	() => {
 
-				$scope.ace_defs = ace.edit("defs_area");
-				$scope.ace_defs.session.setMode("ace/mode/javascript");
-				$scope.ace_defs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
-				$scope.ace_defs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
-				$scope.ace_defs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
+		// 		$scope.ace_defs = ace.edit("defs_area");
+		// 		$scope.ace_defs.session.setMode("ace/mode/javascript");
+		// 		$scope.ace_defs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
+		// 		$scope.ace_defs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
+		// 		$scope.ace_defs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
 				
-				$scope.ace_defs.setOptions({
+		// 		$scope.ace_defs.setOptions({
 					
-					fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
+		// 			fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
 					
-				});
+		// 		});
 
-				$scope.ace_globs = ace.edit("globs_area");
-				$scope.ace_globs.session.setMode("ace/mode/javascript");
-				$scope.ace_globs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
-				$scope.ace_globs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
-				$scope.ace_globs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
+		// 		$scope.ace_globs = ace.edit("globs_area");
+		// 		$scope.ace_globs.session.setMode("ace/mode/javascript");
+		// 		$scope.ace_globs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
+		// 		$scope.ace_globs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
+		// 		$scope.ace_globs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
 				
-				$scope.ace_globs.setOptions({
+		// 		$scope.ace_globs.setOptions({
 					
-					fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
+		// 			fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
 					
-				});
+		// 		});
 			
-			}
-		);
+		// 	}
+		// );
 		
 	});
 	

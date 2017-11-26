@@ -169,30 +169,18 @@
 		  
 		</tab-content>
 
-		<tab-content tab-index="3" tab-title="User Definitions">
+		<tab-content id="tdefs" tab-index="3" tab-title="User Definitions">
 
-		  <div ng-controller="userdefsController">
+		  <div id="tabdefs" ng-controller="userdefsController">
 
-			<global-list globals="list" mgr="page.bg.content_mgr"></global-list>
+			<!-- <global-list globals="list" mgr="page.bg.content_mgr"></global-list> -->
 
-			<!-- <h4> Globals </h4> -->
-			<!-- <div id="globs_container"> -->
+			<h4> Globals <bdi style="color:red" ng-click="toggleGlobs()"> {{ statusGlobs() }} </bdi></h4>
+			<ace-inline feeding="'globals'" h="30" ng-show="globs_shown"></ace-inline>
 
-			<!--   <pre id="globs_area"> {{list.toString()}} </pre> -->
-			<!--   <button ng-click="saveGlobs()"> Save </button> <\!-- !!! -\-> -->
-			
-			<!-- </div> -->
-			
-			<h4> Definitions </h4>
-			<div id="defs_container">
-
-			  <pre id="defs_area"> {{definitions}} </pre>
-			  <button ng-click="saveDefs()"> Save </button> <!-- !!! -->
-			
-			</div>
-			
-			<button ng-click="dumpStorage()"> show storage </button> <!-- !!! -->
-			
+			<h4> Definitions <bdi style="color:red" ng-click="toggleDefs()"> {{ statusDefs() }} </bdi></h4>
+			<ace-inline feeding="'defs'" h="60" ng-show="defs_shown"></ace-inline>
+						
 		  </div>
 		  
 		</tab-content>

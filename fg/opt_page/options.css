@@ -1,7 +1,7 @@
 html, body {
 	width: 100%;
 	/* flex-direction: column !important; */
-	overflow-y: auto;
+	overflow: auto;
 }
 
 #content {
@@ -296,10 +296,10 @@ pre {
 
 #defs_container {
 
-	position: absolute;
+	position: fixed;
 	width: 90%;
 	height: 55%;
-	top: 15%;
+	top: 10%;
 	right: 0;
 	left: 5%;
 	bottom: 15%;
@@ -316,12 +316,40 @@ pre {
 
 #globs_container {
 
-	position: absolute;
+	position: fixed;
 	width: 90%;
 	height: 20%;
-	top: 70%;
+	top: 75%;
 	right: 0;
 	left: 5%;
 	bottom: 0;
 	
 }
+
+#tabdefs {
+
+	/* position: fixed; */
+	overflow: hidden !important;
+	/* width: 90%; */
+	height: 100vh !important;
+	min-height: 100vh !important;
+	/* top: 0; */
+	/* right: 0; */
+	/* left: 5%; */
+	/* bottom: 0; */
+
+}
+
+/* #tdefs { */
+	
+/* 	/\* position: absolute; *\/ */
+/* 	overflow: scroll; */
+/* 	/\* width: 90%; *\/ */
+/* 	height: 100vh !important; */
+/* 	min-height: 100vh !important; */
+/* 	/\* top: 0; *\/ */
+/* 	/\* right: 0; *\/ */
+/* 	/\* left: 5%; *\/ */
+/* 	/\* bottom: 0; *\/ */
+
+/* } */

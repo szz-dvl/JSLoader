@@ -74,10 +74,10 @@ function Script (opt) {
 	
 	this.getUrl = function () {
 		
-		if (self.parent && !self.parent.isGroup())
+		if (self.parent && self.parent.isDomain())
 			return new URL('http://' + self.parent.parent.name + self.parent.url);
 		else
-			return null;
+			return null; /* !!! */
 	};
 
 	this.remove = function () {
@@ -90,68 +90,97 @@ function Script (opt) {
 			Promise.resolve();
 	};
 	
-	this.badParent = function (url) {
+	// this.badParent = function (url) {
 		
-		if (!url)
-			return "Bad URL provided.";
+	// 	if (!url)
+	// 		return "Bad URL provided.";
 		
-		if (self.parent) {
+	// 	if (self.parent) {
 			
-			if (url.hostname != self.parent.parent.name) 	
-				return "Changing target domain not allowed.";
-		}
+	// 		if (url.hostname != self.parent.parent.name) 	
+	// 			return "Changing target domain not allowed.";
+	// 	}
 		
-		return false;	
+	// 	return false;	
+	// };
+
+	this.findCache = function () {
+
+		if (self.parent && self.parent.isGroup())
+			return self.parent.cache;
+		else
+			return self.parent.parent.cache;
 	};
 	
-	this.updateParent = function (url) {
-		
-		console.log("New parent: " + url.href);
+	this.__updateParent = function (url) {
 
-		var err = self.badParent(url);
-		
-		if (err)
-			return Promise.reject({err: err});
-		
-		if (self.parent) {
-			
-			if (url.match(self.getUrl())) 
-				return Promise.resolve(self);	
-		
-		}
-		
 		return new Promise (
 			(resolve, reject) => {
 				
-				console.error("Old Parent: ");
-				console.error(self.parent);
+				// console.error("Old Parent: ");
+				// console.error(self.parent);
 				
 				self.remove()
 					.then(
 						() => {
-							
-							global_storage.getOrCreateDomain(
+
+							let cache = self.findCache();
+
+							if (cache) {
 								
-								domain => {
+								var pathname, hostname;
+								
+								try {
 									
-									resolve(domain.getOrCreateSite(url.pathname).upsertScript(self));
+									let temp = new URL("http://" + url);
 									
-									// console.error("Update Parent (" + url.hostname + "): ");
-									// console.error(self.parent);
-						
-								}, url.hostname || url.href
-							);
+									pathname = temp.pathname;
+									hostname = temp.hostname;
+									
+								} catch(e) {
 
-						}, err => {
-
-							// console.err("Update parent reject");
-							// console.err(err);
+									hostname = temp.hostname;
+									pathname = null;
+								}
+								
+								cache.getOrCreateItem(hostname, false)
+									.then(
+										domain => {
+											
+											resolve(domain.getOrCreateSite(pathname).upsertScript(self));
+													
+											// console.error("Update Parent (" + url.hostname + "): ");
+											// console.error(self.parent);
+											
+										}, reject);
+							} else
+								console.error("Attempting to upudate parent on uncached domain.");
 							
-							reject(err);
-						}
+						}, reject
 					);
 			}
-		);
+		)
+	};
+
+	/* Validated "url" strings must come here. */
+	this.updateParent = function (url) {
+
+		try {
+
+			let my_url = new URL ("http://" + url);
+
+			if (self.parent && my_url.match(self.getUrl())) 
+				return Promise.resolve(self);
+			else
+				return self.__updateParent(url);
+			
+		} catch (e if e instanceof TypeError) {
+
+			if (self.parent && !self.parent.isGroup() && !self.parent.isDomain())
+				return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
+			else
+				self.__updateParent(url);
+		}
 	};
 
 	this.updateGroup = function (name) {
@@ -166,21 +195,28 @@ function Script (opt) {
 					self.remove()
 						.then(
 							() => {
-								
-								global_storage.getOrCreateGroup(
-									
-									group => {
-										
-										resolve(group.upsertScript(self));
-										
-									}, name
-								);
 
+								let cache = self.findCache();
+
+								if (cache){ 
+									
+									
+									cache.getOrCreateItem(name, false)
+										.then(
+											group => {
+												
+												resolve(group.upsertScript(self));
+															
+											}, reject);
+									
+								} else
+									console.error("Attempting to upudate parent on uncached domain.");
+								
 							}, reject
 						);
 				}
 			);
-
+			
 		} else
 			return Promise.resolve(self);
 	};
@@ -200,13 +236,13 @@ function Script (opt) {
 			}, 1000); 
 	}
 	
-	this.setParent = function (url) {
+	// this.setParent = function (url) {
 		
-		if (self.parent)
-			return Promise.resolve(self);
-		else
-			return self.updateParent(url);
-	};
+	// 	if (self.parent)
+	// 		return Promise.resolve(self);
+	// 	else
+	// 		return self.updateParent(url);
+	// };
 	
 	this.persist = function () {
 	
@@ -216,7 +252,7 @@ function Script (opt) {
 
 	this.getParentName = function () {
 
-		return self.isGroup() ? self.parent.name : self.parent.parent.name;
+		return !self.isDomain() ? self.parent.name : self.parent.parent.name;
 
 	}
 
@@ -468,7 +504,7 @@ function Domain (opt) {
 	if (!opt || !opt.name)
 		return null;
 	
-	Site.call(this, {url: "/", parent: this, scripts: opt.scripts});
+	Site.call(this, {url: "/", parent: this, scripts: opt.scripts, groups: opt.groups });
 
 	this.name = opt.name;
 	
@@ -482,6 +518,12 @@ function Domain (opt) {
 		}
 
 	}
+
+	this.isSubdomain = function () {
+		
+		return self.name.startsWith("*."); /* All subdomains shortcut. */
+		
+	};
 	
 	this.isEmpty = function () {
 
@@ -490,7 +532,7 @@ function Domain (opt) {
 	};
 
 	this.haveData = function () {
-
+		
 		return self.scripts.length || self.sites.length;
 		
 	};
@@ -500,30 +542,17 @@ function Domain (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.__getDomains(
-					arr => {
-						
-						if (!arr.includes(self.name)) {
-					
-							arr.push(self.name);
-							global_storage.__setDomains(arr);
-						}
-						
-						global_storage.__upsertDomain(self.name, self.__getDBInfo())
-							.then(
-								() => {
-									
-									resolve(self);
-								},
-								err => {
-									
-									console.error(err);
-									reject(err);
-									
-								}
-							);
-					}
-				);
+				global_storage.upsertDomain(self.__getDBInfo())
+					.then(
+						() => {
+							
+							if (self.cache && !self.cache.amICached(self.name))
+								self.cache.cacheItem(self);
+							
+							resolve(self);
+							
+						}, reject
+					);
 			}
 		);
 	};
@@ -532,22 +561,17 @@ function Domain (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
-			
-				global_storage.__getDomains(
-					arr => {
-						
-						var idx = arr.indexOf(self.name);
-			
-						if (idx >= 0) {
-							
-							arr.remove(idx);
-							global_storage.__setDomains(arr);
-							global_storage.__removeDomain(self.name)
-								.then(resolve, reject);
-						} else
+				
+				global_storage.removeDomain(self.name)
+					.then(
+						() => {
+										
+							if (self.cache && self.cache.amICached(self.name))
+								self.cache.removeCached(self.name);
+										
 							resolve();
-					}
-				);
+										
+						}, reject);
 			}
 		);				
 	};
@@ -570,7 +594,7 @@ function Domain (opt) {
 	
 	this.getOrCreateSite = function (pathname) {
 		
-		if (pathname == "/" || !pathname)
+		if (!pathname || pathname == "/")
 			return self;
 		
 		var site = self.haveSite(pathname);
@@ -628,13 +652,41 @@ function Domain (opt) {
 			self.persist();		
 	};
 
+	/* Used by subdomains */
+	this.ownerOf = function (domain_name) {
+
+		if (self.isSubdomain()) {
+			
+			var mod_arr = domain_name.split(".");
+			var orig_arr = self.name.split(".");
+		
+			var cursor_mod = mod_arr.length - 1;
+			var cursor_orig = orig_arr.length - 1;
+		
+			while ( (orig_arr[cursor_orig] != "*") &&
+					(mod_arr[cursor_mod] == orig_arr[cursor_orig])
+				  ) {
+			
+				cursor_mod --;
+				cursor_orig --;
+
+				if (cursor_mod < 0)
+					break;
+			}
+		
+			return orig_arr[cursor_orig] == "*";
+
+		} else
+			return false;
+	};
+	
 	this.mergeInfo = function (imported) {
 
 		for (script of imported.scripts)
 			self.upsertScript(script);
 
 		for (site of imported.sites) 	
-			self.getOrCreateSite(site.url).appendGroup(self.name);
+			self.getOrCreateSite(site.url).appendGroup(self.name); /* Merda gorda! */
 		
 	};
 	
@@ -659,99 +711,6 @@ function Domain (opt) {
 		}
 	};
 	
-}
-
-function AllSubDomainsFor (opt) {
-
-	var self = this;
-	
-	this.name = opt.name || null;
-	this.groups = opt.groups || [];
-	
-	this.persist = function () {
-
-		return new Promise (
-			(resolve, reject) => {
-				
-				global_storage.upsertSubDomain(self.name.slice(2), self.__getDBInfo())
-					.then(
-						() => {
-							
-							resolve(self);
-							
-						}, reject);
-			}
-		);
-	};
-	
-	this.remove = function () {
-		
-		return new Promise (
-			(resolve, reject) => {
-				
-				global_storage.removeSubDomain(self.name.slice(2));
-				
-			}
-		);				
-	};
-
-	this.isEmpty = function () {
-		
-		return !self.groups.length; 
-	};
-	
-	this.appendGroup = function (group) {
-
-		if (!self.groups.includes(group.name))
-			self.groups.push(group.name);
-
-		if (!group.sites.includes(self.name))
-			group.sites.push(self.name);
-		
-	};
-
-	this.removeGroup = function (group) {
-		
-		self.groups.remove(self.groups.indexOf(group.name));
-		group.sites.remove(group.sites.indexOf(self.name));
-		
-		if (self.isEmpty())
-			self.remove();
-
-		if (group.isEmpty())
-			group.remove();
-	};
-
-	this.ownerOf = function (site_name) {
-						   
-		var mod_arr = site_name.split(".");
-		var orig_arr = self.name.split(".");
-		
-		var cursor_mod = mod_arr.length - 1;
-		var cursor_orig = orig_arr.length - 1;
-		
-		while ( (orig_arr[cursor_orig] != "*") &&
-				(mod_arr[cursor_mod] == orig_arr[cursor_orig])
-			  ) {
-			
-			cursor_mod --;
-			cursor_orig --;
-
-			if (cursor_mod < 0)
-				break;
-		}
-		
-		return orig_arr[cursor_orig] == "*";
-	};
-	
-	this.__getDBInfo = function () {
-		
-		return {
-			
-			name: self.name,
-			groups: self.groups	
-		}
-	};
 }
 
 function Group (opt) {
@@ -779,37 +738,36 @@ function Group (opt) {
 	};
 	
 	this.persist = function () {
-		
-		global_storage.getGroups(
-			groups => {
-				
-				if (!groups.includes(self.name)) {
 
-					groups.push(self.name);
-					global_storage.setGroups(groups);
-					
-				}
+		return new Promise(
+			(resolve, reject) => {
 
+				global_storage.upsertGroup(self.__getDBInfo())
+					.then(
+						() => {
+							
+							if (self.cache && !self.cache.amICached(self.name))
+								self.cache.cacheItem(self);
+						}
+					);
 			}
 		);
-		
-		return global_storage.upsertGroup(self.__getDBInfo()); 
 	};
 
 	this.remove = function () {
+		
+		return new Promise (
+			(resolve, reject) => {
 
-		global_storage.getGroups(
-			groups => {
+				global_storage.removeGroup(self.name)
+					.then(() => {
 
-				if (groups.includes(self.name)) {
-					
-					groups.remove(groups.indexOf(self.name));
-					global_storage.setGroups(groups);	
-				}
+						if (self.cache && self.cache.amICached(self.name))
+							self.cache.cacheItem(self);
+						
+					}, reject);
 			}
 		);
-		
-		return global_storage.removeGroup(self.name);
 	};
 
 	this.appendSite = function (site) {
@@ -852,6 +810,7 @@ function Group (opt) {
 			self.appendSite(site_name);	
 	};
 
+	/* Only for groups ! */
 	this.isShown = function () {
 
 		return self.elems.filter(
@@ -860,16 +819,15 @@ function Group (opt) {
 			}
 		)[0] || false;
 	};
-
-
+	
 	this.ownerOf = function (site_name) {
 
 		return self.sites
 			.filter(
 				site => {
 
-					if (site[0] == "*")
-						return new AllSubDomainsFor({name: site}).ownerOf(site_name);
+					if (site.startsWith("*."))
+						return new Domain ({name: site}).ownerOf(site_name.split("/")[0]);
 					else if (site.split("/").length == 2)
 						return site_name.split("/")[0] == site.split("/")[0];
 					else

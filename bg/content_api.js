@@ -76,10 +76,10 @@ function CSUtils () {
 				let rq = new XMLHttpRequest();
 				rq.open("POST", url);
                 
-				rq.onload = function () {
-					
-					resolve (rq);
-					
+				rq.onreadystatechange = function () {
+
+					if (rq.readyState == 4)
+						resolve (rq);	
 				}
                 
 				rq.onerror = function () {
@@ -91,16 +91,13 @@ function CSUtils () {
 				rq.send(data || null);
 			});
 	};
-
 }
 
-function CSApi (port) {
+function CSApi () {
 
 	var self = this;
-
-	this.port = port
+	
 	this.JSLUtils = new CSUtils();
-
 
 	this.__getMessageResponse = function (action, message) {
 		
@@ -177,8 +174,6 @@ function CSApi (port) {
 				break;
 
 			case "response":
-				
-				//console.log("Emiting response: " + response.tag);
 				self.JSLUtils.events.emit(response.tag, response.message);
 
 				break;

@@ -159,6 +159,7 @@
 						  opts="page.bg.option_mgr.editor"
 						  sites="group.sites"
 						  parent="group"
+						  addscript="page.bg.editor_mgr.openEditorInstanceForGroup"
 						  mgr="page.bg.group_mgr">
 			  </group-list>
 
@@ -171,6 +172,8 @@
 
 		  <div ng-controller="globalsController as globals">
 			<global-list globals="list" mgr="page.bg.content_mgr"></global-list>
+
+			<button ng-click="dumpStorage()"> show storage </button> <!-- !!! -->
 		  </div>
 		  
 		</tab-content>

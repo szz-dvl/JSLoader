@@ -1,3 +1,38 @@
+function CS (port) {
+
+	var self = this;
+	
+	this.port = port;
+	this.name = port.name;
+	this.frame = port.sender || null;
+	this.id = port.name.split("_")[1];
+	
+	this.run = function (scripts) {
+
+		return new Promise(
+			resolve => {
+
+				let my_listener = function (args) {
+					
+					if (args.action == "post-results") {
+
+						self.port.onMessage.removeListener(my_listener);
+						args.frame = Object.assign({}, self.frame);
+						resolve(args);
+					
+					}
+				};
+			
+				self.port.onMessage.addListener(my_listener);
+				
+				self.port.postMessage({ action: "content-script-run",
+										message: scripts });
+			}
+		);
+	};  
+	
+}
+
 function CSMgr (bg) {
 	
 	var self = this;
@@ -7,13 +42,13 @@ function CSMgr (bg) {
 	this.storage = global_storage;
 	this.globals = [];
 	
-	this.storage.getGlobalIDs(
+	this.storage.__getGlobalIDs(
 		
 		globals => {
 
 			async.eachSeries(globals,
 							 (id, next) => {
-
+								 
 								 self.storage.getGlobal(
 									 global => {
 										 
@@ -155,48 +190,132 @@ function CSMgr (bg) {
 		}
 	};
 
-	this.notifyUser = function (title, message) {
+	this.getFramesForTab = function (tabId) {
 		
-		self.bg.notifyUser(title, message);
+		return self.alive.filter(
+			cs => {
+				
+				return cs.frame.tab.id == tabId;
+			
+			}
+		);
 		
 	};
-	
+
+	this.waitForFrames = function (tabId) {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				browser.tabs.reload(tabId, {bypassCache: true})
+					.then(
+						() => {
+							
+							
+							let timeout = 5;
+							let myID = setInterval(
+								() => {
+						
+									let frames = self.getFramesForTab();
+									
+									if (frames.length) {
+										
+										clearInterval(myID);
+										resolve();
+										
+									} else {
+										
+										timeout --;
+										
+										if (timeout == 0) {
+											
+											clearInterval(myID);
+											reject();
+											
+										}
+									}
+									
+								}, 500);
+						});
+			});
+	};
+
 	browser.runtime.onConnect
 		.addListener(
 			port => {
 				
-				if (port.name === 'content-script') {
-					
-					self.alive.push(port);
-					
-					console.log("New CS Port: ");
-					console.log(port);
+				if (port.name.startsWith('CS_')) {
 					
 					port.onMessage.addListener(
 						args => {
 							
 							switch (args.action) {
+
+							case "get-info":
+								{
+
+									self.alive.push(new CS(port));
+									console.log(self.alive);
+									//console.log("Getting info for: " + args.message.url);
+									
+									var url = new URL(args.message.url).sort();
+									
+									//console.log("Sending scripts for: " + url.href);
+									
+									self.bg.domain_mgr.getScriptsForUrl(url)
+										.then(
+											scripts => {
+												
+												if (scripts)
+													self.bg.updatePA(url);
+
+												//console.log(scripts);
+												
+												port.postMessage({action: "content-script-run",
+																  message: (scripts || [])
+																  .filter(
+																	  script => {
+																		  
+																		  return !script.disabled;
+																		  
+																	  }
+																  )
+																  .map(
+																	  script => {
+																		  
+																		  return script.code;
+																		  
+																	  }
+																  )
+																 });
+												
+											}
+										);
+								}
+								
+								break;
 								
 							case "site-to-group":
 								self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
 								break;
 								
 							case "notify":
-								self.notifyUser(args.message.title, args.message.body);
+								self.bg.notifyUser(args.message.title, args.message.body);
 								break;
 								
 							case "event":
-								
-								self.alive.map(
-									port => {
-										
-										try {
+								{
+									self.alive.map(
+										port => {
 											
-											port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
+											try {
+												
+												port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
 											
-										} catch (e) {}
-									}
-								);
+											} catch (e) {}
+										}
+									);
+								}
 								
 								break;
 								
@@ -211,6 +330,19 @@ function CSMgr (bg) {
 							default:
 								break;
 							}
+						}
+					);
+					
+					port.onDisconnect.addListener(
+						() => {
+		
+							self.alive.remove(
+								self.alive.findIndex(
+									dead => {
+										return dead.name == port.name;
+									}
+								)
+							);		
 						}
 					);
 				}

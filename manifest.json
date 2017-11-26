@@ -20,7 +20,6 @@
 			"utils/jsloader-utils.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
-			"bg/tab_mgr.js",
 			"bg/editor_mgr.js",
 			"bg/cache_mgr.js",
 			"bg/domain_mgr.js",

@@ -2,7 +2,6 @@ function onError (err) {
 	console.log(err);
 };
 
-//self.proto = self.url.toString().split("://")[0] + "://";
 
 function Shortcut (opt) {
 
@@ -42,6 +41,7 @@ function EditorFG (editor, bg) {
 	var self = this;
 
 	this.bg = bg;
+	this.events = new EventEmitter();
 	this.shortcuts = [
 		{
 			tab: 'R',
@@ -78,45 +78,45 @@ function EditorFG (editor, bg) {
 	]
 
 	this.editor = editor;
-	this.editor.message = function (msg, err) {
+	// this.editor.message = function (msg, err) {
 		
-		self.res_box.css("visibility", "hidden");
+	// 	self.res_box.css("visibility", "hidden");
 		
-		if (err)
-			self.res_box.css("color", "red");
-		else 			
-			self.res_box.css("color", "green");
+	// 	if (err)
+	// 		self.res_box.css("color", "red");
+	// 	else 			
+	// 		self.res_box.css("color", "green");
 		
-		self.res_box.text(msg);
-		self.res_box.css("visibility", "visible");
+	// 	self.res_box.text(msg);
+	// 	self.res_box.css("visibility", "visible");
 		
-		/* !!! */
-		setTimeout(
-			() => {
-				self.res_box
-					.fadeOut(800, "swing",
-							 () => {
+	// 	/* !!! */
+	// 	setTimeout(
+	// 		() => {
+	// 			self.res_box
+	// 				.fadeOut(800, "swing",
+	// 						 () => {
 								 
-								 self.res_box.css("visibility", "hidden");
-								 self.res_box.css("display", "block");
+	// 							 self.res_box.css("visibility", "hidden");
+	// 							 self.res_box.css("display", "block");
 										 
-							 });
+	// 						 });
 				
-			}, 5000);
-	};
+	// 		}, 5000);
+	// };
 	
-	this.editor.updateTarget = function (old) {
+	// this.editor.updateTarget = function (old) {
 		
-		if (old == self.editor.scope.url) {
+	// 	if (old == self.editor.scope.url) {
 			
-			var err = self.editor.script.badParent(self.editor.tab.url);
+	// 		var err = self.editor.script.badParent(self.editor.tab.url);
 		
-			if(err)
-				self.editor.message("Tab url outdated: " + err, true);
-			else
-				self.editor.scope.updateTarget(self.editor.tab.url);
-		}
-	};
+	// 		if(err)
+	// 			self.editor.message("Tab url outdated: " + err, true);
+	// 		else
+	// 			self.editor.scope.updateTarget(self.editor.tab.url);
+	// 	}
+	// };
 	
 	this.isCollapsed = function () {
 		
@@ -174,54 +174,58 @@ function EditorFG (editor, bg) {
 	};
 	
 	this.runCurrent = function () {
-		
-		self.editor.script.code = self.editor.ace.getValue().toString().trim();
-		return self.editor.runInTab();
+
+		if (!self.editor.scope.buttons.disabled) {
+
+			self.editor.scope.disableButtons();
+			
+			self.editor.script.code = self.editor.ace.getValue().toString().trim();
+			self.editor.runInTab()
+				.then(
+					response => {
+
+						self.editor.scope.enableButtons();
+						
+					},
+					err => {
+
+						/* Notify? */
+						self.editor.scope.enableButtons();
+						
+					});
+
+		}
 	};
 	
 	this.saveCurrent = function () {
 
-		if(self.editor.tab) {
+		/* May be triggered from shortcut. */
+		if (!self.editor.scope.buttons.disabled) {
+			
+			self.editor.scope.disableButtons();
 
-			console.log("Saving current: " + self.editor.scope.url);
+			let promise = self.editor.script.parent.isGroup()
+				? self.editor.script.updateGroup(self.editor.scope.url)
+				: self.editor.script.updateParent(self.editor.scope.url);
+
+			promise.then (
+				script => {
+
+					script.code = self.editor.ace.getValue().toString().trim();
+					script.persist()
+						.then(
+							parent => {
+								
+								console.log("Updating PA!");
+								self.bg.updatePA(script);
+								self.editor.scope.enableButtons();
+							
+							}
+						)
+				}
+			);
 			
-			self.editor.script.updateParent(new URL('https://' + self.editor.scope.url))
-				.then(
-					script => {
-					
-						script.code = self.editor.ace.getValue().toString().trim();
-						
-						console.log("Storing script: ");
-						console.log(script);
-						
-						self.bg.domain_mgr.storeScript(script)
-							.then(
-								script => {
-									script.persist()
-										.then(
-											domain => {
-												
-												console.log("Updating PA for " + script.getUrl().href);
-												self.bg.updatePA(script.getUrl());
-											
-											}
-										);
-								}
-							);
-					}
-				);
-			
-		} else {
-			
-			self.editor.script.updateGroup(self.editor.scope.url)
-				.then(
-					script => {
-					
-						script.code = self.editor.ace.getValue().toString().trim();
-						script.persist();
-					}
-				);
-		}
+		} /* else: Notify? */
 	};
 
 	this.onResize = function () {
@@ -241,17 +245,19 @@ function EditorFG (editor, bg) {
 	};
 
 	this.resetAce = function () {
-
+		
 		self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
 		self.editor.ace.renderer.setShowGutter(self.editor.opts.showGutter);
 		self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme.name);
-			
+		
 		self.editor.ace.setOptions({
+			
 			fontSize: self.editor.opts.fontSize + "pt"
+			
 		});
 	}
 	
-	this.app = angular.module('EditorApp', []);
+	this.app = angular.module('EditorApp', ['jslPartials']);
 	
 	this.app.controller('editorController', ($scope, $timeout) => {
 		
@@ -259,56 +265,82 @@ function EditorFG (editor, bg) {
 
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
-		
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : self.editor.tab ? self.editor.tab.url.name() : $scope.script.parent.name;
 
-		//console.log("My url: " + $scope.url.name() + " hostname: " + $scope.url.hostname + " pathname: " + $scope.url.pathname);
+		$scope.page = self;
+
+		/* !!! ==> Groups! */
+		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : self.editor.tab ? self.editor.tab.url.name() : $scope.script.getParentName();
 		
 		$scope.label = "JSLoader";
-		
-		$scope.user_action = self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: "; /* To wdw title!! */ 
+
+		/* !!! ===> tab! */
+		$scope.user_action = self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: "; /* ¿¿ To wdw title ?? */ 
 		
 		$scope.buttons = {
 			
 			shown: true,
-			arr: [{id:"save_btn", text:"Save", available: true},
-				  {id:"run_btn", text:"Run in Page", available: self.editor.tab},
-				  {id:"revert_btn", text:"Revert changes", available: self.editor.tab}]
+			disabled: false,
+			arr: [{text:"Save", id: "save_btn", available: true,
+				   click: function () {
+
+					   self.saveCurrent();
+					   
+				   }},
+				  {text:"Run in Page", id: "run_btn", available: self.editor.tab,
+				   click: function () {
+					   
+					   self.runCurrent();
+					   
+				   }}]
 
 		};
 		
 		$scope.dd_text = "<";
 
-		$scope.targetChange = function () {
-			
-			console.log("targetChange:  ");
-			
-			if ($scope.targetTID)
-				clearTimeout($scope.targetTID);
-			
-			$scope.targetTID = setTimeout(
-				() => {
+		$scope.page.events
+			.on('validation_start',
+				pending => {
 
-					if (self.editor.tab) {
-						
-						console.log("url: " + $scope.url);
-						console.log("target: " + self.target.text());
-						
-						var url = new URL("http://" + self.target.text());
-						var err = self.editor.script.badParent(url);
-						
-						if (err) {
-							
-							$scope.updateTarget(self.editor.script.getUrl() || self.editor.tab.url.name());
-							self.editor.message(err, true);
-							
-						} else 
-							$scope.updateTarget(url.name());
-
-					} else 	
-						$scope.updateTarget(self.target.text());
+					console.log("Validation start: " + pending);
+								
+					$("#save_btn").attr("disabled", true);
 					
-				}, 750);
+				})
+		
+			.on('validation_ready',
+				validated => {
+
+					$scope.url = validated;
+
+					console.log("Validated url: " + validated);
+					
+					$("#save_btn").attr("disabled", true);
+					
+				});
+		
+
+		$scope.disableButtons = function () {
+
+			for (let button of $scope.buttons.arr) {
+
+				$("#" + button.id).attr("disabled", true); 
+
+			}
+			
+			$scope.buttons.disabled = true;
+
+		};
+
+		$scope.enableButtons = function () {
+
+			for (let button of $scope.buttons.arr) {
+
+				$("#" + button.id).removeAttr("disabled"); 
+
+			}
+			
+			$scope.buttons.disabled = false;
+			
 		};
 		
 		$scope.dropdownClick = function () {
@@ -318,44 +350,11 @@ function EditorFG (editor, bg) {
 		};
 		
 		$scope.buttonToggle = function () {
-
-			if (!self.editor.scope.buttons.shown)
-				self.toggleButtons();
-		};
-		
-		$scope.buttonClick = function (ev) {
-
-			/* !!! */
-			switch (ev.target.id) {
-			case "save_btn":
-				self.saveCurrent();
-				break;
-			case "run_btn":
-				self.runCurrent().then(null, onError);
-				break;
-			case "revert_btn":
-				self.editor.tabToOriginalState();
-				break;
-			}
-			
-		};
-		
-		$scope.updateTarget = function (url) {
-
-			console.log("Updating target: " + url);
-			
-			$scope.url = url;	
-			
-			//self.target.text(url.name());
-		};
-		
-		$scope.bodyClick = function () {
 			
 			if (!$scope.buttons.shown)
 				self.toggleButtons();
-				
 		};
-		
+				
 		/* After interpolation ready ... */
 		$timeout(function () {
 			
@@ -386,12 +385,6 @@ function EditorFG (editor, bg) {
 			
 			if (!$scope.editor.opts.collapsed) 
 				self.collapseHeader();
-
-			self.target.on('input', () => {
-				
-				$scope.targetChange();
-							   
-			});
 		});
 	});
 

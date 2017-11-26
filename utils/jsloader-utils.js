@@ -48,7 +48,8 @@ Array.prototype.insert = function(elem) {
 
 URL.prototype.match = function(url) {
 
-	return (this.pathname == url.pathname && this.hostname == url.hostname);
+	
+	return url ? (this.pathname == url.pathname && this.hostname == url.hostname) : false;
 
 };
 

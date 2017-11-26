@@ -2,12 +2,36 @@ function onError (err) {
 	console.error(err);
 };
 
+function JSLTab (tabInfo, feeding) {
+
+	var self = this;
+	
+	Object.assign(this, tabInfo);
+	
+	this.url = new URL(this.url).sort();
+	this.id = parseInt(this.id);
+	this.feeding = feeding;
+	
+	this.run = function (scripts) {
+		
+		let pr = [];
+			
+		for (let frame of self.feeding(self.id))
+			pr.push(frame.run(scripts));
+
+		return Promise.all(pr);
+		
+	};
+}
+
+
 function EditorWdw (opt) {
 
 	return new Promise (
 		(resolve, reject) => {
 
-			var editor = new Editor(opt);
+			let editor = new Editor(opt);
+			
 			browser.windows.create({
 							
 				type: "popup",
@@ -32,7 +56,7 @@ function EditorWdw (opt) {
 function Editor (opt) {
 
 	var self = this;
-
+	
 	this.parent = opt.parent;
 	this.script = opt.script;
 	
@@ -40,48 +64,20 @@ function Editor (opt) {
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	this.opts = self.parent.bg.option_mgr.editor;
 	
-	this.tab = opt.tab || null;
+	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.getFramesForTab) : null;
 	
 	self.parent.editors.push(self);
-
-	if (this.tab) {
-
-		if (this.tab.status == "complete") {
-		
-			this.tab.attachEditor(this)
-				.then(null,
-					  err => {
-						  
-						  console.error("Attach rejected!!");
-						  console.error(err);
-					  
-					  });
-		}
-
-	}
 	
 	this.runInTab = function () {
 
-		if (tab)
-			return self.tab.runForEditor(self.script);
+		if (self.tab) 
+			return self.tab.run([self.script.code]);	
 		else
-			return Promise.resolve();
-			
-	};
-
-	this.tabToOriginalState = function () {
-
-		if (tab)
-			return self.tab.revertChanges();
-		else
-			return Promise.resolve();
+			return Promise.reject();			
 	};
 
 	this.editorClose = function () {
-
-		if (self.tab)
-			self.tab.deattachEditor();
-			
+		
 		//console.log("Removing editor " + self.id);
 		
 		self.parent.editors.remove(
@@ -106,7 +102,7 @@ function Editor (opt) {
 function EditorMgr (bg) {
 
 	var self = this;
-
+	
 	this.bg = bg;
 	this.eids = 0;
 	this.editors = []; //alive instances;
@@ -119,12 +115,28 @@ function EditorMgr (bg) {
 	
 	this.openEditorInstanceForTab = function (tab) {
 		
-		return new EditorWdw({parent: self, script: new Script({}), tab: tab, mode: true});
-		
+		/* Focus editor if existent! */
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				let url = new URL(tab.url).sort();
+				
+				self.bg.domain_mgr.getOrCreateItem(url.hostname, false)
+					.then (domain => {
+						
+						new EditorWdw({ parent: self,
+										script: domain.getOrCreateSite(url.pathname).upsertScript(new Script({})),
+										tab: tab,
+										mode: true }).then(resolve, reject);
+				
+					
+					});
+			});
 	};
 
 	this.openEditorInstanceForScript = function (script) {
-
+		
 		// console.log("Editor: ");
 		// console.log(script);
 		
@@ -139,27 +151,43 @@ function EditorMgr (bg) {
 
 					if (!script.parent.isGroup()) {
 
-						self.bg.tab_mgr.getOrCreateTabFor(script.getUrl())
+						self.bg.getTabsForURL(script.getUrl())
 							.then(
-								response => {
+								tabs => {
 							
-									// console.error("Got Tab!");
-									// console.error(response);
-							
-									new EditorWdw({parent: self, script: script, tab: response.tab, mode: false})
-										.then(resolve, reject);
-							
+									let tab = tabs[0];
+									
+									if (tab) {
+
+										browser.tabs.update(tab.id, {active: true})
+											.then(
+												tab => {
+													
+													new EditorWdw({parent: self, script: script, tab: tab, mode: false})
+														.then(resolve, reject);
+
+												}
+											);
+									
+									} else {
+										
+										new EditorWdw({parent: self, script: script, tab: null, mode: false})
+											.then(resolve, reject);
+										
+									}
+									
 								}, reject
 							);
 						
 					} else {
-
+						
 						new EditorWdw({parent: self, script: script, tab: null, mode: false})
 							.then(resolve, reject);
+						
 					}
 				}
 			}
-		);
+		)
 	};
 
 	this.openEditorInstanceForGroup = function (group) {

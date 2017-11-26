@@ -1,3 +1,5 @@
+/* To be isolated. */
+
 function Cache (opt) {
 
 	var self = this;
@@ -76,7 +78,7 @@ function Cache (opt) {
 			}
 		);
 
-		if (idx > 0)
+		if (idx >= 0)
 			return idx;
 		else
 			return self.cache.push(item);
@@ -92,7 +94,7 @@ function Cache (opt) {
 			}
 		);
 
-		if (idx > 0)
+		if (idx >= 0)
 			return self.cache[idx] = item;
 		else
 			return self.cache.push(item);
@@ -110,7 +112,13 @@ function Cache (opt) {
 		); 
 	};
 
-	this.getOrCreateCachedItem = function (item_name) {
+	this.amICached = function (item_name) {
+
+		return self.getCachedNames().includes(item_name);
+
+	};
+	
+	this.getOrCreateItem = function (item_name, cache_new) {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -122,14 +130,21 @@ function Cache (opt) {
 							self.birth(
 								item => {
 									
-									self.cacheItem(item);
+									if (cache_new)
+										self.cacheItem(item);
+									
+									item.cache = self;
 									resolve(item);
 									
 								}, item_name);
 						
-						} else
-							resolve(item);
+						} else {
 
+							if (!item.cache)
+								item.cache = self;
+							
+							resolve(item);
+						}
 					});
 			}
 		);

@@ -72,7 +72,18 @@ function OP (bg, domains, groups, globals, port) {
 
 		$scope.page = self;
 		$scope.list = globals;
+
+		$scope.dumpStorage = function () {
+
+			browser.storage.local.get(null)
+				.then(contents => {
+
+					console.log("My contents: ");
+					console.log(contents);
 		
+				});
+			
+		}
 		// console.log("My globals: ");
 		// console.log($scope.page.bg.content_mgr.globals);
 		

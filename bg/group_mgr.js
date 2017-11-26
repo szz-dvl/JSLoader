@@ -29,7 +29,7 @@ function GroupMgr (bg) {
 	this.adding;
 
 	
-	this.storage.getGroups(
+	this.storage.__getGroups(
 		new_groups => {
 			
 			if (new_groups)
@@ -37,27 +37,26 @@ function GroupMgr (bg) {
 		}
 	);
 	
-	this.getOrCreateGroup = function (name) {
+	// this.getOrCreateGroup = function (name) {
 
-		return new Promise (
-			(resolve, reject) => {
+	// 	return new Promise (
+	// 		(resolve, reject) => {
+				
+	// 			if (name) {
 
-				if (name) {
-
-					/* cache !! */
-					self.storage.getOrCreateGroup(
-						
-						group => {
+	// 				/* cache !! */
+	// 				self.getOrCreateItem(name, false)
+	// 					.then(group => {
 							
-							resolve(group);
+	// 						resolve(group);
 							
-						}, name);
+	// 					});
 					
-				} else
-					resolve(new Group({}));
-			}
-		)
-	};
+	// 			} else
+	// 				resolve(new Group({}));
+	// 		}
+	// 	)
+	// };
 	
 	this.showChooserWdw = function () {
 		
@@ -93,75 +92,71 @@ function GroupMgr (bg) {
 							if (! group)
 								console.error("Group " + group_name + " not existent, site: " + url + " not added.");
 							else {
+
+								var pathname, hostname;
 								
-								if (url[0] == '*') {
+								try {
+
+									let temp = new URL("http://" + url);
 									
-									self.storage.getOrCreateSubDomain(
-										subdomain => {
+									pathname = temp.pathname;
+									hostname = temp.hostname;
+									
+								} catch(e) {
+
+									hostname = temp.hostname;
+									pathname = null;
+								}
+
+								/* !! */
+								self.bg.domain_mgr.getOrCreateItem(temp.hostname, false)
+									.then(
+										domain => {
 											
-											group[func + "Site"](subdomain);
-
-											if (!subdomain.isEmpty())
-												subdomain.persist();
-
-											if (!group.isEmpty())
-												group.persist();
-
-											resolve();
+											let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+											let pr = [];
 											
-										}, url.slice(2)
-									);
-
-								} else {
-
-									var temp = new URL("http://" + url);
-
-									console.log(temp);
-									/* !! */
-									self.bg.domain_mgr.getOrCreateCachedItem(temp.hostname)
-										.then(
-											domain => {
+											if (site) {
 												
-												let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+												group[func + "Site"](site);								
 												
-												console.log(site);
-
-												if (site) {
-
-													group[func + "Site"](site);								
-
-													if (!site.isEmpty()) 
-														site.persist();
-
-													if (!group.isEmpty())
-														group.persist();
-												}
-
-												resolve();
-											} 
-										);
-								};
+												if (!site.isEmpty()) 
+													pr.push(site.persist());
+												
+												if (!group.isEmpty())
+													pr.push(group.persist());
+											}
+											
+											Promise.all(pr)
+												.then(
+													res => {
+														
+														/* Feedback when creted !!! */
+														resolve(res);
+														
+													}
+												);	
+										});
 							}
 							
-						}, group_name
-					);
+						});
 			});
 	};
 
 	this.addSiteTo = function (group_name, url) {
 
 		return self.__siteOps(group_name, url, "append");
-
+		
 	}
 
 	this.removeSiteFrom = function (group_name, url) {
-
+		
 		return self.__siteOps(group_name, url, "remove");
-
+		
 	}
 
 	this.getFullGroups = function (done) {
-
+		
 		var missing = _.difference(self.groups, self.getCachedNames());
 		
 		async.each(missing,
@@ -170,7 +165,7 @@ function GroupMgr (bg) {
 					   self.getAndCacheItem(group_name)
 						   .then(
 							   group => {
-										 
+								   
 								   cb();
 									 
 							   }
@@ -210,12 +205,13 @@ function GroupMgr (bg) {
 			
 			if (key == "groups") 	
 				self.groups = changes.groups.newValue || [];
-			else if (key.includes("group-")){  /* Regex to match start*/
 
-				/* group removed */
-				if (!changes[key].newValue)
-					self.removeCached(changes[key].oldValue.name);
-			}
+			// else if (key.includes("group-")){  /* Regex to match start*/
+
+			// 	/* group removed */
+			// 	if (!changes[key].newValue)
+			// 		self.removeCached(changes[key].oldValue.name);
+			// }
 		}
 	};
 	

@@ -10,31 +10,39 @@ function DomainMgr (bg) {
 
 	this.storage.__getDomains(
 		new_domains => {
-
+			
 			if (new_domains)
 				self.domains = new_domains;
 		
 		}
 	);
 
-	this.__createParentFor = function (url) {
+	// this.__createParentFor = function (url) {
 		
-		var parent;
+	// 	var parent;
 		
-		if (url.pathname == "/")
-			parent = new Domain ({name: url.hostname });
-		else
-			parent = new Domain ({name: url.hostname, sites: [{url: url.pathname}] }).sites[0];
+	// 	if (url.pathname == "/")
+	// 		parent = new Domain ({name: url.hostname });
+	// 	else
+	// 		parent = new Domain ({name: url.hostname, sites: [{url: url.pathname}] }).sites[0];
 		
-		self.cacheItem(parent.parent);
+	// 	self.cacheItem(parent.parent);
 		
-		return parent;
+	// 	return parent;
+	// };
+
+	this.__isIPAddr = function (string) {
+
+		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
+		
+		return string.match(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/);
+
 	};
 	
 	this.getScriptsForUrl = function (url) {
 
-		console.log("Got url: ");
-		console.log(url);
+		// console.log("Got url: ");
+		// console.log(url);
 		
 		return new Promise (
 			(resolve, reject) => {
@@ -43,8 +51,8 @@ function DomainMgr (bg) {
 					.then(
 						domain => {
 
-							console.log("Got domain: ");
-							console.log(domain);
+							// console.log("Got domain: ");
+							// console.log(domain);
 							
 							var groups = [],
 								scripts = [];
@@ -55,59 +63,53 @@ function DomainMgr (bg) {
 								groups = domain.groups;
 								var site = domain.haveSite(url.pathname);
 								
-								scripts = domain.scripts.filter(
-									script => {
-										
-										return !script.disabled;
-										
-									}
-								);
+								scripts = domain.scripts;
 								
 								if (site) {
 									
 									scripts.push.apply(scripts,
-													   site.scripts.filter(
-														   script => {
-															   return !script.disabled;
-														   }
-													   ));
+													   site.scripts);
 									
 									groups.push.apply(groups, site.groups);
 								}
 
 							}
 
-							console.log("Domain groups: ");
-							console.log(groups);
+							// console.log("Domain groups: ");
+							// console.log(groups);
 							
 							/* SubDomains */
-							var split = url.hostname.split(".");
+							var split = self.__isIPAddr(url.hostname) ? [] : url.hostname.split(".");
 							var last;
 							
 							async.eachSeries(split.slice(1).reverse(),
 											 (actual, cb) => {
-
+												 
 												 var subdomain_name = last ? actual + "." + last : actual;
 												 last = actual;
 												 
-												 this.storage.getSubDomain(
+												 this.storage.getDomain(
 													 subdomain => {
 														 
-														 if (subdomain) 
+														 if (subdomain) {
+															 
 															 groups.push.apply(groups, subdomain.groups);
+															 scripts.push.apply(scripts, subdomain.scripts);
+
+														 }
 														 
 														 cb();
 														 
-													 }, subdomain_name
+													 }, "*." + subdomain_name
 												 );
 											 },
 											 () => {
-
-												 console.log("My groups: ");
-												 console.log(groups);
+												 
+												 // console.log("My groups: ");
+												 // console.log(groups);
 												 
 												 async.eachSeries(groups,
-																  (group, gcb) => {
+																  (group, next) => {
 																	  
 																	  this.storage.getGroup(
 																		  group => {
@@ -123,7 +125,7 @@ function DomainMgr (bg) {
 																			  } else 
 																				  console.warn("Missing group: " + group);
 																			  
-																			  gcb();
+																			  next();
 																			  
 																		  }, group
 																	  );		
@@ -135,37 +137,35 @@ function DomainMgr (bg) {
 																  });
 												 
 											 });
-						}
-					);
-			}
-		);
+						});
+			});
 	};
+	
+	// this.storeScript = function (script) {
+	
+	// 	return new Promise (
+	// 		(resolve, reject) => {
 
-	this.storeScript = function (script) {
-		
-		return new Promise (
-			(resolve, reject) => {
+	// 			var url = script.getUrl();
 
-				var url = script.getUrl();
-
-					if (self.domains.includes(url.hostname)) {
+	// 				if (self.domains.includes(url.hostname)) {
 					
-						self.getOrBringCached(url.hostname || url.href)
-							.then(
-								domain => {
+	// 					self.getOrBringCached(url.hostname || url.href)
+	// 						.then(
+	// 							domain => {
 								
-									// console.error("Domain: ");
-									// console.error(domain);
-									resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
+	// 								// console.error("Domain: ");
+	// 								// console.error(domain);
+	// 								resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
 								
-								}
-							);
+	// 							}
+	// 						);
 					
-					} else
-						resolve(self.__createParentFor(url).upsertScript(script));
-			}
-		);
-	};
+	// 				} else
+	// 					resolve(self.__createParentFor(url).upsertScript(script));
+	// 		}
+	// 	);
+	// };
 
 	/* Falta groups! */
 	this.haveInfoForUrl = function (url) {
@@ -179,10 +179,11 @@ function DomainMgr (bg) {
 						.then(
 							domain => {
 								
-								console.log ("Info for " + domain.name + " " + (domain.isEmpty() ? "Empty." : "OK."));
-								console.log(domain);
+								// console.log ("Info for " + domain.name + " " + (domain.isEmpty() ? "Empty." : "OK."));
+								// console.log(domain);
 								
-								resolve (!domain.isEmpty());
+								resolve (!domain.getOrCreateSite(url.pathname).isEmpty());
+								/* Add subdomains */
 							}
 						);
 					
@@ -210,9 +211,9 @@ function DomainMgr (bg) {
 		);
 	};
 
-	/* ¿Falta groups? */
 	this.getFullDomains = function (done) {
 
+		/* Filtrar => haveData */
 		var missing = _.difference(self.domains, self.getCachedNames());
 		
 		async.each(missing,
@@ -234,6 +235,7 @@ function DomainMgr (bg) {
 				   });
 	};
 
+	/* !!! */
 	this.importDomains = function (arr) {
 		
 		for (domain_info of arr)
@@ -261,14 +263,15 @@ function DomainMgr (bg) {
 			
 			if (key == "domains") 
 				self.domains = changes.domains.newValue || [];
-			else if (key.includes("domain-")) {
+
+			// else if (key.startsWith("domain-")) {
 				
-				/* domain removed */
-				if (!changes[key].newValue)
-					self.removeCached(changes[key].oldValue.name);
-				else
-					self.bg.option_mgr.sendMessage("cache-update-domains", changes[key].newValue.name);
-			}
+			// 	/* domain removed */
+			// 	if (!changes[key].newValue)
+			// 		self.removeCached(changes[key].oldValue.name);
+			// 	else
+			// 		self.bg.option_mgr.sendMessage("cache-update-domains", changes[key].newValue.name);
+			// }
 			
 		}
 	};

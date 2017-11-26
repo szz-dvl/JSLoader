@@ -564,12 +564,23 @@ angular.module('jslPartials', ['hljsSearch'])
 						   opts: "=opts",
 						   pa: "=pa",
 						   sites: "=sites",
+						   addscript: "=addscript",
 						   mgr: "=mgr"
 						   
 					   },
 					   
 					   templateUrl: function (elem, attr) {
 						   return browser.extension.getURL("fg/partials/group-list.html");
+					   },
+
+					   controller: function ($scope) {
+
+						   $scope.addScript = function () {
+
+							   $scope.addscript($scope.parent);
+							   
+						   }
+						   
 					   }
 				   }
 			   })

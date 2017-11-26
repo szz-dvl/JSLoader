@@ -13,17 +13,22 @@
 	<script src="../deps/shortcut.js"></script>
 	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
+
+	<script src="../deps/highlightjs/highlight.min.js"></script>
+	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
+	<script src="../partials/partials.js"></script>
+	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
 	
   </head>
   
-  <body spellcheck=false ng-controller="editorController as editor" ng-click="bodyClick($event)" ng-cloak> <!-- ng-angular-ready -->
+  <body spellcheck=false ng-controller="editorController as editor" ng-click="buttonToggle($event)" ng-cloak> <!-- ng-angular-ready -->
 	
 	<bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
 	<div id="editor-header" class="panel-section panel-section-header">
 	  <div class="text-section-header"> {{label}} || 
 		<span>
 		  <bdi id="user_action" class="bold"> {{user_action}} </bdi>
-		  <bdi id="url_pattern" contenteditable="true">{{url}}</bdi>
+		  <site-validator ev="page.events" url="url"> </site-validator>
 		</span>
 	  </div>
 	</div>
@@ -38,12 +43,12 @@
 	  
 	  <button ng-repeat="button in buttons.arr"
 			  ng-if="button.available"
-			  id="{{button.id}}"
+			  id="button.id"
 			  class="hidden-elem browser-style mright jsload_button"
-			  ng-click="buttonClick($event)">
+			  ng-click="button.click()">
 
 		{{button.text}}
-
+		
 	  </button>
 	  
 	</div>

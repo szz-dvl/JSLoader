@@ -15,8 +15,8 @@ function Storage () {
 			.then(
 				values => {
 					
-					console.log("Getting: " + key);
-					console.log(values[key]);
+					//console.log("Getting: " + key);
+					//console.log(values[key]);
 
 					cb(values[key]);
 			
@@ -42,6 +42,7 @@ function Storage () {
 		return browser.storage.local.remove(key);
 	};
 
+	/* Domains: */
 	this.__getDomains = function (cb) {
 		
 		self.__get(arr => {
@@ -57,55 +58,99 @@ function Storage () {
 		return self.__set('domains', val);
 	};
 
-	this.__upsertDomain = function (name, val) {
+	this.upsertDomain = function (val) {
 
-		return self.__set('domain-' + name, val);
+		self.__getDomains(
+			arr => {
+
+				if (!arr.includes(val.name)) {
+
+					arr.push(val.name);
+					self.__setDomains(arr);
+					
+				}
+
+			}); 
+		
+		if (name.startsWith("*."))
+			return self.__upsertSubDomain(val.name.slice(2), val);
+		else
+			return self.__set('domain-' + val.name, val);
 	};
 	
 	this.getDomain = function (cb, name) {
-		
-		self.__get(
-			domain => {
+
+		if (name.startsWith("*."))
+			return self.__getSubDomain(cb, name.slice(2));
+		else {
+
+			self.__get(
+				domain => {
 				
-				cb(domain ? new Domain(domain) : null);
+					cb(domain ? new Domain(domain) : null);
 				
-			}, 'domain-' + name);
+				}, 'domain-' + name);
+		}
 	};
 
-	this.__removeDomain = function (name) {
+	this.removeDomain = function (name) {
+
+		self.__getDomains(
+			arr => {
+
+				if (arr.includes(name)) {
+
+					arr.remove(arr.indexOf(name));
+					self.__setDomains(arr);
+					
+				}
+
+			});
 		
-		return self.__remove('domain-' + name);
+		if (name.startsWith("*."))
+			return self.__removeSubDomain(name.slice(2));
+		else
+			return self.__remove('domain-' + name);
 	};
 
 	this.getOrCreateDomain = function (cb, name) {
 		
-		self.getDomain(function (domain) {
-	
-			if (domain)
-				cb(domain);
-			else 
-				cb(new Domain({name: name}));
-			
-		}, name);
+		if (name.startsWith("*."))
+			return self.__getOrCreateSubDomain(cb, name.slice(2));
+		else {
+
+			self.getDomain(function (domain) {
+				
+				if (domain)
+					cb(domain);
+				else 
+					cb(new Domain({name: name}));
+				
+			}, name);
+		}
 	};
 
+	/* Options: */
 	this.getOptions = function (cb) {
 		
 		self.__get(cb, 'options');
 		
 	};
-
+	
 	this.setOptions = function (val) {
-
+		
 		return self.__set('options', val);
+		
+	};
+	
+	this.removeOptions = function () {
+		
+		return browser.storage.local.remove('options');
+
 	};
 
-	this.removeOptions = function () {
-	
-		return browser.storage.local.remove('options');
-	};
-	
-	this.getGroups = function (cb) {
+	/* Groups: */
+	this.__getGroups = function (cb) {
 		
 		self.__get(arr => {
 			
@@ -115,12 +160,11 @@ function Storage () {
 		
 	};
 
-	this.setGroups = function (val) {
-
+	this.__setGroups = function (val) {
+		
 		return self.__set('groups', val);
 	};
-
-	/* Groups: Revisar este y domains */
+	
 	this.getGroup = function (cb, name) {
 		
 		self.__get(
@@ -134,13 +178,38 @@ function Storage () {
 	
 	this.upsertGroup = function (val) {
 		
+		self.__getGroups(
+			groups => {
+				
+				if (!groups.includes(val.name)) {
+
+					groups.push(val.name);
+					self.__setGroups(groups);
+					
+				}
+			}
+		);
+		
 		return self.__set('group-' + val.name, val);
 		
 	};
 	
 	this.removeGroup = function (name) {
+
+		self.__getGroups(
+			groups => {
+				
+				if (groups.includes(name)) {
+					
+					groups.remove(groups.indexOf(name));
+					global_storage.__setGroups(groups);	
+					
+				}
+			}
+		);
 		
 		return self.__remove('group-' + name);
+		
 	};
 
 	this.getOrCreateGroup = function (cb, name) { 
@@ -156,50 +225,49 @@ function Storage () {
 	}
 
 	/* Subdomains: */
-	this.getSubDomain = function (cb, keyname) {
+	this.__getSubDomain = function (cb, keyname) {
 		
 		self.__get(
 			subdomain => {
 
-				cb(subdomain ? new AllSubDomainsFor(subdomain) : null);
+				cb(subdomain ? new Domain(subdomain) : null);
 				
 			}, 'subdomain-' + keyname);
 		
 	};
 	
-	this.upsertSubDomain = function (keyname, val) {
+	this.__upsertSubDomain = function (keyname, val) {
 		
 		return self.__set('subdomain-' + keyname, val);
 		
 	};
 	
-	this.removeSubDomain = function (keyname) {
+	this.__removeSubDomain = function (keyname) {
 		
 		return self.__remove('subdomain-' + keyname);
 	};
 
-	this.getOrCreateSubDomain = function (cb, keyname) { 
+	this.__getOrCreateSubDomain = function (cb, keyname) { 
 		
-		self.getSubDomain(
+		self.__getSubDomain(
 			subdomain => {
 			
 				if (subdomain)
 					cb(subdomain);
 				else 
-					cb(new AllSubDomainsFor({name: "*." + keyname, groups: []}));
+					cb(new Domain({name: "*." + keyname}));
 				
 			}, keyname);
 	};
 
-	/* Globals */
-
-	this.getGlobalIDs = function (cb) {
+	/* Globals: */
+	this.__getGlobalIDs = function (cb) {
 
 		self.__get(ids => { cb (ids || []) }, 'globals');
 		
 	};
 
-	this.setGlobalIDs = function (ids) {
+	this.__setGlobalIDs = function (ids) {
 
 		self.__set('globals', ids);
 		
@@ -213,13 +281,13 @@ function Storage () {
 	
 	this.setGlobal = function (global) {
 
-		self.getGlobalIDs(
+		self.__getGlobalIDs(
 			ids => {
 				
 				if (!ids.includes(global.id)) {
 
 					ids.push(global.id);
-					self.setGlobalIDs(ids);
+					self.__setGlobalIDs(ids);
 					
 				}
 				
@@ -230,13 +298,13 @@ function Storage () {
 
 	this.removeGlobal = function (global) {
 
-		self.getGlobalIDs(
+		self.__getGlobalIDs(
 			ids => {
 				
 				if (ids.includes(global.id)) {
 
 					ids.remove(ids.indexOf(global.id));
-					self.setGlobalIDs(ids);
+					self.__setGlobalIDs(ids);
 
 					self.__remove('global-' + global.id);
 					

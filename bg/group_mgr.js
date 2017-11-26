@@ -37,27 +37,6 @@ function GroupMgr (bg) {
 		}
 	);
 	
-	// this.getOrCreateGroup = function (name) {
-
-	// 	return new Promise (
-	// 		(resolve, reject) => {
-				
-	// 			if (name) {
-
-	// 				/* cache !! */
-	// 				self.getOrCreateItem(name, false)
-	// 					.then(group => {
-							
-	// 						resolve(group);
-							
-	// 					});
-					
-	// 			} else
-	// 				resolve(new Group({}));
-	// 		}
-	// 	)
-	// };
-	
 	this.showChooserWdw = function () {
 		
 		if (self.groups.length) {
@@ -109,11 +88,11 @@ function GroupMgr (bg) {
 								}
 
 								/* !! */
-								self.bg.domain_mgr.getOrCreateItem(temp.hostname, false)
+								self.bg.domain_mgr.getOrCreateItem(hostname, false)
 									.then(
 										domain => {
 											
-											let site = func == "append" ? domain.getOrCreateSite(temp.pathname) : domain.haveSite(temp.pathname);
+											let site = func == "append" ? domain.getOrCreateSite(pathname) : domain.haveSite(pathname);
 											let pr = [];
 											
 											if (site) {
@@ -205,13 +184,6 @@ function GroupMgr (bg) {
 			
 			if (key == "groups") 	
 				self.groups = changes.groups.newValue || [];
-
-			// else if (key.includes("group-")){  /* Regex to match start*/
-
-			// 	/* group removed */
-			// 	if (!changes[key].newValue)
-			// 		self.removeCached(changes[key].oldValue.name);
-			// }
 		}
 	};
 	

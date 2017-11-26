@@ -37,15 +37,12 @@ function EditorWdw (opt) {
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: 900, /* get wdw width */
-				height: 350 /* 40% height?  */
+				width: 1024, 
+				height: 656 
 				
 			}).then (
 				wdw => {
-					
-					// console.error("Got wdw!");
-					// console.log(wdw);
-					
+								
 					editor.wdw = wdw;
 					resolve (editor);
 					
@@ -78,8 +75,6 @@ function Editor (opt) {
 
 	this.editorClose = function () {
 		
-		//console.log("Removing editor " + self.id);
-		
 		self.parent.editors.remove(
 			self.parent.editors.findIndex(
 				editor => {
@@ -105,7 +100,7 @@ function EditorMgr (bg) {
 	
 	this.bg = bg;
 	this.eids = 0;
-	this.editors = []; //alive instances;
+	this.editors = []; //Alive instances
 	
 	this.__getEID = function () {
 		
@@ -137,9 +132,6 @@ function EditorMgr (bg) {
 
 	this.openEditorInstanceForScript = function (script) {
 		
-		// console.log("Editor: ");
-		// console.log(script);
-		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -148,7 +140,7 @@ function EditorMgr (bg) {
 				if (alive)
 					resolve(alive);
 				else {
-
+					
 					if (!script.parent.isGroup()) {
 
 						self.bg.getTabsForURL(script.getUrl())
@@ -158,14 +150,14 @@ function EditorMgr (bg) {
 									let tab = tabs[0];
 									
 									if (tab) {
-
+										
 										browser.tabs.update(tab.id, {active: true})
 											.then(
 												tab => {
 													
 													new EditorWdw({parent: self, script: script, tab: tab, mode: false})
 														.then(resolve, reject);
-
+													
 												}
 											);
 									
@@ -191,10 +183,10 @@ function EditorMgr (bg) {
 	};
 
 	this.openEditorInstanceForGroup = function (group) {
-
+		
 		return new EditorWdw({parent: self, script: group.upsertScript(new Script({})), tab: null, mode: true});
 
-	}
+	};
 
 	this.getOwnerOf = function (script) {
 
@@ -209,9 +201,6 @@ function EditorMgr (bg) {
 	};
 	
 	this.getEditorById = function (eid) {
-
-		// console.error("Getting editor " + eid + ": ");
-		// console.error(self.editors);
 		
 		return self.editors.filter(
 			editor => {

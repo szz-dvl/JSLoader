@@ -52,8 +52,6 @@ function CSMgr (bg) {
 								 self.storage.getGlobal(
 									 global => {
 										 
-										 //self.storage.removeGlobal(global);
-										 
 										 self.globals.push(global);
 										 next();
 										 
@@ -90,8 +88,6 @@ function CSMgr (bg) {
 	};
 
 	this.upsertGlobal = function (global) {
-
-		// delete global.$$hashKey;
 		
 		let mygl = self.globals.filter(
 			gl => {
@@ -255,12 +251,8 @@ function CSMgr (bg) {
 								{
 
 									self.alive.push(new CS(port));
-									console.log(self.alive);
-									//console.log("Getting info for: " + args.message.url);
 									
-									var url = new URL(args.message.url).sort();
-									
-									//console.log("Sending scripts for: " + url.href);
+									let url = new URL(args.message.url).sort();
 									
 									self.bg.domain_mgr.getScriptsForUrl(url)
 										.then(
@@ -268,8 +260,6 @@ function CSMgr (bg) {
 												
 												if (scripts)
 													self.bg.updatePA(url);
-
-												//console.log(scripts);
 												
 												port.postMessage({action: "content-script-run",
 																  message: (scripts || [])

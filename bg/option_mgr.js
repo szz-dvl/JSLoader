@@ -28,9 +28,6 @@ function OptionMgr (bg) {
 
 		new_options => {
 			
-			// console.log("Init Opts: ");
-			// console.log(new_options);
-			
 			Options.call(self, new_options || {});
 
 			console.log(self);
@@ -41,17 +38,15 @@ function OptionMgr (bg) {
 		
 		return new Promise (
 			(resolve, reject) => {
-
-				// console.log("Persisting opts: ");
-				// console.log({editor: self.editor, jsl: self.jsl});
-				
+	
 				self.storage
 					.setOptions({editor: self.editor, jsl: self.jsl})
 					.then(
 						() => {
 							
 							self.bg.broadcastEditors({action: "opts", message: self.editor});
-							resolve({editor: self.editor, jsl: self.jsl});
+							resolve({editor: Object.assign({}, self.editor), jsl: Object.assign({}, self.jsl)});
+
 						}
 					);
 			}

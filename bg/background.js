@@ -1,8 +1,7 @@
 function BG_mgr () {
 
-	var self = this;
+	let self = this;
 	
-	//this.tab_mgr = new TabMgr(self);
 	this.domain_mgr = new DomainMgr(self);
 	this.group_mgr = new GroupMgr(self);
 	this.content_mgr = new CSMgr(self);
@@ -36,7 +35,6 @@ function BG_mgr () {
 						self.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
-									//console.log((any ? "Info" : "No Info") + " for " + url.href);
 									
 									if (any)
 										browser.pageAction.show(tab.id);
@@ -51,7 +49,7 @@ function BG_mgr () {
 				
 			);
 	};
-
+	
 	this.getStoredData = function () {
 
 		return new Promise(
@@ -286,10 +284,7 @@ function BG_mgr () {
 			self.getTabsForURL(url)
 				.then(
 					tabs => {
-
-						// console.log("updating tabs for " + url.name());
-						// console.log(tabs);
-					
+						
 						for (tab of tabs) 
 							self.__showPageAction(tab.id);
 					
@@ -303,8 +298,6 @@ function BG_mgr () {
 BG_mgr.call(this);
 
 browser.tabs.onActivated.addListener(this.__showPageAction);
-//browser.tabs.onCreated.addListener(this.__showPageAction);
 browser.tabs.onUpdated.addListener(this.__showPageAction);
 browser.commands.onCommand.addListener(this.receiveCmd);
-//browser.runtime.onMessage.addListener(this.sendScriptsForURL);
 

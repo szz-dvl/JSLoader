@@ -1,7 +1,7 @@
 function DomainMgr (bg) {
 
 	var self = this;
-
+	
 	Cache.call(this, {feeding: global_storage.getDomain, birth: global_storage.getOrCreateDomain, key: "domains"});
 	
 	this.bg = bg;
@@ -17,20 +17,6 @@ function DomainMgr (bg) {
 		}
 	);
 
-	// this.__createParentFor = function (url) {
-		
-	// 	var parent;
-		
-	// 	if (url.pathname == "/")
-	// 		parent = new Domain ({name: url.hostname });
-	// 	else
-	// 		parent = new Domain ({name: url.hostname, sites: [{url: url.pathname}] }).sites[0];
-		
-	// 	self.cacheItem(parent.parent);
-		
-	// 	return parent;
-	// };
-
 	this.__isIPAddr = function (string) {
 
 		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
@@ -38,11 +24,19 @@ function DomainMgr (bg) {
 		return string.match(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/);
 
 	};
+
+	this.__getSubdomains = function () {
+
+		return self.domains.filter(
+			domain_name => {
+
+				return domain_name.startsWith("*.");
+				
+			}
+		);
+	};
 	
 	this.getScriptsForUrl = function (url) {
-
-		// console.log("Got url: ");
-		// console.log(url);
 		
 		return new Promise (
 			(resolve, reject) => {
@@ -59,7 +53,7 @@ function DomainMgr (bg) {
 							
 							if (domain) {
 								
-								/* Domain & Site */
+								/* Domain & Site scripts */
 								groups = domain.groups;
 								var site = domain.haveSite(url.pathname);
 								
@@ -78,7 +72,7 @@ function DomainMgr (bg) {
 							// console.log("Domain groups: ");
 							// console.log(groups);
 							
-							/* SubDomains */
+							/* SubDomain scripts */
 							var split = self.__isIPAddr(url.hostname) ? [] : url.hostname.split(".");
 							var last;
 							
@@ -107,7 +101,8 @@ function DomainMgr (bg) {
 												 
 												 // console.log("My groups: ");
 												 // console.log(groups);
-												 
+
+												 /* Group scripts */
 												 async.eachSeries(groups,
 																  (group, next) => {
 																	  
@@ -117,11 +112,7 @@ function DomainMgr (bg) {
 																			  if (group) {
 																				  
 																				  scripts.push.apply(scripts,
-																									 group.scripts.filter(
-																										 script => {
-																											 return !script.disabled;
-																										 }
-																									 ));
+																									 group.scripts);
 																			  } else 
 																				  console.warn("Missing group: " + group);
 																			  
@@ -141,33 +132,6 @@ function DomainMgr (bg) {
 			});
 	};
 	
-	// this.storeScript = function (script) {
-	
-	// 	return new Promise (
-	// 		(resolve, reject) => {
-
-	// 			var url = script.getUrl();
-
-	// 				if (self.domains.includes(url.hostname)) {
-					
-	// 					self.getOrBringCached(url.hostname || url.href)
-	// 						.then(
-	// 							domain => {
-								
-	// 								// console.error("Domain: ");
-	// 								// console.error(domain);
-	// 								resolve(domain.getOrCreateSite(url.pathname).upsertScript(script));
-								
-	// 							}
-	// 						);
-					
-	// 				} else
-	// 					resolve(self.__createParentFor(url).upsertScript(script));
-	// 		}
-	// 	);
-	// };
-
-	/* Falta groups! */
 	this.haveInfoForUrl = function (url) {
 
 		return new Promise (
@@ -178,9 +142,6 @@ function DomainMgr (bg) {
 					self.getOrBringCached(url.hostname)
 						.then(
 							domain => {
-								
-								// console.log ("Info for " + domain.name + " " + (domain.isEmpty() ? "Empty." : "OK."));
-								// console.log(domain);
 								
 								resolve (!domain.getOrCreateSite(url.pathname).isEmpty());
 								/* Add subdomains */
@@ -202,8 +163,9 @@ function DomainMgr (bg) {
 				self.getOrBringCached(url.hostname)
 					.then(
 						domain => {
-							
-							resolve(domain.getOrCreateSite(url.pathname));
+
+							/* must have the site, missing subdomains. */
+							resolve(domain.haveSite(url.pathname));
 							
 						}
 					);
@@ -262,17 +224,7 @@ function DomainMgr (bg) {
 		for (key of Object.keys(changes)) {
 			
 			if (key == "domains") 
-				self.domains = changes.domains.newValue || [];
-
-			// else if (key.startsWith("domain-")) {
-				
-			// 	/* domain removed */
-			// 	if (!changes[key].newValue)
-			// 		self.removeCached(changes[key].oldValue.name);
-			// 	else
-			// 		self.bg.option_mgr.sendMessage("cache-update-domains", changes[key].newValue.name);
-			// }
-			
+				self.domains = changes.domains.newValue || [];			
 		}
 	};
 	

@@ -78,45 +78,13 @@ function EditorFG (editor, bg) {
 	]
 
 	this.editor = editor;
-	// this.editor.message = function (msg, err) {
-		
-	// 	self.res_box.css("visibility", "hidden");
-		
-	// 	if (err)
-	// 		self.res_box.css("color", "red");
-	// 	else 			
-	// 		self.res_box.css("color", "green");
-		
-	// 	self.res_box.text(msg);
-	// 	self.res_box.css("visibility", "visible");
-		
-	// 	/* !!! */
-	// 	setTimeout(
-	// 		() => {
-	// 			self.res_box
-	// 				.fadeOut(800, "swing",
-	// 						 () => {
-								 
-	// 							 self.res_box.css("visibility", "hidden");
-	// 							 self.res_box.css("display", "block");
-										 
-	// 						 });
-				
-	// 		}, 5000);
-	// };
-	
-	// this.editor.updateTarget = function (old) {
-		
-	// 	if (old == self.editor.scope.url) {
-			
-	// 		var err = self.editor.script.badParent(self.editor.tab.url);
-		
-	// 		if(err)
-	// 			self.editor.message("Tab url outdated: " + err, true);
-	// 		else
-	// 			self.editor.scope.updateTarget(self.editor.tab.url);
-	// 	}
-	// };
+
+	/* 
+	   To-Do: 
+	   
+	      * Notify user on run error 
+	      * Update URL on tab update, if attached.
+	*/
 	
 	this.isCollapsed = function () {
 		
@@ -125,8 +93,6 @@ function EditorFG (editor, bg) {
 	};
 	
 	this.collapseHeader = function () {
-		
-		//console.log("collapseHeader header: " + self.editor.scope.dd_text);
 		
 		if (self.isCollapsed()) {
 			

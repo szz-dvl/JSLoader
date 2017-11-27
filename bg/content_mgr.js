@@ -235,15 +235,26 @@ function CSMgr (bg) {
 		
 	};
 
+	this.getMainFramesForTab = function (tabId) {
+		
+		return self.getFramesForTab(tabId).filter(
+			
+			cs => {
+				
+				return cs.frame.url === cs.frame.tab.url;	
+				
+			}
+		);	
+	};
+
 	this.waitForFrames = function (tabId) {
 
 		return new Promise(
 			(resolve, reject) => {
 				
-				browser.tabs.reload(tabId, {bypassCache: true})
+				browser.tabs.reload(tabId, {bypassCache: false})
 					.then(
 						() => {
-							
 							
 							let timeout = 5;
 							let myID = setInterval(

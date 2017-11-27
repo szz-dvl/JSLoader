@@ -15,13 +15,16 @@ function JSLTab (tabInfo, feeding) {
 	this.run = function (scripts) {
 		
 		let pr = [];
-
-		/* Match only the frame matching a given url? */
-		for (let frame of self.feeding(self.id))
+		
+		for (let frame of self.feeding(self.id)) {
+			
+			// console.log("Got Mainframe: ");
+			// console.log(frame);
 			pr.push(frame.run(scripts));
 
-		return Promise.all(pr);
+		}
 		
+		return Promise.all(pr);	
 	};
 }
 
@@ -38,8 +41,8 @@ function EditorWdw (opt) {
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: 1512, 
-				height: 656 
+				width: 1024, 
+				height: 420 
 				
 			}).then (
 				wdw => {
@@ -62,7 +65,7 @@ function Editor (opt) {
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	this.opts = self.parent.bg.option_mgr.editor;
 	
-	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.getFramesForTab) : null;
+	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.getMainFramesForTab) : null;
 	
 	self.parent.editors.push(self);
 	

@@ -74,7 +74,7 @@ function Script (opt) {
 	
 	this.getUrl = function () {
 		
-		if (self.parent && self.parent.isDomain())
+		if (self.parent && !self.parent.isGroup())
 			return new URL('http://' + self.parent.parent.name + self.parent.url);
 		else
 			return null; /* !!! */
@@ -166,17 +166,18 @@ function Script (opt) {
 	this.updateParent = function (url) {
 
 		try {
-
+			
 			let my_url = new URL ("http://" + url);
-
-			if (self.parent && my_url.match(self.getUrl())) 
+			
+			if (self.parent && my_url.match(self.getUrl())) { 
 				return Promise.resolve(self);
-			else
+				
+			} else
 				return self.__updateParent(url);
 			
 		} catch (e if e instanceof TypeError) {
 
-			if (self.parent && !self.parent.isGroup() && !self.parent.isDomain())
+			if (self.parent && self.parent.isSubdomain())
 				return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
 			else
 				self.__updateParent(url);

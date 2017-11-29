@@ -60,6 +60,7 @@ function OP (bg, port) {
 	let self = this;
 	
 	this.bg = bg;
+	this.port = port;
 	
 	this.domain_list;
 	this.group_list;
@@ -103,16 +104,14 @@ function OP (bg, port) {
 									$scope.active = tab.sref;
 										
 								}
-							);
-						
+							);	
 					});		
 			}
 		)
-		
 	});
-
+	
 	this.app.controller('userdefsController', function ($scope) {
-
+		
 		$scope.page = self;
 		$scope.defs_shown = true;
 		$scope.globs_shown = true;

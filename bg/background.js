@@ -128,7 +128,7 @@ function BG_mgr () {
 				
 				if (!frames.length) {
 					
-					self.content_mgr.waitForFrames(tab_info[0].id) /*!!*/
+					self.content_mgr.waitForFrames(tab_info[0].id) /* !! */
 						.then(
 							() => {
 								

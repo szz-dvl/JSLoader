@@ -115,28 +115,27 @@ function EditorMgr (bg) {
 	this.openEditorInstanceForTab = function (tab) {
 		
 		/* Focus editor if existent! */
-
+		
 		return new Promise(
 			(resolve, reject) => {
 				
 				let url = new URL(tab.url).sort();
-				
-				self.bg.domain_mgr.birth(url.hostname, false)
-					.then (
-						domain => {
+
+				self.bg.domain_mgr.birth(
+					domain => {
+						
+						/* Unpersisted info must not be present in caches. */
+						// if(domain.cache.amICached(domain.name))
+						// 	domain.cache.removeCached(domain.name);
 							
-							/* Unpersisted info must not be present in caches. */
-							// if(domain.cache.amICached(domain.name))
-							// 	domain.cache.removeCached(domain.name);
-							
-							new EditorWdw({ parent: self,
-											script: domain.getOrCreateSite(url.pathname).upsertScript(new Script({})),
-											tab: tab,
-											mode: true }).then(resolve, reject);
-							
-							
-						}
-					);
+						new EditorWdw({ parent: self,
+										script: domain.getOrCreateSite(url.pathname).upsertScript(new Script({})),
+										tab: tab,
+										mode: true }).then(resolve, reject);
+						
+						
+					}, url.hostname
+				);
 			}
 		);
 	};

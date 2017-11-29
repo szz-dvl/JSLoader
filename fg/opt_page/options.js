@@ -55,9 +55,9 @@ function Option (opt, section) {
 
 }
 
-function OP (bg, domains, groups, port) {
+function OP (bg, port) {
 	
-	var self = this;
+	let self = this;
 	
 	this.bg = bg;
 	
@@ -65,88 +65,84 @@ function OP (bg, domains, groups, port) {
 	this.group_list;
 	this.themes;
 	this.settings;
+	this.tabs;
 	
-	this.app = angular.module('OptionsApp', ['jslPartials', 'td.tabs']);
+	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
+	
+	this.app.controller('tabsController', function ($scope, $timeout) {
 
-	this.app.controller('userdefsController', ($scope, $timeout) => {
+		self.tabs = $scope;
+		$scope.page = self;
+		
+		$scope.active = "domains";
+		
+		$scope.tabs = [ 
+
+			{sref: 'settings', title: 'Settings'}, 
+			{sref: 'domains', title: 'Domains'}, 
+			{sref: 'groups', title: 'Groups'}, 
+			{sref: 'userdefs', title: 'Userdefs'}, 
+			{sref: 'storage', title: 'Storage'} 
+		];
+		
+		$timeout(
+			() => {
+				
+				$("#tab-" + $scope.active).addClass("active");
+				
+				$scope.tabs.map(
+					tab => {
+						
+						$("#tab-" + tab.sref)
+							.click(
+								ev => {
+								
+									$(ev.target).siblings('.td-tab-link').removeClass("active");
+									$(ev.target).addClass("active");
+									
+									$scope.active = tab.sref;
+										
+								}
+							);
+						
+					});		
+			}
+		)
+		
+	});
+
+	this.app.controller('userdefsController', function ($scope) {
 
 		$scope.page = self;
-		$scope.list = $scope.page.bg.content_mgr.globals;
-		$scope.definitions = $scope.page.bg.content_mgr.defs;
 		$scope.defs_shown = true;
 		$scope.globs_shown = true;
 		
-		$scope.dumpStorage = function () {
-
-			browser.storage.local.get(null)
-				.then(contents => {
-					
-					console.log("My contents: ");
-					console.log(contents);
-		
-				});	
-		};
-
 		$scope.toggleDefs = function () {
 
 			$scope.defs_shown = !$scope.defs_shown;
-			//$scope.$digest();
 
 		};
 
 		$scope.statusDefs = function () {
 
 			return $scope.defs_shown ? "v" : ">";
-			//$scope.$digest();
 
 		};
 
 		$scope.toggleGlobs = function () {
 
 			$scope.globs_shown = !$scope.globs_shown;
-			//$scope.$digest();
 
 		};
 
 		$scope.statusGlobs = function () {
 
 			return $scope.globs_shown ? "v" : ">";
-			//$scope.$digest();
 
 		};
-
-		// $timeout(
-
-		// 	() => {
-
-		// 		$scope.ace_defs = ace.edit("defs_area");
-		// 		$scope.ace_defs.session.setMode("ace/mode/javascript");
-		// 		$scope.ace_defs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
-		// 		$scope.ace_defs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
-		// 		$scope.ace_defs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
-				
-		// 		$scope.ace_defs.setOptions({
-					
-		// 			fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
-					
-		// 		});
-
-		// 		$scope.ace_globs = ace.edit("globs_area");
-		// 		$scope.ace_globs.session.setMode("ace/mode/javascript");
-		// 		$scope.ace_globs.setShowPrintMargin($scope.page.bg.option_mgr.editor.showPrintMargin);
-		// 		$scope.ace_globs.renderer.setShowGutter($scope.page.bg.option_mgr.editor.showGutter);
-		// 		$scope.ace_globs.setTheme("ace/theme/" + $scope.page.bg.option_mgr.editor.theme.name);
-				
-		// 		$scope.ace_globs.setOptions({
-					
-		// 			fontSize: $scope.page.bg.option_mgr.editor.fontSize + "pt"
-					
-		// 		});
-			
-		// 	}
-		// );
 		
 	});
+	
 	
 	this.app.controller('themeController', ($scope, $compile) => {
 
@@ -232,10 +228,11 @@ function OP (bg, domains, groups, port) {
 
 	});
 	
-	this.app.controller('settingsController', ($scope, $timeout) => {
-
-		self.settings = $scope;
+	this.app.controller('settingsController', function ($scope, $timeout, dataOpts) {
 		
+		self.settings = $scope;
+
+		$scope.opts = dataOpts;
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
@@ -247,9 +244,9 @@ function OP (bg, domains, groups, port) {
 				title: "JSLoader Settings",
 				opts: [
 					
-					new Option({text:'Uglify code', value: $scope.page.bg.option_mgr.jsl.uglify, type: "checkbox", id: "uglify",								
-								subopts: [{text:'Uglify mangle', value: $scope.page.bg.option_mgr.jsl.uglify_mangle, type: "checkbox", id: "uglify_mangle"}]
-							   }, $scope.page.bg.option_mgr.jsl)
+					new Option({text:'Uglify code', value: $scope.opts.jsl.uglify, type: "checkbox", id: "uglify",								
+								subopts: [{text:'Uglify mangle', value: $scope.opts.jsl.uglify_mangle, type: "checkbox", id: "uglify_mangle"}]
+							   }, $scope.opts.jsl)
 				]
 			},
 			{
@@ -257,11 +254,11 @@ function OP (bg, domains, groups, port) {
 				title: "Editor Settings",
 				opts: [
 			
-					new Option({text:'Print margin line', value: $scope.page.bg.option_mgr.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.page.bg.option_mgr.editor),
-					new Option({text:'Collapse header by default', value: $scope.page.bg.option_mgr.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.page.bg.option_mgr.editor),
-					new Option({text:'Show gutter line', value: $scope.page.bg.option_mgr.editor.showGutter, type: "checkbox", id: "showGutter"}, $scope.page.bg.option_mgr.editor),
+					new Option({text:'Print margin line', value: $scope.opts.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.opts.editor),
+					new Option({text:'Collapse header by default', value: $scope.opts.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.opts.editor),
+					new Option({text:'Show gutter line', value: $scope.opts.editor.showGutter, type: "checkbox", id: "showGutter"}, $scope.opts.editor),
 					
-					new Option({text:'Font size', value: $scope.page.bg.option_mgr.editor.fontSize, type: "text", id: "fontSize",
+					new Option({text:'Font size', value: $scope.opts.editor.fontSize, type: "text", id: "fontSize",
 								change: that => {
 
 									if (that.ToID)
@@ -271,13 +268,13 @@ function OP (bg, domains, groups, port) {
 										() => {
 											$('code').each(
 												(i, block) => {
-													$(block).css("font-size", $scope.page.bg.option_mgr.editor.fontSize + "pt");
+													$(block).css("font-size", $scope.opts.editor.fontSize + "pt");
 												}
 											);									
 										}, 1000
 									);
 									
-								}}, $scope.page.bg.option_mgr.editor
+								}}, $scope.opts.editor
 							  )
 				]
 			}
@@ -304,8 +301,9 @@ function OP (bg, domains, groups, port) {
 
 		$scope.updtOpts = function() {
 			
-			$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
-			$scope.page.bg.option_mgr.persist(); /* !!! */
+			//$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
+			$scope.opts.editor.theme = $scope.page.themes.current;
+			$scope.page.bg.option_mgr.persist($scope.opts, $scope.page.themes.current); /* !!! */
 			
 		};
 		
@@ -318,12 +316,12 @@ function OP (bg, domains, groups, port) {
 		);
 	});
 
-	this.app.controller('domainController', ($scope, $timeout) => {
+	this.app.controller('domainController', function ($scope, $timeout, dataDomains) {
 		
 		$scope.page = self;
 		$scope.page.domain_list = $scope;
 		$scope.port = port;
-		$scope.domains = domains;
+		$scope.domains = dataDomains;
 		
 		$scope.shown = [];
 		
@@ -353,11 +351,11 @@ function OP (bg, domains, groups, port) {
 		$scope.port.onMessage.addListener(
 
 			(args) => {
-
+				
 				switch (args.action) {
 					
 				case "cache-update-domains":
-
+					
 					/* To event emitter. */
 					$scope.port.postMessage({action: "list-update", message: args.message});
 					$scope.$digest();
@@ -374,13 +372,13 @@ function OP (bg, domains, groups, port) {
 		});	
 	});
 	
-	this.app.controller('groupController', ($scope, $timeout) => {
+	this.app.controller('groupController', function ($scope, $timeout, dataGroups) {
 
 		$scope.page = self;
 		$scope.page.group_list = $scope;
 
 		$scope.port = port;
-		$scope.groups = groups;
+		$scope.groups = dataGroups;
 
 		$scope.shown = [];
 		
@@ -413,6 +411,73 @@ function OP (bg, domains, groups, port) {
 			
 		});	
 	});
+
+	this.app.config(
+		$stateProvider => {
+			
+			$stateProvider.state({
+				
+				resolve: {
+					dataDomains: self.bg.domain_mgr.getAllItems
+				},
+				
+				name: 'domains',
+				templateUrl: 'domains.html',
+				controller: "domainController"
+			});
+			
+			$stateProvider.state({
+				
+				resolve: {
+					dataOpts: () => { return {editor: self.bg.option_mgr.editor, jsl: self.bg.option_mgr.jsl}; } 
+				},
+				
+				name: 'settings',
+				templateUrl: 'settings.html',
+				controller: "settingsController"
+
+			});
+
+			$stateProvider.state({
+		
+				name: 'userdefs',
+				templateUrl: 'userdefs.html',
+				controller: "userdefsController"
+			});
+
+			$stateProvider.state({
+
+				resolve: {
+					dataGroups: self.bg.group_mgr.getAllItems
+				},
+				
+				name: 'groups',
+				templateUrl: 'groups.html',
+				controller: "groupController"
+				
+			});
+
+			$stateProvider.state({
+
+				resolve: {
+					dataStorage: browser.storage.local.get
+				},
+				
+				name: 'storage',
+				template: '<div>{{ content }}</div>',
+
+				controller: function ($scope, dataStorage) {
+
+					console.log(dataStorage);
+					$scope.content = JSON.stringify(dataStorage);
+				}
+				
+			});
+			
+		}
+	);
+
+	this.app.run($state => {$state.go('domains')});
 	
 	angular.element(document).ready(
 		() => {
@@ -426,25 +491,15 @@ function OP (bg, domains, groups, port) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			page.getOptPage()
-				.then(
-					data => {
-						
-						var port = browser.runtime.connect(browser.runtime.id, {name:"option-page"});
-						
-						window.onbeforeunload = function () {
-	
-							port.disconnect();
 							
-						}
-						
-						console.log("My data: ");
-						console.log(data);
-						
-						OP.call(this, page, data.domains, data.groups, port);
-						
-					}
-				);		
+			window.onbeforeunload = function () {
+				
+				port.disconnect();
+							
+			}
+			
+			OP.call(this, page, browser.runtime.connect(browser.runtime.id, {name:"option-page"}));
+			
 		}
-	);
-	
+	);		
+

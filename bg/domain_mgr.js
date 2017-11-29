@@ -142,8 +142,11 @@ function DomainMgr (bg) {
 					self.getOrBringCached(url.hostname)
 						.then(
 							domain => {
+
+								let site = domain.haveSite(url.pathname);
 								
-								resolve (!domain.getOrCreateSite(url.pathname).isEmpty());
+								resolve (!domain.isEmpty() || (site ? !site.isEmpty() : false));
+
 								/* Add subdomains */
 							}
 						);
@@ -172,30 +175,7 @@ function DomainMgr (bg) {
 			}
 		);
 	};
-
-	this.getFullDomains = function (done) {
-
-		/* Filtrar => haveData */
-		var missing = _.difference(self.domains, self.getCachedNames());
-		
-		async.each(missing,
-				   (domain_name, cb) => {
-					   
-					   self.getAndCacheItem(domain_name)
-						   .then(
-							   domain => {
-								   
-								   cb();
-									 
-							   }
-						   );
-				   },
-				   () => {
-					   
-					   done(self.cache);
-							 
-				   });
-	};
+			
 
 	/* !!! */
 	this.importDomains = function (arr) {
@@ -207,13 +187,17 @@ function DomainMgr (bg) {
 
 	this.clear = function () {
 
-		self.getFullDomains(
-			domains => {
+		async.each(self.domains,
+				   (domain_name, next) => {
 
-				for (domain of domains)
-					domain.remove();
-				
-			});
+					   self.feeding(
+						   domain => {
+								   
+							   domain.remove();
+								   
+						   }, domain_name);
+					   
+				   });
 	};
 	
 	this.storeNewDomains = function (changes, area) {

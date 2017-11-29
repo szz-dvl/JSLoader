@@ -1,0 +1,28 @@
+<div class="panel-section" >
+  <div id="group_head" class="panel-section panel-section-header">
+	<div class="text-section-header">{{title}}
+	  <label class="input_import">
+		<input id="import_groups" type="file">
+	  </label>
+	  <button class="browser-style jsload-button" ng-show="import_gr_button" ng-click="applyGrImport()"> Apply changes </button>
+	</div>
+  </div>
+</div><br>
+
+<div class="panel-section" ng-repeat="group in groups" ng-if="!group.isEmpty()">
+
+  <group-list ng-if="!group.isEmpty()"
+			  scripts="group.scripts"
+			  parent="group"
+			  port="port"
+			  editor="page.bg.editor_mgr.openEditorInstanceForScript"
+			  shown="shown"
+			  pa="page.bg.updatePA"
+			  opts="page.bg.option_mgr.editor"
+			  sites="group.sites"
+			  parent="group"
+			  addscript="page.bg.editor_mgr.openEditorInstanceForGroup"
+			  mgr="page.bg.group_mgr">
+  </group-list>
+
+</div> 

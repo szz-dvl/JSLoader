@@ -134,38 +134,10 @@ function GroupMgr (bg) {
 		
 	}
 
-	this.getFullGroups = function (done) {
-		
-		var missing = _.difference(self.groups, self.getCachedNames());
-		
-		async.each(missing,
-				   (group_name, cb) => {
-					   
-					   self.getAndCacheItem(group_name)
-						   .then(
-							   group => {
-								   
-								   cb();
-									 
-							   }
-						   );
-				   },
-				   () => {
-					   
-					   done(self.cache);
-					   
-				   });
-	};
-
+	
 	this.clear = function () {
-
-		self.getFullGroups(
-			groups => {
-
-				for (group of groups)
-					group.remove();
-				
-			})
+		
+		cosnsole.error("Unimplemented!");
 	};
 	
 	this.importGroups = function (arr) {

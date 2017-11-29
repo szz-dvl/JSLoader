@@ -44,47 +44,47 @@ function BG_mgr () {
 									
 								});	
 
-					} else
-						console.error("Bad URL: " + url.href);
+					} 
 				}
 			);
 	};
 	
-	this.getStoredData = function () {
+	// this.getStoredData = function () {
 
-		return new Promise(
-			(resolve, reject) => {
+	// 	return new Promise(
+	// 		(resolve, reject) => {
 
-				self.domain_mgr.getFullDomains(
-					domains => {
+	// 			self.domain_mgr.getFullDomains()
+	// 				.then(
+	// 					domains => {
 						
-						self.group_mgr.getFullGroups(
-							groups => {
+	// 						self.group_mgr.getFullGroups(
+	// 							groups => {
 
-								resolve({domains: domains, groups: groups});
+	// 								resolve({domains: domains, groups: groups});
 
-							}
-						);
-					}
-				);
-			}
-		)
-	};
+	// 							}
+	// 						);
+	// 					}
+	// 				);
+	// 		}
+	// 	)
+	// };
 	
-	this.getOptPage = function () {
+	// this.getOptPage = function () {
 		
-		return new Promise (
-			(resolve, reject) => {
+	// 	return new Promise (
+	// 		(resolve, reject) => {
 				
-				self.getStoredData().then(
-					data => {
+	// 			self.getStoredData().then(
+	// 				data => {
 						
-						resolve(data);
-					}
-				);
-			}
-		);
-	};
+	// 					resolve(data);
+	// 				}
+	// 			);
+	// 		}
+	// 	);
+	// };
 
 	this.getCurrentUrl = function () {
 
@@ -128,7 +128,7 @@ function BG_mgr () {
 				
 				if (!frames.length) {
 					
-					self.content_mgr.waitForFrames(tab_info[0].id)
+					self.content_mgr.waitForFrames(tab_info[0].id) /*!!*/
 						.then(
 							() => {
 								

@@ -1,195 +1,54 @@
 <!DOCTYPE html>
 
 <html>
-  <head ng-controller="themeController as theme">
-
-	<!-- charset="utf-8" -->
-	<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self';">
+  <head ng-controller="themeController">
+	
 	
 	<link rel="stylesheet" href="options.css"/>
-	<!-- <link rel="stylesheet" href="../deps/highlightjs/default.min.css"> -->
+	
+	<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self';">
+	
 	<link rel="stylesheet" href="chrome://browser/content/extension.css">
 	<link rel="stylesheet" href="../deps/ng-tabs/tabs.css">
-	
 	<link rel="stylesheet" href="../styles/script-list.css">
-	
-	<link ng-if="!current.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
-	<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
-	
-	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous"> -->
+
 	<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
-	
+
 	<script src="../deps/jquery.min.js"></script>
 	<script src="../deps/angular.min.js"></script>
+	<script src="../deps/angular-ui-router.min.js"></script>
 	<script src="../deps/highlightjs/highlight.min.js"></script>
 	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	<script src="../partials/partials.js"></script>
 
-	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 	<script src="../../utils/jsloader-utils.js"></script>
 	<script src="../../utils/deps/async.min.js"></script>
-
-	<script src="../deps/ng-tabs/tabs.js"></script>
+	<script src="../../utils/deps/underscore-min.js"></script>
+	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	
+	<link ng-if="!current.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
+	<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
 	
   </head>
   
-  <body spellcheck="false">
+  <body ng-controller="tabsController" spellcheck="false">
 
-	<div id="content" class="panel-section">
-	  
-	  <tabs tab-default="1">
-		  
-		<tab-nav></tab-nav>
-		
-		<div ng-controller="settingsController as settings" class="panel-section" ng-cloak>
-			
-		  <tab-content tab-index="0" tab-title="Settings">
-
-			<form ng-submit="updtOpts()">
-			  
-			  <!-- <div class="panel-section" > class="panel-section-header"-->
-			  <div id="settings_head" class="panel-section-header">
-				<div class="text-section-header"> {{title}}
-				  <label class="input_import">
-					<input id="import_settings" type="file">
-				  </label>
-				</div>
-			  </div>
-			  <!-- </div><br> -->
-
-			  <table>
-				<thead></thead>
-				<tbody>
-				  <tr>
-					<td class="option-col" ng-repeat="submenu in submenus">
-					  
-					  <option-menu list="submenu.opts" title="submenu.title" key="submenu.key" port="port"></option-menu>
-					  
-					  <label class="input" ng-if="submenu.key == 'editor'">
-						
-						<span> Editor theme: </span>
-						<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
-						
-					  </label><br>
-					  
-					</td>
-				  </tr>
-				</tbody>
-			  </table>
-
-			  <div class="opt-submit-outter">
-				<div class="opt-submit-inner">
-				  <input type="submit" value="Save Options" class="browser-style jsload-button">
-				</div>
-			  </div>
-
-			</form>
-		  </tab-content>
-		  
-		</div> <!-- settingsController -->
-		
-		<tab-content tab-index="1" tab-title="Domains">
-		  
-		  <div ng-controller="domainController" class="panel-section" ng-cloak>
-
-			<div class="panel-section" >
-			  <div id="domain_head" class="panel-section panel-section-header">
-				<div class="text-section-header">{{title}}
-				  <label class="input_import">
-					<input id="import_scripts" type="file">
-				  </label>
-				  <button class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
-				</div>
-			  </div>
-			</div><br>
-			
-			<div class="panel-section" ng-repeat="domain in domains" ng-if="domain.haveData()">
-			  
-			  <h4> {{domain.name}} </h4>
-
-			  <script-list ng-if="domain.scripts.length"
-						   list="domain.scripts"
-						   parent="domain"
-						   port="port"
-						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-						   shown="shown"
-						   pa="page.bg.updatePA"
-						   opts="page.bg.option_mgr.editor">
-			  </script-list>
-			  
-			  <script-list ng-repeat="site in domain.sites"
-						   ng-if="site.scripts.length"
-						   list="site.scripts"
-						   parent="site"
-						   port="port"
-						   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-						   shown="shown"
-						   pa="page.bg.updatePA"
-						   opts="page.bg.option_mgr.editor">
-			  </script-list>
-			  
-			</div> 
-		  </div> <!-- domainController -->
-
-		</tab-content>
-		
-		<tab-content tab-index="2" tab-title="Groups">
-
-		  <div ng-controller="groupController" class="panel-section" ng-cloak>
-
-			<div class="panel-section" >
-			  <div id="group_head" class="panel-section panel-section-header">
-				<div class="text-section-header">{{title}}
-				  <label class="input_import">
-					<input id="import_groups" type="file">
-				  </label>
-				  <button class="browser-style jsload-button" ng-show="import_gr_button" ng-click="applyGrImport()"> Apply changes </button>
-				</div>
-			  </div>
-			</div><br>
-			
-			<div class="panel-section" ng-repeat="group in groups" ng-if="!group.isEmpty()">
-
-			  <group-list ng-if="!group.isEmpty()"
-						  scripts="group.scripts"
-						  parent="group"
-						  port="port"
-						  editor="page.bg.editor_mgr.openEditorInstanceForScript"
-						  shown="shown"
-						  pa="page.bg.updatePA"
-						  opts="page.bg.option_mgr.editor"
-						  sites="group.sites"
-						  parent="group"
-						  addscript="page.bg.editor_mgr.openEditorInstanceForGroup"
-						  mgr="page.bg.group_mgr">
-			  </group-list>
-
-			</div> 
-		  </div> <!-- groupController -->
-		  
-		</tab-content>
-
-		<tab-content id="tdefs" tab-index="3" tab-title="User Definitions">
-
-		  <div id="tabdefs" ng-controller="userdefsController">
-
-			<!-- <global-list globals="list" mgr="page.bg.content_mgr"></global-list> -->
-
-			<h4> Globals <bdi style="color:red" ng-click="toggleGlobs()"> {{ statusGlobs() }} </bdi></h4>
-			<ace-inline feeding="'globals'" h="30" ng-show="globs_shown"></ace-inline>
-
-			<h4> Definitions <bdi style="color:red" ng-click="toggleDefs()"> {{ statusDefs() }} </bdi></h4>
-			<ace-inline feeding="'defs'" h="60" ng-show="defs_shown"></ace-inline>
-						
-		  </div>
-		  
-		</tab-content>
-		
-	  </tabs>
-	  
-	</div> <!-- content -->
-
-	<script src="options.js"></script>
+	<nav style="padding-left: 10px;">
+	  <div class="td-tab-nav">
+		<a ng-repeat="tab in tabs"
+		   class="td-tab-link"
+		   id="tab-{{tab.sref}}"
+		   ui-sref="{{tab.sref}}">
+		  {{ tab.title }}
+		</a>
+	  </div>
+	</nav>
 	
+	<div id="content" class="td-tab-content">
+	  <ui-view></ui-view>
+	</div>
+	 
+	<script src="options.js"></script>
+	 
   </body>
 </html>

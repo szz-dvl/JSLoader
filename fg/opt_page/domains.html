@@ -1,0 +1,43 @@
+<!-- <div class="panel-section" ng-cloak> -->
+  
+  <!-- ng-controller="domainController" -->
+  
+  <div class="panel-section" >
+	<div id="domain_head" class="panel-section panel-section-header">
+	  <div class="text-section-header">{{title}}
+		<label class="input_import">
+		  <input id="import_scripts" type="file">
+		</label>
+		<button class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+	  </div>
+	</div>
+  </div><br>
+  
+  <div class="panel-section" ng-repeat="domain in domains" ng-if="domain.haveData()">
+	
+	<h4> {{domain.name}} </h4>
+	
+	<script-list ng-if="domain.scripts.length"
+				 list="domain.scripts"
+				 parent="domain"
+				 port="port"
+				 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+				 shown="shown"
+				 pa="page.bg.updatePA"
+				 opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+	<script-list ng-repeat="site in domain.sites"
+				 ng-if="site.scripts.length"
+				 list="site.scripts"
+				 parent="site"
+				 port="port"
+				 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+				 shown="shown"
+				 pa="page.bg.updatePA"
+				 opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+  </div> 
+<!-- </div> <\!-- domainController -\-> -->
+

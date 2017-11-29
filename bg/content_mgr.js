@@ -78,40 +78,6 @@ function CSMgr (bg) {
 	
 		self.bg.group_mgr.addSiteTo(group_name, domain_name);
 	};
-
-	this.removeGlobal = function (global) {
-		
-		self.globals.remove(
-			self.globals.findIndex(
-				gl => {
-					return gl.id == global.id;
-				}
-			)
-		);
-
-		return self.storage.removeGlobal(global);
-
-	};
-
-	this.upsertGlobal = function (global) {
-		
-		let mygl = self.globals.filter(
-			gl => {
-				return gl.id == global.id;
-			}
-		)[0];
-
-		if (mygl) {
-			
-			mygl.key = global.key;
-			mygl.value = global.value;
-			
-		} else 
-			self.globals.push(Object.assign({}, global)); /* Copy global here, otherwise objects created in an angular controllers become dead after the controller dies.*/
-			
-		return self.storage.setGlobal(global);
-		
-	};
  
 	this.haveGlobal = function (key) {
 
@@ -256,7 +222,7 @@ function CSMgr (bg) {
 					.then(
 						() => {
 							
-							let timeout = 5;
+							let timeout = 7;
 							let myID = setInterval(
 								() => {
 						

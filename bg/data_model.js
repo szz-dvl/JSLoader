@@ -85,7 +85,7 @@ function Script (opt) {
 		if (self.elems.length)
 			self.elems = [];
 		
-		return self.parent ?
+		return self.parent ? /* Must never happen! */
 			self.parent.removeScript(self.uuid) :
 			Promise.resolve();
 	};
@@ -201,14 +201,14 @@ function Script (opt) {
 
 								if (cache){ 
 									
-									
 									cache.getOrCreateItem(name, false)
 										.then(
 											group => {
 												
 												resolve(group.upsertScript(self));
 															
-											}, reject);
+											}, reject
+										);
 									
 								} else
 									console.error("Attempting to upudate parent on uncached domain.");
@@ -325,6 +325,8 @@ function __Script_Bucket (scripts) {
 				}
 			)
 		);
+
+		console.log("removeScript: " + (self.isEmpty() ? "removing " + self.siteName() : "persisting " + self.siteName()) );
 		
 		return self.isEmpty() ?
 			self.remove() :
@@ -393,7 +395,7 @@ function __Script_Bucket (scripts) {
 		if (!exists)
 			self.elems.push(new Element(parent_id, page_shown));
 	};
-
+	
 	this.shownFor = function (list_uuid) {
 		
 		return self.elemFor(list_uuid).shown; 
@@ -418,6 +420,12 @@ function Site (opt) {
 		return self.url == "/";
 		
 	};
+
+	this.isSubdomain = function () {
+		
+		return self.parent.name.startsWith("*."); /* All subdomains shortcut. */
+		
+	};
 	
 	this.isGroup = function() {
 		
@@ -436,15 +444,14 @@ function Site (opt) {
 		return !self.scripts.length && !self.groups.length; 
 		
 	};
-
+	
 	this.appendGroup = function (group) {
 		
 		if (!self.groups.includes(group.name))
 			self.groups.push(group.name);
-
-		if (!group.sites.includes(self.siteName()))
-			group.sites.push(self.siteName());
 		
+		if (!group.sites.includes(self.siteName()))
+			group.sites.push(self.siteName());	
 	};
 
 	this.removeGroup = function (group) {
@@ -457,7 +464,6 @@ function Site (opt) {
 
 		if (group.isEmpty())
 			group.remove();
-		
 	};
 	
 	this.remove = function () {
@@ -519,12 +525,6 @@ function Domain (opt) {
 		}
 
 	}
-
-	this.isSubdomain = function () {
-		
-		return self.name.startsWith("*."); /* All subdomains shortcut. */
-		
-	};
 	
 	this.isEmpty = function () {
 
@@ -547,8 +547,8 @@ function Domain (opt) {
 					.then(
 						() => {
 							
-							if (self.cache && !self.cache.amICached(self.name))
-								self.cache.cacheItem(self);
+							if (self.cache && self.haveData())
+								self.cache.forceCacheItem(self); /* Caches must allways have persisted items. */
 							
 							resolve(self);
 							
@@ -747,8 +747,8 @@ function Group (opt) {
 					.then(
 						() => {
 							
-							if (self.cache && !self.cache.amICached(self.name))
-								self.cache.cacheItem(self);
+							if (self.cache && self.haveData())
+								self.cache.forceCacheItem(self);
 						}
 					);
 			}
@@ -764,7 +764,7 @@ function Group (opt) {
 					.then(() => {
 
 						if (self.cache && self.cache.amICached(self.name))
-							self.cache.cacheItem(self);
+							self.cache.removeCached(self);
 						
 					}, reject);
 			}
@@ -819,6 +819,13 @@ function Group (opt) {
 				return elem.shown;								
 			}
 		)[0] || false;
+	};
+
+	/* Cache compatibility */
+	this.haveData = function () {
+		
+		return self.scripts.length || self.sites.length;
+		
 	};
 	
 	this.ownerOf = function (site_name) {

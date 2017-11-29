@@ -26,10 +26,10 @@ function Cache (opt) {
 
 		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item_name);
 	}
-
-	/* item must exists in storage. */
+	
+	/* item must exists in storage. ~ And ~ */
 	this.getOrBringCached = function (item_name) {
-
+		
 		var cached = self.cache.filter(
 			cached => {
 				return cached.name == item_name;
@@ -42,7 +42,7 @@ function Cache (opt) {
 			return self.getAndCacheItem(item_name);
 	};
 
-	this.getAndCacheItem = function (item_name) {
+	this.__getAndCacheItem = function (item_name, ret) {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -52,20 +52,35 @@ function Cache (opt) {
 						
 						if (item) {
 
-							self.cacheItem(item);
+							if (item.haveData())
+								self.cacheItem(item);
+							else
+								console.warn("Rejecting void item: " + item_name);
 							
 						} else {
 							
 							console.warn("Attempting to cache an unexistent item (" + item_name + ").");
 							//reject(item_name);
 						}
-
-						resolve(item);
+						
+						resolve(ret ? item : void 0);
 						
 					}, item_name
 				);
 			}
 		);
+	};
+
+	this.getAndCacheItem = function (item_name) {
+
+		return self.__getAndCacheItem(item_name, true);
+
+	};
+
+	this.bringItem = function (item_name) {
+
+		return self.__getAndCacheItem(item_name, false);
+
 	};
 	
 	this.cacheItem = function (item) {
@@ -149,8 +164,31 @@ function Cache (opt) {
 			}
 		);
 	};
+
+	this.getAllItems = function () {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				/* Filtrar => haveData */
+				var missing = _.difference(self[self.key], self.getCachedNames());
+				
+				async.each(missing,
+						   (item_name, next) => {
+							   
+							   self.bringItem(item_name)
+								   .then(next, reject);
+							   
+						   },
+						   err => {
+							   
+							   resolve(self.cache);
+							   
+						   });
+			});
+	}
 	
-	/* Only when importing items, "cache-update-{ItemKey}" message will be broadcasted by "storeNew{ItemName}" on domain persist. */
+	/* Only when importing items, "cache-update-{ItemKey}" message will be broadcasted by "storeNew{ItemName}" on domain persist. !!!! */
 	this.updateCache = function (item) {
 
 		self.getOrBringCached(item.name)

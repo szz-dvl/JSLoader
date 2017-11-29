@@ -1,5 +1,17 @@
 angular.module('jslPartials', ['hljsSearch'])
 
+	.directive('jslHead',
+			   () => {
+				   
+				   return {
+					   restrict: 'E',
+					   replace: true,
+					   templateUrl: function (elem, attr) {
+							return browser.extension.getURL("fg/partials/default-deps.html");
+					   }
+				   }
+			   })
+
 	.directive('scriptName',
 			   () => {
 				   
@@ -57,8 +69,7 @@ angular.module('jslPartials', ['hljsSearch'])
 									   element.addClass("shown");
 								   
 							   } else 
-								   ev.stopImmediatePropagation();							   
-						   
+								   ev.stopImmediatePropagation();							      
 						   });
 					   }
 				   }
@@ -93,7 +104,7 @@ angular.module('jslPartials', ['hljsSearch'])
 
 						   if ($scope.parent.isGroup())
 							   $scope.parent.elems = [];
-							   
+						   
 						   $scope.parent.insertElem($scope.list_uuid, $scope.shown);
 						   
 						   $scope.list = $scope.list.map(

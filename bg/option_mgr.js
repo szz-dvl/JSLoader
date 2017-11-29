@@ -25,7 +25,7 @@ function OptionMgr (bg) {
 	this.storage = global_storage;
 	
 	this.storage.getOptions(
-
+		
 		new_options => {
 			
 			Options.call(self, new_options || {});
@@ -34,18 +34,21 @@ function OptionMgr (bg) {
 		}
 	);
 
-	this.persist = function () {
+	this.persist = function (opts) {
 		
 		return new Promise (
 			(resolve, reject) => {
-	
+
+				self.editor = Object.assign({}, opts.editor);
+				self.jsl = Object.assign({}, opts.jsl);
+				
 				self.storage
-					.setOptions({editor: self.editor, jsl: self.jsl})
+					.setOptions({editor: Object.assign({}, opts.editor), jsl: Object.assign({}, opts.jsl)})
 					.then(
 						() => {
 							
-							self.bg.broadcastEditors({action: "opts", message: self.editor});
-							resolve({editor: Object.assign({}, self.editor), jsl: Object.assign({}, self.jsl)});
+							self.bg.broadcastEditors({action: "opts", message: opts.editor});
+							resolve(opts);
 
 						}
 					);
@@ -81,26 +84,28 @@ function OptionMgr (bg) {
 				
 					self.port.onMessage.addListener(
 						args => {
-						
-							switch (args.action) {
-							case "list-update":
-								self.sendMessage("list-update", args.message);
-							 
-								break;
-							
-							case "import-opts":
-								self.sendMessage("import-opts", args.message);
-							
-								break;
 
-							case "update-PA":
-								self.bg.updatePA(args.message);
-							
-								break;
+							try {
+								switch (args.action) {
+								case "list-update":
+									self.sendMessage("list-update", args.message);
 								
-							default:
-								break;
-							}
+									break;
+									
+								case "import-opts":
+									self.sendMessage("import-opts", args.message);
+									
+									break;
+								
+								case "update-PA":
+									self.bg.updatePA(args.message);
+								
+									break;
+								
+								default:
+									break;
+								}
+							} catch (e) {}
 						}
 					);
 				

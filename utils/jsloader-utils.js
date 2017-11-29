@@ -75,10 +75,10 @@ function Theme (theme) {
 	this.knownToHl = theme.knownToHl || "monokai-sublime";
 	this.title = theme.title || "Hightlights available";
 
-	this.update = function (theme) {
+	// this.update = function (theme) {
 
-		this.name = theme.name;
-		this.knownToHl = theme.knownToHl;
-		this.title = theme.title;
-	}
+	// 	this.name = theme.name;
+	// 	this.knownToHl = theme.knownToHl;
+	// 	this.title = theme.title;
+	// }
 }

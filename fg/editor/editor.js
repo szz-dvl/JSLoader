@@ -150,6 +150,9 @@ function EditorFG (editor, bg) {
 				.then(
 					response => {
 
+						console.log("Run results: ");
+						console.log(response);
+						
 						self.editor.scope.enableButtons();
 						
 					},
@@ -173,10 +176,10 @@ function EditorFG (editor, bg) {
 			let promise = self.editor.script.parent.isGroup()
 				? self.editor.script.updateGroup(self.editor.scope.url)
 				: self.editor.script.updateParent(self.editor.scope.url);
-
+			
 			promise.then (
 				script => {
-
+					
 					script.code = self.editor.ace.getValue().toString().trim();
 					script.persist()
 						.then(
@@ -235,7 +238,7 @@ function EditorFG (editor, bg) {
 		$scope.page = self;
 
 		/* !!! ==> Groups! */
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : self.editor.tab ? self.editor.tab.url.name() : $scope.script.getParentName();
+		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName(); //self.editor.tab ? self.editor.tab.url.name() : $scope.script.getParentName();
 		
 		$scope.label = "JSLoader";
 
@@ -262,11 +265,11 @@ function EditorFG (editor, bg) {
 		};
 		
 		$scope.dd_text = "<";
-
+		
 		$scope.page.events
 			.on('validation_start',
 				pending => {
-
+					
 					console.log("Validation start: " + pending);
 								
 					$("#save_btn").attr("disabled", true);

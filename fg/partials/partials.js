@@ -214,9 +214,16 @@ angular.module('jslPartials', ['hljsSearch'])
 					   },
 					   
 					   controller: function ($scope) {
-						   
-						   $scope.backup = new URL('http://' + $scope.url).sort();
 
+						   try {
+
+							   $scope.backup = new URL('http://' + $scope.url).sort();
+
+						   } catch (e) {
+
+							   $scope.backup = $scope.url;
+						   }
+						   
 						   $scope.trimStart = function (character, string) {
 							   var startIndex = 0;
 							   
@@ -228,6 +235,14 @@ angular.module('jslPartials', ['hljsSearch'])
 						   }
 						   
 						   $scope.isSubDomain = function (orig, modified) {
+							   
+							   if (orig.endsWith("/"))
+								   orig = orig.slice(0, -1);
+
+							   if (modified.endsWith("/"))
+								   modified = modified.slice(0, -1);
+
+							   console.log("Domain: " + orig + " Subdomain: " + modified);
 							   
 							   var mod_arr = modified.split(".");
 							   var orig_arr = orig.split(".");
@@ -245,11 +260,36 @@ angular.module('jslPartials', ['hljsSearch'])
 							   
 							   return mod_arr[cursor_mod] == "*";
 						   };
+
+						   $scope.isSubSet = function (orig, modified) {
+							   
+							   if (orig.endsWith("/"))
+								   orig = orig.slice(0, -1);
+
+							   if (modified.endsWith("/"))
+								   modified = modified.slice(0, -1);
+
+							   console.log("Domain: " + orig + " Subdomain: " + modified);
+							   
+							   var mod_arr = modified.split(".");
+							   var orig_arr = orig.split(".");
+							   
+							   var cursor_mod = mod_arr.length - 1;
+							   var cursor_orig = orig_arr.length - 1;
+							   
+							   while ((mod_arr[cursor_mod] == orig_arr[cursor_orig])) {
+
+								   cursor_mod --;
+								   cursor_orig --;	
+							   }
+							   
+							   return mod_arr[cursor_mod] == "*" || orig_arr[cursor_orig] == "*";
+						   };
 						   
 						   $scope.validateSite = function (ev) {
-
+							   
 							   $scope.url = $scope.trimStart(" ", $(ev.target).text().trim());
-
+							   
 							   if ($scope.ev)
 								   $scope.ev.emitEvent("validation_start", [$scope.url]);
 							   
@@ -262,12 +302,28 @@ angular.module('jslPartials', ['hljsSearch'])
 									   try {
 										   
 										   var temp = new URL("http://" + $scope.url);
+
+										   try {
+											   
+											   if (temp.hostname != $scope.backup.hostname)
+												   $scope.url = $scope.backup.name();	
+											   else
+												   $scope.backup = temp;
+
+										   } catch (err) {
+
+											   console.log("String backup");
+											   console.log(err);
+											   
+											   /* String backup */
+											   
+											   if ($scope.isSubDomain(temp.hostname, $scope.backup))
+												   $scope.backup = temp; 
+											   else
+												   $scope.url = $scope.backup;
+											   
+										   }
 										   
-										   if (temp.hostname != $scope.backup.hostname)
-											   $scope.url = $scope.backup.name();	
-										   else
-											   $scope.backup = temp;
-							
 									   } catch (e if e instanceof TypeError) {
 
 										   console.log("TypeError: " + e.message);
@@ -276,12 +332,18 @@ angular.module('jslPartials', ['hljsSearch'])
 											   $scope.url = $scope.backup.name();
 										   else {
 
-											   if ($scope.isSubDomain($scope.backup.hostname, $scope.url.split("/")[0])) {
+											   if ($scope.isSubDomain($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) {
 												   
 												   $scope.url = $scope.url.split("/")[0] + "/"; /* "All subdomains" shortcut ... */
+												   $scope.backup = $scope.url;
 												   
-											   } else
-												   $scope.url = $scope.backup.name();
+											   } else {
+
+												   if ($scope.isSubSet($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) 
+													   $scope.backup = $scope.url;
+												   else 
+													   $scope.url = typeof($scope.backup) == "string" ? $scope.backup : $scope.backup.name();
+											   }
 										   }
 									   }	  
 									   
@@ -292,7 +354,7 @@ angular.module('jslPartials', ['hljsSearch'])
 									   
 									   $scope.$digest();
 									   
-								   }, 500, ev);
+								   }, 800, ev);
 						   };
 						   
 					   }

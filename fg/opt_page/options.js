@@ -75,7 +75,7 @@ function OP (bg, port) {
 		self.tabs = $scope;
 		$scope.page = self;
 		
-		$scope.active = "domains";
+		$scope.active;
 		
 		$scope.tabs = [ 
 
@@ -85,47 +85,34 @@ function OP (bg, port) {
 			{sref: 'userdefs', title: 'Userdefs'}, 
 			{sref: 'storage', title: 'Storage'} 
 		];
-		
-		$timeout(
-			() => {
-				
-				$("#tab-" + $scope.active).addClass("active");
-				
-				$scope.tabs.map(
-					tab => {
-						
-						$("#tab-" + tab.sref)
-							.click(
-								ev => {
-								
-									$(ev.target).siblings('.td-tab-link').removeClass("active");
-									$(ev.target).addClass("active");
+
+		$scope.setActive = function (tab) {
+
+			$("#tab-" + tab).siblings('.td-tab-link').removeClass("active");
+			$("#tab-" + tab).addClass("active");
 									
-									$scope.active = tab.sref;
-										
-								}
-							);	
-					});		
-			}
-		)
+			$scope.active = tab;
+		};
 	});
 	
 	this.app.controller('userdefsController', function ($scope) {
+		
+		self.tabs.setActive('userdefs');
 		
 		$scope.page = self;
 		$scope.defs_shown = true;
 		$scope.globs_shown = true;
 		
 		$scope.toggleDefs = function () {
-
+			
 			$scope.defs_shown = !$scope.defs_shown;
 
 		};
 
 		$scope.statusDefs = function () {
-
+			
 			return $scope.defs_shown ? "v" : ">";
-
+			
 		};
 
 		$scope.toggleGlobs = function () {
@@ -191,14 +178,14 @@ function OP (bg, port) {
 		];
 		
 		$scope.getTheme = function (name) {
-
+			
 			return $scope.list.filter(
 				theme => {
-					return theme.name == name;	
+					return theme.name == name;
 				}
 			)[0] || null;
 		};
-
+		
 		/* Import */
 		$scope.setTheme = function (name) {
 
@@ -224,20 +211,21 @@ function OP (bg, port) {
 				.find('[ng-href]')
 				.replaceWith($compile(link)($scope));
 		};	
-
 	});
 	
 	this.app.controller('settingsController', function ($scope, $timeout, dataOpts) {
 		
+		self.tabs.setActive('settings');
+		
 		self.settings = $scope;
-
+		
 		$scope.opts = dataOpts;
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
 		
 		$scope.submenus = [
-
+			
 			{
 				key: 'jsl',
 				title: "JSLoader Settings",
@@ -252,14 +240,14 @@ function OP (bg, port) {
 				key: 'editor',
 				title: "Editor Settings",
 				opts: [
-			
+					
 					new Option({text:'Print margin line', value: $scope.opts.editor.showPrintMargin, type: "checkbox", id: "showPrintMargin"}, $scope.opts.editor),
 					new Option({text:'Collapse header by default', value: $scope.opts.editor.collapsed, type: "checkbox", id: "collapsed"}, $scope.opts.editor),
 					new Option({text:'Show gutter line', value: $scope.opts.editor.showGutter, type: "checkbox", id: "showGutter"}, $scope.opts.editor),
 					
 					new Option({text:'Font size', value: $scope.opts.editor.fontSize, type: "text", id: "fontSize",
 								change: that => {
-
+									
 									if (that.ToID)
 										clearTimeout(that.ToID);
 									
@@ -302,8 +290,7 @@ function OP (bg, port) {
 			
 			//$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
 			$scope.opts.editor.theme = $scope.page.themes.current;
-			$scope.page.bg.option_mgr.persist($scope.opts, $scope.page.themes.current); /* !!! */
-			
+			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
 		};
 		
 		$timeout(
@@ -316,6 +303,8 @@ function OP (bg, port) {
 	});
 
 	this.app.controller('domainController', function ($scope, $timeout, dataDomains) {
+
+		self.tabs.setActive('domains');
 		
 		$scope.page = self;
 		$scope.page.domain_list = $scope;
@@ -346,7 +335,8 @@ function OP (bg, port) {
 			$scope.import_button = true;
 			$scope.$digest();
 		};
-		
+
+		/* Redo! */
 		$scope.port.onMessage.addListener(
 
 			(args) => {
@@ -373,9 +363,11 @@ function OP (bg, port) {
 	
 	this.app.controller('groupController', function ($scope, $timeout, dataGroups) {
 
+		self.tabs.setActive('groups');
+		
 		$scope.page = self;
 		$scope.page.group_list = $scope;
-
+		
 		$scope.port = port;
 		$scope.groups = dataGroups;
 
@@ -438,10 +430,11 @@ function OP (bg, port) {
 			});
 
 			$stateProvider.state({
-		
+				
 				name: 'userdefs',
 				templateUrl: 'userdefs.html',
 				controller: "userdefsController"
+				
 			});
 
 			$stateProvider.state({
@@ -457,18 +450,22 @@ function OP (bg, port) {
 			});
 
 			$stateProvider.state({
-
+				
 				resolve: {
 					dataStorage: browser.storage.local.get
 				},
 				
 				name: 'storage',
-				template: '<div>{{ content }}</div>',
-
+				template: '<div ng-repeat="key in keys" style="margin-bottom: 60px;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
+				
 				controller: function ($scope, dataStorage) {
+					
+					self.tabs.setActive('storage');
+					
+					console.log(dataStorage);		
+					$scope.content = dataStorage;
 
-					console.log(dataStorage);
-					$scope.content = JSON.stringify(dataStorage);
+					$scope.keys = Object.keys($scope.content);
 				}
 				
 			});
@@ -476,7 +473,7 @@ function OP (bg, port) {
 		}
 	);
 
-	this.app.run($state => {$state.go('domains')});
+	this.app.run($state => { $state.go('domains') });
 	
 	angular.element(document).ready(
 		() => {
@@ -490,12 +487,6 @@ function OP (bg, port) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-							
-			window.onbeforeunload = function () {
-				
-				port.disconnect();
-							
-			}
 			
 			OP.call(this, page, browser.runtime.connect(browser.runtime.id, {name:"option-page"}));
 			

@@ -222,11 +222,11 @@ function CSMgr (bg) {
 					.then(
 						() => {
 							
-							let timeout = 7;
+							let timeout = 5;
 							let myID = setInterval(
 								() => {
-						
-									let frames = self.getFramesForTab();
+									
+									let frames = self.getFramesForTab(tabId);
 									
 									if (frames.length) {
 										
@@ -247,6 +247,27 @@ function CSMgr (bg) {
 									
 								}, 500);
 						});
+			});
+	};
+
+	this.forceMainFramesForTab = function (tabId) {
+
+		return new Promise (
+			(resolve, reject) => {
+
+				let frames = self.getMainFramesForTab(tabId);
+				
+				if (frames.length)
+					resolve(frames);
+				
+				self.waitForFrames(tabId)
+					.then(
+						frames => {
+							
+							resolve(self.getMainFramesForTab(tabId));
+							
+						}, reject
+					);
 			});
 	};
 	
@@ -281,7 +302,7 @@ function CSMgr (bg) {
 											scripts => {
 												
 												if (scripts)
-													self.bg.updatePA(url);
+													self.bg.updatePA(url.href);
 												
 												port.postMessage({action: "run",
 																  message: (scripts || [])
@@ -349,11 +370,13 @@ function CSMgr (bg) {
 					
 					port.onDisconnect.addListener(
 						() => {
-		
+							
 							self.alive.remove(
 								self.alive.findIndex(
 									dead => {
+										
 										return dead.name == port.name;
+										
 									}
 								)
 							);		

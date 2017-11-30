@@ -74,9 +74,12 @@ function Script (opt) {
 	
 	this.getUrl = function () {
 		
-		if (self.parent && !self.parent.isGroup())
-			return new URL('http://' + self.parent.parent.name + self.parent.url);
-		else
+		if (self.parent && !self.parent.isGroup()) {
+			if (self.parent.isSubdomain())
+				return null;
+			else
+				return new URL('http://' + self.parent.parent.name + self.parent.url);
+		} else
 			return null; /* !!! */
 	};
 
@@ -117,15 +120,12 @@ function Script (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				// console.error("Old Parent: ");
-				// console.error(self.parent);
-				
 				self.remove()
 					.then(
 						() => {
-
+							
 							let cache = self.findCache();
-
+							
 							if (cache) {
 								
 								var pathname, hostname;
@@ -138,22 +138,28 @@ function Script (opt) {
 									hostname = temp.hostname;
 									
 								} catch(e) {
-
-									hostname = temp.hostname;
+									
+									/* All subdomains shortcut. */
+									
+									hostname = url; 
 									pathname = null;
+									
 								}
+
+								//console.log("Hostname: " + hostname + " Pathname: " + pathname);
 								
+								// getOrCreateDomain To promise!!
 								cache.getOrCreateItem(hostname, false)
 									.then(
 										domain => {
 											
 											resolve(domain.getOrCreateSite(pathname).upsertScript(self));
-													
+											
 											// console.error("Update Parent (" + url.hostname + "): ");
 											// console.error(self.parent);
 											
 										}, reject);
-							} else
+							} else 
 								console.error("Attempting to upudate parent on uncached domain.");
 							
 						}, reject
@@ -179,8 +185,8 @@ function Script (opt) {
 
 			if (self.parent && self.parent.isSubdomain())
 				return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
-			else
-				self.__updateParent(url);
+			else 
+				return self.__updateParent(url);
 		}
 	};
 
@@ -246,14 +252,17 @@ function Script (opt) {
 	// };
 	
 	this.persist = function () {
-	
+
+		if (!self.parent.haveScript(self.id))
+			self.parent.upsertScript(self);
+		
 		return self.parent.persist();
 		
 	};
 
 	this.getParentName = function () {
 
-		return !self.isDomain() ? self.parent.name : self.parent.parent.name;
+		return self.parent.isGroup() ? self.parent.name : self.parent.parent.name;
 
 	}
 
@@ -326,7 +335,7 @@ function __Script_Bucket (scripts) {
 			)
 		);
 
-		console.log("removeScript: " + (self.isEmpty() ? "removing " + self.siteName() : "persisting " + self.siteName()) );
+		//console.log("removeScript: " + (self.isEmpty() ? "removing " + self.siteName() : "persisting " + self.siteName()) );
 		
 		return self.isEmpty() ?
 			self.remove() :
@@ -531,7 +540,7 @@ function Domain (opt) {
 		return !self.scripts.length && !self.sites.length && !self.groups.length;
 		
 	};
-
+	
 	this.haveData = function () {
 		
 		return self.scripts.length || self.sites.length;
@@ -547,7 +556,7 @@ function Domain (opt) {
 					.then(
 						() => {
 							
-							if (self.cache && self.haveData())
+							if (self.cache  && self.haveData())
 								self.cache.forceCacheItem(self); /* Caches must allways have persisted items. */
 							
 							resolve(self);
@@ -580,7 +589,6 @@ function Domain (opt) {
 	this.haveSites = function () {
 		
 		return self.sites.length > 0;
-
 	};
 	
 	this.haveSite = function(pathname) {
@@ -663,18 +671,18 @@ function Domain (opt) {
 		
 			var cursor_mod = mod_arr.length - 1;
 			var cursor_orig = orig_arr.length - 1;
-		
+			
 			while ( (orig_arr[cursor_orig] != "*") &&
 					(mod_arr[cursor_mod] == orig_arr[cursor_orig])
 				  ) {
 			
 				cursor_mod --;
 				cursor_orig --;
-
+				
 				if (cursor_mod < 0)
 					break;
 			}
-		
+			
 			return orig_arr[cursor_orig] == "*";
 
 		} else
@@ -687,8 +695,7 @@ function Domain (opt) {
 			self.upsertScript(script);
 
 		for (site of imported.sites) 	
-			self.getOrCreateSite(site.url).appendGroup(self.name); /* Merda gorda! */
-		
+			self.getOrCreateSite(site.url).appendGroup(self.name);
 	};
 	
 	this.__getDBInfo = function () {
@@ -711,7 +718,6 @@ function Domain (opt) {
 			)
 		}
 	};
-	
 }
 
 function Group (opt) {
@@ -742,7 +748,7 @@ function Group (opt) {
 
 		return new Promise(
 			(resolve, reject) => {
-
+				
 				global_storage.upsertGroup(self.__getDBInfo())
 					.then(
 						() => {

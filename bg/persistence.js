@@ -72,7 +72,7 @@ function Storage () {
 
 			}); 
 		
-		if (name.startsWith("*."))
+		if (val.name.startsWith("*."))
 			return self.__upsertSubDomain(val.name.slice(2), val);
 		else
 			return self.__set('domain-' + val.name, val);
@@ -114,7 +114,7 @@ function Storage () {
 	};
 
 	this.getOrCreateDomain = function (cb, name) {
-		
+		/* To promise!!! */
 		if (name.startsWith("*."))
 			return self.__getOrCreateSubDomain(cb, name.slice(2));
 		else {

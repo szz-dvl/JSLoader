@@ -48,53 +48,18 @@ function BG_mgr () {
 				}
 			);
 	};
-	
-	// this.getStoredData = function () {
-
-	// 	return new Promise(
-	// 		(resolve, reject) => {
-
-	// 			self.domain_mgr.getFullDomains()
-	// 				.then(
-	// 					domains => {
-						
-	// 						self.group_mgr.getFullGroups(
-	// 							groups => {
-
-	// 								resolve({domains: domains, groups: groups});
-
-	// 							}
-	// 						);
-	// 					}
-	// 				);
-	// 		}
-	// 	)
-	// };
-	
-	// this.getOptPage = function () {
-		
-	// 	return new Promise (
-	// 		(resolve, reject) => {
-				
-	// 			self.getStoredData().then(
-	// 				data => {
-						
-	// 					resolve(data);
-	// 				}
-	// 			);
-	// 		}
-	// 	);
-	// };
 
 	this.getCurrentUrl = function () {
-
-		return new Promise ((resolve, reject) => {
+		
+		return new Promise (
+			(resolve, reject) => {
 			
-			browser.tabs.query({currentWindow: true, active: true})
-				.then(tab_info => {
-					resolve(new URL(tab_info[0].url).sort());
-				}, reject)
-		});
+				browser.tabs.query({currentWindow: true, active: true})
+					.then(tab_info => {
+						resolve(new URL(tab_info[0].url).sort());
+					}, reject)
+			}
+		);
 
 	};
 	
@@ -108,7 +73,7 @@ function BG_mgr () {
 						
 						self.domain_mgr.getEditInfoForUrl(url)
 							.then(resolve, reject);
-				
+						
 					});
 			});
 	};
@@ -148,7 +113,7 @@ function BG_mgr () {
 	};
 
 	this.showUnattachedEditor = function (group_name) {
-
+		
 		self.group_mgr.getOrCreateItem(group_name, false)
 			.then(
 				group => {
@@ -253,7 +218,20 @@ function BG_mgr () {
 
 		return new Promise(
 			(resolve,reject) => {
-				browser.tabs.query({url: "*://*." + url.name() + "*"})
+
+				var my_url;
+				
+				if (typeof(url) == "string") {
+					
+					if (url.startsWith("*."))
+						my_url = new URL("http://" + url.slice(2));
+					else
+						my_url = new URL(url);
+					
+				} else
+					my_url = url;
+				
+				browser.tabs.query({url: "*://*." + my_url.name() + "*"})
 					.then(
 						tabs => {
 							
@@ -267,17 +245,9 @@ function BG_mgr () {
 	
 	this.updatePA = function (script) {
 
-		var url;
+		/* Groups missing: To list! */
+		var url = typeof(script) == "object" ? (script.getUrl() || (script.parent.isSubdomain() ? script.getParentName() : null)) : script;
 		
-		if (typeof(script) === "string")
-			url = new URL(url);
-		
-		else if (typeof(script) === "function") {
-
-			if (script.parent.isDomain()) 
-				url = script.getUrl();
-		}
-
 		if (url) {
 			
 			self.getTabsForURL(url)
@@ -286,7 +256,7 @@ function BG_mgr () {
 						
 						for (tab of tabs) 
 							self.__showPageAction(tab.id);
-					
+						
 					}
 				);
 		}

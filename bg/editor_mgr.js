@@ -14,20 +14,28 @@ function JSLTab (tabInfo, feeding) {
 	
 	this.run = function (scripts) {
 		
-		let pr = [];
-		
-		for (let frame of self.feeding(self.id)) {
-			
-			// console.log("Got Mainframe: ");
-			// console.log(frame);
-			pr.push(frame.run(scripts));
+		return new Promise(
+			(resolve, reject) => {
+				
+				let pr = [];
 
-		}
-		
-		return Promise.all(pr);	
-	};
+				self.feeding(self.id)
+					.then(
+						frames => {
+
+							console.log("Got mainframes: ");
+							console.log(frames);
+							
+							for (let frame of frames) 
+								pr.push(frame.run(scripts));
+
+							Promise.all(pr).then(resolve, reject);
+							
+						}, reject);		
+				
+			});
+	}
 }
-
 
 function EditorWdw (opt) {
 
@@ -65,7 +73,7 @@ function Editor (opt) {
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	this.opts = self.parent.bg.option_mgr.editor;
 	
-	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.getMainFramesForTab) : null;
+	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.forceMainFramesForTab) : null;
 	
 	self.parent.editors.push(self);
 	
@@ -121,23 +129,22 @@ function EditorMgr (bg) {
 				
 				let url = new URL(tab.url).sort();
 
-				self.bg.domain_mgr.birth(
-					domain => {
-						
-						/* Unpersisted info must not be present in caches. */
-						// if(domain.cache.amICached(domain.name))
-						// 	domain.cache.removeCached(domain.name);
+				self.bg.domain_mgr.getOrCreateItem(url.hostname, false)
+					.then(
+						domain => {
+
+							/* Set the alleged parent for the script, DO NOT upsert the script into its bucket until persist happens. */
+							let parent = domain.getOrCreateSite(url.pathname);
 							
-						new EditorWdw({ parent: self,
-										script: domain.getOrCreateSite(url.pathname).upsertScript(new Script({})),
-										tab: tab,
-										mode: true }).then(resolve, reject);
-						
-						
-					}, url.hostname
-				);
+							new EditorWdw({ parent: self,
+											script: new Script({parent: parent}),
+											tab: tab,
+											mode: true }).then(resolve, reject);
+							
+						}
+					);
 			}
-		);
+		)
 	};
 
 	this.openEditorInstanceForScript = function (script) {
@@ -153,7 +160,9 @@ function EditorMgr (bg) {
 					
 					if (!script.parent.isGroup()) {
 
-						self.bg.getTabsForURL(script.getUrl())
+						let endpoint = script.getUrl() || script.getParentName();
+						
+						self.bg.getTabsForURL(endpoint)
 							.then(
 								tabs => {
 							

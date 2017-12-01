@@ -85,7 +85,7 @@ function EditorFG (editor, bg) {
 	      * Notify user on run error 
 	      * Update URL on tab update, if attached.
 	*/
-	
+
 	this.isCollapsed = function () {
 		
 		return self.editor.scope.dd_text == "<";
@@ -139,30 +139,56 @@ function EditorFG (editor, bg) {
 		self.editor.scope.buttons.shown = !self.editor.scope.buttons.shown
 	};
 	
+	this.getFirstError = function () {
+
+		return self.editor.ace.getSession().getAnnotations()
+			.find(
+				annotation => {
+					
+					return annotation.type == 'error';
+					
+				}
+			) || null;
+	};
+	
 	this.runCurrent = function () {
 
 		if (!self.editor.scope.buttons.disabled) {
 
 			self.editor.scope.disableButtons();
-			
-			self.editor.script.code = self.editor.ace.getValue().toString().trim();
-			self.editor.runInTab()
-				.then(
-					response => {
 
-						console.log("Run results: ");
-						console.log(response);
-						
-						self.editor.scope.enableButtons();
-						
-					},
-					err => {
+			let error = self.getFirstError();
 
-						/* Notify? */
-						self.editor.scope.enableButtons();
-						
-					});
+			if (!error) {
+				
+				self.editor.script.code = self.editor.ace.getValue().toString().trim();
+				self.editor.runInTab()
+					.then(
+						response => {
+							
+							if (!response[0].status) {
+								
+								let error = response[0].errors[0];
 
+								self.editor.ace.gotoLine(error.line, error.col, true);
+								self.bg.notifyUser("Run Errors", error.type + ": " + error.message);
+							}
+							
+							self.editor.scope.enableButtons();
+							
+						},
+						err => {
+							
+							/* Liada gorda! */
+							self.editor.scope.enableButtons();
+							
+						});
+			} else {
+				
+				self.bg.notifyUser("Script Errors", "Please check your synthax.");
+				self.editor.ace.gotoLine(error.row + 1, error.column, true);
+				self.editor.scope.enableButtons();
+			}
 		}
 	};
 	
@@ -173,26 +199,37 @@ function EditorFG (editor, bg) {
 			
 			self.editor.scope.disableButtons();
 
-			let promise = self.editor.script.parent.isGroup()
-				? self.editor.script.updateGroup(self.editor.scope.url)
-				: self.editor.script.updateParent(self.editor.scope.url);
-			
-			promise.then (
-				script => {
-					
-					script.code = self.editor.ace.getValue().toString().trim();
-					script.persist()
-						.then(
-							parent => {
-								
-								console.log("Updating PA!");
-								self.bg.updatePA(script);
-								self.editor.scope.enableButtons();
-							
-							}
-						)
-				}
-			);
+			let error = self.getFirstError();
+
+			if (!error) {
+				
+				let promise = self.editor.script.parent.isGroup()
+					? self.editor.script.updateGroup(self.editor.scope.url)
+					: self.editor.script.updateParent(self.editor.scope.url);
+				
+				promise.then (
+					script => {
+						
+						script.code = self.editor.ace.getValue().toString().trim();
+						script.persist()
+							.then(
+								parent => {
+									
+									console.log("Updating PA!");
+									self.bg.updatePA(script);
+									self.editor.scope.enableButtons();
+									
+								}
+							)
+					}
+				);
+
+			} else {
+				
+				self.bg.notifyUser("Script Errors", "Please check your synthax.");
+				self.editor.ace.gotoLine(error.row + 1, error.column, true);
+				self.editor.scope.enableButtons();
+			}
 			
 		} /* else: Notify? */
 	};
@@ -364,8 +401,7 @@ function EditorFG (editor, bg) {
 			switch (request.action) {
 			case "opts":
 				
-				console.log("New opts!");
-				self.editor.opts = request.message; /* ?? */
+				self.editor.opts = request.message;
 				self.resetAce();
 				
 			default:

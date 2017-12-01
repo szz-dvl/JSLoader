@@ -1,0 +1,38 @@
+/**
+ * Tabs wrapper
+ */
+.td-tabs {
+	margin: 20px auto;
+}
+
+/**
+ * Tabs navigation
+ */
+.td-tab-nav {
+	display: block;
+	margin: 20px auto;
+	margin-bottom: 0;
+}
+
+.td-tab-nav .td-tab-link {
+  padding: 10px;
+  border: 1px solid #dedede;
+  background: #f7f7f7;
+  display: inline-block;
+  margin-bottom: -1px;
+  margin-right: 3px;
+}
+
+.td-tab-nav .td-tab-link.active {
+	border-bottom-color: #fff;
+	font-weight: 700;
+	background: #fff;
+}
+
+/**
+ * Tab content
+ */
+.td-tab-content {
+  border: 1px solid #dedede;
+  padding: 20px;
+}

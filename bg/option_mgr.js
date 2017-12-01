@@ -47,7 +47,7 @@ function OptionMgr (bg) {
 					.then(
 						() => {
 							
-							self.bg.broadcastEditors({action: "opts", message: opts.editor});
+							self.bg.broadcastEditors({action: "opts", message: self.editor});
 							resolve(opts);
 
 						}

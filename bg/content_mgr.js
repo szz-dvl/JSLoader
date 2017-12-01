@@ -15,11 +15,12 @@ function CS (port) {
 				let my_listener = function (args) {
 					
 					if (args.action == "post-results") {
-
-						self.port.onMessage.removeListener(my_listener);
+						
 						args.frame = Object.assign({}, self.frame);
 						resolve(args);
-					
+						
+						self.port.onMessage.removeListener(my_listener);
+						
 					}
 				};
 			
@@ -210,6 +211,7 @@ function CSMgr (bg) {
 				return cs.frame.url === cs.frame.tab.url;	
 				
 			}
+			
 		);	
 	};
 
@@ -259,15 +261,19 @@ function CSMgr (bg) {
 				
 				if (frames.length)
 					resolve(frames);
+
+				else {
+					
+					self.waitForFrames(tabId)
+						.then(
+							frames => {
+							
+								resolve(self.getMainFramesForTab(tabId));
+							
+							}, reject
+						);
+				}
 				
-				self.waitForFrames(tabId)
-					.then(
-						frames => {
-							
-							resolve(self.getMainFramesForTab(tabId));
-							
-						}, reject
-					);
 			});
 	};
 	

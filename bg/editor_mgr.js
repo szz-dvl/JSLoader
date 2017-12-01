@@ -22,9 +22,6 @@ function JSLTab (tabInfo, feeding) {
 				self.feeding(self.id)
 					.then(
 						frames => {
-
-							console.log("Got mainframes: ");
-							console.log(frames);
 							
 							for (let frame of frames) 
 								pr.push(frame.run(scripts));
@@ -38,14 +35,14 @@ function JSLTab (tabInfo, feeding) {
 }
 
 function EditorWdw (opt) {
-
+	
 	return new Promise (
 		(resolve, reject) => {
 
 			let editor = new Editor(opt);
 			
 			browser.windows.create({
-							
+				
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
@@ -64,7 +61,7 @@ function EditorWdw (opt) {
 
 function Editor (opt) {
 
-	var self = this;
+	let self = this;
 	
 	this.parent = opt.parent;
 	this.script = opt.script;

@@ -13,8 +13,8 @@ function ContentScript() {
 			return void 0;
 			
 		} catch (err) {
-
-			return err;
+			
+			return { type: err.constructor.name, message:  err.message, line: err.lineNumber - 2, col: err.columnNumber };
 			
 		}
 	};
@@ -26,7 +26,7 @@ function ContentScript() {
 		for (script of scripts)
 			errors.push(self.run(script));
 
-		return errors.filter(err => { return err });
+		return errors.filter(err => { return err; });
 	};
 
 	this.port = browser.runtime.connect({name:"CS_" + self.id});
@@ -45,7 +45,7 @@ function ContentScript() {
 				for (error of errors)
 					console.error(error);
 				
-				this.port.postMessage({action: "post-results", status: errors.length, errors: errors});
+				this.port.postMessage({action: "post-results", status: errors.length === 0, errors: errors});
 				
 				break;
 

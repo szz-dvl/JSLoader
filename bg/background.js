@@ -88,26 +88,20 @@ function BG_mgr () {
 		
 		browser.tabs.query({currentWindow: true, active: true})
 			.then(tab_info => {
-				
-				let frames = self.content_mgr.getFramesForTab(tab_info[0].id);
-				
-				if (!frames.length) {
 					
-					self.content_mgr.waitForFrames(tab_info[0].id) /* !! */
-						.then(
-							() => {
+				self.content_mgr.forceMainFramesForTab(tab_info[0].id)
+					.then(
+						() => {
+							
+							self.editor_mgr.openEditorInstanceForTab(tab_info[0]);
 								
-								self.editor_mgr.openEditorInstanceForTab(tab_info[0]);
-								
-							},
-							() => {
-								
-								self.notifyUser("Content scripts not available", "This page seems to be blocking your scripts ... =(");
+						},
+						() => {
+							
+							self.notifyUser("Content scripts not available", "This page seems to be blocking your scripts ... =(");
 											
-							}
-						);
-				} else
-					self.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+						}
+					);
 				
 			}, self.logJSLError);
 	};

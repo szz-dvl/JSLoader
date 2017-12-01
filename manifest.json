@@ -87,6 +87,6 @@
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 	
-	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus" ]
+	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab" ]
 	
 }

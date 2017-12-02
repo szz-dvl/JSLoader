@@ -188,6 +188,9 @@ function EditorMgr (bg) {
 							);
 						
 					} else {
+
+						console.log("Group script: ");
+						console.log(script);
 						
 						new EditorWdw({parent: self, script: script, tab: null, mode: false})
 							.then(resolve, reject);
@@ -200,7 +203,10 @@ function EditorMgr (bg) {
 
 	this.openEditorInstanceForGroup = function (group) {
 		
-		return new EditorWdw({parent: self, script: group.upsertScript(new Script({})), tab: null, mode: true});
+		new EditorWdw({ parent: self,
+						script: new Script({parent: group}),
+						tab: null,
+						mode: true });
 
 	};
 

@@ -68,24 +68,33 @@ function OP (bg, port) {
 	this.settings;
 	this.tabs;
 	
-	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
+	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router', 'ngRoute']); 
 	
-	this.app.controller('tabsController', function ($scope, $timeout) {
+	this.app.controller('tabsController', function ($scope, $state) {
 
 		self.tabs = $scope;
 		$scope.page = self;
 		
 		$scope.active;
-		
-		$scope.tabs = [ 
 
-			{sref: 'settings', title: 'Settings'}, 
+		// if (dataBg) {
+
+		// 	console.log("Got dataBg!");
+		// 	console.log(dataBg);
+
+		// }
+		
+		$scope.tabs = [
+			
+			{sref: 'settings', title: 'Settings'},
 			{sref: 'domains', title: 'Domains'}, 
 			{sref: 'groups', title: 'Groups'}, 
-			{sref: 'userdefs', title: 'Userdefs'}, 
+			{sref: 'userdefs', title: 'Userdefs'},
 			{sref: 'storage', title: 'Storage'} 
+
 		];
 
+		//ui-sref
 		$scope.setActive = function (tab) {
 
 			$("#tab-" + tab).siblings('.td-tab-link').removeClass("active");
@@ -310,6 +319,9 @@ function OP (bg, port) {
 		$scope.page.domain_list = $scope;
 		$scope.port = port;
 		$scope.domains = dataDomains;
+
+		// console.log("dataDomains: ");
+		// console.log(dataDomains);
 		
 		$scope.shown = [];
 		
@@ -404,12 +416,20 @@ function OP (bg, port) {
 	});
 
 	this.app.config(
-		$stateProvider => {
-			
+		$stateProvider=> {
+		
 			$stateProvider.state({
 				
 				resolve: {
-					dataDomains: self.bg.domain_mgr.getAllItems
+					dataDomains: () => {
+						return new Promise (
+							resolve => {
+
+								self.bg.domain_mgr.getMissingItems()
+									.then(resolve);
+								
+							})
+					}
 				},
 				
 				name: 'domains',
@@ -440,12 +460,19 @@ function OP (bg, port) {
 			$stateProvider.state({
 
 				resolve: {
-					dataGroups: self.bg.group_mgr.getAllItems
+					dataGroups: () => {
+						return new Promise (
+							resolve => {
+
+								self.bg.group_mgr.getMissingItems()
+									.then(resolve);
+							})
+					}
 				},
 				
 				name: 'groups',
 				templateUrl: 'groups.html',
-				controller: "groupController"
+				controller: 'groupController'
 				
 			});
 
@@ -469,7 +496,6 @@ function OP (bg, port) {
 				}
 				
 			});
-			
 		}
 	);
 
@@ -487,7 +513,13 @@ function OP (bg, port) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			
+
+			window.onbeforeunload = function () {
+				
+				port.disconnect();
+
+			}
+
 			OP.call(this, page, browser.runtime.connect(browser.runtime.id, {name:"option-page"}));
 			
 		}

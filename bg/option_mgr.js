@@ -46,8 +46,9 @@ function OptionMgr (bg) {
 					.setOptions({editor: Object.assign({}, opts.editor), jsl: Object.assign({}, opts.jsl)})
 					.then(
 						() => {
-							
+
 							self.bg.broadcastEditors({action: "opts", message: self.editor});
+							
 							resolve(opts);
 
 						}
@@ -57,7 +58,7 @@ function OptionMgr (bg) {
 	};
 
 	this.openPage = function() {
-
+		
 		browser.runtime.openOptionsPage();
 		
 	};
@@ -89,7 +90,7 @@ function OptionMgr (bg) {
 								switch (args.action) {
 								case "list-update":
 									self.sendMessage("list-update", args.message);
-								
+									
 									break;
 									
 								case "import-opts":
@@ -99,7 +100,7 @@ function OptionMgr (bg) {
 								
 								case "update-PA":
 									self.bg.updatePA(args.message);
-								
+									
 									break;
 								
 								default:
@@ -112,8 +113,8 @@ function OptionMgr (bg) {
 					self.port.onDisconnect.addListener(
 						() => {
 
-							//self.port.onMessage.removeListener(self.informLists);
-							
+							//browser.runtime.reload(); /* !!! */
+
 							self.port = null;
 							console.log("Disconnecting port!");
 						}

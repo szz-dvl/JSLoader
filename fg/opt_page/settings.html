@@ -1,15 +1,15 @@
 <form ng-submit="updtOpts()">
   
-  <!-- <div class="panel-section" > class="panel-section-header"-->
-  <div id="settings_head" class="panel-section-header">
-	<div class="text-section-header"> {{title}}
-	  <label class="input_import">
-		<input id="import_settings" type="file">
+  <div class="panel-section">
+	<div id="settings_head" class="panel-section-header">
+	  <div class="text-section-header"> {{title}}
+	  <label class="input_import" style="float:right;">
+		<input id="import_settings" type="file"></input>
 	  </label>
+	  </div>
 	</div>
-  </div>
-  <!-- </div><br> -->
-
+  </div><br></br>
+  
   <table>
 	<thead></thead>
 	<tbody>
@@ -23,7 +23,7 @@
 			<span> Editor theme: </span>
 			<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
 			
-		  </label><br>
+		  </label><br></br>
 		  
 		</td>
 	  </tr>
@@ -32,7 +32,7 @@
 
   <div class="opt-submit-outter">
 	<div class="opt-submit-inner">
-	  <input type="submit" value="Save Options" class="browser-style jsload-button">
+	  <input type="submit" value="Save Options" class="browser-style jsload-button"></input>
 	</div>
   </div>
   

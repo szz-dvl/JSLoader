@@ -181,6 +181,81 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+
+	.directive('groupValidator',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   
+ 						   group: "=group",
+						   ev: "=ev"
+						   
+					   },
+
+					   transclude: true,
+
+					   template: '<bdi style="display: inline-flex; flex-shrink: 0;" contenteditable="true"> {{group}} </bdi>',
+					   
+					   link: function($scope, element) {
+					   
+						   
+						   element.on('input', $scope.validateGroup);
+						   
+						   element.keypress(ev => { return ev.which != 13; });
+						   element.click(ev => { return false; });
+						   
+						   /* !!! Ctrl-C - Ctrl-V */
+					   },
+
+					   controller: function ($scope) {
+
+						   $scope.backup = $scope.group;
+
+						   $scope.trimStart = function (character, string) {
+							   var startIndex = 0;
+							   
+							   while (string[startIndex] === character) {
+								   startIndex++;
+							   }
+							   
+							   return string.substr(startIndex);
+						   }
+						   
+						   $scope.validateGroup = function (ev) {
+	   
+							   $scope.group = $scope.trimStart(" ", $(ev.target).text().trim());
+							   
+							   if ($scope.ev)
+								   $scope.ev.emitEvent("validation_start", [$scope.group]);
+							   
+							   if($scope.changeID)
+								   clearTimeout($scope.changeID);
+							   
+							   $scope.changeID = setTimeout(
+								   ev => {
+									   
+									   if ($scope.group.match(/^[a-z0-9]+$/i))
+										   $scope.backup = $scope.group;
+									   else
+										   $scope.group = $scope.backup;
+									   
+									   $(ev.target).text($scope.group);
+
+									   if ($scope.ev)
+										   $scope.ev.emitEvent("validation_ready", [$scope.group]);
+									   
+									   $scope.$digest();
+									   
+								   }, 800, ev);
+						   }
+					   }
+				   }
+			   })
+
 	.directive('siteValidator',
 			   () => {
 				   
@@ -490,29 +565,32 @@ angular.module('jslPartials', ['hljsSearch'])
 					   },
 					   
 					   controller: function ($scope) {
-						   
-						   $scope.port.onMessage.addListener(
 
-							   (args) => {
+						   if ($scope.port) {
+							   
+							   $scope.port.onMessage.addListener(
+
+								   (args) => {
 								   
-								   switch (args.action) {
+									   switch (args.action) {
 									   
-								   case "import-opts":
+									   case "import-opts":
 									   
-									   for (opt of $scope.list) {
+										   for (opt of $scope.list) {
 										   
-										   opt.setVal(args.message[$scope.key][opt.id]);
+											   opt.setVal(args.message[$scope.key][opt.id]);
 										   
-										   for (subopt of opt.sub_opts) 
-											   subopt.setVal(args.message[$scope.key][subopt.id]); 
+											   for (subopt of opt.sub_opts) 
+												   subopt.setVal(args.message[$scope.key][subopt.id]); 
+										   }
+										   
+										   $scope.$digest();
+									   
+										   break;
 									   }
-									   
-									   $scope.$digest();
-									   
-									   break;
 								   }
-							   }
-						   )
+							   )
+						   }
 					   }
 				   }
 			   });

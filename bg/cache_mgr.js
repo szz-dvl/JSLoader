@@ -30,15 +30,18 @@ function Cache (opt) {
 	/* item must exists in storage. ~ And ~ */
 	this.getOrBringCached = function (item_name) {
 		
-		var cached = self.cache.filter(
+		let cached = self.cache.find(
 			cached => {
 				return cached.name == item_name;
 			}
-		)[0];
+		) || null;
 
-		if (cached) 
+		if (cached) {
+			
+			cached.cache = self;
 			return Promise.resolve(cached);	
-		else
+			
+		} else
 			return self.getAndCacheItem(item_name);
 	};
 
@@ -52,6 +55,8 @@ function Cache (opt) {
 						
 						if (item) {
 
+							item.cache = self;
+							
 							if (item.haveData())
 								self.cacheItem(item);
 							else
@@ -78,13 +83,15 @@ function Cache (opt) {
 	};
 
 	this.bringItem = function (item_name) {
-
+		
 		return self.__getAndCacheItem(item_name, false);
 
 	};
 	
-	this.cacheItem = function (item) {
+	this.__cacheItem = function (item, force) {
 
+		item.cache = self;
+		
 		var idx = self.cache.findIndex(
 			cached => {
 				
@@ -93,28 +100,23 @@ function Cache (opt) {
 			}
 		);
 
-		if (idx >= 0)
-			return idx;
-		else
-			return self.cache.push(item);
+		if (force && idx >= 0)
+			self.cache[idx] = item;
+
+		return idx >= 0 ? idx : self.cache.push(item);
+	};
+
+	this.cacheItem = function (item) {
+
+		return self.__cacheItem(item, false);
 	};
 
 	this.forceCacheItem = function (item) {
 
-		var idx = self.cache.findIndex(
-			cached => {
-				
-				return cached.name == item.name;
-				
-			}
-		);
-
-		if (idx >= 0)
-			return self.cache[idx] = item;
-		else
-			return self.cache.push(item);
-
-		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item_name);
+		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item.name);
+		
+		return self.__cacheItem(item, true);
+		
 	};
 
 
@@ -142,6 +144,7 @@ function Cache (opt) {
 					.then(item => {
 
 						if (!item) {
+							console.log("Creating item: " + item_name);
 							self.birth(
 								item => {
 									
@@ -149,15 +152,14 @@ function Cache (opt) {
 										self.cacheItem(item);
 									
 									item.cache = self;
+									
 									resolve(item);
 									
 								}, item_name);
 						
 						} else {
 
-							if (!item.cache)
-								item.cache = self;
-							
+							item.cache = self;
 							resolve(item);
 						}
 					});
@@ -165,27 +167,96 @@ function Cache (opt) {
 		);
 	};
 
-	this.getAllItems = function () {
+	this.getMissingItems = function () {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				/* Filtrar => haveData */
 				var missing = _.difference(self[self.key], self.getCachedNames());
 				
 				async.each(missing,
 						   (item_name, next) => {
 							   
 							   self.bringItem(item_name)
-								   .then(next, reject);
+								   .then(next, next);
+							   
+						   },
+						   err => {
+
+							   if (err) {
+								   
+								   console.error("Error getting missing items for " + self.key);
+								   reject(err);
+								   
+							   } else
+								   resolve(self.cache);
+							   
+						   });
+			});
+	}
+
+	this.reload = function () {
+
+		//console.log(self.getCachedNames());
+
+		return new Promise (
+			(resolve, reject) => {
+
+				let names = self.getCachedNames();
+				self.cache = [];
+				
+				async.each(names,
+						   (item_name, next) => {
+							   
+							   self.bringItem(item_name)
+								   .then(next, next);
 							   
 						   },
 						   err => {
 							   
-							   resolve(self.cache);
+							   if (err) {
+								   
+								   console.error("Error reloading items for " + self.key);
+								   reject(err);
+								   
+							   } else
+								   resolve(self.cache);
 							   
 						   });
-			});
+			}
+		);
+	}
+
+	this.getAllItems = function () {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				self.reload()
+					.then(
+						cache => {
+							
+							self.getMissingItems()
+								.then(resolve,
+									  err => {
+
+										  console.error("GetAllItems rejection;")
+										  console.err (err);
+										  
+										  reject();
+									  });
+							
+						},
+						err => {
+
+							console.error("GetAllItems rejection;")
+							console.err (err);
+
+							reject();
+						}
+					)
+			}
+		);
 	}
 	
 	/* Only when importing items, "cache-update-{ItemKey}" message will be broadcasted by "storeNew{ItemName}" on domain persist. !!!! */

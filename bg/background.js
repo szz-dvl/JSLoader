@@ -143,8 +143,12 @@ function BG_mgr () {
 	};
 	
 	this.broadcastEditors = function (message) {
-		
-		browser.runtime.sendMessage(message);
+
+		try {
+			
+			browser.runtime.sendMessage(message);
+			
+		} catch(e) {};
 		
 	};
 

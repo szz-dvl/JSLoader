@@ -64,13 +64,11 @@ function Script (opt) {
 	var self = this;
 	
 	this.uuid = opt.uuid || UUID.generate();
-	this.code = opt.code || "/* JS code (jQuery available) ...*/\n" + this.uuid;
+	this.code = opt.code || "/* JS code (jQuery, async and underscore available) ...*/\n";
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); 
 	this.disabled = opt.disabled || false;
 	this.elems = [];
-	
-	// this.run = opt.code ? new Function(opt.code) : null;
 	
 	this.getUrl = function () {
 		
@@ -87,26 +85,13 @@ function Script (opt) {
 
 		if (self.elems.length)
 			self.elems = [];
-		
-		return self.parent ? /* Must never happen! */
-			self.parent.removeScript(self.uuid) :
-			Promise.resolve();
+
+		/* Must always be present! */
+		return self.parent 
+			? self.parent.removeScript(self.uuid)
+			: Promise.resolve();
 	};
 	
-	// this.badParent = function (url) {
-		
-	// 	if (!url)
-	// 		return "Bad URL provided.";
-		
-	// 	if (self.parent) {
-			
-	// 		if (url.hostname != self.parent.parent.name) 	
-	// 			return "Changing target domain not allowed.";
-	// 	}
-		
-	// 	return false;	
-	// };
-
 	this.findCache = function () {
 
 		if (self.parent && self.parent.isGroup())
@@ -145,18 +130,11 @@ function Script (opt) {
 									pathname = null;
 									
 								}
-
-								//console.log("Hostname: " + hostname + " Pathname: " + pathname);
-								
-								// getOrCreateDomain To promise!!
 								cache.getOrCreateItem(hostname, false)
 									.then(
 										domain => {
 											
 											resolve(domain.getOrCreateSite(pathname).upsertScript(self));
-											
-											// console.error("Update Parent (" + url.hostname + "): ");
-											// console.error(self.parent);
 											
 										}, reject);
 							} else 
@@ -191,28 +169,26 @@ function Script (opt) {
 	};
 
 	this.updateGroup = function (name) {
-
-		console.log("update Group!, parent: " + self.parent.name + " new: " + name);
 		
 		if (self.parent.name != name) {
 	
 			return new Promise (
 				(resolve, reject) => {
-					
+	
 					self.remove()
 						.then(
 							() => {
-
+								
 								let cache = self.findCache();
+								
+								if (cache) { 
 
-								if (cache){ 
-									
 									cache.getOrCreateItem(name, false)
 										.then(
 											group => {
-												
-												resolve(group.upsertScript(self));
 															
+												resolve(group.upsertScript(self));
+												
 											}, reject
 										);
 									
@@ -242,14 +218,6 @@ function Script (opt) {
 			
 			}, 1000); 
 	}
-	
-	// this.setParent = function (url) {
-		
-	// 	if (self.parent)
-	// 		return Promise.resolve(self);
-	// 	else
-	// 		return self.updateParent(url);
-	// };
 	
 	this.persist = function () {
 
@@ -335,7 +303,7 @@ function __Script_Bucket (scripts) {
 			)
 		);
 
-		//console.log("removeScript: " + (self.isEmpty() ? "removing " + self.siteName() : "persisting " + self.siteName()) );
+		//console.log("removeScript: " + (self.isEmpty() ? "removing " + self.name : "persisting " + self.name) );
 		
 		return self.isEmpty() ?
 			self.remove() :
@@ -365,12 +333,6 @@ function __Script_Bucket (scripts) {
 		
 		return script;	
 	};
-	
-	// this.haveScripts = function () {
-		
-	// 	return self.scripts.length > 0;
-		
-	// };
 	
 	this.haveScript = function (id) {
 
@@ -733,6 +695,12 @@ function Group (opt) {
 		
 		return false;
 	};
+
+	this.isSubdomain = function() {
+		
+		return false;
+		
+	};
 	
 	this.isGroup = function() {
 		
@@ -755,7 +723,10 @@ function Group (opt) {
 							
 							if (self.cache && self.haveData())
 								self.cache.forceCacheItem(self);
-						}
+
+							resolve(self);
+							
+						}, reject
 					);
 			}
 		);
@@ -765,14 +736,17 @@ function Group (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
-
+				
 				global_storage.removeGroup(self.name)
-					.then(() => {
+					.then(
+						() => {
 
-						if (self.cache && self.cache.amICached(self.name))
-							self.cache.removeCached(self);
-						
-					}, reject);
+							if (self.cache && self.cache.amICached(self.name))
+								self.cache.removeCached(self.name);
+							
+							resolve();
+							
+						}, reject);
 			}
 		);
 	};

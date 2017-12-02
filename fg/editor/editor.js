@@ -36,7 +36,7 @@ function Shortcut (opt) {
 	
 } 
 
-function EditorFG (editor, bg) {
+function EditorFG (id, bg) {
 
 	var self = this;
 
@@ -77,7 +77,7 @@ function EditorFG (editor, bg) {
 		},
 	]
 
-	this.editor = editor;
+	this.editor = this.bg.editor_mgr.getEditorById(id);
 
 	/* 
 	   To-Do: 
@@ -169,9 +169,10 @@ function EditorFG (editor, bg) {
 							if (!response[0].status) {
 								
 								let error = response[0].errors[0];
-
+								
 								self.editor.ace.gotoLine(error.line, error.col, true);
 								self.bg.notifyUser("Run Errors", error.type + ": " + error.message);
+								
 							}
 							
 							self.editor.scope.enableButtons();
@@ -209,19 +210,18 @@ function EditorFG (editor, bg) {
 				
 				promise.then (
 					script => {
-						
+
 						script.code = self.editor.ace.getValue().toString().trim();
 						script.persist()
 							.then(
 								parent => {
 									
-									console.log("Updating PA!");
 									self.bg.updatePA(script);
 									self.editor.scope.enableButtons();
 									
 								}
 							)
-					}
+					}, err => { console.error(err); }
 				);
 
 			} else {
@@ -246,7 +246,7 @@ function EditorFG (editor, bg) {
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
 		}
-
+		
 		self.editor.ace.resize();
 	};
 
@@ -274,13 +274,12 @@ function EditorFG (editor, bg) {
 
 		$scope.page = self;
 
-		/* !!! ==> Groups! */
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName(); //self.editor.tab ? self.editor.tab.url.name() : $scope.script.getParentName();
+		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName();
 		
 		$scope.label = "JSLoader";
 
-		/* !!! ===> tab! */
-		$scope.user_action = self.editor.tab ? self.editor.mode ? "Adding script for: " : "Editing script for: " : "Adding script for group: "; /* ¿¿ To wdw title ?? */ 
+		/* ¿¿ To wdw title ?? */
+		$scope.user_action = !$scope.script.parent.isGroup() ? (self.editor.mode ? "Adding script for: " : "Editing script for: ") : (self.editor.mode ? "Adding script for group: " : "Editing script for group: ");  
 		
 		$scope.buttons = {
 			
@@ -309,7 +308,7 @@ function EditorFG (editor, bg) {
 					
 					console.log("Validation start: " + pending);
 								
-					$("#save_btn").attr("disabled", true);
+					$scope.disableButtons();
 					
 				})
 		
@@ -318,9 +317,9 @@ function EditorFG (editor, bg) {
 
 					$scope.url = validated;
 
-					console.log("Validated url: " + validated);
+					console.log("Validated: " + validated);
 					
-					$("#save_btn").attr("disabled", true);
+					$scope.enableButtons();
 					
 				});
 		
@@ -427,11 +426,10 @@ browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			
-			var id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
-			var editor = page.editor_mgr.getEditorById(id);
+			let id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
 			
-			EditorFG.call(this, editor, page);
-	
+			EditorFG.call(this, id, page);
+			
 		}, onError
 	);
 

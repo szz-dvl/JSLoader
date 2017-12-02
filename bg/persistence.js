@@ -15,8 +15,8 @@ function Storage () {
 			.then(
 				values => {
 					
-					//console.log("Getting: " + key);
-					//console.log(values[key]);
+					// console.log("Getting: " + key);
+					// console.log(values[key]);
 
 					cb(values[key]);
 			
@@ -202,26 +202,26 @@ function Storage () {
 				if (groups.includes(name)) {
 					
 					groups.remove(groups.indexOf(name));
-					global_storage.__setGroups(groups);	
+					self.__setGroups(groups);	
 					
 				}
 			}
 		);
 		
 		return self.__remove('group-' + name);
-		
 	};
 
 	this.getOrCreateGroup = function (cb, name) { 
 		
-		self.getGroup(function (group) {
+		self.getGroup(
+			group => {
 			
-			if (group)
-				cb(group);
-			else 
-				cb(new Group({name: name}));
+				if (group)
+					cb(group);
+				else 
+					cb(new Group({name: name}));
 			
-		}, name);
+			}, name);
 	}
 
 	/* Subdomains: */

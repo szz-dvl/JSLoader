@@ -28,7 +28,8 @@
 	  <div class="text-section-header"> {{label}} || 
 		<span>
 		  <bdi id="user_action" class="bold"> {{user_action}} </bdi>
-		  <site-validator ev="page.events" url="url"> </site-validator>
+		  <site-validator ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>
+		  <group-validator ng-if="script.parent.isGroup()" ev="page.events" group="url"> </group-validator>
 		</span>
 	  </div>
 	</div>

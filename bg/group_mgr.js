@@ -18,7 +18,7 @@ function GroupChooserWdw () {
 
 function GroupMgr (bg) {
 
-	var self = this;
+	let self = this;
 
 	Cache.call(this, {feeding: global_storage.getGroup, birth: global_storage.getOrCreateGroup, key: "groups"});
 	
@@ -56,7 +56,19 @@ function GroupMgr (bg) {
 				});
 		} else
 			self.bg.notifyUser("JSL", "No groups available.");
-	}
+	};
+
+	this.exists = function (group_name) {
+
+		return self.groups.find(
+			gname => {
+
+				return gname == group_name;
+			}
+			
+		) || false;
+
+	};
 	
 	this.__siteOps = function (group_name, url, func) {
 

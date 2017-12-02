@@ -171,7 +171,7 @@ function EditorFG (id, bg) {
 								let error = response[0].errors[0];
 								
 								self.editor.ace.gotoLine(error.line, error.col, true);
-								self.bg.notifyUser("Run Errors", error.type + ": " + error.message);
+								self.bg.notify_mgr.error(error.type + ": " + error.message);
 								
 							}
 							
@@ -186,7 +186,7 @@ function EditorFG (id, bg) {
 						});
 			} else {
 				
-				self.bg.notifyUser("Script Errors", "Please check your synthax.");
+				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				self.editor.ace.gotoLine(error.row + 1, error.column, true);
 				self.editor.scope.enableButtons();
 			}
@@ -226,7 +226,7 @@ function EditorFG (id, bg) {
 
 			} else {
 				
-				self.bg.notifyUser("Script Errors", "Please check your synthax.");
+				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				self.editor.ace.gotoLine(error.row + 1, error.column, true);
 				self.editor.scope.enableButtons();
 			}

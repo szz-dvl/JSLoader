@@ -12,6 +12,16 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+	.directive('noInfo',
+			   () => {
+				   
+				   return {
+					   restrict: 'E',
+					   replace: true,
+					   template : '<div class="noInfoContainer"> No Info </div>'
+				   }
+			   })
+
 	.directive('scriptName',
 			   () => {
 				   

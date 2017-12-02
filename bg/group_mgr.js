@@ -55,7 +55,7 @@ function GroupMgr (bg) {
 						);
 				});
 		} else
-			self.bg.notifyUser("JSL", "No groups available.");
+			self.bg.notify_mgr.info("No groups available.");
 	};
 
 	this.exists = function (group_name) {

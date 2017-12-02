@@ -232,19 +232,19 @@ function Storage () {
 
 				cb(subdomain ? new Domain(subdomain) : null);
 				
-			}, 'subdomain-' + keyname);
+			}, 'subdomains-' + keyname);
 		
 	};
 	
 	this.__upsertSubDomain = function (keyname, val) {
 		
-		return self.__set('subdomain-' + keyname, val);
+		return self.__set('subdomains-' + keyname, val);
 		
 	};
 	
 	this.__removeSubDomain = function (keyname) {
 		
-		return self.__remove('subdomain-' + keyname);
+		return self.__remove('subdomains-' + keyname);
 	};
 
 	this.__getOrCreateSubDomain = function (cb, keyname) { 
@@ -273,9 +273,9 @@ function Storage () {
 		
 	};
 	
-	this.removeGlobal = function (globals) {
+	this.removeGlobals = function () {
 		
-		self.__remove('globals', globals);
+		self.__remove('globals');
 		
 	};
 
@@ -292,7 +292,21 @@ function Storage () {
 		
 	}
 	
-	
+	/* Logs: */
+	this.setLogs = function (logs) {
+		
+		self.__set('logs', logs);
+	}
+
+	this.getLogs = function (cb) {
+
+		self.__get(logs => { cb(logs || []) }, 'logs');
+	}
+
+	this.removeLogs = function () {
+
+		self.__remove('logs');
+	}
 }
 
 let global_storage = new Storage();

@@ -4,6 +4,18 @@ html, body {
 	overflow: auto;
 }
 
+.noInfoContainer {
+	
+	height: 60%;
+	background-color: 'lightgrey';
+	width: 100%;
+	color: #a3a3c2;
+	font-size: 250%;
+	text-align: center;
+	padding-top: 10%;
+	padding-bottom: 10%;
+}
+
 #content {
 	width: 100%;
 	height: 100%;

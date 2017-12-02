@@ -27,11 +27,18 @@ function CS (port) {
 				self.port.onMessage.addListener(my_listener);
 				
 				self.port.postMessage({ action: "run",
-										message: scripts });
+										response: "post-results",
+										message: scripts.map(
+											script => {
+												
+												return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+												
+											}
+										)
+									  });
 			}
 		);
 	};  
-	
 }
 
 function CSMgr (bg) {
@@ -89,11 +96,11 @@ function CSMgr (bg) {
 	this.__postTaggedResponse = function (port, tag, message) {
 
 		port.postMessage({action: "response", message: message, tag: tag});
-
+		
 	};
 	
 	this.contentGetGlobal = function (port, tag, key) {
-
+		
 		self.__postTaggedResponse(port, tag,
 								  {status: self.globals[key] ? true : false,
 								   content: {
@@ -311,6 +318,7 @@ function CSMgr (bg) {
 													self.bg.updatePA(url.href);
 												
 												port.postMessage({action: "run",
+																  response: "ret-logs",
 																  message: (scripts || [])
 																  .filter(
 																	  script => {
@@ -322,7 +330,7 @@ function CSMgr (bg) {
 																  .map(
 																	  script => {
 																		  
-																		  return script.code;
+																		  return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
 																		  
 																	  }
 																  )
@@ -333,13 +341,19 @@ function CSMgr (bg) {
 								}
 								
 								break;
+							case "ret-logs":
+								
+								if (!args.status) 
+									self.bg.logs_mgr.logErrors(args.errors);
+								
+								break;
 								
 							case "site-to-group":
 								self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
 								break;
 								
 							case "notify":
-								self.bg.notifyUser(args.message.title, args.message.body);
+								self.bg.notify_mgr.user(args.message.title, args.message.body);
 								break;
 								
 							case "event":
@@ -365,9 +379,7 @@ function CSMgr (bg) {
 							case "set-global":
 								self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
 								break;
-							case "bad-user-defs":
-								self.bg.notifyUser("Error [Bad user defs]", args.message);
-								break
+								
 							default:
 								break;
 							}

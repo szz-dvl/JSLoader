@@ -77,7 +77,7 @@ function Editor (opt) {
 	this.runInTab = function () {
 
 		if (self.tab) 
-			return self.tab.run([self.script.code]);	
+			return self.tab.run([self.script]);	
 		else
 			return Promise.reject();			
 	};
@@ -188,9 +188,6 @@ function EditorMgr (bg) {
 							);
 						
 					} else {
-
-						console.log("Group script: ");
-						console.log(script);
 						
 						new EditorWdw({parent: self, script: script, tab: null, mode: false})
 							.then(resolve, reject);

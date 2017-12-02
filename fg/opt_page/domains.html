@@ -1,37 +1,41 @@
-<div class="panel-section" >
-  <div id="domain_head" class="panel-section-header">
-	<div class="text-section-header">{{title}}
-	  <label class="input_import" style="float:right;">
-		<input id="import_scripts" type="file"></input>
-	  </label>
-	  <button style="float:right;" class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+<div ng-if="domains.length">
+  <div class="panel-section" >
+	<div id="domain_head" class="panel-section-header">
+	  <div class="text-section-header">{{title}}
+		<label class="input_import" style="float:right;">
+		  <input id="import_scripts" type="file"></input>
+		</label>
+		<button style="float:right;" class="browser-style jsload-button" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+	  </div>
 	</div>
-  </div>
-</div><br></br>
+  </div><br></br>
 
-<div class="panel-section" ng-repeat="domain in domains track by domain.name" ng-if="domain.haveData()">
-  
-  <h4> {{domain.name}} </h4>
-  
-  <script-list ng-if="domain.scripts.length"
-			   list="domain.scripts"
-			   parent="domain"
-			   port="port"
-			   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-			   shown="shown"
-			   pa="page.bg.updatePA"
-			   opts="page.bg.option_mgr.editor">
-  </script-list>
-  
-  <script-list ng-repeat="site in domain.sites"
-			   ng-if="site.scripts.length"
-			   list="site.scripts"
-			   parent="site"
-			   port="port"
-			   editor="page.bg.editor_mgr.openEditorInstanceForScript"
-			   shown="shown"
-			   pa="page.bg.updatePA"
-			   opts="page.bg.option_mgr.editor">
-  </script-list>
-  
+  <div class="panel-section" ng-repeat="domain in domains track by domain.name" ng-if="domain.haveData()">
+	
+	<h4> {{domain.name}} </h4>
+	
+	<script-list ng-if="domain.scripts.length"
+				 list="domain.scripts"
+				 parent="domain"
+				 port="port"
+				 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+				 shown="shown"
+				 pa="page.bg.updatePA"
+				 opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+	<script-list ng-repeat="site in domain.sites"
+				 ng-if="site.scripts.length"
+				 list="site.scripts"
+				 parent="site"
+				 port="port"
+				 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+				 shown="shown"
+				 pa="page.bg.updatePA"
+				 opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+  </div>
 </div>
+
+<no-info ng-if="!domains.length"></no-info>

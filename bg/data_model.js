@@ -130,6 +130,7 @@ function Script (opt) {
 									pathname = null;
 									
 								}
+								
 								cache.getOrCreateItem(hostname, false)
 									.then(
 										domain => {
@@ -580,7 +581,7 @@ function Domain (opt) {
 		return n;
 	};
 	
-	this.haveScript = function (id) {
+	this.findScript = function (id) {
 		
 		return self.scripts.filter(
 			script => {
@@ -774,6 +775,12 @@ function Group (opt) {
 		
 	};
 
+	this.findScript = function (id) {
+
+		return self.haveScript(id);
+
+	};
+	
 	this.haveSite = function (site_name) {
 
 		return self.sites.filter(

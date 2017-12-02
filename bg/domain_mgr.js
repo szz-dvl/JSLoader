@@ -37,7 +37,7 @@ function DomainMgr (bg) {
 	};
 	
 	this.getScriptsForUrl = function (url) {
-		
+	
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -45,32 +45,36 @@ function DomainMgr (bg) {
 					.then(
 						domain => {
 
-							// console.log("Got domain: ");
-							// console.log(domain);
-							
-							var groups = [],
-								scripts = [];
-							
+							let groups = [];
+							let scripts = [];
+						
 							if (domain) {
 								
 								/* Domain & Site scripts */
-								groups = domain.groups;
+								groups.push.apply(groups,
+												  domain.groups);
+
 								var site = domain.haveSite(url.pathname);
 								
-								scripts = domain.scripts;
+								scripts.push.apply(scripts,
+												   domain.scripts);
+								
+								// console.log("Domain: ");
+								// console.log(scripts);
 								
 								if (site) {
 									
 									scripts.push.apply(scripts,
 													   site.scripts);
 									
-									groups.push.apply(groups, site.groups);
+									groups.push.apply(groups,
+													  site.groups);
 								}
 
 							}
 
-							// console.log("Domain groups: ");
-							// console.log(groups);
+							// console.log("Domain & Site: ");
+							// console.log(scripts);
 							
 							/* SubDomain scripts */
 							var split = self.__isIPAddr(url.hostname) ? [] : url.hostname.split(".");
@@ -79,7 +83,7 @@ function DomainMgr (bg) {
 							async.eachSeries(split.slice(1).reverse(),
 											 (actual, cb) => {
 												 
-												 var subdomain_name = last ? actual + "." + last : actual;
+												 let subdomain_name = last ? actual + "." + last : actual;
 												 last = actual;
 												 
 												 this.storage.getDomain(
@@ -99,9 +103,9 @@ function DomainMgr (bg) {
 											 },
 											 () => {
 												 
-												 // console.log("My groups: ");
-												 // console.log(groups);
-
+												 // console.log("Subdomain: ");
+												 // console.log(scripts);
+												 
 												 /* Group scripts */
 												 async.eachSeries(groups,
 																  (group, next) => {
@@ -122,6 +126,9 @@ function DomainMgr (bg) {
 																	  );		
 																  },
 																  () => {
+
+																	  // console.log("Groups: ");
+																	  // console.log(scripts);
 																	  
 																	  resolve (scripts);
 																	  

@@ -4,18 +4,28 @@ function ContentScript() {
 	
 	this.id = UUID.generate();
 	
-	this.run = function (code) {
+	this.run = function (script) {
 		
 		try {
 			
-			(new Function(code)());
+			(new Function(script.code)());
 
 			return void 0;
 			
 		} catch (err) {
 			
-			return { type: err.constructor.name, message:  err.message, line: err.lineNumber - 2, col: err.columnNumber };
-			
+			return {
+				
+				type: err.constructor.name,
+				message:  err.message,
+				line: err.lineNumber - 2,
+				col: err.columnNumber,
+				id: script.id,
+				name: script.name,
+				at: window.location.href,
+				parent: script.parent,
+				stamp: new Date().getTime()
+			};
 		}
 	};
 
@@ -43,12 +53,12 @@ function ContentScript() {
 				let errors = self.runAll(args.message);
 				
 				for (error of errors)
-					console.error(error);
+					console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
 				
-				this.port.postMessage({action: "post-results", status: errors.length === 0, errors: errors});
+				this.port.postMessage({action: args.response, status: errors.length === 0, errors: errors});
 				
 				break;
-
+				
 			case "info":
 
 				try {
@@ -57,8 +67,19 @@ function ContentScript() {
 					
 				} catch (e) {
 					
-					this.port.postMessage({action: "bad-user-defs", message: e.message});
-					
+					this.port.postMessage({action: "ret-logs", status: false, errors: [{
+						
+						type: "Bad user defs",
+						message:  e.message,
+						line: e.lineNumber,
+						col: e.columnNumber,
+						id: "UserDefs",
+						name: "UserDefs",
+						at: window.location.href,
+						parent: script.parent,
+						stamp: new Date().getTime()
+						
+					}]});					
 				}
 
 				this.port.postMessage({action: "get-jobs", message: {url: window.location.toString() }});

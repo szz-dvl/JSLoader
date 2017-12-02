@@ -7,21 +7,9 @@ function BG_mgr () {
 	this.content_mgr = new CSMgr(self);
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
-	
-	this.notification_ID = "jsloader-notification";
-
-	this.notifyUser = function (title, message) {
+	this.notify_mgr = new NotificationMgr(self);
+	this.logs_mgr = new LogsMgr(self);
 		
-		browser.notifications.create(self.notification_ID, {
-			"type": "basic",
-			"iconUrl": browser.extension.getURL("fg/icons/Diskette_32.png"),
-			"priority": 2,
-			"title": title,
-			"message": message
-		});
-
-	};
-	
 	this.__showPageAction = function (tabInfo) {
 		
 		browser.tabs.get(tabInfo.tabId || tabInfo)
@@ -98,7 +86,7 @@ function BG_mgr () {
 						},
 						() => {
 							
-							self.notifyUser("Content scripts not available", "This page seems to be blocking your scripts ... =(");
+							self.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
 											
 						}
 					);

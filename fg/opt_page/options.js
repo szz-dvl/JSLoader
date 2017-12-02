@@ -76,13 +76,6 @@ function OP (bg, port) {
 		$scope.page = self;
 		
 		$scope.active;
-
-		// if (dataBg) {
-
-		// 	console.log("Got dataBg!");
-		// 	console.log(dataBg);
-
-		// }
 		
 		$scope.tabs = [
 			
@@ -90,6 +83,7 @@ function OP (bg, port) {
 			{sref: 'domains', title: 'Domains'}, 
 			{sref: 'groups', title: 'Groups'}, 
 			{sref: 'userdefs', title: 'Userdefs'},
+			{sref: 'logs', title: 'Logs'},
 			{sref: 'storage', title: 'Storage'} 
 
 		];
@@ -424,7 +418,7 @@ function OP (bg, port) {
 					dataDomains: () => {
 						return new Promise (
 							resolve => {
-
+								
 								self.bg.domain_mgr.getMissingItems()
 									.then(resolve);
 								
@@ -473,6 +467,26 @@ function OP (bg, port) {
 				name: 'groups',
 				templateUrl: 'groups.html',
 				controller: 'groupController'
+				
+			});
+
+			$stateProvider.state({
+
+				resolve: {
+					dataLogs: () => { return self.bg.logs_mgr.logs; }
+				},
+				
+				name: 'logs',
+				templateUrl: 'logs.html',
+				
+				controller: function ($scope, dataLogs) {
+					
+					self.tabs.setActive('logs');
+
+					$scope.page = self;
+					$scope.logs = dataLogs;
+					
+				}
 				
 			});
 

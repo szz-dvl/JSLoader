@@ -1,15 +1,15 @@
-<div ng-if="groups.length">
-  <div class="panel-section" >
-	<div id="group_head" class="panel-section-header">
-	  <div class="text-section-header">{{title}}
-		<label class="input_import" style="float:right;">
-		  <input id="import_groups" type="file"></input>
-		</label>
-		<button style="float:right;" class="browser-style jsload-button" ng-show="import_gr_button" ng-click="applyGrImport()"> Apply changes </button>
-	  </div>
+<div class="panel-section" >
+  <div id="group_head" class="panel-section-header">
+	<div class="text-section-header">{{title}}
+	  <label class="input_import" style="float:right;">
+		<input id="import_groups" type="file" class="browser-style"></input>
+	  </label>
+	  <button style="float:right;" class="browser-style" ng-show="import_gr_button" ng-click="applyGrImport()"> Apply changes </button>
 	</div>
-  </div><br></br>
+  </div>
+</div><br></br>
 
+<div ng-if="groups.length">
   <div class="panel-section" ng-repeat="group in groups track by group.name" ng-if="!group.isEmpty()">
 	
 	<group-list ng-if="!group.isEmpty()"
@@ -22,7 +22,6 @@
 				opts="page.bg.option_mgr.editor"
 				sites="group.sites"
 				parent="group"
-				addscript="page.bg.editor_mgr.openEditorInstanceForGroup"
 				mgr="page.bg.group_mgr">
 	</group-list>
 	

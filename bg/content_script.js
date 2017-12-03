@@ -67,22 +67,24 @@ function ContentScript() {
 					
 				} catch (e) {
 					
-					this.port.postMessage({action: "ret-logs", status: false, errors: [{
+					this.port.postMessage({action: "ret-logs",
+										   status: false,
+										   errors: [{
 						
-						type: "Bad user defs",
-						message:  e.message,
-						line: e.lineNumber,
-						col: e.columnNumber,
-						id: "UserDefs",
-						name: "UserDefs",
-						at: window.location.href,
-						parent: script.parent,
-						stamp: new Date().getTime()
+											   type: "Bad user defs",
+											   message:  e.message,
+											   line: e.lineNumber - 2,
+											   col: e.columnNumber,
+											   id: "UserDefs",
+											   name: "UserDefs",
+											   at: window.location.href,
+											   parent: null,
+											   stamp: new Date().getTime()
 						
-					}]});					
+										   }]});					
 				}
 
-				this.port.postMessage({action: "get-jobs", message: {url: window.location.toString() }});
+				this.port.postMessage({action: "get-jobs", message: { url: window.location.toString() }});
 				
 			default:
 				break;

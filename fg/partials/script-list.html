@@ -1,18 +1,13 @@
 <div class="list-container" id="{{list_uuid}}" ng-if="list.length">
   
   <label id="{{list_uuid}}_SL" ng-click="parent.elemFor(list_uuid).toggle()">
-	<bdi class="black">{{parent.url || parent.name}}</bdi>
+	<bdi class="black">{{ list_name }}</bdi>
   </label>
-  
+
   <ul ng-show="parent.elemFor(list_uuid).shown">
 	<li ng-repeat="script in list">
 	  
 	  <script-name class="black-slim" parent="list_uuid" script="script" ng-click="script.elemFor(list_uuid).toggle()"></script-name>
-	  
-	  <!-- <label id="{{script.uuid}}"> -->
-	  <!-- 	<script-name script="script"></script-name> -->
-	  <!-- 	<bdi id="{{script.uuid}}_dd" ng-click="script.elemFor(list_uuid).toggle()">{{script.elemFor(list_uuid).state}}</bdi> -->
-	  <!-- </label> -->
 	  
 	  <div class="code-bucket" ng-show="script.elemFor(list_uuid).shown">
 		<hljs-search code="script.code" language="'javascript'" linenumber="opts.showGutter"></hljs-search>
@@ -32,4 +27,5 @@
 	  </div><br></br>
 	</li>
   </ul>
+  <button ng-show="parent.elemFor(list_uuid).shown" ng-click="addScript()" class="browser-style"> + </button>
 </div><br></br>

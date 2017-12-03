@@ -1,24 +1,12 @@
 angular.module('jslPartials', ['hljsSearch'])
 
-	.directive('jslHead',
-			   () => {
-				   
-				   return {
-					   restrict: 'E',
-					   replace: true,
-					   templateUrl: function (elem, attr) {
-							return browser.extension.getURL("fg/partials/default-deps.html");
-					   }
-				   }
-			   })
-
 	.directive('noInfo',
 			   () => {
 				   
 				   return {
 					   restrict: 'E',
 					   replace: true,
-					   template : '<div class="noInfoContainer"> No Info </div>'
+					   template : '<div class="noInfoContainer"> No Data </div>'
 				   }
 			   })
 
@@ -34,16 +22,9 @@ angular.module('jslPartials', ['hljsSearch'])
 						   parent: "=parent"
 					   },
 					   
-					   template: '<bdi contenteditable="true"> {{script.name}} </bdi>', //'<a contenteditable="true" href="#{{script.uuid}}">{{script.name}}</a>', id="{{script.uuid}}_name"
+					   template: '<bdi contenteditable="true"> {{script.name}} </bdi>',
 					   
 					   link: function($scope, element, attr) {
-						   
-						   // element.css({
-						   // 	   position: 'relative',
-						   // 	   border: '1px solid red',
-						   // 	   backgroundColor: 'lightgrey',
-						   // 	   cursor: 'pointer'
-						   // });
 						   
 						   element.on('input', function(ev) {
 							   
@@ -51,12 +32,19 @@ angular.module('jslPartials', ['hljsSearch'])
 								   clearTimeout($scope.tID);
 							   
 							   $scope.tID = setTimeout(
-								   () => {
+								   ev => {
+
+									   let name = $(ev.target).text().trim();
 									   
-									   $scope.script.name = element.text();
-									   $scope.script.persist();
+									   if (name.match(/^[a-z0-9]+$/i)) {
+
+										   $scope.script.name = name;
+										   $scope.script.persist();
+										   
+									   } else 
+										   $(ev.target).text($scope.script.name);
 									   
-								   }, 1500
+								   }, 1000, ev
 							   );
 						   });
 						   
@@ -65,14 +53,7 @@ angular.module('jslPartials', ['hljsSearch'])
 						   element.on('click', ev => {
 						   	   
 							   if (ev.pageX > element.width()) {
-								   
-								   //console.log("event: " + ev.pageX + " element: " + element.width());
-								   
-								   // console.log($scope.parent);
-								   
-								   // $scope.script.elemFor($scope.parent).toggle();
-								   // $scope.$digest();
-								   
+								    
 								   if (element.hasClass("shown"))
 									   element.removeClass("shown");
 								   else
@@ -108,10 +89,11 @@ angular.module('jslPartials', ['hljsSearch'])
 						   return browser.extension.getURL("fg/partials/script-list.html");
 					   },
 					   
-					   controller: function ($scope, $timeout) { /* $anchorScroll, $location*/
+					   controller: function ($scope, $timeout) {
 						   
 						   $scope.list_uuid = UUID.generate();
-
+						   $scope.list_name = $scope.parent.url || ( ( $scope.parent.name.slice(-1) == "/" && $scope.parent.name.length ) > 1 ? $scope.parent.name.slice(0, -1) : $scope.parent.name );
+						   
 						   if ($scope.parent.isGroup())
 							   $scope.parent.elems = [];
 						   
@@ -134,11 +116,17 @@ angular.module('jslPartials', ['hljsSearch'])
 						   
 						   $scope.removeScript = function(script) {
 
-							   var url = script.getUrl(); /* Solve for groups: URL array. */
+							   var url = script.getUrl(); 
 							   script.remove();
 
 							   if (url)
-								   $scope.pa(url.href);
+								   $scope.pa(url.href); /* Solve for groups: URL array. */
+							   
+						   };
+
+						   $scope.addScript = function() {
+
+							   $scope.editor($scope.parent.factory());
 							   
 						   };
 						   
@@ -224,20 +212,10 @@ angular.module('jslPartials', ['hljsSearch'])
 					   controller: function ($scope) {
 
 						   $scope.backup = $scope.group;
-
-						   $scope.trimStart = function (character, string) {
-							   var startIndex = 0;
-							   
-							   while (string[startIndex] === character) {
-								   startIndex++;
-							   }
-							   
-							   return string.substr(startIndex);
-						   }
 						   
 						   $scope.validateGroup = function (ev) {
 	   
-							   $scope.group = $scope.trimStart(" ", $(ev.target).text().trim());
+							   $scope.group = $(ev.target).text().trim();
 							   
 							   if ($scope.ev)
 								   $scope.ev.emitEvent("validation_start", [$scope.group]);
@@ -309,16 +287,6 @@ angular.module('jslPartials', ['hljsSearch'])
 							   $scope.backup = $scope.url;
 						   }
 						   
-						   $scope.trimStart = function (character, string) {
-							   var startIndex = 0;
-							   
-							   while (string[startIndex] === character) {
-								   startIndex++;
-							   }
-							   
-							   return string.substr(startIndex);
-						   }
-						   
 						   $scope.isSubDomain = function (orig, modified) {
 							   
 							   if (orig.endsWith("/"))
@@ -326,7 +294,7 @@ angular.module('jslPartials', ['hljsSearch'])
 
 							   if (modified.endsWith("/"))
 								   modified = modified.slice(0, -1);
-
+							   
 							   console.log("Domain: " + orig + " Subdomain: " + modified);
 							   
 							   var mod_arr = modified.split(".");
@@ -373,7 +341,7 @@ angular.module('jslPartials', ['hljsSearch'])
 						   
 						   $scope.validateSite = function (ev) {
 							   
-							   $scope.url = $scope.trimStart(" ", $(ev.target).text().trim());
+							   $scope.url = $(ev.target).text().trim();
 							   
 							   if ($scope.ev)
 								   $scope.ev.emitEvent("validation_start", [$scope.url]);
@@ -505,7 +473,6 @@ angular.module('jslPartials', ['hljsSearch'])
 						   opts: "=opts",
 						   pa: "=pa",
 						   sites: "=sites",
-						   addscript: "=addscript",
 						   mgr: "=mgr"
 						   
 					   },
@@ -513,16 +480,6 @@ angular.module('jslPartials', ['hljsSearch'])
 					   templateUrl: function (elem, attr) {
 						   return browser.extension.getURL("fg/partials/group-list.html");
 					   },
-
-					   controller: function ($scope) {
-
-						   $scope.addScript = function () {
-
-							   $scope.addscript($scope.parent);
-							   
-						   }
-						   
-					   }
 				   }
 			   })
 

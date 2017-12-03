@@ -9,7 +9,6 @@
   <table ng-if="logs.length" class="browser-style">
 
 	<tr>
-	  <th><strong>Timestamp</strong></th>
 	  <th><strong>Offender ID</strong></th>
 	  <th><strong>Offender name</strong></th>
 	  <th><strong>At</strong></th>
@@ -18,10 +17,7 @@
 	  <th><strong>Open in editor</strong></th>
 	</tr>
 	
-	<tr ng-repeat="log in logs">
-	  <td>
-		{{ log.stamp }}
-	  </td>
+	<tr ng-repeat="log in logs track by log.stamp">
 	  <td>
 		{{ log.offender }}
 	  </td>
@@ -37,8 +33,11 @@
 	  <td>
 		[{{ log.line }}, {{ log.col }}]
 	  </td>
-	  <td>
-		<button ng-click="page.bg.logs_mgr.openOffender(log.parent, log.offender)" class="browser-style"> Open </button>
+	  <td ng-if="log.parent">
+		<button ng-disabled="log.removed" ng-click="openEditor($event, log)" class="browser-style"> {{ log.removed ? "Removed" : "Open" }} </button>
+	  </td>
+	  <td ng-if="!log.parent">
+		<button ng-click="showDefs()" class="browser-style"> Open </button>
 	  </td>
 	</tr>
 	

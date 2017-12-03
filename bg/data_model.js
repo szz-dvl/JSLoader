@@ -334,6 +334,12 @@ function __Script_Bucket (scripts) {
 		
 		return script;	
 	};
+
+	this.haveData = function () {
+
+		return self.scripts.length > 0;
+
+	};
 	
 	this.haveScript = function (id) {
 
@@ -346,6 +352,11 @@ function __Script_Bucket (scripts) {
 		)[0] || false;
     };
 
+	this.factory = function () {
+
+		return new Script({parent: self});
+	};
+	
 	/* Views */
 	this.elemFor = function (list_uuid) {
 		
@@ -506,8 +517,15 @@ function Domain (opt) {
 	
 	this.haveData = function () {
 		
-		return self.scripts.length || self.sites.length;
-		
+		return self.scripts.length ||
+			self.sites.find(
+				site => {
+
+					return site.haveData();
+					
+				}
+				
+			) || false;
 	};
 	
 	this.persist = function () {
@@ -547,7 +565,7 @@ function Domain (opt) {
 						}, reject);
 			}
 		);				
-	};
+	};	
 	
 	this.haveSites = function () {
 		
@@ -581,7 +599,7 @@ function Domain (opt) {
 		return n;
 	};
 	
-	this.findScript = function (id) {
+	this.haveScript = function (id) {
 		
 		return self.scripts.filter(
 			script => {
@@ -773,12 +791,6 @@ function Group (opt) {
 		if (site.isEmpty())
 			site.remove();
 		
-	};
-
-	this.findScript = function (id) {
-
-		return self.haveScript(id);
-
 	};
 	
 	this.haveSite = function (site_name) {

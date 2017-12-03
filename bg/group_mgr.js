@@ -44,7 +44,7 @@ function GroupMgr (bg) {
 			return new Promise (
 				(resolve, reject) => {
 					
-					self.bg.tab_mgr.getCurrentUrl()
+					self.bg.getCurrentUrl()
 						.then(
 							url => {
 								

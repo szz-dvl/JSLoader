@@ -479,12 +479,32 @@ function OP (bg, port) {
 				name: 'logs',
 				templateUrl: 'logs.html',
 				
-				controller: function ($scope, dataLogs) {
+				controller: function ($scope, $state, dataLogs) {
 					
 					self.tabs.setActive('logs');
 
 					$scope.page = self;
-					$scope.logs = dataLogs;
+					$scope.logs = dataLogs.sort((x,y) => { return y.stamp - x.stamp; });
+					
+					$scope.openEditor = function (ev, log) {
+						
+						$scope.page.bg.logs_mgr.openOffender(log.parent, log.offender)
+							.then(null,
+								  err => {
+
+									  log.removed = true;
+									  $(ev.target).text("Removed");
+									  $scope.$digest();
+									  
+								  });
+						
+					};
+					
+					$scope.showDefs = function () {
+						
+						$state.go("userdefs");
+						
+					};
 					
 				}
 				

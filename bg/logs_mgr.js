@@ -70,13 +70,15 @@ function LogsMgr (bg) {
 		)
 	};
 
-	this.openOffender = function (parent_name, offender_id) {
+	this.openOffender = function (parent_name, offender_id, line, col) {
 
 		return new Promise (
 			(resolve, reject) => {
 				
 				self.__getOffender(parent_name, offender_id)
-					.then(self.bg.editor_mgr.openEditorInstanceForScript, reject);
+					.then(offender => {
+						self.bg.editor_mgr.openEditorInstanceForScript(offender, line, col);
+					}, reject);
 			}
 		);
 	};

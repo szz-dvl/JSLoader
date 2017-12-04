@@ -33,8 +33,24 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
 
+							$scope.key = "domain";
+							
 							$scope.page = self;
-							$scope.data = self.info.domain;
+							$scope.data = self.info.domain.map(
+								domain => {
+
+									domain.visible = false;
+									domain.toggleList = function () {
+										domain.visible = !domain.visible;
+									}
+
+									domain.listState = function () {
+										return domain.visible ? "v" : ">";
+									}
+
+									return domain;
+								}
+							);
 							
 						}
 					},
@@ -44,8 +60,24 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
 
+							$scope.key = "site";
+							
 							$scope.page = self;
-							$scope.data = self.info.site;
+							$scope.data = self.info.site.map(
+								site => {
+
+									site.visible = false;
+									site.toggleList = function () {
+										site.visible = !site.visible;
+									}
+
+									site.listState = function () {
+										return site.visible ? "v" : ">";
+									}
+
+									return site;
+								}
+							);
 							
 						}
 					},
@@ -55,9 +87,24 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
 
-							$scope.page = self;
-							$scope.data = self.info.groups;
+							$scope.key = "group";
 							
+							$scope.page = self;
+							$scope.data = self.info.groups.map(
+								group => {
+
+									group.visible = false;
+									group.toggleList = function () {
+										group.visible = !group.visible;
+									}
+
+									group.listState = function () {
+										return group.visible ? "v" : ">";
+									}
+									
+									return group;
+								}
+							);
 						}
 					},
 
@@ -66,12 +113,27 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
 
+							$scope.key = "subdomains";
+							
 							$scope.page = self;
-							$scope.data = self.info.subdomains;
+							$scope.data = self.info.subdomains.map(
+								subdomain => {
+									
+									subdomain.visible = false;
+									
+									subdomain.toggleList = function () {
+										subdomain.visible = !subdomain.visible;
+									}
 
+									subdomain.listState = function () {
+										return subdomain.visible ? "v" : ">";
+									}
+									
+									return subdomain;
+								}
+							);
 						}
 					}
-
 				}	
 			});
 		});

@@ -44,6 +44,7 @@
 	  
 	  <button ng-repeat="button in buttons.arr"
 			  ng-if="button.available"
+			  ng-disabled="buttons.disabled"
 			  id="button.id"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="button.click()">

@@ -482,13 +482,13 @@ function OP (bg, port) {
 				controller: function ($scope, $state, dataLogs) {
 					
 					self.tabs.setActive('logs');
-
+					
 					$scope.page = self;
 					$scope.logs = dataLogs.sort((x,y) => { return y.stamp - x.stamp; });
 					
 					$scope.openEditor = function (ev, log) {
 						
-						$scope.page.bg.logs_mgr.openOffender(log.parent, log.offender)
+						$scope.page.bg.logs_mgr.openOffender(log.parent, log.offender, log.line, log.col)
 							.then(null,
 								  err => {
 
@@ -504,8 +504,7 @@ function OP (bg, port) {
 						
 						$state.go("userdefs");
 						
-					};
-					
+					};	
 				}
 				
 			});

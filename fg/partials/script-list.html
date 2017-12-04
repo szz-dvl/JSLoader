@@ -1,31 +1,17 @@
-<div class="list-container" id="{{list_uuid}}" ng-if="list.length">
+<div class="list-container" ng-if="list.length">
   
   <label id="{{list_uuid}}_SL" ng-click="parent.elemFor(list_uuid).toggle()">
-	<bdi class="black">{{ list_name }}</bdi>
+	<bdi class="black">{{ name }}</bdi>
   </label>
-
-  <ul ng-show="parent.elemFor(list_uuid).shown">
-	<li ng-repeat="script in list">
-	  
-	  <script-name class="black-slim" parent="list_uuid" script="script" ng-click="script.elemFor(list_uuid).toggle()"></script-name>
-	  
-	  <div class="code-bucket" ng-show="script.elemFor(list_uuid).shown">
-		<hljs-search code="script.code" language="'javascript'" linenumber="opts.showGutter"></hljs-search>
-		<table class="btn-panel">
-		  <tr align="center">
-			<td>
-			  <button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script" ng-click="editor(script)"> Edit </button>
-			</td>
-			<td>
-			  <button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="removeScript(script)"> Remove </button>
-			</td>
-			<td>
-			  <button id="disable-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="script.toggleDisable()"> {{script.elemFor(list_uuid).getEnabled()}} </button>
-			</td>
-		  </tr>
-		</table>
-	  </div><br></br>
-	</li>
-  </ul>
+  
+  <script-index
+	 list="list"
+	 editor="editor"
+	 shown="shown"
+	 parent="parent"
+	 pa="pa"
+	 uuid="list_uuid"
+	 opts="opts"></script-index>
+  
   <button ng-show="parent.elemFor(list_uuid).shown" ng-click="addScript()" class="browser-style"> + </button>
 </div><br></br>

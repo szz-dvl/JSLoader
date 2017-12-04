@@ -33,7 +33,8 @@ function Editor (opt) {
 	
 	this.parent = opt.parent;
 	this.script = opt.script;
-	
+
+	this.pos = {line: opt.line || 0, col: opt.col || 0};
 	this.id = this.parent.__getEID();
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	this.opts = self.parent.bg.option_mgr.editor;
@@ -123,7 +124,7 @@ function EditorMgr (bg) {
 		)
 	};
 
-	this.openEditorInstanceForScript = function (script) {
+	this.openEditorInstanceForScript = function (script, line, col) {
 		
 		return new Promise (
 			(resolve, reject) => {
@@ -135,13 +136,13 @@ function EditorMgr (bg) {
 				else {
 					
 					if (!script.parent.isGroup()) {
-
+						
 						let endpoint = script.getUrl() || script.getParentName();
 						
 						self.bg.tabs_mgr.getTabsForURL(endpoint)
 							.then(
 								tabs => {
-							
+									
 									let tab = tabs[0];
 									
 									if (tab) {
@@ -149,8 +150,8 @@ function EditorMgr (bg) {
 										browser.tabs.update(tab.id, {active: true})
 											.then(
 												tab => {
-													
-													new EditorWdw({parent: self, script: script, tab: tab, mode: false})
+
+													new EditorWdw({parent: self, script: script, tab: tab, mode: false, line: line, col: col })
 														.then(resolve, reject);
 													
 												}
@@ -158,7 +159,7 @@ function EditorMgr (bg) {
 									
 									} else {
 										
-										new EditorWdw({parent: self, script: script, tab: null, mode: false})
+										new EditorWdw({parent: self, script: script, tab: null, mode: false, line: line, col: col})
 											.then(resolve, reject);
 										
 									}
@@ -168,7 +169,7 @@ function EditorMgr (bg) {
 						
 					} else {
 						
-						new EditorWdw({parent: self, script: script, tab: null, mode: false})
+						new EditorWdw({parent: self, script: script, tab: null, mode: false, line: line, col: col})
 							.then(resolve, reject);
 						
 					}

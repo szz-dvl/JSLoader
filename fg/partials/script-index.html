@@ -1,0 +1,23 @@
+<ul id="{{list_uuid}}" ng-show="external ? true : parent.elemFor(list_uuid).shown">
+  <li ng-repeat="script in list">
+	
+	<script-name class="black-slim" parent="list_uuid" script="script" ng-click="script.elemFor(list_uuid).toggle()"></script-name>
+	
+	<div class="code-bucket" ng-show="script.elemFor(list_uuid).shown">
+	  <hljs-search code="script.code" language="'javascript'" linenumber="opts.showGutter"></hljs-search>
+	  <table class="btn-panel">
+		<tr align="center">
+		  <td>
+			<button id="edit-btn_{{script.uuid}}" class="browser-style mright edit-script" ng-click="editor(script)"> Edit </button>
+		  </td>
+		  <td>
+			<button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="removeScript(script)"> Remove </button>
+		  </td>
+		  <td>
+			<button id="disable-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="script.toggleDisable()"> {{script.elemFor(list_uuid).getEnabled()}} </button>
+		  </td>
+		</tr>
+	  </table>
+	</div><br></br>
+  </li>
+</ul>

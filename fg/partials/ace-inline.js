@@ -26,10 +26,10 @@ function AceInline (bg) {
 			
 			if (errors.length) {
 				
-				console.log("Errors for " + $scope.key);
-				console.log(errors);
+				let error = errors[0];
 				
-				/* Notify */
+				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
+				$scope.ace.gotoLine(error.row + 1, error.column, true);
 				
 			} else {		
 
@@ -43,11 +43,10 @@ function AceInline (bg) {
 					
 					$scope.page.bg.content_mgr.setGlobals($scope.ace.getValue().toString().trim());
 					break;
-
+					
 				default:
 					break;
 				}
-				
 			}
 
 		};
@@ -76,7 +75,6 @@ function AceInline (bg) {
 					$scope.saveData();
 				}
 			});
-			
 		});
 	});
 	

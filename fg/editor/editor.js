@@ -309,9 +309,14 @@ function EditorFG (id, bg) {
 				pending => {
 					
 					console.log("Validation start: " + pending);
-								
-					$scope.disableButtons();
-					
+
+					if (!$scope.buttons.disabled) {
+
+						$scope.disableButtons();
+						$scope.$digest();
+
+					}
+						
 				})
 		
 			.on('validation_ready',
@@ -322,6 +327,7 @@ function EditorFG (id, bg) {
 					console.log("Validated: " + validated);
 					
 					$scope.enableButtons();
+					$scope.$digest();
 					
 				});
 
@@ -340,24 +346,11 @@ function EditorFG (id, bg) {
 		};
 		
 		$scope.disableButtons = function () {
-
-			for (let button of $scope.buttons.arr) {
-
-				$("#" + button.id).attr("disabled", true); 
-
-			}
 			
 			$scope.buttons.disabled = true;
-
 		};
 
 		$scope.enableButtons = function () {
-
-			for (let button of $scope.buttons.arr) {
-
-				$("#" + button.id).removeAttr("disabled"); 
-
-			}
 			
 			$scope.buttons.disabled = false;
 			
@@ -390,9 +383,11 @@ function EditorFG (id, bg) {
 					});
 			
 			self.resetAce();
+
+			self.editor.ace.gotoLine($scope.editor.pos.line, $scope.editor.pos.col, true);
 			
-			$scope.editor.ace.find($scope.script.code);
-			$scope.editor.ace.focus();
+			// $scope.editor.ace.find($scope.script.code);
+			// $scope.editor.ace.focus();
 			
 			window.onresize = self.onResize;
 			$scope.editor.setWdw(window);

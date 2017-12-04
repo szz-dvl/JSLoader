@@ -66,6 +66,79 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+	.directive('scriptIndex',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   scope: {
+						   
+						   list: "=list",
+						   parent: "=?parent",
+						   editor: "=editor",
+						   shown: "=shown",
+						   opts: "=opts",
+						   pa: "=pa",
+						   uuid: "=?uuid",
+						   external: "=?external"
+					   },
+
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/script-index.html");
+					   },
+					   
+					   controller: function ($scope, $timeout) {
+
+						   if (!$scope.parent)
+							   $scope.parent = $scope.list[0].parent;
+						   
+						   if ($scope.parent.isGroup())
+							   $scope.parent.elems = [];
+						   
+						   $scope.list_uuid = $scope.uuid || UUID.generate();
+						   
+						   $scope.parent.insertElem($scope.list_uuid, $scope.shown);
+						   
+						   $scope.list = $scope.list.map(
+						   	   script => {
+								   
+								   /* Either this or remove script from shown list on script removal ... */
+								   var elem = script.insertElem($scope.list_uuid, $scope.shown);
+								   
+								   if (elem.shown)
+									   $scope.parent.elemFor($scope.list_uuid).show();
+								   
+								   return script;
+						   	   }
+						   );
+						   
+						   $scope.removeScript = function(script) {
+
+							   var url = script.getUrl(); 
+							   script.remove();
+							   
+							   if (url)
+								   $scope.pa(url.href); /* Solve for groups: URL array. */
+							   
+						   };
+						   
+						   //console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
+						   
+						   $timeout(() => {
+							   
+							   $('#' + $scope.list_uuid).find('code').each(
+								   (i, block) => {
+									   $(block).css("font-size", $scope.opts.fontSize + "pt");
+								   }
+							   );
+						   });
+					   }
+					   
+					   
+				   }
+			   })
+
 	.directive('scriptList',
 			   () => {
 				   
@@ -95,54 +168,14 @@ angular.module('jslPartials', ['hljsSearch'])
 							   $scope.parent = $scope.list[0].parent;
 						   
 						   $scope.list_uuid = UUID.generate();
-						   $scope.list_name = $scope.parent.url || ( ( $scope.parent.name.slice(-1) == "/" && $scope.parent.name.length ) > 1 ? $scope.parent.name.slice(0, -1) : $scope.parent.name );
+						   //$scope.name = $scope.parent.isGroup() ? $scope.parent.name : $scope.parent.parent.name;
+						   $scope.name = $scope.parent.url || ( ( $scope.parent.name.slice(-1) == "/" && $scope.parent.name.length ) > 1 ? $scope.parent.name.slice(0, -1) : $scope.parent.name );
 						   
-						   if ($scope.parent.isGroup())
-							   $scope.parent.elems = [];
-						   
-						   $scope.parent.insertElem($scope.list_uuid, $scope.shown);
-						   
-						   $scope.list = $scope.list.map(
-						   	   script => {
-								   
-								   /* Either this or remove script from shown list on script removal ... */
-								   var elem = script.insertElem($scope.list_uuid, $scope.shown);
-								   
-								   if (elem.shown)
-									   $scope.parent.elemFor($scope.list_uuid).show();
-								   
-								   return script;
-						   	   }
-						   );
-
-						   $scope.name = $scope.parent.isGroup() ? $scope.parent.name : $scope.parent.parent.name;
-						   
-						   $scope.removeScript = function(script) {
-
-							   var url = script.getUrl(); 
-							   script.remove();
-
-							   if (url)
-								   $scope.pa(url.href); /* Solve for groups: URL array. */
-							   
-						   };
-
 						   $scope.addScript = function() {
-
+							   
 							   $scope.editor($scope.parent.factory());
 							   
 						   };
-						   
-						   //console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
-						   
-						   $timeout(() => {
-							   
-							   $('#' + $scope.list_uuid).find('code').each(
-								   (i, block) => {
-									   $(block).css("font-size", $scope.opts.fontSize + "pt");
-								   }
-							   );
-						   });
 						   
 						   if ($scope.port) {
 							   
@@ -153,7 +186,7 @@ angular.module('jslPartials', ['hljsSearch'])
 									   case "list-update":
 										   
 										   if ($scope.name == args.message) {
-
+											   
 											   //console.log("List update for: " + $scope.parent.parent.name + $scope.parent.url);
 											   
 											   if (!$scope.list.length)
@@ -181,7 +214,6 @@ angular.module('jslPartials', ['hljsSearch'])
 					   }   
 				   }
 			   })
-
 
 	.directive('groupValidator',
 			   () => {

@@ -318,7 +318,7 @@ function DomainMgr (bg) {
 							if (site) {
 
 								if (site.scripts.length)
-									editInfo.site.push({ name: site.siteName(), scripts: site.scripts });
+									editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
 								groups.push.apply(groups,
 												  site.groups);	

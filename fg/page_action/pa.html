@@ -22,31 +22,27 @@
 		
 	</head>
 	
-	<body ng-controller="siteController">
+	<body ng-controller="siteController" ui-sref="pa-site">
 			
 	  <div class="panel-section panel-section-header">
 		<div class="text-section-header">JSLoader</div>
 	  </div>
-
-	  <ul ui-sref="pa-site">
 		
-		<li ng-if="info.domain[0].scripts.length">
-		  <div ui-view="domain"></div>
-		</li>
-		
-		<li ng-if="info.site[0].scripts.length">
-		  <div ui-view="site"></div>
-		</li>
-		
-		<li ng-if="info.subdomains.length">
-		  <div ui-view="subdomains"></div>
-		</li>
-		
-		<li ng-if="info.groups.length">
-		  <div ui-view="groups"></div>
-		</li>
-		
-	  </ul>
+	  <div ng-if="info.domain[0].scripts.length">
+		<div ui-view="domain"></div>
+	  </div>
+	  
+	  <div ng-if="info.site[0].scripts.length">
+		<div ui-view="site"></div>
+	  </div>
+	  
+	  <div ng-if="info.subdomains.length">
+		<div ui-view="subdomains"></div>
+	  </div>
+	  
+	  <div ng-if="info.groups.length">
+		<div ui-view="groups"></div>
+	  </div>
 	  
 	  <script src="pa.js"></script>
 	  

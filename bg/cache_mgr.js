@@ -144,7 +144,7 @@ function Cache (opt) {
 					.then(item => {
 
 						if (!item) {
-							console.log("Creating item: " + item_name);
+							
 							self.birth(
 								item => {
 									
@@ -237,27 +237,50 @@ function Cache (opt) {
 						cache => {
 							
 							self.getMissingItems()
-								.then(resolve,
-									  err => {
-
-										  console.error("GetAllItems rejection;")
-										  console.err (err);
-										  
-										  reject();
-									  });
+								.then(resolve,reject);
 							
-						},
-						err => {
-
-							console.error("GetAllItems rejection;")
-							console.err (err);
-
-							reject();
-						}
-					)
+						}, reject);
 			}
-		);
+		)
 	}
+
+	/* Here for convenience */
+	this.getInfoFor = function (names) {
+
+		return new Promise (
+			(resolve, reject) => {
+
+				let info = [];
+				
+				async.each(names,
+						   (name, next) => {
+
+							   self.getOrBringCached(name)
+								   .then(
+									   item => {
+
+										   if (item) {
+											   
+											   /* Must allways exist*/
+											   info.push({name: name, scripts: item.scripts});
+											   next();
+											   
+										   } else
+											   next(new Error("Missing item."));
+									   }
+								   );
+					   
+						   },
+						   err => {
+
+							   if (err)
+								   reject(err);
+							   else
+								   resolve(info);
+
+						   });
+			});
+	};
 	
 	/* Only when importing items, "cache-update-{ItemKey}" message will be broadcasted by "storeNew{ItemName}" on domain persist. !!!! */
 	this.updateCache = function (item) {

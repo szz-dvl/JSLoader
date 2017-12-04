@@ -417,8 +417,10 @@ function Site (opt) {
 	};
 
 	this.siteName = function () {
+
+		let name = self.parent.name + self.url;
 		
-		return self.parent.name + self.url;
+		return name.slice(-1) == "/" ? name.slice(0, -1) : name;
 		
 	};
 	
@@ -510,7 +512,7 @@ function Domain (opt) {
 	}
 	
 	this.isEmpty = function () {
-
+		
 		return !self.scripts.length && !self.sites.length && !self.groups.length;
 		
 	};
@@ -574,12 +576,12 @@ function Domain (opt) {
 	
 	this.haveSite = function(pathname) {
 
-		return pathname == "/" ?
-			self :
-			self.sites.filter(
+		return (!pathname || pathname == "/")
+			? self
+			: self.sites.find(
 				site => {	
 					return site.url == pathname;
-				})[0] || false;
+				}) || false;
 	};
 	
 	this.getOrCreateSite = function (pathname) {

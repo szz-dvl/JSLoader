@@ -1,0 +1,13 @@
+<div class="panel-section" ng-repeat="item in data track by item.name">
+	
+  <h4> {{item.name}} </h4>
+	
+  <script-list ng-if="item.scripts.length"
+			   list="item.scripts"
+			   editor="page.bg.editor_mgr.openEditorInstanceForScript"
+			   shown="[]"
+			   pa="page.bg.tabs_mgr.updatePA"
+			   opts="page.bg.option_mgr.editor">
+  </script-list>
+  
+</div>

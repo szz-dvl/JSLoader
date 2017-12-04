@@ -44,7 +44,7 @@ function GroupMgr (bg) {
 			return new Promise (
 				(resolve, reject) => {
 					
-					self.bg.getCurrentUrl()
+					self.bg.tabs_mgr.getCurrentURL()
 						.then(
 							url => {
 								
@@ -95,7 +95,7 @@ function GroupMgr (bg) {
 									
 								} catch(e) {
 
-									hostname = temp.hostname;
+									hostname = url;
 									pathname = null;
 								}
 
@@ -145,18 +145,39 @@ function GroupMgr (bg) {
 		return self.__siteOps(group_name, url, "remove");
 		
 	}
-
 	
 	this.clear = function () {
 		
 		cosnsole.error("Unimplemented!");
 	};
-	
+
+	/* !!! */
 	this.importGroups = function (arr) {
 		
 		for (group_info of arr)
-			self.updateCache(new Domain (group_info));
+			self.updateCache(new Group (group_info));
 			
+	};
+
+	this.exportGroups = function () {
+
+		self.domain_mgr.getFullGroups(
+			groups => {
+				
+				var text = ["["];
+				
+				for (group of groups) {
+					
+					text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
+					text.push(",");
+				}
+
+				text.pop(); // last comma
+				text.push("]");
+				
+				browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) });
+			}
+		);
 	};
 	
 	this.storeNewGroups = function (changes, area) {

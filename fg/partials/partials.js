@@ -77,7 +77,7 @@ angular.module('jslPartials', ['hljsSearch'])
 					   scope: {
 						   
 						   list: "=list",
-						   parent: "=parent",
+						   parent: "=?parent",
 						   port: "=port",
 						   editor: "=editor",
 						   shown: "=shown",
@@ -90,6 +90,9 @@ angular.module('jslPartials', ['hljsSearch'])
 					   },
 					   
 					   controller: function ($scope, $timeout) {
+
+						   if (!$scope.parent)
+							   $scope.parent = $scope.list[0].parent;
 						   
 						   $scope.list_uuid = UUID.generate();
 						   $scope.list_name = $scope.parent.url || ( ( $scope.parent.name.slice(-1) == "/" && $scope.parent.name.length ) > 1 ? $scope.parent.name.slice(0, -1) : $scope.parent.name );
@@ -295,8 +298,6 @@ angular.module('jslPartials', ['hljsSearch'])
 							   if (modified.endsWith("/"))
 								   modified = modified.slice(0, -1);
 							   
-							   console.log("Domain: " + orig + " Subdomain: " + modified);
-							   
 							   var mod_arr = modified.split(".");
 							   var orig_arr = orig.split(".");
 							   
@@ -321,8 +322,6 @@ angular.module('jslPartials', ['hljsSearch'])
 
 							   if (modified.endsWith("/"))
 								   modified = modified.slice(0, -1);
-
-							   console.log("Domain: " + orig + " Subdomain: " + modified);
 							   
 							   var mod_arr = modified.split(".");
 							   var orig_arr = orig.split(".");
@@ -364,9 +363,6 @@ angular.module('jslPartials', ['hljsSearch'])
 												   $scope.backup = temp;
 
 										   } catch (err) {
-
-											   console.log("String backup");
-											   console.log(err);
 											   
 											   /* String backup */
 											   
@@ -378,8 +374,6 @@ angular.module('jslPartials', ['hljsSearch'])
 										   }
 										   
 									   } catch (e if e instanceof TypeError) {
-
-										   console.log("TypeError: " + e.message);
 										   
 										   if ($scope.url.indexOf("*") != 0) 
 											   $scope.url = $scope.backup.name();
@@ -387,7 +381,7 @@ angular.module('jslPartials', ['hljsSearch'])
 
 											   if ($scope.isSubDomain($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) {
 												   
-												   $scope.url = $scope.url.split("/")[0] + "/"; /* "All subdomains" shortcut ... */
+												   $scope.url = $scope.url.split("/")[0]; /* "All subdomains" shortcut ... */
 												   $scope.backup = $scope.url;
 												   
 											   } else {
@@ -399,7 +393,10 @@ angular.module('jslPartials', ['hljsSearch'])
 											   }
 										   }
 									   }	  
-									   
+
+									   if ($scope.url.slice(-1) == "/")
+										   $scope.url = $scope.url.slice(0, -1);
+										   
 									   $(ev.target).text($scope.url);
 
 									   if ($scope.ev)

@@ -8,55 +8,15 @@ function BG_mgr () {
 	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
 	this.notify_mgr = new NotificationMgr(self);
+	this.tabs_mgr = new TabsMgr(self);
 	this.logs_mgr = new LogsMgr(self);
-		
-	this.__showPageAction = function (tabInfo) {
-		
-		browser.tabs.get(tabInfo.tabId || tabInfo)
-			.then(
-				tab => {
-
-					/* Update editors if necessary */
-					var url = new URL(tab.url).sort();
-					
-					if (["http:", "https:"].includes(url.protocol)) {
-						
-						self.domain_mgr.haveInfoForUrl(url)
-							.then(
-								any => {
-									
-									if (any)
-										browser.pageAction.show(tab.id);
-									else 
-										browser.pageAction.hide(tab.id);
-									
-								});	
-
-					} 
-				}
-			);
-	};
-
-	this.getCurrentUrl = function () {
-		
-		return new Promise (
-			(resolve, reject) => {
-			
-				browser.tabs.query({currentWindow: true, active: true})
-					.then(tab_info => {
-						resolve(new URL(tab_info[0].url).sort());
-					}, reject)
-			}
-		);
-
-	};
 	
 	this.getPASite = function () {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.getCurrentUrl()
+				self.tabs_mgr.getCurrentURL()
 					.then(url => {
 						
 						self.domain_mgr.getEditInfoForUrl(url)
@@ -130,128 +90,9 @@ function BG_mgr () {
 		}
 	};
 	
-	this.broadcastEditors = function (message) {
-
-		try {
-			
-			browser.runtime.sendMessage(message);
-			
-		} catch(e) {};
-		
-	};
-
-	this.toDomain = function (desc) {
-		return new Domain (desc);
-	};
-
-	this.exportScripts = function () {
-
-		self.domain_mgr.getFullDomains(
-			domains => {
-				
-				var text = ["["];
-				
-				for (domain of domains) {
-					
-					text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
-					text.push(",");
-
-				}
-
-				text.pop(); // last comma
-				text.push("]");
-				
-				browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) });
-			}
-		);
-	};
-
-	this.exportSettings = function () {
-		
-		browser.downloads.download(
-			{ url: URL.createObjectURL(
-				new File(
-					JSON.stringify(self.option_mgr.getFullOpts()).split('\n'),
-					"settings.json",
-					{type: "application/json"}
-				)
-			)}
-		);
-	};
-
-	this.exportGroups = function () {
-
-		self.domain_mgr.getFullGroups(
-			groups => {
-				
-				var text = ["["];
-				
-				for (group of groups) {
-					
-					text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
-					text.push(",");
-				}
-
-				text.pop(); // last comma
-				text.push("]");
-				
-				browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) });
-			}
-		);
-	};
-
-	this.getTabsForURL = function (url) {
-
-		return new Promise(
-			(resolve,reject) => {
-
-				var my_url;
-				
-				if (typeof(url) == "string") {
-					
-					if (url.startsWith("*."))
-						my_url = new URL("http://" + url.slice(2));
-					else
-						my_url = new URL(url);
-					
-				} else
-					my_url = url;
-				
-				browser.tabs.query({url: "*://*." + my_url.name() + "*"})
-					.then(
-						tabs => {
-							
-							resolve(tabs);
-							
-						}
-					)
-			}
-		)
-	};
-	
-	this.updatePA = function (script) {
-
-		/* Groups missing: To list! */
-		var url = typeof(script) == "object" ? (script.getUrl() || (script.parent.isSubdomain() ? script.getParentName() : null)) : script;
-		
-		if (url) {
-			
-			self.getTabsForURL(url)
-				.then(
-					tabs => {
-						
-						for (tab of tabs) 
-							self.__showPageAction(tab.id);
-						
-					}
-				);
-		}
-	};
 }
 
 BG_mgr.call(this);
 
-browser.tabs.onActivated.addListener(this.__showPageAction);
-browser.tabs.onUpdated.addListener(this.__showPageAction);
 browser.commands.onCommand.addListener(this.receiveCmd);
 

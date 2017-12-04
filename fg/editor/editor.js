@@ -78,7 +78,7 @@ function EditorFG (id, bg) {
 	]
 
 	this.editor = this.bg.editor_mgr.getEditorById(id);
-
+	this.editor.fg = this;
 	/* 
 	   To-Do: 
 	   
@@ -88,7 +88,7 @@ function EditorFG (id, bg) {
 
 	this.isCollapsed = function () {
 		
-		return self.editor.scope.dd_text == "<";
+		return self.scope.dd_text == "<";
 		
 	};
 	
@@ -97,7 +97,7 @@ function EditorFG (id, bg) {
 		if (self.isCollapsed()) {
 			
 			self.dropdown.text("v");
-			self.editor.scope.dd_text = "v"; //fails from shortcut.
+			self.scope.dd_text = "v"; //fails from shortcut.
 			
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
@@ -105,7 +105,7 @@ function EditorFG (id, bg) {
 		} else {
 			
 			self.dropdown.text("<");
-			self.editor.scope.dd_text = "<"; //fails from shortcut.
+			self.scope.dd_text = "<"; //fails from shortcut.
 			
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
@@ -116,7 +116,7 @@ function EditorFG (id, bg) {
 
 	this.toggleButtons = function () {
 		
-		if (self.editor.scope.buttons.shown) {
+		if (self.scope.buttons.shown) {
 			
 			self.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", () => {
 				
@@ -136,7 +136,7 @@ function EditorFG (id, bg) {
 			self.dropdown.fadeIn();
 		}
 		
-		self.editor.scope.buttons.shown = !self.editor.scope.buttons.shown
+		self.scope.buttons.shown = !self.scope.buttons.shown
 	};
 	
 	this.getFirstError = function () {
@@ -153,9 +153,9 @@ function EditorFG (id, bg) {
 	
 	this.runCurrent = function () {
 
-		if (!self.editor.scope.buttons.disabled) {
+		if (!self.scope.buttons.disabled) {
 
-			self.editor.scope.disableButtons();
+			self.scope.disableButtons();
 
 			let error = self.getFirstError();
 
@@ -175,20 +175,22 @@ function EditorFG (id, bg) {
 								
 							}
 							
-							self.editor.scope.enableButtons();
+							self.scope.enableButtons();
 							
 						},
 						err => {
 							
 							/* Liada gorda! */
-							self.editor.scope.enableButtons();
+							self.scope.enableButtons();
 							
-						});
+						}
+					);
+				
 			} else {
 				
 				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				self.editor.ace.gotoLine(error.row + 1, error.column, true);
-				self.editor.scope.enableButtons();
+				self.scope.enableButtons();
 			}
 		}
 	};
@@ -196,28 +198,28 @@ function EditorFG (id, bg) {
 	this.saveCurrent = function () {
 
 		/* May be triggered from shortcut. */
-		if (!self.editor.scope.buttons.disabled) {
+		if (!self.scope.buttons.disabled) {
 			
-			self.editor.scope.disableButtons();
+			self.scope.disableButtons();
 
 			let error = self.getFirstError();
 
 			if (!error) {
 				
 				let promise = self.editor.script.parent.isGroup()
-					? self.editor.script.updateGroup(self.editor.scope.url)
-					: self.editor.script.updateParent(self.editor.scope.url);
+					? self.editor.script.updateGroup(self.scope.url)
+					: self.editor.script.updateParent(self.scope.url);
 				
 				promise.then (
 					script => {
-
+						
 						script.code = self.editor.ace.getValue().toString().trim();
 						script.persist()
 							.then(
 								parent => {
 									
-									self.bg.updatePA(script);
-									self.editor.scope.enableButtons();
+									self.bg.tabs_mgr.updatePA(script);
+									self.scope.enableButtons();
 									
 								}
 							)
@@ -228,7 +230,7 @@ function EditorFG (id, bg) {
 				
 				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				self.editor.ace.gotoLine(error.row + 1, error.column, true);
-				self.editor.scope.enableButtons();
+				self.scope.enableButtons();
 			}
 			
 		} /* else: Notify? */
@@ -267,17 +269,17 @@ function EditorFG (id, bg) {
 	
 	this.app.controller('editorController', ($scope, $timeout) => {
 		
-		self.editor.scope = $scope;
-
+		self.scope = $scope;
+		
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
-
+		
 		$scope.page = self;
-
+		
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName();
 		
 		$scope.label = "JSLoader";
-
+		
 		/* ¿¿ To wdw title ?? */
 		$scope.user_action = !$scope.script.parent.isGroup() ? (self.editor.mode ? "Adding script for: " : "Editing script for: ") : (self.editor.mode ? "Adding script for group: " : "Editing script for group: ");  
 		
@@ -287,7 +289,7 @@ function EditorFG (id, bg) {
 			disabled: false,
 			arr: [{text:"Save", id: "save_btn", available: true,
 				   click: function () {
-
+					   
 					   self.saveCurrent();
 					   
 				   }},
@@ -322,8 +324,21 @@ function EditorFG (id, bg) {
 					$scope.enableButtons();
 					
 				});
-		
 
+		$scope.disableRun = function () {
+
+			$scope.buttons.arr[1].available = false;
+			$scope.$digest();
+
+		};
+
+		$scope.enableRun = function () {
+
+			$scope.buttons.arr[1].available = true;
+			$scope.$digest();
+			
+		};
+		
 		$scope.disableButtons = function () {
 
 			for (let button of $scope.buttons.arr) {

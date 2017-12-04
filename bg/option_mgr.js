@@ -27,10 +27,7 @@ function OptionMgr (bg) {
 	this.storage.getOptions(
 		
 		new_options => {
-			
 			Options.call(self, new_options || {});
-
-			console.log(self);
 		}
 	);
 
@@ -47,7 +44,7 @@ function OptionMgr (bg) {
 					.then(
 						() => {
 
-							self.bg.broadcastEditors({action: "opts", message: self.editor});
+							self.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
 							
 							resolve(opts);
 
@@ -99,7 +96,7 @@ function OptionMgr (bg) {
 									break;
 								
 								case "update-PA":
-									self.bg.updatePA(args.message);
+									self.bg.tabs_mgr.updatePA(args.message);
 									
 									break;
 								
@@ -126,6 +123,19 @@ function OptionMgr (bg) {
 	this.clear = function () {
 
 		self.storage.removeOptions();
+	};
+
+	this.exportSettings = function () {
+		
+		browser.downloads.download(
+			{ url: URL.createObjectURL(
+				new File(
+					JSON.stringify(self.option_mgr.getFullOpts()).split('\n'),
+					"settings.json",
+					{type: "application/json"}
+				)
+			)}
+		);
 	};
 	
 	// this.storeNewOpts = function (changes, area) {

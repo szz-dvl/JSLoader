@@ -9,8 +9,11 @@
 		<link ng-if="!page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
 		<link ng-if="page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{page.bg.option_mgr.editor.theme.knownToHl}}.min.css">		
 		<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
+		<link rel="stylesheet" href="../styles/script-list.css">
+		
 		<script src="../deps/jquery.min.js"></script>
 		<script src="../deps/angular.min.js"></script>
+		<script src="../deps/angular-ui-router.min.js"></script>
 		<script src="../deps/highlightjs/highlight.min.js"></script>
 		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 		<script src="../partials/partials.js"></script>
@@ -19,31 +22,31 @@
 		
 	</head>
 	
-	<body >
+	<body ng-controller="siteController">
 			
 	  <div class="panel-section panel-section-header">
 		<div class="text-section-header">JSLoader</div>
 	  </div>
-	  
-	  <div id="content" class="panel-section" ng-controller="siteController">
-		<script-list ng-if="site.parent.scripts.length"
-					 list="site.parent.scripts"
-					 parent="site.parent"
-					 editor="page.bg.editor_mgr.openEditorInstanceForScript"
-					 shown="shown"
-					 pa="page.bg.updatePA"
-					 opts="page.bg.option_mgr.editor">
-		</script-list>
+
+	  <ul ui-sref="pa-site">
 		
-		<script-list ng-if="site.scripts.length && !site.isDomain()"
-					 list="site.scripts"
-					 parent="site"
-					 editor="page.bg.editor_mgr.openEditorInstanceForScript"
-					 shown="shown"
-					 pa="page.bg.updatePA"
-					 opts="page.bg.option_mgr.editor">
-		</script-list>
-	  </div>
+		<li ng-if="info.domain[0].scripts.length">
+		  <div ui-view="domain"></div>
+		</li>
+		
+		<li ng-if="info.site[0].scripts.length">
+		  <div ui-view="site"></div>
+		</li>
+		
+		<li ng-if="info.subdomains.length">
+		  <div ui-view="subdomains"></div>
+		</li>
+		
+		<li ng-if="info.groups.length">
+		  <div ui-view="groups"></div>
+		</li>
+		
+	  </ul>
 	  
 	  <script src="pa.js"></script>
 	  

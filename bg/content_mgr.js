@@ -222,44 +222,47 @@ function CSMgr (bg) {
 		);	
 	};
 
-	this.waitForFrames = function (tabId) {
+	this.__waitForFrames = function (tabId, reload) {
 
 		return new Promise(
 			(resolve, reject) => {
+
+				let promise = reload
+					? browser.tabs.reload(tabId, {bypassCache: false})
+					: Promise.resolve();
 				
-				browser.tabs.reload(tabId, {bypassCache: false})
-					.then(
-						() => {
-							
-							let timeout = 5;
-							let myID = setInterval(
-								() => {
+				promise.then(
+					() => {
+						
+						let timeout = 5;
+						let myID = setInterval(
+							() => {
+								
+								let frames = self.getFramesForTab(tabId);
+								
+								if (frames.length) {
 									
-									let frames = self.getFramesForTab(tabId);
+									clearInterval(myID);
+									resolve();
 									
-									if (frames.length) {
+								} else {
+									
+									timeout --;
+									
+									if (timeout == 0) {
 										
 										clearInterval(myID);
-										resolve();
+										reject();
 										
-									} else {
-										
-										timeout --;
-										
-										if (timeout == 0) {
-											
-											clearInterval(myID);
-											reject();
-											
-										}
 									}
-									
-								}, 500);
-						});
+								}
+								
+							}, 500);
+					});
 			});
 	};
 
-	this.forceMainFramesForTab = function (tabId) {
+	this.__forceMainFramesForTab = function (tabId, reload) {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -271,7 +274,7 @@ function CSMgr (bg) {
 
 				else {
 					
-					self.waitForFrames(tabId)
+					self.__waitForFrames(tabId, reload)
 						.then(
 							frames => {
 							
@@ -282,6 +285,18 @@ function CSMgr (bg) {
 				}
 				
 			});
+	};
+
+	this.forceMainFramesForTab = function (tabId) {
+
+		return self.__forceMainFramesForTab(tabId, true);
+
+	};
+
+	this.waitMainFramesForTab = function (tabId) {
+
+		return self.__forceMainFramesForTab(tabId, false);
+
 	};
 	
 	browser.runtime.onConnect
@@ -315,7 +330,7 @@ function CSMgr (bg) {
 											scripts => {
 												
 												if (scripts)
-													self.bg.updatePA(url.href);
+													self.bg.tabs_mgr.updatePA(url.href);
 												
 												port.postMessage({action: "run",
 																  response: "ret-logs",

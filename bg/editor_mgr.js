@@ -2,38 +2,6 @@ function onError (err) {
 	console.error(err);
 };
 
-function JSLTab (tabInfo, feeding) {
-
-	var self = this;
-	
-	Object.assign(this, tabInfo);
-	
-	this.url = new URL(this.url).sort();
-	this.id = parseInt(this.id);
-	this.feeding = feeding;
-	
-	this.run = function (scripts) {
-		
-		return new Promise(
-			(resolve, reject) => {
-				
-				let pr = [];
-
-				self.feeding(self.id)
-					.then(
-						frames => {
-							
-							for (let frame of frames) 
-								pr.push(frame.run(scripts));
-
-							Promise.all(pr).then(resolve, reject);
-							
-						}, reject);		
-				
-			});
-	}
-}
-
 function EditorWdw (opt) {
 	
 	return new Promise (
@@ -94,6 +62,17 @@ function Editor (opt) {
 			)
 		);	
 	};
+
+	this.newTabURL = function (url) {
+
+		if (self.tab) {
+			
+			if (url.hostname !== self.tab.url.hostname) 	
+				self.fg.scope.disableRun();
+			else if (url.match(self.tab.url))
+				self.fg.scope.enableRun();
+		}
+	}
 
 	this.setWdw = function (wdw) {
 		
@@ -159,7 +138,7 @@ function EditorMgr (bg) {
 
 						let endpoint = script.getUrl() || script.getParentName();
 						
-						self.bg.getTabsForURL(endpoint)
+						self.bg.tabs_mgr.getTabsForURL(endpoint)
 							.then(
 								tabs => {
 							
@@ -229,14 +208,23 @@ function EditorMgr (bg) {
 			})[0] || null;
 	};
 
-	this.getEditorForTab = function (tab) {
+	this.getEditorForTab = function (tab_id) {
 		
 		return self.editors.filter(
 			editor => {
 				
-				return editor.tab.id == tab.id;
+				return editor.tab ? editor.tab.id == tab_id : false;
 				
 			})[0] || null;
+	};
+
+	this.broadcastEditors = function (message) {
+		
+		try {
+			
+			browser.runtime.sendMessage(message);
+			
+		} catch(e) {};	
 	};
 	
 } 

@@ -27,6 +27,7 @@
 			"bg/group_mgr.js",
 			"bg/notify_mgr.js",
 			"bg/logs_mgr.js",
+			"bg/tabs_mgr.js",
 			"bg/content_mgr.js",
 			"bg/background.js"]
 	},

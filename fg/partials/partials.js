@@ -407,7 +407,7 @@ angular.module('jslPartials', ['hljsSearch'])
 										   
 									   } catch (e if e instanceof TypeError) {
 										   
-										   if ($scope.url.indexOf("*") != 0) 
+										   if (!$scope.url.startsWith("*.")) 
 											   $scope.url = $scope.backup.name();
 										   else {
 

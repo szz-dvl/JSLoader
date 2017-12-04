@@ -374,11 +374,11 @@ function CSMgr (bg) {
 							case "event":
 								{
 									self.alive.map(
-										port => {
+										cs => {
 											
 											try {
 												
-												port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
+												cs.port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
 											
 											} catch (e) {}
 										}

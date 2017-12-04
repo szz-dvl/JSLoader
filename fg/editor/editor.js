@@ -176,7 +176,7 @@ function EditorFG (id, bg) {
 							}
 							
 							self.scope.enableButtons();
-							
+							self.scope.$digest();
 						},
 						err => {
 							
@@ -220,6 +220,7 @@ function EditorFG (id, bg) {
 									
 									self.bg.tabs_mgr.updatePA(script);
 									self.scope.enableButtons();
+									self.scope.$digest();
 									
 								}
 							)

@@ -1,15 +1,209 @@
-function JSLTab (tabInfo, feeding) {
+function ListenerWdw (tabInfo) {
 
-	var self = this;
+	let self = this;
+	
+	return new Promise (
+		(resolve, reject) => {
+			
+			let listener = new JSLTabListener(tabInfo, parent);
+
+			browser.windows.create({
+				
+				type: "popup",
+				state: "normal",
+				url: browser.extension.getURL("fg/listener/listener.html?" + listener.id),
+				width: 1024, 
+				height: 420 
+				
+			}).then (
+				wdw => {
+					
+					listener.wdw = wdw;
+					
+					resolve (listener);
+					
+				}, reject);
+					
+		});
+}
+
+function JSLTabListener(tabInfo) {
+
+	let self = this;
 	
 	Object.assign(this, tabInfo);
 	
 	this.url = new URL(this.url).sort();
 	this.id = parseInt(this.id);
-	this.feeding = feeding;
 	
-	this.run = function (scripts) {
+	this.requests = [];
+	
+	this.__findRequest = function(reqId) {
 		
+		return self.requests.find(
+			req => {
+				
+				return req.request.requestId == reqId;
+				
+			}
+		) || null;
+		
+	};
+
+	this.__removeRequest = function(reqId) {
+
+		self.requests.remove(
+			self.requests.findIndex(
+				req => {
+					
+					return req.request.requestId == reqId;
+					
+				}
+			)
+		);
+	};
+	
+	this.onBeforeSend = function (request) {
+
+		if (request.tabId == self.id) 
+			self.requests.push({request: request, responses: []});
+		
+	}
+
+	this.onSend = function (request) {
+
+		if (request.tabId == self.id) {
+
+			let req = self.__findRequest(request.requestId);
+
+			if (req) {
+
+				if (req.request.requestHeaders != request.requestHeaders) {
+
+					let changed = request.requestHeaders
+						.filter(
+							header => {
+								
+								return req.request.requestHeaders
+									.findIndex(
+										stored => {
+											
+											return (stored.name == header.name && stored.value == header.value);
+											
+										}
+										
+									) < 0;  
+							}
+						);
+					
+					if (changed.length)
+						req.request.changedHeaders = changed;
+				}
+				
+			}
+		}
+	};
+	
+
+	this.onHeadersReceived = function (response) {
+
+		if (response.tabId == self.id) {
+			
+			let req = self.__findRequest(response.requestId);
+			
+			if (req) {
+							
+				req.responses.push(response);
+
+				if (req.track)
+					clearTimeout(req.track)
+				
+				if (response.statusCode == 200) {
+
+					self.port.postMessage({action: "new-request", request: req});
+					self.__removeRequest(response.requestId);
+					
+				} else {
+
+					req.track = setTimeout(
+						req => {
+
+							self.port.postMessage({action: "error-request", request: req});
+							self.__removeRequest(response.requestId);
+							
+						}, 3000, req
+					);
+					
+				}
+				
+			} else {
+
+				console.error(" --------------- Missing request ------------- ");
+				console.error(response);
+				console.error("------------------------------------------");
+			}
+		}
+	};
+
+	this.listenerUnregister = function () {
+		
+		browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
+		browser.webRequest.onSendHeaders.removeListener(self.onSend);
+		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
+		
+	};
+
+	
+	browser.runtime.onConnect
+		.addListener(
+			port => {
+				
+				if (port.name === ("tab-listener-" + self.id)) {
+					
+					self.port = port;
+					
+					/* Not firing on window close.. */
+					self.port.onDisconnect.addListener(
+						port => {
+							
+							if (port.error)
+								console.error("Disconnect error: " + port.error.message);
+							
+							console.log("Closing listener " + self.id);
+							
+						}
+					);
+					
+					browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
+																	   {urls: ["<all_urls>"]},
+																	   [ "requestHeaders" ]);
+
+					browser.webRequest.onSendHeaders.addListener(self.onSend,
+																 {urls: ["<all_urls>"]},
+																 [ "requestHeaders" ]);
+					
+					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
+																	 {urls: ["<all_urls>"]},
+																	 [ "responseHeaders" ]);
+					
+				}
+			}
+		);
+	
+};
+
+function JSLTab (tabInfo, feeding) {
+
+	let self = this;
+	
+	Object.assign(this, tabInfo);
+	
+	this.url = new URL(this.url).sort();
+	this.id = parseInt(this.id);
+	
+	this.feeding = feeding;
+	this.run = function (scripts) {
+			
 		return new Promise(
 			(resolve, reject) => {
 				
@@ -35,6 +229,7 @@ function TabsMgr (bg) {
 	let self = this;
 
 	this.bg = bg;
+	this.listeners = [];
 
 	this.__showPageAction = function (tabInfo) {
 
@@ -134,6 +329,81 @@ function TabsMgr (bg) {
 		
 	};
 
+	this.openOrCreateTab = function (url) {
+
+		return new Promise (
+			(resolve, reject) => {
+						
+				self.getTabsForURL(url)
+					.then(
+						tabs => {
+							
+							let tab = tabs[0];
+							
+							if (tab) {
+								
+								browser.tabs.update(tab.id, {active: true})
+									.then(resolve, reject);
+
+							} else {
+
+								browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
+									.then(wdws => {
+										browser.tabs.create({active: true, url: url, windowId: wdws[0].id})
+											.then(resolve, reject);
+									});
+							}
+						});
+			});
+	};
+	
+	this.getListenerById = function (lid) {
+		
+		return self.listeners.find(
+			listener => {
+
+				return listener.id == lid;
+				
+			}) || null;
+	}
+	
+	this.listenerClose = function (lid) {
+		
+		let idx = self.listeners.findIndex(
+			listener => {
+				
+				return listener.id == lid;
+				
+			}
+		);
+
+		if (idx >= 0) {
+
+			self.listeners[idx].listenerUnregister();
+			self.listeners.remove(idx);
+			
+		} else
+			console.error("Missing listener " + id);
+		
+	};
+
+	this.openListenerInstance = function (tabInfo) {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				new ListenerWdw(tabInfo)
+					.then(
+						listener => {
+
+							self.listeners.push(listener);
+							resolve(listener);
+
+						}, reject);
+
+			});
+	};
+	
 	/* If any content script needs to run a script this method will be called, so no need to worry about it on "tabs.onUpdated" */
 	this.updatePA = function (script) {
 

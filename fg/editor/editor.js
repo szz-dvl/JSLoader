@@ -1,8 +1,3 @@
-function onError (err) {
-	console.log(err);
-};
-
-
 function Shortcut (opt) {
 
 	var self = this;
@@ -176,13 +171,16 @@ function EditorFG (id, bg) {
 							}
 							
 							self.scope.enableButtons();
-							self.scope.$digest();
+							self.scope.$digest();  /* !!! */
 						},
 						err => {
 							
 							/* Liada gorda! */
-							self.scope.enableButtons();
+							console.log("Run reject: ");
+							console.log(err);
 							
+							self.scope.enableButtons();
+							self.scope.$digest();
 						}
 					);
 				
@@ -191,6 +189,7 @@ function EditorFG (id, bg) {
 				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				self.editor.ace.gotoLine(error.row + 1, error.column, true);
 				self.scope.enableButtons();
+				self.scope.$digest();
 			}
 		}
 	};
@@ -441,7 +440,7 @@ browser.runtime.getBackgroundPage()
 			
 			EditorFG.call(this, id, page);
 			
-		}, onError
+		},
 	);
 
 

@@ -68,7 +68,7 @@ function OP (bg, port) {
 	this.settings;
 	this.tabs;
 	
-	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router', 'ngRoute']); 
+	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
 	
 	this.app.controller('tabsController', function ($scope, $state) {
 

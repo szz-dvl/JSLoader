@@ -1,0 +1,28 @@
+.url {
+	width: 820px;
+	/* word-wrap: break-word; */
+	display: inline-block;
+	text-overflow: ellipsis !important;
+	overflow:hidden;
+}
+
+.json-formatter-row {
+	  
+	-webkit-user-select: text;  /* Chrome 49+ */
+	-moz-user-select: text;     /* Firefox 43+ */
+	-ms-user-select: text;      /* No support yet */
+	user-select: text;          /* Likely future */
+}
+
+.noInfoContainer {
+	
+	height: 60%;
+	background-color: 'lightgrey';
+	width: 100%;
+	color: #a3a3c2;
+	font-size: 250%;
+	text-align: center;
+	margin-top: 140px;
+	padding-top: 10%;
+	padding-bottom: 10%;
+}

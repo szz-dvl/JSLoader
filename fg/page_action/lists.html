@@ -1,6 +1,6 @@
 <div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;">
 
-  <h4> Included from {{ key }} {{ item.name }}  <bdi style="color:red" ng-click="item.toggleList()">{{ item.listState() }}</bdi> </h4><br>
+  <h4> Included from {{ key }} {{ item.name }}  <bdi style="color:red" ng-click="item.toggleList()">{{ item.listState() }}</bdi> </h4>
   
   <script-index
 	 ng-show="item.visible"

@@ -50,7 +50,18 @@ function Editor (opt) {
 		else
 			return Promise.reject();			
 	};
+	
+	this.newTabURL = function (url) {
 
+		if (self.tab) {
+			
+			if (url.hostname !== self.tab.url.hostname) 	
+				self.fg.scope.disableRun();
+			else if (url.match(self.tab.url))
+				self.fg.scope.enableRun();
+		}
+	}
+	
 	this.editorClose = function () {
 		
 		self.parent.editors.remove(
@@ -63,18 +74,7 @@ function Editor (opt) {
 			)
 		);	
 	};
-
-	this.newTabURL = function (url) {
-
-		if (self.tab) {
-			
-			if (url.hostname !== self.tab.url.hostname) 	
-				self.fg.scope.disableRun();
-			else if (url.match(self.tab.url))
-				self.fg.scope.enableRun();
-		}
-	}
-
+	
 	this.setWdw = function (wdw) {
 		
 		self.wdw.child = wdw;

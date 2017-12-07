@@ -75,7 +75,7 @@
 		"open_in_tab": true,
 		"page": "fg/opt_page/options.html"
 	},
-
+	
 	"commands": {
 		"add-script-for-tab": {
 			"suggested_key": {
@@ -94,11 +94,17 @@
 				"linux": "Alt+Shift+3"
 			},
 			"description": "Create new group, ¿adds the current site? and binds a new script."
+		},
+		"listen-request-for-tab": {
+			"suggested_key": {
+				"linux": "Alt+Shift+4"
+			},
+			"description": "Listen and prints request for the current tab."
 		}
 	},
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 	
-	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab" ]
+	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab", "webRequest" ]
 	
 }

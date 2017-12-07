@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+	
+	<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self';">
+	<!-- <meta charset="utf-8"> -->
+	
+	<link rel="stylesheet" href="chrome://browser/content/extension.css">
+	<link rel="stylesheet" href="../deps/json/json-formatter.css">
+	<link rel="stylesheet" href="listener.css">
+
+	<script src="../deps/jquery.min.js"></script>
+	<script src="../deps/angular.min.js"></script>
+	
+	<script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
+
+	<script src="../deps/highlightjs/highlight.min.js"></script>
+	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
+	<script src="../partials/partials.js"></script>
+	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	
+  </head>
+  
+  <body spellcheck=false ng-controller="bodyController as listener" ng-cloak>
+	
+	<div id="listener-header" class="panel-section panel-section-header">
+	  <div class="text-section-header"> {{label}} || 
+		<span>
+		  <bdi id="listening_to"> Listening to tab <strong> {{ tabId }} </strong> </bdi>
+		</span>
+	  </div>
+	</div>
+	
+	<div id="content" class="panel-section" ng-controller="listenerController as listener">
+
+	  <no-info ng-if="!list.length"></no-info>
+	  
+	  <ul style="display:block;">
+		
+		<li ng-repeat="req in list">
+
+		  <json-formatter json="req.request" open="1" ng-click="req.toggleList($event)" style="display:block;"></json-formatter><br>
+		  <json-formatter json="req.responses" open="0" ng-show="req.visible" style="display:block;"></json-formatter><br ng-show="req.visible">
+		  
+		  <button class="browser-style" ng-show="req.visible"> Block </button>
+		  <hr ng-show="req.visible"><br ng-show="req.visible">
+		  
+		</li>
+		<button class="browser-style" ng-show="list.length" ng-click="flushRequests()"> Flush </button>
+		<a id="bottom"></a>
+	  </ul>
+	  
+	</div>
+		
+	<script src="../deps/json/json-formatter.js"></script>
+	<script src="listener.js"></script>
+	
+  </body>
+</html>

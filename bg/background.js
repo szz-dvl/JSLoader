@@ -68,6 +68,16 @@ function BG_mgr () {
 		self.group_mgr.showChooserWdw();
 		
 	};
+
+	this.listenRequestsForCurrentTab = function () {
+		
+		browser.tabs.query({currentWindow: true, active: true})
+			.then(
+				tab_info => {
+					self.tabs_mgr.openListenerInstance(tab_info[0]);
+				}
+			);
+	}
 	
 	this.receiveCmd = function (command) {
 		
@@ -83,6 +93,10 @@ function BG_mgr () {
 			
 		case "new-group-new-script":
 			self.showUnattachedEditor(null);
+			break;
+
+		case "listen-request-for-tab":
+			self.listenRequestsForCurrentTab();
 			break;
 			
 		default:

@@ -78,6 +78,12 @@ function Menu (bg) {
 							 self.bg.addSiteToGroup();
 						 }
 					   }),
+
+			new Action({ val: "Listen page requests.", id: "listen_page_req",
+						 onClick: function () {
+							 self.bg.listenRequestsForCurrentTab();
+						 }
+					   }),
 			
 			new Action({val: "Export ...", id: "export", submenu: [
 				{val: "Scripts", id: "export_scripts",
@@ -125,9 +131,7 @@ function Menu (bg) {
 						
 						onClick: function (ev) {
 							ev.stopPropagation();
-							browser.storage.local.clear();
-							
-							
+							browser.storage.local.clear();							
 						}
 						
 					   })

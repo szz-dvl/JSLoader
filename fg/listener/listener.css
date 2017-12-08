@@ -1,3 +1,9 @@
+body {
+
+	overflow: hidden;
+
+}
+
 .url {
 	width: 820px;
 	/* word-wrap: break-word; */
@@ -25,4 +31,54 @@
 	margin-top: 140px;
 	padding-top: 10%;
 	padding-bottom: 10%;
+}
+
+.jslbtn {
+
+	float: right !important;
+
+}
+
+.filter-list {
+
+	float: right !important;
+	/* display: inline; */
+	width: 35%;
+	margin: 0;
+	padding: 0;
+	
+}
+
+.filter-label {
+
+	padding-left: 3px;
+	padding-right: 3px;
+	display: inline-block !important;
+	min-width: 30px;
+	font: caption;
+}
+
+.advanced {
+
+	float: right;
+	width: 45%;
+}
+
+.filter_inpt {
+
+	width: 80%;
+
+}
+.filter-bucket {
+	
+	width: 70%;
+	float: right !important;
+	display: inline-block !important;
+}
+
+.scrollable {
+
+	overflow-y: scroll !important;
+	height: 360px;
+
 }

@@ -32,11 +32,13 @@ function JSLTabListener(tabInfo) {
 	let self = this;
 	
 	Object.assign(this, tabInfo);
-	
+
+	this.active = true;
 	this.url = new URL(this.url).sort();
 	this.id = parseInt(this.id);
 	
 	this.requests = [];
+	this.filters = [];
 	
 	this.__findRequest = function(reqId) {
 		
@@ -62,44 +64,89 @@ function JSLTabListener(tabInfo) {
 			)
 		);
 	};
+
+	this.addFilter = function (request) {
+
+		self.filters.push({ url: new URL(request.url), method: request.method, type: request.type });
+		
+	};
+
+	this.removeFilter = function (request) {
+
+		self.filters.remove(
+			self.filters.findIndex(
+				filter => {
+					
+					return filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type;
+					
+				}
+			)
+		);
+	};
+
+	this.blockFiltered = function (request) {
+
+		if (self.active) {
+			if (request.tabId == self.id) {
+				
+				let idx = self.filters.findIndex(
+					filter => {
+
+						return filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type;
+						
+					}
+				);
+				
+				if (idx < 0)
+					return { cancel: false };
+				else {
+					
+					self.port.postMessage( { action: "blocked-request", request: {request: request, responses: []} } );
+					return { cancel: true };
+					
+				}
+			}
+		}
+	};
 	
 	this.onBeforeSend = function (request) {
-
-		if (request.tabId == self.id) 
-			self.requests.push({request: request, responses: []});
 		
+		if (self.active) {
+			if (request.tabId == self.id) 
+				self.requests.push({request: request, responses: []});
+		}
 	}
 
 	this.onSend = function (request) {
 
-		if (request.tabId == self.id) {
+		if (self.active) {
+			
+			if (request.tabId == self.id) {
 
-			let req = self.__findRequest(request.requestId);
+				let req = self.__findRequest(request.requestId);
 
-			if (req) {
+				if (req) {
 
-				if (req.request.requestHeaders != request.requestHeaders) {
+					if (req.request.requestHeaders != request.requestHeaders) {
 
-					let changed = request.requestHeaders
-						.filter(
-							header => {
-								
-								return req.request.requestHeaders
-									.findIndex(
-										stored => {
+						let changed = request.requestHeaders
+							.filter(
+								header => {
+									
+									return req.request.requestHeaders
+										.findIndex(
+											stored => {
+												return (stored.name == header.name && stored.value == header.value);
+											}
 											
-											return (stored.name == header.name && stored.value == header.value);
-											
-										}
-										
-									) < 0;  
-							}
-						);
-					
-					if (changed.length)
-						req.request.changedHeaders = changed;
+										) < 0;  
+								}
+							);
+						
+						if (changed.length)
+							req.request.changedHeaders = changed;
+					}	
 				}
-				
 			}
 		}
 	};
@@ -107,49 +154,59 @@ function JSLTabListener(tabInfo) {
 
 	this.onHeadersReceived = function (response) {
 
-		if (response.tabId == self.id) {
+		if (self.active) {
 			
-			let req = self.__findRequest(response.requestId);
+			if (response.tabId == self.id) {
 			
-			if (req) {
+				let req = self.__findRequest(response.requestId);
+			
+				if (req) {
 							
-				req.responses.push(response);
+					req.responses.push(response);
 
-				if (req.track)
-					clearTimeout(req.track)
+					if (req.track)
+						clearTimeout(req.track)
 				
-				if (response.statusCode == 200) {
+					if (response.statusCode >= 200 && response.statusCode < 300) {
+						
+						self.port.postMessage({action: "new-request", request: req});
+						self.__removeRequest(response.requestId);
+						
+					} else {
 
-					self.port.postMessage({action: "new-request", request: req});
-					self.__removeRequest(response.requestId);
+						req.track = setTimeout(
+							req => {
+							
+								self.port.postMessage({action: "error-request", request: req});
+								self.__removeRequest(response.requestId);
+							
+							}, 3000, req
+						);
 					
+					}
+				
 				} else {
 
-					req.track = setTimeout(
-						req => {
-
-							self.port.postMessage({action: "error-request", request: req});
-							self.__removeRequest(response.requestId);
-							
-						}, 3000, req
-					);
-					
+					console.error(" --------------- Missing request ------------- ");
+					console.error(response);
+					console.error("------------------------------------------");
 				}
-				
-			} else {
-
-				console.error(" --------------- Missing request ------------- ");
-				console.error(response);
-				console.error("------------------------------------------");
 			}
 		}
 	};
 
+	this.printFilters = function () {
+
+		console.log(self.filters);
+
+	};
+	
 	this.listenerUnregister = function () {
 		
 		browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
 		browser.webRequest.onSendHeaders.removeListener(self.onSend);
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
+		browser.webRequest.onBeforeRequest.removeListener(self.blockFiltered);
 		
 	};
 
@@ -173,6 +230,10 @@ function JSLTabListener(tabInfo) {
 							
 						}
 					);
+
+					browser.webRequest.onBeforeRequest.addListener(self.blockFiltered,
+																   {urls: ["<all_urls>"]},
+																   ["blocking"]);
 					
 					browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
 																	   {urls: ["<all_urls>"]},
@@ -185,7 +246,7 @@ function JSLTabListener(tabInfo) {
 					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
 																	 {urls: ["<all_urls>"]},
 																	 [ "responseHeaders" ]);
-					
+
 				}
 			}
 		);

@@ -62,10 +62,10 @@
 		  
 		</li>
 
-		<button class="browser-style" ng-show="infoShown()" ng-click="flushRequests()"> Flush </button>
-		<button class="browser-style" ng-show="infoShown()" ng-click="downloadCapture()"> Download </button> 
-		<button class="browser-style" ng-show="noBlocked()" ng-click="un_blockSelection()"> Block All </button>
-		<button class="browser-style" ng-show="noUnblocked()" ng-click="un_blockSelection()"> Unblock all </button>
+		<button class="browser-style" ng-show="infoShown()" ng-click="flushRequests()"> Flush {{ btnStatus() }} </button>
+		<button class="browser-style" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
+		<button class="browser-style" ng-show="noBlocked()" ng-click="un_blockSelection()"> Block {{ btnStatus() }} </button>
+		<button class="browser-style" ng-show="noUnblocked()" ng-click="un_blockSelection()"> Unblock {{ btnStatus() }} </button>
 		<a id="bottom"></a>
 
 	  </ul>

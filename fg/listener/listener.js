@@ -189,9 +189,27 @@ function TabListener (id, page, port) {
 		}
 		
 		$scope.flushRequests = function () {
-			
-			$scope.list.length = 0;
-			
+
+			if ($scope.__AllShown())
+				$scope.list.length = 0;
+			else {
+				
+				let idx = $scope.list.findIndex(req => {
+					
+					return req.shown;
+					
+				});
+
+				while (idx >= 0) {
+
+					$scope.list.remove(idx);
+					idx = $scope.list.findIndex(req => {
+
+						return req.shown;
+					
+					});	
+				}
+			}	
 		};
 
 		$scope.getStatus = function (key) {
@@ -223,7 +241,7 @@ function TabListener (id, page, port) {
 			
 			let text = ["["];
 			
-			for (request of $scope.list) {
+			for (request of $scope.list.filter(req => { return req.shown })) {
 				
 				text.push.apply(text, [JSON.stringify(request)]);
 				text.push(",");
@@ -300,7 +318,26 @@ function TabListener (id, page, port) {
 			
 			$scope.$digest();
 		};
+		
+		$scope.__AllShown = function () {
 
+			return typeof(
+				$scope.list.find(
+					request => {
+					
+						return !request.shown; 
+					
+					}
+				
+				)) == 'undefined';
+		};
+
+		$scope.btnStatus = function () {
+
+			return $scope.__AllShown() ? "All" : "Selection";
+
+		};
+		
 		$scope.infoShown = function () {
 
 			return $scope.list.find(

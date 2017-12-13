@@ -35,13 +35,17 @@ function Request (data) {
 function RequestFailure (data) {
 	
 	Request.call(this, data);
-
 };
 
 function RequestBlocked (data) {
 
 	Request.call(this, data);
+};
 
+function RequestRedirect (data) {
+
+	Request.call(this, data.request);
+	this.originalRequest = data.from;	
 };
 
 function RequestWrapper (opt) {
@@ -49,6 +53,12 @@ function RequestWrapper (opt) {
 	this.type = opt.type;
 	this.shown = opt.shown;
 	this.blocked = opt.type == "blocked";
+	this.routed = opt.request.proxyInfo ? true : false;
+
+	this.listener = opt.listener || null;
+	this.adding = null;
+
+	this.rules = opt.rules || null;
 	
 	switch (opt.type) {
 
@@ -59,6 +69,10 @@ function RequestWrapper (opt) {
 	case "blocked":
 		this.request = new RequestBlocked(opt.request);
 		break;
+
+	case "redirect":
+		this.request = new RequestRedirect(opt);
+		break;
 		
 	default:
 		this.request = new Request(opt.request);
@@ -68,9 +82,8 @@ function RequestWrapper (opt) {
 	this.responses = new ResponseSequence(opt.responses);
 
 	this.blockStatus = function () {
-
-		return this.blocked ? "Unblock" : "Block";
 		
+		return this.blocked ? "Unblock" : "Block";
 	}
 	
 	return new listController(this);
@@ -130,7 +143,15 @@ function TabListener (id, page, port) {
 		$scope.capture_status = 'Pause';
 		$scope.tabId = id;
 		$scope.advFilter = "";
-
+		$scope.currentProxy = "None";
+		
+		$scope.proxys = Object.keys(self.bg.option_mgr.jsl.proxys);
+		$scope.proxys.push("None");
+		
+		$scope.proxyChange = function () { /* filter ?¿*/
+			self.list.listener.addProxyForTab($scope.currentProxy);
+		};
+		
 		$scope.filterOpts = [
 			{
 				text: "blocked",
@@ -150,22 +171,22 @@ function TabListener (id, page, port) {
 		];
 		
 		$scope.toggleCapture = function () {
-
+			
 			$scope.capture_status = $scope.capture_status == 'Pause' ? 'Resume' : 'Pause';
 			self.list.listener.active = $scope.capture_status == 'Pause' ? true : false;
-			
 		};
 
 		$scope.advFilterChange = function () {
-
+			
 			if ($scope.filterID)
 				clearTimeout($scope.filterID);
 
-			$scope.filterID = setTimeout(() => {
+			$scope.filterID = setTimeout(
+				() => {
 
-				self.list.advFilterChange($scope.advFilter);
+					self.list.advFilterChange($scope.advFilter);
 				
-			}, 800);
+				}, 800);
 
 		}
 			
@@ -185,8 +206,8 @@ function TabListener (id, page, port) {
 			key: "",
 			value: "",
 			isEmpty: () => { return this.key == "" && this.value == ""; }
-
-		}
+			
+		};
 		
 		$scope.flushRequests = function () {
 
@@ -194,20 +215,24 @@ function TabListener (id, page, port) {
 				$scope.list.length = 0;
 			else {
 				
-				let idx = $scope.list.findIndex(req => {
-					
-					return req.shown;
-					
-				});
-
-				while (idx >= 0) {
-
-					$scope.list.remove(idx);
-					idx = $scope.list.findIndex(req => {
-
+				let idx = $scope.list.findIndex(
+					req => {
+						
 						return req.shown;
 					
-					});	
+					}
+				);
+
+				while (idx >= 0) {
+					
+					$scope.list.remove(idx);
+					idx = $scope.list.findIndex(
+						req => {
+
+							return req.shown;
+					
+						}
+					);	
 				}
 			}	
 		};
@@ -222,19 +247,16 @@ function TabListener (id, page, port) {
 				}).value;
 		};
 		
-		$scope.blockOps = function (req) {
+		$scope.showRuleAdder = function (req) {
 
-			if (req.blocked)
-				$scope.listener.removeFilter(req.request);
-			else
-				$scope.listener.addFilter(req.request);
-
+			req.adding = true;
+			
 		};
 		
 		$scope.urlClick = function (url) {
 			
 			self.bg.tabs_mgr.openOrCreateTab(url);	
-
+			
 		};
 		
 		$scope.downloadCapture = function () {
@@ -373,7 +395,7 @@ function TabListener (id, page, port) {
 
 		$scope.un_blockSelection = function () {
 
-			return $scope.list.filter(
+			$scope.list.filter(
 				request => {
 
 					return request.shown == true;
@@ -404,6 +426,7 @@ function TabListener (id, page, port) {
 					break;
 				}
 
+				args.request.listener = $scope.listener;
 				args.request.shown = $scope.__reqMustShow(args.request);
 				$scope.list.push(new RequestWrapper(args.request));
 				

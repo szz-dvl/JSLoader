@@ -14,6 +14,15 @@
 	<thead></thead>
 	<tbody>
 	  <tr>
+		<td class="option-col" style="min-width: 350px; width: 350px;">
+		  <div id="jsl_head">
+  			<h4>JSL Settings</h4>
+		  </div>
+		  
+		  <h5> Proxys <bdi style="color:red" ng-click="toggleProxys()"> {{ statusProxys() }} </bdi></h5>
+		  <ace-inline feeding="'proxys'" h="10" w="100" ng-show="proxys_shown"></ace-inline>
+		  
+		</td>
 		<td class="option-col" ng-repeat="submenu in submenus">
 		  
 		  <option-menu list="submenu.opts" title="submenu.title" key="submenu.key" port="port"></option-menu>
@@ -24,7 +33,6 @@
 			<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
 			
 		  </label><br></br>
-		  
 		</td>
 	  </tr>
 	</tbody>

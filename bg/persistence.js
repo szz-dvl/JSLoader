@@ -269,13 +269,13 @@ function Storage () {
 	
 	this.setGlobals = function (globals) {
 
-		self.__set('globals', globals);
+		return self.__set('globals', globals);
 		
 	};
 	
 	this.removeGlobals = function () {
 		
-		self.__remove('globals');
+		return self.__remove('globals');
 		
 	};
 
@@ -288,14 +288,14 @@ function Storage () {
 
 	this.setUserDefs = function (literal) {
 
-		self.__set('userdefs', literal);
+		return self.__set('userdefs', literal);
 		
 	}
 	
 	/* Logs: */
 	this.setLogs = function (logs) {
 		
-		self.__set('logs', logs);
+		return self.__set('logs', logs);
 	}
 
 	this.getLogs = function (cb) {
@@ -305,7 +305,23 @@ function Storage () {
 
 	this.removeLogs = function () {
 
-		self.__remove('logs');
+		return self.__remove('logs');
+	}
+
+	/* Rules: */
+	this.setRules = function (rules) {
+		
+		return self.__set('rules', rules);
+	}
+
+	this.getRules = function (cb) {
+
+		self.__get(rules => { cb(rules || []) }, 'rules');
+	}
+
+	this.removeRules = function () {
+
+		return self.__remove('rules');
 	}
 }
 

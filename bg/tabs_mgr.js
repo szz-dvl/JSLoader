@@ -1,11 +1,11 @@
-function ListenerWdw (tabInfo) {
+function ListenerWdw (tabInfo, bg) {
 
 	let self = this;
 	
 	return new Promise (
 		(resolve, reject) => {
 			
-			let listener = new JSLTabListener(tabInfo, parent);
+			let listener = new JSLTabListener(tabInfo, bg);
 
 			browser.windows.create({
 				
@@ -27,12 +27,13 @@ function ListenerWdw (tabInfo) {
 		});
 }
 
-function JSLTabListener(tabInfo) {
+function JSLTabListener(tabInfo, bg) {
 
 	let self = this;
 	
 	Object.assign(this, tabInfo);
 
+	this.bg = bg;
 	this.active = true;
 	this.url = new URL(this.url).sort();
 	this.id = parseInt(this.id);
@@ -64,71 +65,79 @@ function JSLTabListener(tabInfo) {
 			)
 		);
 	};
-
-	this.addFilter = function (request) {
-
-		self.filters.push({ url: new URL(request.url), method: request.method, type: request.type });
+	
+	this.addFilter = function (request, action) {
 		
+		self.filters.push(self.bg.rules_mgr.addRule({
+			policy: action,
+			criteria: {
+				url: request.url,
+				method: request.method,
+				type: request.type }
+		}));
+	};
+	
+	// this.removeFilter = function (request, action) {
+	
+	// 	self.filters.remove(
+	// 		self.filters.findIndex(
+	// 			filter => {
+	
+	// 				return filter.action == action && (filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type);
+	
+	// 			}
+	// 		)
+	// 	);
+	// };
+
+	this.addProxyForTab = function (proxy) {
+		
+		self.bg.rules_mgr.addProxy(this.url.hostname, self.bg.option_mgr.jsl.proxys[proxy] || null);
+
 	};
 
-	this.removeFilter = function (request) {
+	this.pushRedirect = function (request, rule) {
 
-		self.filters.remove(
-			self.filters.findIndex(
-				filter => {
-					
-					return filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type;
-					
-				}
-			)
-		);
-	};
-
-	this.blockFiltered = function (request) {
-
-		if (self.active) {
-			if (request.tabId == self.id) {
-				
-				let idx = self.filters.findIndex(
-					filter => {
-
-						return filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type;
-						
-					}
-				);
-				
-				if (idx < 0)
-					return { cancel: false };
-				else {
-					
-					self.port.postMessage( { action: "blocked-request", request: {request: request, responses: []} } );
-					return { cancel: true };
-					
-				}
-			}
-		}
+		self.requests.push({responses: [], rules: Object.assign({}, rule), from: Object.assign({}, request) });
+		
 	};
 	
 	this.onBeforeSend = function (request) {
 		
 		if (self.active) {
-			if (request.tabId == self.id) 
-				self.requests.push({request: request, responses: []});
+			if (request.tabId == self.id) {
+
+				let redirected = self.requests.find(
+					redire => {
+						return redire.from ? redire.from.requestId == request.requestId : false;
+					}
+				);
+
+				if (redirected) {
+
+					console.log("Redirect found: ");
+					console.log(redirected);
+					
+					redirected.request = request;
+
+				} else
+					self.requests.push({request: request, responses: []});
+			}
 		}
-	}
-
+	};
+	
 	this.onSend = function (request) {
-
+		
 		if (self.active) {
 			
 			if (request.tabId == self.id) {
-
+				
 				let req = self.__findRequest(request.requestId);
 
 				if (req) {
 
 					if (req.request.requestHeaders != request.requestHeaders) {
-
+						
 						let changed = request.requestHeaders
 							.filter(
 								header => {
@@ -137,8 +146,7 @@ function JSLTabListener(tabInfo) {
 										.findIndex(
 											stored => {
 												return (stored.name == header.name && stored.value == header.value);
-											}
-											
+											}	
 										) < 0;  
 								}
 							);
@@ -162,14 +170,16 @@ function JSLTabListener(tabInfo) {
 			
 				if (req) {
 							
-					req.responses.push(response);
+					req.responses.push(Object.assign({}, response));
 
 					if (req.track)
 						clearTimeout(req.track)
-				
-					if (response.statusCode >= 200 && response.statusCode < 300) {
+
+					/* Data clone error!!!! */
+					/* 400 and 500 not to be tracked. Will get here? */
+					if (response.statusCode >= 200 && response.statusCode < 303) {
 						
-						self.port.postMessage({action: "new-request", request: req});
+						self.port.postMessage({action: "new-request", request: Object.assign({}, req) });
 						self.__removeRequest(response.requestId);
 						
 					} else {
@@ -177,12 +187,11 @@ function JSLTabListener(tabInfo) {
 						req.track = setTimeout(
 							req => {
 							
-								self.port.postMessage({action: "error-request", request: req});
+								self.port.postMessage({action: "error-request", request: Object.assign({}, req)});
 								self.__removeRequest(response.requestId);
 							
 							}, 3000, req
 						);
-					
 					}
 				
 				} else {
@@ -201,13 +210,43 @@ function JSLTabListener(tabInfo) {
 
 	};
 	
+	this.bg.rules_mgr.events.on('rule-match',
+								(request, rule) => {
+									
+									if (self.active) {
+										
+										if (request.tabId == self.id)  {
+
+											switch(rule.policy.action) {
+											case "block":
+												
+												self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: rule}});
+												break;
+												
+											case "redirect":
+
+												self.pushRedirect(request, rule);
+												
+												console.log("Redirection to " + rule.policy.data);
+												console.log(request);
+												
+												break;
+												
+											default:
+												break;
+											}
+										}
+									}
+								});
+	
 	this.listenerUnregister = function () {
 		
 		browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
 		browser.webRequest.onSendHeaders.removeListener(self.onSend);
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
-		browser.webRequest.onBeforeRequest.removeListener(self.blockFiltered);
-		
+
+		for (let id of self.filters)
+			self.bg.rules_mgr.removeRule(id);
 	};
 
 	
@@ -230,14 +269,10 @@ function JSLTabListener(tabInfo) {
 							
 						}
 					);
-
-					browser.webRequest.onBeforeRequest.addListener(self.blockFiltered,
-																   {urls: ["<all_urls>"]},
-																   ["blocking"]);
 					
 					browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
 																	   {urls: ["<all_urls>"]},
-																	   [ "requestHeaders" ]);
+																	   [ "requestHeaders", "blocking" ]);
 
 					browser.webRequest.onSendHeaders.addListener(self.onSend,
 																 {urls: ["<all_urls>"]},
@@ -250,7 +285,6 @@ function JSLTabListener(tabInfo) {
 				}
 			}
 		);
-	
 };
 
 function JSLTab (tabInfo, feeding) {
@@ -264,7 +298,7 @@ function JSLTab (tabInfo, feeding) {
 	
 	this.feeding = feeding;
 	this.run = function (scripts) {
-			
+		
 		return new Promise(
 			(resolve, reject) => {
 				
@@ -453,7 +487,7 @@ function TabsMgr (bg) {
 		return new Promise(
 			(resolve, reject) => {
 				
-				new ListenerWdw(tabInfo)
+				new ListenerWdw(tabInfo, self.bg)
 					.then(
 						listener => {
 

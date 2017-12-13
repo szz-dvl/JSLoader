@@ -139,6 +139,72 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+	.directive('ruleAdder',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   req: '=' 
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/rule-adder.html");
+					   },
+
+					   controller: function ($scope) {
+						   
+						   $scope.policy = 'block';
+						   $scope.policies = ['block', 'redirect'];
+						   $scope.backup = '';
+						   $scope.redirectUrl = '';
+
+						   $scope.persist = function () {
+							   
+							   $scope.req.listener.addFilter($scope.req.request, {action: $scope.policy, data: ($scope.policy == 'block' ? null : $scope.redirectUrl) });
+							   $scope.req.adding = false;
+						   };
+
+						   $scope.dismiss = function () {
+							   
+							   $scope.req.adding = false;
+						   };
+						   
+						   $scope.urlChange = function () {
+							   
+							   if($scope.ID)
+								   clearTimeout($scope.ID);
+							   
+							   $scope.ID = setTimeout(
+								   () => {
+
+									   if ($scope.redirectUrl != "") { 
+										   try {
+											   
+											   let url = new URL($scope.redirectUrl);
+											   
+											   $scope.redirectUrl = url.href;
+											   $scope.backup = $scope.redirectUrl;
+											   
+										   } catch (e if e instanceof TypeError) {
+
+											   console.error(e);
+											   $scope.redirectUrl = $scope.backup;
+										   }
+										   
+										   $scope.$digest();
+									   }
+									   
+								   }, 800
+							   );
+						   };
+
+					   },
+				   }
+			   })
+
 	.directive('scriptList',
 			   () => {
 				   
@@ -522,7 +588,8 @@ angular.module('jslPartials', ['hljsSearch'])
 					   scope: {
 						   
 						   feeding: "=feeding",
-						   height: "=h"
+						   height: "=h",
+						   width: "=w"
 						   
 					   },
 					   
@@ -571,11 +638,11 @@ angular.module('jslPartials', ['hljsSearch'])
 									   switch (args.action) {
 									   
 									   case "import-opts":
-									   
+										   
 										   for (opt of $scope.list) {
-										   
+											   
 											   opt.setVal(args.message[$scope.key][opt.id]);
-										   
+											   
 											   for (subopt of opt.sub_opts) 
 												   subopt.setVal(args.message[$scope.key][subopt.id]); 
 										   }

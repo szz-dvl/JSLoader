@@ -226,19 +226,20 @@ function OP (bg, port) {
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
+
+		$scope.proxys_shown = true;
+		
+		$scope.toggleProxys = function () {
+			
+			$scope.proxys_shown = !$scope.proxys_shown;
+		};
+
+		$scope.statusProxys = function () {
+			
+			return $scope.proxys_shown ? "v" : ">";	
+		};
 		
 		$scope.submenus = [
-			
-			{
-				key: 'jsl',
-				title: "JSLoader Settings",
-				opts: [
-					
-					new Option({text:'Uglify code', value: $scope.opts.jsl.uglify, type: "checkbox", id: "uglify",								
-								subopts: [{text:'Uglify mangle', value: $scope.opts.jsl.uglify_mangle, type: "checkbox", id: "uglify_mangle"}]
-							   }, $scope.opts.jsl)
-				]
-			},
 			{
 				key: 'editor',
 				title: "Editor Settings",
@@ -457,7 +458,7 @@ function OP (bg, port) {
 					dataGroups: () => {
 						return new Promise (
 							resolve => {
-
+								
 								self.bg.group_mgr.getMissingItems()
 									.then(resolve);
 							})

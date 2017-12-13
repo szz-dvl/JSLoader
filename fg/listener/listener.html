@@ -24,26 +24,34 @@
   
   <body spellcheck=false ng-controller="bodyController as listener" ng-cloak>
 	
-	<div id="listener-header" class="panel-section panel-section-header" style="display: inline;">
-	  <div class="text-section-header"> {{label}} || 
-		<span>
-		  <bdi id="listening_to"> Listening to tab <strong> {{ tabId }} </strong> </bdi>
-		</span>
-	  	<div class="filter-bucket">
-		  <button class="browser-style jslbtn" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
-		  <div class="filter-list">
-			
-			<label ng-repeat="filter in filterOpts track by filter.text" class="filter-label">
-			  <input type="checkbox" ng-model="filter.value" ng-change="filter.change(filter.value)">
-			  <span> {{ filter.text }} </span>
-			</label>
-			
-		  </div>
-		  <label class="filter-label advanced">
-			<span> Filter: </span>
-			<input class="filter_inpt" type="text" ng-model="advFilter" ng-change="advFilterChange()">
-		  </label>
+	<div id="listener-header" class="panel-section panel-section-header header">
+
+	  <div class="header-title text-section-header">
+		<div class="header-title-text"> {{label}} || 
+		  <span>
+			<bdi id="listening_to"> Listening to tab <strong> {{ tabId }} </strong> </bdi>
+		  </span>
 		</div>
+		<button class="browser-style jslbtn" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
+	  </div>
+	  
+	  <div class="filter-bucket">
+
+		<div class="filter-list">
+		  
+		  <label ng-repeat="filter in filterOpts track by filter.text" class="filter-label">
+			<input type="checkbox" ng-model="filter.value" ng-change="filter.change(filter.value)">
+			<span> {{ filter.text }} </span>
+		  </label>
+		  
+		</div>
+		
+		<span class="filter-label"> Filter: </span>
+		<input class="filter_inpt browser-style" type="text" ng-model="advFilter" ng-change="advFilterChange()">
+		
+		<span class="filter-label"> Proxy: </span>
+		<select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
+		
 	  </div>
 	</div>
 	
@@ -57,19 +65,22 @@
 		  <json-formatter json="req.request" open="1" ng-click="req.toggleList($event)" urlclick="urlClick" style="display:block;"></json-formatter><br>
 		  <json-formatter json="req.responses" open="0" ng-show="req.visible" urlclick="urlClick" style="display:block;"></json-formatter><br ng-show="req.visible">
 		  
-		  <button class="browser-style" ng-show="req.visible" ng-click="blockOps(req)"> {{ req.blockStatus() }} </button>
+		  <button class="browser-style" ng-show="req.visible && !req.adding" ng-click="showRuleAdder(req)"> Add rule </button>
+		  <rule-adder req="req" ng-show="req.visible && req.adding"></rule-adder>
 		  <hr ng-show="req.visible"><br ng-show="req.visible">
 		  
 		</li>
-
+		<li class="buttons-landing">
+		  <a id="bottom"></a>
+		</li>
+	  </ul>
+	  
+	  <div class="button-bucket">
 		<button class="browser-style" ng-show="infoShown()" ng-click="flushRequests()"> Flush {{ btnStatus() }} </button>
 		<button class="browser-style" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
 		<button class="browser-style" ng-show="noBlocked()" ng-click="un_blockSelection()"> Block {{ btnStatus() }} </button>
 		<button class="browser-style" ng-show="noUnblocked()" ng-click="un_blockSelection()"> Unblock {{ btnStatus() }} </button>
-		<a id="bottom"></a>
-
-	  </ul>
-	  
+	  </div>
 	</div>
 	
 	<script src="../deps/json/json-formatter.js"></script>

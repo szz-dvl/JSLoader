@@ -1,18 +1,17 @@
 <div>
-  <!-- <br></br> -->
   <div id="{{key}}_head">
   	<h4> {{title}}</h4>
   </div>
 
   <div ng-repeat="opt in list">
 	<label class="input">
-	
+	  
 	  <span ng-if="['text'].includes(opt.type)">{{opt.text}}: </span>
 	  <input id="{{opt.id}}" type="{{opt.type}}" ng-model="opt.value" ng-change="opt.change()"></input>
 	  <span ng-if="['checkbox'].includes(opt.type)" >{{opt.text}}</span>
 	  
 	</label>
-  
+	
 	<label ng-repeat="subopt in opt.sub_opts" class="input" ng-show="subopt.shown">
 	  
 	  <span ng-if="['text'].includes(subopt.type)">{{subopt.text}}: </span>

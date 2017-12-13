@@ -1,4 +1,3 @@
-
 function AceInline (bg) {
 
 	this.bg = bg;
@@ -10,7 +9,7 @@ function AceInline (bg) {
 		$scope.page = self;
 		$scope.key = window.location.href.split("?")[1].split("=")[1];
 		
-		$scope.feeding = $scope.key == "globals" ? JSON.stringify($scope.page.bg.content_mgr[$scope.key]) : $scope.page.bg.content_mgr[$scope.key];
+		$scope.feeding = $scope.key == "defs" ? $scope.page.bg.content_mgr[$scope.key] : JSON.stringify($scope.key == "globals" ? $scope.page.bg.content_mgr[$scope.key] : $scope.page.bg.option_mgr.jsl[$scope.key]);
 		$scope.mode = $scope.key == "defs" ? "javascript" : "json";
 		
 		$scope.saveData = function () {
@@ -42,6 +41,11 @@ function AceInline (bg) {
 				case "globals":
 					
 					$scope.page.bg.content_mgr.setGlobals($scope.ace.getValue().toString().trim());
+					break;
+
+				case "proxys":
+					
+					$scope.page.bg.option_mgr.setProxys($scope.ace.getValue().toString().trim());
 					break;
 					
 				default:

@@ -10,6 +10,7 @@ function BG_mgr () {
 	this.notify_mgr = new NotificationMgr(self);
 	this.tabs_mgr = new TabsMgr(self);
 	this.logs_mgr = new LogsMgr(self);
+	this.rules_mgr = new RulesMgr(self);
 	
 	this.getPASite = function () {
 		

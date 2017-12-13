@@ -2,8 +2,7 @@ function Options (opt) {
 
 	this.jsl = opt.jsl || {
 		
-		uglify: false,
-		uglify_mangle: false
+		proxys: {}
 	};
 	
 	this.editor = opt.editor || {
@@ -37,10 +36,10 @@ function OptionMgr (bg) {
 			(resolve, reject) => {
 
 				self.editor = Object.assign({}, opts.editor);
-				self.jsl = Object.assign({}, opts.jsl);
+				//self.jsl = Object.assign({}, opts.jsl);
 				
 				self.storage
-					.setOptions({editor: Object.assign({}, opts.editor), jsl: Object.assign({}, opts.jsl)})
+					.setOptions({editor: Object.assign({}, opts.editor), jsl: self.jsl})
 					.then(
 						() => {
 
@@ -125,6 +124,12 @@ function OptionMgr (bg) {
 		self.storage.removeOptions();
 	};
 
+	this.setProxys = function (literal) {
+
+		self.jsl.proxys = JSON.parse(literal);
+
+	};
+	
 	this.exportSettings = function () {
 		
 		browser.downloads.download(

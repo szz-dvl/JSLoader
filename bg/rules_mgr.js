@@ -1,10 +1,11 @@
 function Rule (opt) {
 	
-	this.id = opt.id || UUID.generate();
+	this.id = opt.id || UUID.generate().split("-").pop();
 	this.criteria = opt.criteria || null;
 	this.criteria.url = this.criteria.url ? new URL(this.criteria.url) : null;
 	
 	this.policy = opt.policy || null;
+	this.enabled = true;
 }
 
 function RulesMgr (bg) {
@@ -52,6 +53,18 @@ function RulesMgr (bg) {
 			)
 		);
 	};
+
+	this.toggleEnable = function (rid) {
+		
+		let rule = self.rules.find(
+			rule => {
+				return rule.id == rid;
+			}
+		);
+
+		if (rule)
+			rule.enabled = !rule.enabled;
+	};
 	
 	this.applyRules = function (request) {
 
@@ -68,24 +81,31 @@ function RulesMgr (bg) {
 				);
 
 				if (rule) {
-
-					self.events.emit("rule-match", request, rule);
 					
-					switch(rule.policy.action) {
+					if (rule.enabled) {
+						
+						switch(rule.policy.action) {
+						
+						case "block":
+							
+							resolve({ cancel: true });
+							break;
+						
+						case "redirect":
+						
+							resolve({ redirectUrl: rule.policy.data });
+							break;
 
-					case "block":
-
-						resolve({ cancel: true });
-						break;
-
-					case "redirect":
-
-						resolve({ redirectUrl: rule.policy.data }); /* New Request ?? */
-						break;
-
-					default:
-						break;
-					}
+						default:
+							
+							resolve();
+							break;
+						}
+						
+					} else
+						resolve();
+					
+					self.events.emit("rule-match", request, Object.assign({}, rule));
 					
 				} else
 					resolve();

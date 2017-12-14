@@ -44,12 +44,13 @@ function RequestBlocked (data) {
 
 function RequestRedirect (data) {
 
-	Request.call(this, data.request);
-	this.originalRequest = data.from;	
+	Request.call(this, data);
 };
 
 function RequestWrapper (opt) {
 
+	let self = this;
+	
 	this.type = opt.type;
 	this.shown = opt.shown;
 	this.blocked = opt.type == "blocked";
@@ -57,11 +58,12 @@ function RequestWrapper (opt) {
 
 	this.listener = opt.listener || null;
 	this.adding = null;
-
-	this.rules = opt.rules || null;
+	
+	this.rules = opt.rules ? [opt.rules] : [];
+	this.currentRule = opt.rules || null;
 	
 	switch (opt.type) {
-
+		
 	case "failured":
 		this.request = new RequestFailure(opt.request);
 		break;
@@ -70,8 +72,8 @@ function RequestWrapper (opt) {
 		this.request = new RequestBlocked(opt.request);
 		break;
 
-	case "redirect":
-		this.request = new RequestRedirect(opt);
+	case "redirected":
+		this.request = new RequestRedirect(opt.request);
 		break;
 		
 	default:
@@ -80,11 +82,22 @@ function RequestWrapper (opt) {
 	}
 	
 	this.responses = new ResponseSequence(opt.responses);
-
+	
 	this.blockStatus = function () {
 		
 		return this.blocked ? "Unblock" : "Block";
-	}
+	};
+
+	this.ruleStatus = function () {
+		
+		let rule = self.rules.find (
+			rule => {
+				return rule.id == self.currentRule.id;
+			}	
+		);
+		
+		return rule ? (rule.enabled ? "Disable" : "Enable") : "Void";
+	};
 	
 	return new listController(this);
 };
@@ -162,6 +175,11 @@ function TabListener (id, page, port) {
 				text: "failured",
 				value: true,
 				change: val => { self.list.filterChange(val, "failured"); }
+			},
+			{
+				text: "redirected",
+				value: true,
+				change: val => { self.list.filterChange(val, "redirected"); }
 			},
 			{
 				text: "ok",
@@ -252,6 +270,27 @@ function TabListener (id, page, port) {
 			req.adding = true;
 			
 		};
+
+		$scope.removeRule = function (req) {
+
+			req.rules.remove(
+				req.rules.findIndex(
+					rule => { return rule.id == req.currentRule.id; }
+				)
+			);
+			
+			self.bg.rules_mgr.removeRule(req.currentRule.id);
+		};
+
+		$scope.toggleRule = function (req) {
+			
+			let rule = req.rules.find(
+				rule => { return rule.id == req.currentRule.id; }
+			);
+			
+			self.bg.rules_mgr.toggleEnable(req.currentRule.id);
+			rule.enabled = !rule.enabled;
+		};
 		
 		$scope.urlClick = function (url) {
 			
@@ -288,28 +327,28 @@ function TabListener (id, page, port) {
 			} else
 				$scope.__applyFilters();
 		};
-
+		
 		$scope.__reqMustShow = function (req) {
-
+			
 			if ($scope.currentFilter.key != "") {
 				
 				for (let key of Object.keys(req.request)) {
 					
-						if (key == $scope.currentFilter.key) {
-							if (typeof(req.request[key]) != 'undefined') {
-								return (
+					if (key == $scope.currentFilter.key) {
+						if (typeof(req.request[key]) != 'undefined') {
+							return (
+								(
 									(
-										(
-											typeof(req.request[key]) == 'string'
-												? req.request[key] == $scope.currentFilter.value
-												: JSON.stringify(req.request[key]) == $scope.currentFilter.value) || ($scope.currentFilter.value == "" && !req.request[key])
+										typeof(req.request[key]) == 'string'
+											? req.request[key] == $scope.currentFilter.value
+											: JSON.stringify(req.request[key]) == $scope.currentFilter.value) || ($scope.currentFilter.value == "" && !req.request[key])
 									
-									) && $scope.getStatus(req.type)
-								);
-								
-							} else
-								return ($scope.currentFilter.value == 'undefined' || $scope.currentFilter.value == '') && $scope.getStatus(req.type);
-						}
+								) && $scope.getStatus(req.type)
+							);
+							
+						} else
+							return ($scope.currentFilter.value == 'undefined' || $scope.currentFilter.value == '') && $scope.getStatus(req.type);
+					}
 				}
 
 			} else
@@ -329,7 +368,6 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.advFilterChange = function (filter) {
-
 			
 			let split = filter.split(":").map(chunk => { return chunk.trim(); });
 			
@@ -342,13 +380,13 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.__AllShown = function () {
-
+			
 			return typeof(
 				$scope.list.find(
 					request => {
 					
 						return !request.shown; 
-					
+						
 					}
 				
 				)) == 'undefined';
@@ -361,10 +399,10 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.infoShown = function () {
-
+			
 			return $scope.list.find(
 				request => {
-
+					
 					return request.shown == true;
 
 				}
@@ -394,7 +432,7 @@ function TabListener (id, page, port) {
 		};
 
 		$scope.un_blockSelection = function () {
-
+			
 			$scope.list.filter(
 				request => {
 
@@ -405,7 +443,7 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.port.onMessage.addListener(
-			args => {
+			function (args) {
 				
 				switch (args.action) {
 				case "new-request":
@@ -417,15 +455,22 @@ function TabListener (id, page, port) {
 
 					args.request.type = "failured";
 					break;
-
+					
 				case "blocked-request":
+					
 					args.request.type = "blocked";
+					break;
+
+				case "redirect-request":
+					
+					console.log("New redirect!");
+					args.request.type = "redirected";
 					break;
 					
 				default:
 					break;
 				}
-
+				
 				args.request.listener = $scope.listener;
 				args.request.shown = $scope.__reqMustShow(args.request);
 				$scope.list.push(new RequestWrapper(args.request));

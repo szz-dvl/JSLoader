@@ -66,7 +66,7 @@ body {
 	bottom: 0px;
 	max-height: 10% !important;
 	text-align: center;
-	z-index: 9999;	
+	z-index: 100;	
 }
 
 .header-title {
@@ -89,7 +89,7 @@ body {
 	float: right !important;
 	display: inline-block;
 	
-	width: 35%;
+	width: 50%;
 	margin: 0;
 	padding: 0;
 	
@@ -133,5 +133,19 @@ body {
 	top: 20%;
 	height: 80%;
 	width: 100%;
+}
 
+.scrollable::-webkit-scrollbar {
+	z-index: 99999;
+}
+
+.scrollable::-webkit-scrollbar-track {
+	z-index: 99999;
+}
+
+.rule-remover {
+
+	float: right;
+	display: inline-block;
+	
 }

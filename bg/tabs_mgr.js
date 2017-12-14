@@ -89,18 +89,18 @@ function JSLTabListener(tabInfo, bg) {
 	// 		)
 	// 	);
 	// };
-
+	
 	this.addProxyForTab = function (proxy) {
 		
 		self.bg.rules_mgr.addProxy(this.url.hostname, self.bg.option_mgr.jsl.proxys[proxy] || null);
-
-	};
-
-	this.pushRedirect = function (request, rule) {
-
-		self.requests.push({responses: [], rules: Object.assign({}, rule), from: Object.assign({}, request) });
 		
 	};
+	
+	// this.pushRedirect = function (request, rule) {
+	
+	// 	self.requests.push({responses: [], rules: Object.assign({}, rule), from: Object.assign({}, request) });
+	
+	// };
 	
 	this.onBeforeSend = function (request) {
 		
@@ -170,16 +170,16 @@ function JSLTabListener(tabInfo, bg) {
 			
 				if (req) {
 							
-					req.responses.push(Object.assign({}, response));
-
+					req.responses.push(response);
+					
 					if (req.track)
 						clearTimeout(req.track)
-
-					/* Data clone error!!!! */
+					
 					/* 400 and 500 not to be tracked. Will get here? */
-					if (response.statusCode >= 200 && response.statusCode < 303) {
-						
-						self.port.postMessage({action: "new-request", request: Object.assign({}, req) });
+					if (response.statusCode >= 200 && response.statusCode < 300) {
+
+						console.log("Posting request: " + req.request.requestId);
+						self.port.postMessage({action: "new-request", request: req});
 						self.__removeRequest(response.requestId);
 						
 					} else {
@@ -187,7 +187,7 @@ function JSLTabListener(tabInfo, bg) {
 						req.track = setTimeout(
 							req => {
 							
-								self.port.postMessage({action: "error-request", request: Object.assign({}, req)});
+								self.port.postMessage({action: "error-request", request: req});
 								self.__removeRequest(response.requestId);
 							
 							}, 3000, req
@@ -209,31 +209,49 @@ function JSLTabListener(tabInfo, bg) {
 		console.log(self.filters);
 
 	};
+
+	// this.tabUpdate = function () {
+
+	// 	console.log("Unimplemented.");
+
+	// };
 	
 	this.bg.rules_mgr.events.on('rule-match',
-								(request, rule) => {
+								(request_arg, rule_arg) => {
+									
+									/* Data Clone Error when posting rules to view */
+									
+									let request = Object.assign({}, request_arg);
+									let rule = Object.assign({}, rule_arg);
 									
 									if (self.active) {
 										
 										if (request.tabId == self.id)  {
+											
+											try {
+											
+												switch(rule.policy.action) {
+												case "block":
+													
+													self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+													break;
+													
+												case "redirect":
+													
+													request.redirectedTo = rule.policy.data;
+													self.port.postMessage({action: "redirect-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+													
+													break;
+												
+												default:
+													break;
+												}
 
-											switch(rule.policy.action) {
-											case "block":
-												
-												self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: rule}});
-												break;
-												
-											case "redirect":
+											} catch (err) {
 
-												self.pushRedirect(request, rule);
+												console.error("Post Rule: ");
+												console.error(err);
 												
-												console.log("Redirection to " + rule.policy.data);
-												console.log(request);
-												
-												break;
-												
-											default:
-												break;
 											}
 										}
 									}
@@ -248,7 +266,6 @@ function JSLTabListener(tabInfo, bg) {
 		for (let id of self.filters)
 			self.bg.rules_mgr.removeRule(id);
 	};
-
 	
 	browser.runtime.onConnect
 		.addListener(
@@ -368,7 +385,12 @@ function TabsMgr (bg) {
 				let editor = self.bg.editor_mgr.getEditorForTab(tabId);
 				
 				if (editor)
-					editor.newTabURL(new URL(changeInfo.url).sort());				
+					editor.newTabURL(new URL(changeInfo.url).sort());
+				
+				// let listener = self.getListenerById(tabId);
+
+				// if (listener)
+				// 	listener.tabUpdate();
 			}
 		}
 	};

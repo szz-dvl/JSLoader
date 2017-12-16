@@ -32,6 +32,8 @@
   color: green;
   white-space: pre;
   word-wrap: break-word;
+  text-overflow: ellipsis !important;
+  overflow:hidden;
 }
 .json-formatter-row .number {
   color: blue;
@@ -115,6 +117,8 @@
   color: #31F031;
   white-space: pre;
   word-wrap: break-word;
+  text-overflow: ellipsis !important;
+  overflow:hidden;
 }
 .json-formatter-dark.json-formatter-row .number {
   color: #66C2FF;
@@ -171,4 +175,10 @@
 }
 .json-formatter-dark.json-formatter-row:hover > a > .thumbnail-text {
   opacity: 0.6;
+}
+
+/* szz */
+
+.headerName {
+	text-overflow: ellipsis !important;
 }

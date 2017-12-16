@@ -1,4 +1,4 @@
-angular.module('jslPartials', ['hljsSearch'])
+angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 
 	.directive('noInfo',
 			   () => {
@@ -139,6 +139,59 @@ angular.module('jslPartials', ['hljsSearch'])
 				   }
 			   })
 
+	.directive('httpRequest',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   replace: true,
+					   
+					   scope: {
+						   req: '=',
+						   urlclick: '=',
+						   toggle: '=',
+						   remove: '='
+					   },
+
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/http-request.html");
+					   },
+					   
+					   controller : function ($scope) {
+						   
+						   $scope.open_lvl = 1;
+
+						   $scope.showRuleAdder = function (req) {
+
+							   $scope.open_lvl = 2;
+							   $scope.req.adding = true;
+							   
+						   };
+
+						   $scope.persistRule = function (action, data, headers) {
+							   
+							   $scope.req.listener.addFilter($scope.req.request,
+															 {
+																 action: action,
+																 data: data,
+																 headers: headers
+																 
+															 });
+							   $scope.req.adding = false;
+							   $scope.open_lvl = 1;
+							   
+						   };
+
+						   $scope.dismissRule = function () {
+							   
+							   $scope.req.adding = false;
+							   $scope.open_lvl = 1;
+						   };
+					   }
+				   }
+			   })
+
 	.directive('ruleAdder',
 			   () => {
 				   
@@ -147,7 +200,9 @@ angular.module('jslPartials', ['hljsSearch'])
 					   restrict: 'E',
 					   
 					   scope: {
-						   req: '=' 
+						   req: '=',
+						   dismiss: '=',
+						   add: '='
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -157,19 +212,19 @@ angular.module('jslPartials', ['hljsSearch'])
 					   controller: function ($scope) {
 						   
 						   $scope.policy = 'block';
-						   $scope.policies = ['block', 'redirect'];
+						   $scope.policies = ['block', 'headers only', 'redirect'];
+						   $scope.headers = {};
 						   $scope.backup = '';
 						   $scope.redirectUrl = '';
 
 						   $scope.persist = function () {
-							   
-							   $scope.req.listener.addFilter($scope.req.request, {action: $scope.policy, data: ($scope.policy == 'block' ? null : $scope.redirectUrl) });
-							   $scope.req.adding = false;
-						   };
 
-						   $scope.dismiss = function () {
+							   $scope.add(
+								   $scope.policy.split(' ')[0],
+								   ($scope.policy == 'redirect' ? $scope.redirectUrl : null),
+								   (Object.keys($scope.headers).length ? $scope.headers : null)
+							   )
 							   
-							   $scope.req.adding = false;
 						   };
 						   
 						   $scope.urlChange = function () {
@@ -200,6 +255,12 @@ angular.module('jslPartials', ['hljsSearch'])
 								   }, 800
 							   );
 						   };
+
+						   $scope.req.events.on('header-change', (text, name) => {
+							   
+							   $scope.headers[name] = text;
+							   
+						   });
 
 					   },
 				   }

@@ -77,91 +77,14 @@ function JSLTabListener(tabInfo, bg) {
 		}));
 	};
 	
-	// this.removeFilter = function (request, action) {
-	
-	// 	self.filters.remove(
-	// 		self.filters.findIndex(
-	// 			filter => {
-	
-	// 				return filter.action == action && (filter.url.match(new URL(request.url)) && filter.method == request.method && filter.type == request.type);
-	
-	// 			}
-	// 		)
-	// 	);
-	// };
-	
 	this.addProxyForTab = function (proxy) {
 		
 		self.bg.rules_mgr.addProxy(this.url.hostname, self.bg.option_mgr.jsl.proxys[proxy] || null);
 		
 	};
-	
-	// this.pushRedirect = function (request, rule) {
-	
-	// 	self.requests.push({responses: [], rules: Object.assign({}, rule), from: Object.assign({}, request) });
-	
-	// };
-	
-	this.onBeforeSend = function (request) {
-		
-		if (self.active) {
-			if (request.tabId == self.id) {
-
-				let redirected = self.requests.find(
-					redire => {
-						return redire.from ? redire.from.requestId == request.requestId : false;
-					}
-				);
-
-				if (redirected) {
-
-					console.log("Redirect found: ");
-					console.log(redirected);
-					
-					redirected.request = request;
-
-				} else
-					self.requests.push({request: request, responses: []});
-			}
-		}
-	};
-	
-	this.onSend = function (request) {
-		
-		if (self.active) {
-			
-			if (request.tabId == self.id) {
-				
-				let req = self.__findRequest(request.requestId);
-
-				if (req) {
-
-					if (req.request.requestHeaders != request.requestHeaders) {
-						
-						let changed = request.requestHeaders
-							.filter(
-								header => {
-									
-									return req.request.requestHeaders
-										.findIndex(
-											stored => {
-												return (stored.name == header.name && stored.value == header.value);
-											}	
-										) < 0;  
-								}
-							);
-						
-						if (changed.length)
-							req.request.changedHeaders = changed;
-					}	
-				}
-			}
-		}
-	};
-	
 
 	this.onHeadersReceived = function (response) {
-
+		
 		if (self.active) {
 			
 			if (response.tabId == self.id) {
@@ -177,16 +100,15 @@ function JSLTabListener(tabInfo, bg) {
 					
 					/* 400 and 500 not to be tracked. Will get here? */
 					if (response.statusCode >= 200 && response.statusCode < 300) {
-
-						console.log("Posting request: " + req.request.requestId);
-						self.port.postMessage({action: "new-request", request: req});
+						
+						self.port.postMessage({ action: req.mod ? "modified-request" : "new-request", request: req });
 						self.__removeRequest(response.requestId);
 						
 					} else {
-
+						
 						req.track = setTimeout(
 							req => {
-							
+								
 								self.port.postMessage({action: "error-request", request: req});
 								self.__removeRequest(response.requestId);
 							
@@ -195,7 +117,7 @@ function JSLTabListener(tabInfo, bg) {
 					}
 				
 				} else {
-
+					
 					console.error(" --------------- Missing request ------------- ");
 					console.error(response);
 					console.error("------------------------------------------");
@@ -209,58 +131,58 @@ function JSLTabListener(tabInfo, bg) {
 		console.log(self.filters);
 
 	};
-
-	// this.tabUpdate = function () {
-
-	// 	console.log("Unimplemented.");
-
-	// };
 	
-	this.bg.rules_mgr.events.on('rule-match',
-								(request_arg, rule_arg) => {
-									
-									/* Data Clone Error when posting rules to view */
-									
-									let request = Object.assign({}, request_arg);
-									let rule = Object.assign({}, rule_arg);
-									
-									if (self.active) {
-										
-										if (request.tabId == self.id)  {
-											
-											try {
-											
-												switch(rule.policy.action) {
-												case "block":
-													
-													self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
-													break;
-													
-												case "redirect":
-													
-													request.redirectedTo = rule.policy.data;
-													self.port.postMessage({action: "redirect-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
-													
-													break;
-												
-												default:
-													break;
-												}
+	this.bg.rules_mgr.events
+		.on('sending-request',
+			(request, rule) => {
+				
+				if (self.active) {
+					if (request.tabId == self.id) {
 
-											} catch (err) {
+						if (rule && rule.enabled)
+							request.changedHeaders = Object.keys(rule.headers).map(hname => { return {name: hname, value: rule.headers[hname] }});
+							
+						self.requests.push({request: request, responses: [], rules: rule ? {id: rule.id, enabled: rule.enabled} : null, mod: rule && rule.enabled});
+					}
+				}
+			})
 
-												console.error("Post Rule: ");
-												console.error(err);
-												
-											}
-										}
-									}
-								});
+		.on('rule-match',
+			(request_arg, rule_arg) => {
+				
+				/* Data Clone Error when posting rules to view */
+				
+				let request = Object.assign({}, request_arg);
+				let rule = Object.assign({}, rule_arg);
+				
+				if (self.active) {
+					if (request.tabId == self.id)  {
+						
+						switch(rule.policy.action) {
+						case "block":
+							
+							self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+							break;
+							
+						case "redirect":
+							
+							request.redirectedTo = rule.policy.data;
+							self.port.postMessage({action: "redirect-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+							
+							break;
+							
+						default:
+							break;
+						}
+						
+					}
+				}
+			});
 	
 	this.listenerUnregister = function () {
 		
-		browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
-		browser.webRequest.onSendHeaders.removeListener(self.onSend);
+		// browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
+		//browser.webRequest.onSendHeaders.removeListener(self.onSend);
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
 
 		for (let id of self.filters)
@@ -287,13 +209,13 @@ function JSLTabListener(tabInfo, bg) {
 						}
 					);
 					
-					browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
-																	   {urls: ["<all_urls>"]},
-																	   [ "requestHeaders", "blocking" ]);
+					// browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
+					// 												   {urls: ["<all_urls>"]},
+					// 												   [ "requestHeaders", "blocking" ]);
 
-					browser.webRequest.onSendHeaders.addListener(self.onSend,
-																 {urls: ["<all_urls>"]},
-																 [ "requestHeaders" ]);
+					// browser.webRequest.onSendHeaders.addListener(self.onSend,
+					// 											 {urls: ["<all_urls>"]},
+					// 											 [ "requestHeaders" ]);
 					
 					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
 																	 {urls: ["<all_urls>"]},

@@ -47,6 +47,11 @@ function RequestRedirect (data) {
 	Request.call(this, data);
 };
 
+function RequestModified (data) {
+
+	Request.call(this, data);
+};
+
 function RequestWrapper (opt) {
 
 	let self = this;
@@ -55,9 +60,13 @@ function RequestWrapper (opt) {
 	this.shown = opt.shown;
 	this.blocked = opt.type == "blocked";
 	this.routed = opt.request.proxyInfo ? true : false;
-
+	
+	this.open_lvl = 1;
+	
+	this.events = new EventEmitter();
+	
 	this.listener = opt.listener || null;
-	this.adding = null;
+	this.adding = false;
 	
 	this.rules = opt.rules ? [opt.rules] : [];
 	this.currentRule = opt.rules || null;
@@ -74,6 +83,10 @@ function RequestWrapper (opt) {
 
 	case "redirected":
 		this.request = new RequestRedirect(opt.request);
+		break;
+
+	case "modified":
+		this.request = new RequestModified(opt.request);
 		break;
 		
 	default:
@@ -146,10 +159,10 @@ function TabListener (id, page, port) {
 	this.status;
 	this.list;
 	
-	this.app = angular.module('ListenerApp', ['jslPartials', 'jsonFormatter', 'jslPartials']);
+	this.app = angular.module('ListenerApp', ['jslPartials']);
 
 	this.app.controller('bodyController', function ($scope, $timeout) {
-
+		
 		self.statu = $scope;
 		
 		$scope.label = "JSLoader";
@@ -180,6 +193,11 @@ function TabListener (id, page, port) {
 				text: "redirected",
 				value: true,
 				change: val => { self.list.filterChange(val, "redirected"); }
+			},
+			{
+				text: "modified",
+				value: true,
+				change: val => { self.list.filterChange(val, "modified"); }
 			},
 			{
 				text: "ok",
@@ -252,7 +270,9 @@ function TabListener (id, page, port) {
 						}
 					);	
 				}
-			}	
+			}
+
+			$scope.user_moved = false;
 		};
 
 		$scope.getStatus = function (key) {
@@ -263,12 +283,6 @@ function TabListener (id, page, port) {
 					return filter.text == key;
 					
 				}).value;
-		};
-		
-		$scope.showRuleAdder = function (req) {
-
-			req.adding = true;
-			
 		};
 
 		$scope.removeRule = function (req) {
@@ -291,9 +305,9 @@ function TabListener (id, page, port) {
 			self.bg.rules_mgr.toggleEnable(req.currentRule.id);
 			rule.enabled = !rule.enabled;
 		};
-		
+
 		$scope.urlClick = function (url) {
-			
+							   
 			self.bg.tabs_mgr.openOrCreateTab(url);	
 			
 		};
@@ -364,7 +378,9 @@ function TabListener (id, page, port) {
 				
 				req.shown = $scope.__reqMustShow(req);
 				
-			} 
+			}
+
+			$scope.user_moved = false;
 		};
 		
 		$scope.advFilterChange = function (filter) {
@@ -463,8 +479,12 @@ function TabListener (id, page, port) {
 
 				case "redirect-request":
 					
-					console.log("New redirect!");
 					args.request.type = "redirected";
+					break;
+
+				case "modified-request":
+					
+					args.request.type = "modified";
 					break;
 					
 				default:
@@ -474,12 +494,36 @@ function TabListener (id, page, port) {
 				args.request.listener = $scope.listener;
 				args.request.shown = $scope.__reqMustShow(args.request);
 				$scope.list.push(new RequestWrapper(args.request));
-				
+
 				$scope.$digest();
-				$location.hash("bottom");
-				$anchorScroll();
+
+				if (!$scope.user_moved) {
+					
+					$location.hash("bottom");
+					$anchorScroll();
+				}
 			}
 		);
+
+		$timeout(() => {
+
+			$('#content').mousedown(
+				ev => {
+					
+					if( $(window).outerWidth() <= ev.clientX ){
+
+						$scope.user_moved = true;
+						
+					}
+					
+				});
+				
+			$('#content').on('wheel', ev => {
+				
+				$scope.user_moved = true;
+				
+			});
+		})
 	});
 	
 	angular.element(document).ready(

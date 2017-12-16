@@ -28,8 +28,8 @@ function Request (data) {
 	if (this.requestHeaders)
 		this.requestHeaders = this.requestHeaders.map(header => { return new Header(header); });
 	
-	if (this.changedHeaders)
-		this.changedHeaders = this.changedHeaders.map(header => { return new Header(header); });
+	if (this.modifiedHeaders)
+		this.modifiedHeaders = this.modifiedHeaders.map(header => { return new Header(header); });
 };
 
 function RequestFailure (data) {
@@ -68,8 +68,9 @@ function RequestWrapper (opt) {
 	this.listener = opt.listener || null;
 	this.adding = false;
 	
-	this.rules = opt.rules ? [opt.rules] : [];
-	this.currentRule = opt.rules || null;
+	this.rules = opt.rules || [];
+	this.currentRule = opt.rules.length ? opt.rules[0] : null;
+	this.currentProxy = this.listener.getProxyName(opt.request.proxyInfo);
 	
 	switch (opt.type) {
 		
@@ -106,7 +107,7 @@ function RequestWrapper (opt) {
 		let rule = self.rules.find (
 			rule => {
 				return rule.id == self.currentRule.id;
-			}	
+			}
 		);
 		
 		return rule ? (rule.enabled ? "Disable" : "Enable") : "Void";
@@ -287,23 +288,37 @@ function TabListener (id, page, port) {
 
 		$scope.removeRule = function (req) {
 
-			req.rules.remove(
-				req.rules.findIndex(
-					rule => { return rule.id == req.currentRule.id; }
-				)
-			);
+			let removed = req.currentRule.id;
+
+			for (let stacked of $scope.list) {
+
+				stacked.rules.remove(
+					stacked.rules.findIndex(
+						rule => { return rule.id == removed; }
+					)
+				);
+
+				stacked.currentRule = stacked.rules[0];
+			}
 			
-			self.bg.rules_mgr.removeRule(req.currentRule.id);
+			self.bg.rules_mgr.removeRule(removed);
 		};
 
 		$scope.toggleRule = function (req) {
+
+			let toggled = req.currentRule.id;
+
+			for (let stacked of $scope.list) {
+				
+				let rule = stacked.rules.find(
+					rule => { return rule.id == toggled; }
+				);
+
+				if (rule)
+					rule.enabled = !rule.enabled;
+			}
 			
-			let rule = req.rules.find(
-				rule => { return rule.id == req.currentRule.id; }
-			);
-			
-			self.bg.rules_mgr.toggleEnable(req.currentRule.id);
-			rule.enabled = !rule.enabled;
+			self.bg.rules_mgr.toggleEnable(toggled);
 		};
 
 		$scope.urlClick = function (url) {
@@ -486,21 +501,29 @@ function TabListener (id, page, port) {
 					
 					args.request.type = "modified";
 					break;
+
+				case "tab-proxy":
+
+					self.statu.currentProxy = args.proxy;
+					self.statu.$digest(); // ??
 					
 				default:
 					break;
 				}
-				
-				args.request.listener = $scope.listener;
-				args.request.shown = $scope.__reqMustShow(args.request);
-				$scope.list.push(new RequestWrapper(args.request));
 
-				$scope.$digest();
+				if (args.action != "tab-proxy") {
 
-				if (!$scope.user_moved) {
+					args.request.listener = $scope.listener;
+					args.request.shown = $scope.__reqMustShow(args.request);
+					$scope.list.push(new RequestWrapper(args.request));
 					
-					$location.hash("bottom");
-					$anchorScroll();
+					$scope.$digest();
+
+					if (!$scope.user_moved) {
+					
+						$location.hash("bottom");
+						$anchorScroll();
+					}
 				}
 			}
 		);

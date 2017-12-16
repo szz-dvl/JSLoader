@@ -5,6 +5,12 @@
   
   <button class="browser-style jslbtn" ng-show="req.visible && !req.adding" ng-click="showRuleAdder(req)"> Add rule </button>
   <rule-adder style="display: inline-block;" req="req" add="persistRule" dismiss="dismissRule" ng-show="req.visible && req.adding"></rule-adder>
+  <button class="browser-style jslbtn" ng-show="req.visible && !proxying" ng-click="showProxyOps(req)"> Set Proxy </button>
+  <label ng-show="req.visible && proxying">
+	<span> Proxy through: </span>
+	<select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
+	<button class="browser-style jslbtn" ng-click="dismissProxy()"> x </button>
+  </label>
   
   <div ng-show="req.visible && req.rules.length" class="rule-remover">
 	<span class="filter-label"> Matching rules: </span>

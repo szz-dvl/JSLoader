@@ -70,17 +70,46 @@ function JSLTabListener(tabInfo, bg) {
 		
 		self.filters.push(self.bg.rules_mgr.addRule({
 			policy: action,
-			criteria: {
-				url: request.url,
-				method: request.method,
-				type: request.type }
+			criteria: [
+				{ key: "url", value: request.url, comp: "=" },
+				{ key: "method", value: request.method, comp: "=" },
+				{ key: "type", value: request.type, comp: "=" }
+			]
 		}));
 	};
-	
+
+	/* If proxy not found in option_mgr host will be "DIRECTED" */
 	this.addProxyForTab = function (proxy) {
 		
 		self.bg.rules_mgr.addProxy(this.url.hostname, self.bg.option_mgr.jsl.proxys[proxy] || null);
 		
+	};
+
+	/* If proxy not found in option_mgr host will be "DIRECTED" */
+	this.addProxyForHost = function (proxy, url) {
+		
+		let host = new URL(url).hostname;
+		
+		self.bg.rules_mgr.addProxy(host, self.bg.option_mgr.jsl.proxys[proxy] || null);
+
+		if (host == this.url.hostname)
+			self.port.postMessage({action: "tab-proxy", proxy: proxy});
+	};
+
+	this.getProxyName = function (proxy_object) {
+
+		if (!proxy_object)
+			return "None";
+		
+		for (let proxy of Object.keys(self.bg.option_mgr.jsl.proxys)) {
+			
+			let stored = self.bg.option_mgr.jsl.proxys[proxy]
+			
+			if ((stored.host == proxy_object.host) && (stored.port == proxy_object.port))
+				return proxy;
+		}
+
+		return "None";
 	};
 
 	this.onHeadersReceived = function (response) {
@@ -111,7 +140,7 @@ function JSLTabListener(tabInfo, bg) {
 								
 								self.port.postMessage({action: "error-request", request: req});
 								self.__removeRequest(response.requestId);
-							
+								
 							}, 3000, req
 						);
 					}
@@ -125,49 +154,61 @@ function JSLTabListener(tabInfo, bg) {
 			}
 		}
 	};
-
-	this.printFilters = function () {
-
-		console.log(self.filters);
-
-	};
 	
 	this.bg.rules_mgr.events
 		.on('sending-request',
-			(request, rule) => {
+			(request, rules, mod) => {
 				
 				if (self.active) {
 					if (request.tabId == self.id) {
-
-						if (rule && rule.enabled)
-							request.changedHeaders = Object.keys(rule.headers).map(hname => { return {name: hname, value: rule.headers[hname] }});
+						
+						if (mod)
+							request.modifiedHeaders = mod;
 							
-						self.requests.push({request: request, responses: [], rules: rule ? {id: rule.id, enabled: rule.enabled} : null, mod: rule && rule.enabled});
+						self.requests.push({
+							request: request,
+							responses: [],
+							rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }}),
+							mod: mod ? true : false
+						});
 					}
 				}
 			})
 
 		.on('rule-match',
-			(request_arg, rule_arg) => {
+			(request, rules, action, redire) => {
 				
 				/* Data Clone Error when posting rules to view */
-				
-				let request = Object.assign({}, request_arg);
-				let rule = Object.assign({}, rule_arg);
 				
 				if (self.active) {
 					if (request.tabId == self.id)  {
 						
-						switch(rule.policy.action) {
+						switch(action) {
 						case "block":
 							
-							self.port.postMessage({action: "blocked-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+							self.port.postMessage({
+								action: "blocked-request",
+								request: {
+									request: request,
+									responses: [],
+									rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
+								}
+							});
+							
 							break;
 							
 						case "redirect":
 							
-							request.redirectedTo = rule.policy.data;
-							self.port.postMessage({action: "redirect-request", request: {request: request, responses: [], rules: {id: rule.id, enabled: rule.enabled} }});
+							request.redirectedTo = redire;
+
+							self.port.postMessage({
+								action: "redirect-request",
+								request: {
+									request: request,
+									responses: [],
+									rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
+								}
+							});
 							
 							break;
 							
@@ -181,10 +222,9 @@ function JSLTabListener(tabInfo, bg) {
 	
 	this.listenerUnregister = function () {
 		
-		// browser.webRequest.onBeforeSendHeaders.removeListener(self.onBeforeSend);
-		//browser.webRequest.onSendHeaders.removeListener(self.onSend);
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
 
+		/* Temp! */
 		for (let id of self.filters)
 			self.bg.rules_mgr.removeRule(id);
 	};
@@ -197,7 +237,7 @@ function JSLTabListener(tabInfo, bg) {
 					
 					self.port = port;
 					
-					/* Not firing on window close.. */
+					/* Not firing on window close.. Obs.*/
 					self.port.onDisconnect.addListener(
 						port => {
 							
@@ -208,14 +248,6 @@ function JSLTabListener(tabInfo, bg) {
 							
 						}
 					);
-					
-					// browser.webRequest.onBeforeSendHeaders.addListener(self.onBeforeSend,
-					// 												   {urls: ["<all_urls>"]},
-					// 												   [ "requestHeaders", "blocking" ]);
-
-					// browser.webRequest.onSendHeaders.addListener(self.onSend,
-					// 											 {urls: ["<all_urls>"]},
-					// 											 [ "requestHeaders" ]);
 					
 					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
 																	 {urls: ["<all_urls>"]},

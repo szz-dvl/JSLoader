@@ -151,7 +151,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   req: '=',
 						   urlclick: '=',
 						   toggle: '=',
-						   remove: '='
+						   remove: '=',
+						   proxys: '='
 					   },
 
 					   templateUrl: function (elem, attr) {
@@ -159,16 +160,18 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 					   },
 					   
 					   controller : function ($scope) {
-						   
+
+						   $scope.proxying = false;
+						   $scope.currentProxy = $scope.req.currentProxy;
 						   $scope.open_lvl = 1;
 
 						   $scope.showRuleAdder = function (req) {
-
+							   
 							   $scope.open_lvl = 2;
 							   $scope.req.adding = true;
 							   
 						   };
-
+						   
 						   $scope.persistRule = function (action, data, headers) {
 							   
 							   $scope.req.listener.addFilter($scope.req.request,
@@ -179,14 +182,30 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 																 
 															 });
 							   $scope.req.adding = false;
-							   $scope.open_lvl = 1;
-							   
+							   $scope.open_lvl = 1;	   
 						   };
 
 						   $scope.dismissRule = function () {
 							   
 							   $scope.req.adding = false;
 							   $scope.open_lvl = 1;
+						   };
+
+						   $scope.proxyChange = function () {
+							   
+							   $scope.req.listener.addProxyForHost($scope.currentProxy, $scope.req.request.url);
+							   $scope.proxying = false;
+						   };
+
+						   $scope.showProxyOps = function () {
+							   
+							   $scope.proxying = true;
+						   };
+
+						   $scope.dismissProxy = function () {
+							   
+							   $scope.proxying = false;
+							   
 						   };
 					   }
 				   }
@@ -202,7 +221,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 					   scope: {
 						   req: '=',
 						   dismiss: '=',
-						   add: '='
+						   add: '=',
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -213,18 +232,18 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   
 						   $scope.policy = 'block';
 						   $scope.policies = ['block', 'headers only', 'redirect'];
-						   $scope.headers = {};
+						   $scope.headers = [];
 						   $scope.backup = '';
 						   $scope.redirectUrl = '';
-
+						   $scope.currentProxy = "None";
+						   
 						   $scope.persist = function () {
-
+							   
 							   $scope.add(
 								   $scope.policy.split(' ')[0],
 								   ($scope.policy == 'redirect' ? $scope.redirectUrl : null),
-								   (Object.keys($scope.headers).length ? $scope.headers : null)
+								   $scope.headers
 							   )
-							   
 						   };
 						   
 						   $scope.urlChange = function () {
@@ -234,7 +253,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 							   
 							   $scope.ID = setTimeout(
 								   () => {
-
+									   
 									   if ($scope.redirectUrl != "") { 
 										   try {
 											   
@@ -255,13 +274,12 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 								   }, 800
 							   );
 						   };
-
+						   
 						   $scope.req.events.on('header-change', (text, name) => {
 							   
-							   $scope.headers[name] = text;
+							   $scope.headers.push({ name: name, value: text });
 							   
 						   });
-
 					   },
 				   }
 			   })

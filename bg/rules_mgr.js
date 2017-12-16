@@ -1,12 +1,62 @@
+function CriteriaAttr (opt) {
+
+	this.key = opt.key || null;
+	this.value = opt.value ? this.key.toLowerCase().includes("url") ? new URL(opt.value) : opt.value : null;
+	this.comp = opt.comp || null;
+
+	this.match = function (val) {
+
+		let str = JSON.stringify(val);
+		
+		switch (this.comp) {
+
+		case "=":
+			return val == this.value;
+			
+		case "!=":
+			return val != this.value
+
+		/* Includes */
+		case ":":
+			return str.includes(this.value.toString());
+			
+		case "!:":
+			return str.includes(this.value.toString());
+		}
+		
+	}
+}
+
+function RuleCriteria (opt) {
+
+	this.attributes = [];
+	
+	for (let attr of opt) {
+		
+		this.attributes.push(new CriteriaAttr(attr));
+	}
+
+	this.match = function (request) {
+
+		return this.attributes.filter(
+			attr => {
+				
+				return attr.match(request[attr.key]);
+				
+			}
+			
+		).length == this.attributes.length;
+	}
+}
+
 function Rule (opt) {
 	
 	this.id = opt.id || UUID.generate().split("-").pop();
-	this.criteria = opt.criteria || null;
-	this.criteria.url = this.criteria.url ? new URL(this.criteria.url) : null;
+	this.criteria = opt.criteria ? new RuleCriteria(opt.criteria) : null;
 	
-	this.policy = opt.policy || null;
+	this.policy = opt.policy ? {action: opt.policy.action, data: opt.policy.data } : null;
 	
-	this.headers = this.policy ? this.policy.headers : null;
+	this.headers = opt.policy ? opt.policy.headers : [];
 	this.enabled = true;
 }
 
@@ -38,9 +88,6 @@ function RulesMgr (bg) {
 
 		let my_rule = new Rule(rule);
 		
-		// console.log("Adding rule: ");
-		// console.log(my_rule);
-		
 		self.rules.push(my_rule);
 		return my_rule.id;
 		
@@ -69,93 +116,155 @@ function RulesMgr (bg) {
 			rule.enabled = !rule.enabled;
 	};
 
+	this.__mergeHeaders = function (actual, new_headers) {
+
+		if (!new_headers)
+			return actual;
+		else {
+			
+			for (let header of actual) {
+				
+				let updated = new_headers.find(nw => { return nw.name == header.name; });
+				
+				if (updated)
+					header.value = updated.value;	
+			}
+
+			actual.push.apply(actual, new_headers.filter(nw => { return !actual.find(ac => { return ac.name == nw.name; }); } ));
+
+			return actual;
+		}
+	};
+	
+	this.upsertPending = function (info) {
+		
+		let pending = this.pending.find(
+			pend => {
+
+				return pend.id == info.id;	
+			}
+		);
+
+		if (pending) {
+
+			if (info.rule.enabled) 	
+				pending.headers = self.__mergeHeaders(pending.headers, info.rule.headers)
+			
+			pending.rules.push(info.rule);
+			
+		} else
+			this.pending.push({id: info.id, headers: info.rule.enabled ? info.rule.headers : [], rules: [info.rule]})
+		
+	}
+
+	this.discardPending = function (rid) {
+		
+		self.pending.remove(
+			self.pending.findIndex(
+				pending => {
+					return pending.id == rid;
+				}
+			)
+		);
+	}
+	
 	this.changeHeaders = function (request) {
 
 		return new Promise (
 			resolve => {
 
-				let rule = null;
+				let headers = null;
+				let rules = [];
 				
 				let idx = self.pending.findIndex(
 					headers => {
-						
 						return headers.id == request.requestId;
 					}
 				);
 				
 				if (idx >= 0) {
-
-					rule = self.pending[idx].rule;
 					
-					if (rule.enabled) {
+					rules.push.apply(rules, self.pending[idx].rules);
+					headers = self.pending[idx].headers;
 						
-						for (let header_name of Object.keys(self.pending[idx].headers)) {
-							
-							let value = self.pending[idx].headers[header_name];
-							
-							let to_change = request.requestHeaders.find(head => { return head.name == header_name });
-							
-							if (to_change)
-								to_change.value = value;
-						}
+					for (let header of headers) {
 						
-						resolve({ requestHeaders: request.requestHeaders });
-						self.pending.remove(idx);
+						let to_change = request.requestHeaders.find(head => { return head.name == header.name });
 						
-					} else 
-						resolve();
+						if (to_change)
+							to_change.value = header.value;
+						
+						/* Manually added headers missing! */
+					}
+					
+					resolve({ requestHeaders: request.requestHeaders });
+					self.pending.remove(idx);
 					
 				} else 	
 					resolve();
 				
-				self.events.emit("sending-request", request, rule);
+				self.events.emit("sending-request", request, rules, headers);
 			}
 		);
 	};
 	
 	this.applyRules = function (request) {
-
+		
 		return new Promise (
 			resolve => {
 				
-				/* !!! */
-				let rule = self.rules.find(
+				let rules = self.rules.filter(
 					rule => {
 						
-						return rule.criteria.url.match(new URL(request.url)) && rule.criteria.method == request.method && rule.criteria.type == request.type;
+						return rule.criteria.match(request);
 						
 					}
 				);
 
-				if (rule) {
+				if (rules.length) {
 
-					if (rule.headers)
-						self.pending.push({id: request.requestId, headers: rule.headers, rule: rule });
+					let res_val = {};
+					let action = null;
+					let redirection = null;
 					
-					if (rule.enabled) {
-
-						switch(rule.policy.action) {
-							
-						case "block":
-							
-							resolve({ cancel: true });
-							break;
+					for (let rule of rules) {
 						
-						case "redirect":
-						
-							resolve({ redirectUrl: rule.policy.data });
-							break;
+						if (res_val.cancel) {
 
-						default:
+							res_val = { cancel: true };
+							self.discardPending(request.requestId);
 							
-							resolve();
 							break;
 						}
 						
-					} else
-						resolve();
+						if (rule.headers)
+							self.upsertPending({id: request.requestId, rule: rule });
+						
+						if (rule.enabled) {
+
+							switch(rule.policy.action) {
+								
+							case "block":
+
+								action = "block";
+								res_val.cancel = true;
+								break;
+								
+							case "redirect":
+
+								redirection = rule.policy.data;
+								action = "redirect";
+								res_val.redirectUrl = rule.policy.data;
+								break;
+								
+							default:
+								break;
+							}	
+						} 
+					}
 					
-					self.events.emit("rule-match", request, Object.assign({}, rule));
+					resolve(res_val);
+					self.events.emit("rule-match", request, rules, action, redirection);
 					
 				} else
 					resolve();

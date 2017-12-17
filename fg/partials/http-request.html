@@ -2,17 +2,20 @@
 		  
   <json-formatter json="req.request" open="open_lvl" ng-click="req.toggleList($event)" urlclick="urlclick" style="display:block;" request="req"></json-formatter><br>
   <json-formatter json="req.responses" open="0" ng-show="req.visible" urlclick="urlclick" style="display:block;"></json-formatter><br ng-show="req.visible">
+
+  <button class="browser-style jslbtn" ng-show="req.visible && !config" ng-click="showConfig()"> Config Request </button>
+  <div ng-show="req.visible && config" style="display: inline-block;">
+	<button class="browser-style jslbtn" ng-show="req.visible && !req.adding" ng-click="showRuleAdder(req)"> Add rule </button>
+	<rule-adder style="display: inline-block;" req="req" add="persistRule" dismiss="dismissRule" ng-show="req.visible && req.adding"></rule-adder>
+	<button class="browser-style jslbtn" ng-show="req.visible && !proxying" ng-click="showProxyOps(req)"> Set Proxy </button>
+	<label ng-show="req.visible && proxying">
+	  <span style="margin-left: 5px;"> Proxy through: </span>
+	  <select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
+	  <button class="browser-style jslbtn" ng-click="dismissProxy()"> x </button>
+	</label>
+  </div>
   
-  <button class="browser-style jslbtn" ng-show="req.visible && !req.adding" ng-click="showRuleAdder(req)"> Add rule </button>
-  <rule-adder style="display: inline-block;" req="req" add="persistRule" dismiss="dismissRule" ng-show="req.visible && req.adding"></rule-adder>
-  <button class="browser-style jslbtn" ng-show="req.visible && !proxying" ng-click="showProxyOps(req)"> Set Proxy </button>
-  <label ng-show="req.visible && proxying">
-	<span> Proxy through: </span>
-	<select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
-	<button class="browser-style jslbtn" ng-click="dismissProxy()"> x </button>
-  </label>
-  
-  <div ng-show="req.visible && req.rules.length" class="rule-remover">
+  <div ng-show="req.visible && req.rules.length && !(req.adding || proxying)" class="rule-remover">
 	<span class="filter-label"> Matching rules: </span>
 	<select class="browser-style" ng-model="req.currentRule" ng-options="rule.id for rule in req.rules"></select>
 	<button class="browser-style jslbtn" ng-click="remove(req)"> Remove </button>

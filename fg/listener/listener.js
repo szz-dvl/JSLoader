@@ -236,6 +236,11 @@ function TabListener (id, page, port) {
 		$scope.page = self;
 		$scope.port = port;
 		
+		$scope.config_sel = false;
+		$scope.proxying_sel = false;
+		$scope.rule_sel = false;
+		$scope.currentProxySel = "None";
+		
 		$scope.listener = self.bg.tabs_mgr.getListenerById(id);
 		$scope.list = [];
 		$scope.currentFilter = {
@@ -247,7 +252,7 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.flushRequests = function () {
-
+			
 			if ($scope.__AllShown())
 				$scope.list.length = 0;
 			else {
@@ -272,7 +277,7 @@ function TabListener (id, page, port) {
 					);	
 				}
 			}
-
+			
 			$scope.user_moved = false;
 		};
 
@@ -287,11 +292,11 @@ function TabListener (id, page, port) {
 		};
 
 		$scope.removeRule = function (req) {
-
+			
 			let removed = req.currentRule.id;
 
 			for (let stacked of $scope.list) {
-
+				
 				stacked.rules.remove(
 					stacked.rules.findIndex(
 						rule => { return rule.id == removed; }
@@ -307,7 +312,7 @@ function TabListener (id, page, port) {
 		$scope.toggleRule = function (req) {
 
 			let toggled = req.currentRule.id;
-
+			
 			for (let stacked of $scope.list) {
 				
 				let rule = stacked.rules.find(
@@ -386,7 +391,7 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.__applyFilters = function () {
-
+			
 			//$scope.listener.printFilters();
 			
 			for (let req of $scope.list) {
@@ -415,7 +420,7 @@ function TabListener (id, page, port) {
 			return typeof(
 				$scope.list.find(
 					request => {
-					
+						
 						return !request.shown; 
 						
 					}
@@ -424,9 +429,9 @@ function TabListener (id, page, port) {
 		};
 
 		$scope.btnStatus = function () {
-
+			
 			return $scope.__AllShown() ? "All" : "Selection";
-
+			
 		};
 		
 		$scope.infoShown = function () {
@@ -440,38 +445,87 @@ function TabListener (id, page, port) {
 			) || false;
 		};
 
-		$scope.noBlocked = function () {
-			
-			return typeof($scope.list.find(
-				request => {
-					
-					return request.shown == true && request.type == "blocked";
-					
-				}
-			)) == 'undefined' && $scope.infoShown();
+		$scope.configSelection = function () {
+			$scope.config_sel = true; 
 		};
 		
-		$scope.noUnblocked = function () {
-			
-			return typeof($scope.list.find(
-				request => {
-					
-					return request.shown == true && request.type != "blocked";
-					
-				}
-			)) == 'undefined' && $scope.infoShown();
+		$scope.showRuleSel = function () {
+			$scope.rule_sel = true; 
 		};
+		
+		$scope.persistRuleSel = function (action, data) {
 
-		$scope.un_blockSelection = function () {
-			
 			$scope.list.filter(
-				request => {
+				stacked => {
+					
+					return stacked.shown ? stacked : false;
+					
+				}).forEach(
+					stacked => {
+						
+						$scope.listener.addFilter(stacked.request,
+												  {
+													  action: action,
+													  data: data,
+												  });
+					});
+			
 
-					return request.shown == true;
+			$scope.rule_sel = false;
 
-				}
-			).forEach($scope.blockOps);
+			if (!$scope.proxying_sel)
+				$scope.config_sel = false;
 		};
+
+		$scope.dismissRuleSel = function () {
+			
+			$scope.rule_sel = false;
+			
+			if (!$scope.proxying_sel)
+				$scope.config_sel = false;
+		};
+
+		$scope.showProxySel = function () {
+			
+			$scope.proxying_sel = true;
+		};
+
+		$scope.proxySelChange = function () {
+			
+			$scope.list.map(
+				stacked => {
+
+					let url = new URL(stacked.request.url);
+					
+					return stacked.shown ? url.protocol + "//" + url.hostname : false;
+					
+				})
+				.filter(host => { return host; })
+				.filter(
+					(host, idx, arr) => {
+						
+						return arr.indexOf(host) == idx ? host : false;
+						
+					}).forEach(
+						uniq => {
+							
+							$scope.listener.addProxyForHost($scope.currentProxySel, uniq);
+						}
+					);
+			
+			$scope.proxying_sel = false;
+			
+			if (!$scope.rule_sel)
+				$scope.config_sel = false;
+		}
+		
+		$scope.dismissProxySel = function () {
+			
+			$scope.proxying_sel = false;
+			
+			if (!$scope.rule_sel)
+				$scope.config_sel = false;	
+		}
 		
 		$scope.port.onMessage.addListener(
 			function (args) {
@@ -483,7 +537,7 @@ function TabListener (id, page, port) {
 					break;
 					
 				case "error-request":
-
+					
 					args.request.type = "failured";
 					break;
 					
@@ -520,7 +574,7 @@ function TabListener (id, page, port) {
 					$scope.$digest();
 
 					if (!$scope.user_moved) {
-					
+						
 						$location.hash("bottom");
 						$anchorScroll();
 					}

@@ -32,7 +32,6 @@
 			<bdi id="listening_to"> Listening to tab <strong> {{ tabId }} </strong> </bdi>
 		  </span>
 		</div>
-		<button class="browser-style jslbtn-bottom" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
 	  </div>
 	  
 	  <div class="filter-bucket">
@@ -49,10 +48,9 @@
 		<span class="filter-label"> Filter: </span>
 		<input class="filter_inpt browser-style" type="text" ng-model="advFilter" ng-change="advFilterChange()">
 		
-		<span class="filter-label"> Proxy: </span>
-		<select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
-		
+		<button class="browser-style jslbtn-pause" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
 	  </div>
+	  
 	</div>
 	
 	<div id="content" class="panel-section scrollable" ng-controller="listenerController as listener">
@@ -76,8 +74,17 @@
 	  <div class="button-bucket">
 		<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="flushRequests()"> Flush {{ btnStatus() }} </button>
 		<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
-		<button class="browser-style jslbtn-fl" ng-show="noBlocked()" ng-click="un_blockSelection()"> Block {{ btnStatus() }} </button>
-		<button class="browser-style jslbtn-fl" ng-show="noUnblocked()" ng-click="un_blockSelection()"> Unblock {{ btnStatus() }} </button>
+		<button class="browser-style jslbtn-fl" ng-show="infoShown() && !config_sel" ng-click="configSelection()"> Config {{ btnStatus() }} </button>
+		<div ng-show="infoShown() && config_sel" class="config-sel-bucket">
+		  <button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Add rule </button>
+		  <rule-adder style="display: inline-block;" add="persistRuleSel" dismiss="dismissRuleSel" ng-show="rule_sel"></rule-adder>
+		  <button class="browser-style jslbtn" ng-show="!proxying_sel" ng-click="showProxySel()"> Set Proxy </button>
+		  <label ng-show="proxying_sel">
+			<span style="margin-left: 5px;"> Proxy through: </span>
+			<select class="browser-style" ng-model="currentProxySel" ng-options="proxy for proxy in page.statu.proxys" ng-change="proxySelChange()"></select>
+			<button class="browser-style jslbtn" ng-click="dismissProxySel()"> x </button>
+		  </label>
+		</div>
 	  </div>
 	</div>
 	

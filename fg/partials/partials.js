@@ -164,7 +164,14 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   $scope.proxying = false;
 						   $scope.currentProxy = $scope.req.currentProxy;
 						   $scope.open_lvl = 1;
+						   $scope.config = false;
+						   
+						   $scope.showConfig = function () {
 
+							   $scope.config = true;
+							   
+						   };
+						   
 						   $scope.showRuleAdder = function (req) {
 							   
 							   $scope.open_lvl = 2;
@@ -173,7 +180,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   };
 						   
 						   $scope.persistRule = function (action, data, headers) {
-							   
+
+							   $scope.open_lvl = 1;
 							   $scope.req.listener.addFilter($scope.req.request,
 															 {
 																 action: action,
@@ -182,19 +190,27 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 																 
 															 });
 							   $scope.req.adding = false;
-							   $scope.open_lvl = 1;	   
+							   
+							   if (!$scope.proxying)
+								   $scope.config = false;
 						   };
 
 						   $scope.dismissRule = function () {
-							   
-							   $scope.req.adding = false;
+
 							   $scope.open_lvl = 1;
+							   $scope.req.adding = false;
+							   
+							   if (!$scope.proxying)
+								   $scope.config = false;
 						   };
 
 						   $scope.proxyChange = function () {
 							   
 							   $scope.req.listener.addProxyForHost($scope.currentProxy, $scope.req.request.url);
 							   $scope.proxying = false;
+
+							   if (!$scope.req.adding)
+								   $scope.config = false;
 						   };
 
 						   $scope.showProxyOps = function () {
@@ -205,7 +221,9 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   $scope.dismissProxy = function () {
 							   
 							   $scope.proxying = false;
-							   
+
+							   if (!$scope.req.adding)
+								   $scope.config = false;
 						   };
 					   }
 				   }
@@ -231,11 +249,15 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 					   controller: function ($scope) {
 						   
 						   $scope.policy = 'block';
-						   $scope.policies = ['block', 'headers only', 'redirect'];
+						   $scope.policies = ['block', 'redirect'];
 						   $scope.headers = [];
 						   $scope.backup = '';
+						   $scope.validated = false;
 						   $scope.redirectUrl = '';
 						   $scope.currentProxy = "None";
+
+						   if ($scope.req)
+							   $scope.policies.push('headers only');
 						   
 						   $scope.persist = function () {
 							   
@@ -247,6 +269,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   };
 						   
 						   $scope.urlChange = function () {
+
+							   $scope.validated = false;
 							   
 							   if($scope.ID)
 								   clearTimeout($scope.ID);
@@ -255,9 +279,10 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 								   () => {
 									   
 									   if ($scope.redirectUrl != "") { 
+
 										   try {
 											   
-											   let url = new URL($scope.redirectUrl);
+											   let url = new URL($scope.redirectUrl.startsWith("http") ? $scope.redirectUrl : "http://" + $scope.redirectUrl);
 											   
 											   $scope.redirectUrl = url.href;
 											   $scope.backup = $scope.redirectUrl;
@@ -268,18 +293,24 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 											   $scope.redirectUrl = $scope.backup;
 										   }
 										   
+										   $scope.validated = true;
 										   $scope.$digest();
-									   }
+										   
+									   } else
+										   $scope.validated = false;
 									   
 								   }, 800
 							   );
 						   };
-						   
-						   $scope.req.events.on('header-change', (text, name) => {
+
+						   if ($scope.req) {
+
+							   $scope.req.events.on('header-change', (text, name) => {
 							   
-							   $scope.headers.push({ name: name, value: text });
-							   
-						   });
+								   $scope.headers.push({ name: name, value: text });
+								   
+							   });
+						   }
 					   },
 				   }
 			   })

@@ -6,7 +6,10 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 				   return {
 					   restrict: 'E',
 					   replace: true,
-					   template : '<div class="noInfoContainer"> No Data </div>'
+					   scope: {
+						   text: "=?"
+					   },
+					   template : '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
 				   }
 			   })
 

@@ -224,7 +224,12 @@ function TabListener (id, page, port) {
 					self.list.advFilterChange($scope.advFilter);
 				
 				}, 800);
+		}
 
+		$scope.anyFilter = function () {
+
+			return $scope.advFilter != "" || $scope.filterOpts.find(filter => { return !filter.value; });
+			
 		}
 			
 	});
@@ -248,6 +253,12 @@ function TabListener (id, page, port) {
 			key: "",
 			value: "",
 			isEmpty: () => { return this.key == "" && this.value == ""; }
+			
+		};
+
+		$scope.getVoidText = function () {
+
+			return $scope.page.statu.anyFilter() && $scope.list.length ? 'No Match' : 'No Data';
 			
 		};
 		

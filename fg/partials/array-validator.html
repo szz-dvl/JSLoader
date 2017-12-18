@@ -1,0 +1,16 @@
+<md-autocomplete
+   ng-disabled="disabled"
+   md-no-cache="true"
+   md-selected-item="selectedItem"
+   md-search-text="searchText"
+   md-items="item in querySearch(searchText)"
+   md-item-text="item"
+   md-min-length="0"
+   placeholder="Pick a {{ type }}" >
+  <md-item-template>
+    <span md-highlight-text="searchText" md-highlight-flags="^i"> {{item}} </span>
+  </md-item-template>
+  <md-not-found>
+    No valid {{ type }} found for {{ searchText }}, please choose a valid {{ type }}.
+  </md-not-found>
+</md-autocomplete>

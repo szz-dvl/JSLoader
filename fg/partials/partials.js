@@ -1,4 +1,4 @@
-angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
+angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 
 	.directive('noInfo',
 			   () => {
@@ -136,9 +136,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 								   }
 							   );
 						   });
-					   }
-					   
-					   
+					   } 
 				   }
 			   })
 
@@ -183,14 +181,13 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   };
 						   
 						   $scope.persistRule = function (action, data, headers) {
-
+							   
 							   $scope.open_lvl = 1;
 							   $scope.req.listener.addFilter($scope.req.request,
 															 {
 																 action: action,
 																 data: data,
-																 headers: headers
-																 
+																 headers: headers 
 															 });
 							   $scope.req.adding = false;
 							   
@@ -245,34 +242,65 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 						   add: '=',
 					   },
 					   
-					   templateUrl: function (elem, attr) {
-						   return browser.extension.getURL("fg/partials/rule-adder.html");
-					   },
-
+					   template: '<rule-chooser policies="policies" add="persist" dismiss="dismiss"></rule-chooser>',
+					   
 					   controller: function ($scope) {
 						   
-						   $scope.policy = 'block';
 						   $scope.policies = ['block', 'redirect'];
 						   $scope.headers = [];
-						   $scope.backup = '';
-						   $scope.validated = false;
-						   $scope.redirectUrl = '';
-						   $scope.currentProxy = "None";
-
+						   
 						   if ($scope.req)
 							   $scope.policies.push('headers only');
 						   
-						   $scope.persist = function () {
-							   
+						   $scope.persist = function (policy, data) {
+
 							   $scope.add(
-								   $scope.policy.split(' ')[0],
-								   ($scope.policy == 'redirect' ? $scope.redirectUrl : null),
+								   policy,
+								   data,
 								   $scope.headers
 							   )
 						   };
 						   
-						   $scope.urlChange = function () {
+						   if ($scope.req) {
+							   
+							   $scope.req.events.on('header-change', (text, name) => {
+								   
+								   $scope.headers.push({ name: name, value: text });
+								   
+							   });
+						   }
+					   },
+				   }
+			   })
 
+	.directive('ruleChooser',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   policies: '=',
+						   dismiss: '=',
+						   add: '=',
+						   url: '=?',
+						   policy: '=?',
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/rule-chooser.html");
+					   },
+
+					   controller: function ($scope) {
+
+						   $scope.policy = $scope.policy || 'block';
+						   $scope.backup = '';
+						   $scope.validated = $scope.url ? true : false;
+						   $scope.redirectUrl = $scope.url || '';
+						   
+						   $scope.urlChange = function () {
+							   
 							   $scope.validated = false;
 							   
 							   if($scope.ID)
@@ -282,7 +310,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 								   () => {
 									   
 									   if ($scope.redirectUrl != "") { 
-
+										   
 										   try {
 											   
 											   let url = new URL($scope.redirectUrl.startsWith("http") ? $scope.redirectUrl : "http://" + $scope.redirectUrl);
@@ -304,17 +332,109 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter'])
 									   
 								   }, 800
 							   );
+
 						   };
 
-						   if ($scope.req) {
-
-							   $scope.req.events.on('header-change', (text, name) => {
+						   $scope.persist = function () {
 							   
-								   $scope.headers.push({ name: name, value: text });
-								   
-							   });
-						   }
+							   $scope.add(
+								   $scope.policy.split(' ')[0],
+								   ($scope.policy == 'redirect' ? $scope.redirectUrl : null),
+							   );
+						   };
+					   }, 
+				   }
+			   })
+
+	.directive('headerName',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   name: '='
 					   },
+					   
+					   template: '<array-validator style="display: inline-block;" text="name" valids="array"></array-validator><span style="display: inline-block;">: </span>',
+
+					   controller: function ($scope) {
+
+						   $scope.array = [
+							   "Accept",
+							   "Accept-Charset",
+							   "Accept-Datetime",
+							   "Accept-Encoding",
+							   "Accept-Language",
+							   "Access-Control-Request-Method",
+							   "Access-Control-Request-Headers",
+							   "Authorization",
+							   "Cache-Control",
+							   "Connection",
+							   "User-Agent" /* ... */
+						   ];
+					   }
+				   }
+			   })
+
+	.directive('attrKey',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   name: '='
+					   },
+					   
+					   template: '<array-validator style="display: inline-block;" text="name" valids="array"></array-validator><span style="display: inline-block;">: </span>',
+
+					   controller: function ($scope) {
+
+						   $scope.array = [
+							   "frameId",
+							   "parentFrameId",
+							   "method",
+							   "type",
+							   "url",
+							   "originUrl",
+							   "documentUrl"
+						   ];
+					   }
+				   }
+			   })
+
+	.directive('arrayValidator',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   text: '=',
+						   valids: '='
+					   },
+
+					   template: '<autocomplete ng-model="text" data="valids" on-type="updateItems"></autocomplete>',
+					   
+					   controller: function ($scope) {
+						   
+						   $scope.disabled = false;
+						   
+						   $scope.updateItems = function (query) {
+							   
+							   return $scope.valids.filter(
+								   item => {
+									   
+									   return item.startsWith(query);
+
+								   }
+							   );
+						   }
+					   }
 				   }
 			   })
 

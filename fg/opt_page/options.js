@@ -71,7 +71,7 @@ function OP (bg, port) {
 	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
 	
 	this.app.controller('tabsController', function ($scope, $state) {
-
+		
 		self.tabs = $scope;
 		$scope.page = self;
 		
@@ -83,14 +83,14 @@ function OP (bg, port) {
 			{sref: 'domains', title: 'Domains'}, 
 			{sref: 'groups', title: 'Groups'}, 
 			{sref: 'userdefs', title: 'Userdefs'},
+			{sref: 'rules', title: 'Rules'},
 			{sref: 'logs', title: 'Logs'},
-			{sref: 'storage', title: 'Storage'} 
-
+			{sref: 'storage', title: 'Storage'}
 		];
 
 		//ui-sref
 		$scope.setActive = function (tab) {
-
+			
 			$("#tab-" + tab).siblings('.td-tab-link').removeClass("active");
 			$("#tab-" + tab).addClass("active");
 									
@@ -121,9 +121,9 @@ function OP (bg, port) {
 		$scope.toggleGlobs = function () {
 
 			$scope.globs_shown = !$scope.globs_shown;
-
+			
 		};
-
+		
 		$scope.statusGlobs = function () {
 
 			return $scope.globs_shown ? "v" : ">";
@@ -431,11 +431,92 @@ function OP (bg, port) {
 				templateUrl: 'domains.html',
 				controller: "domainController"
 			});
+
+			$stateProvider.state({
+				
+				resolve: {
+					dataRules: () => {
+						return self.bg.rules_mgr.rules;
+					}	
+				},
+				
+				name: 'rules',
+				templateUrl: 'rules.html',
+				
+				controller: function ($scope, dataRules) {
+					
+					self.tabs.setActive('rules');
+					
+					$scope.title = "Stored rules";
+					
+					$scope.rules = dataRules.map(
+						rule => {
+							
+							rule.headers_shown = false;
+							rule.criteria_shown = false;
+							
+							rule.req = { adding: true, events: new EventEmitter(), id: rule.id };
+							
+							rule.req.events.on('header-change',
+											   (text, name) => {
+												   
+												   console.log("Header " + name + ": " + text);
+												   
+											   });
+
+							rule.updateRule = function (action, data) {
+								
+								console.log("Updating: " + action + ": " + data);
+								
+							};
+
+							rule.closeUpdate = function () {
+								
+								console.log("Closing update");
+								
+							};
+							
+							return rule;
+						}
+					)
+					
+					$scope.statusHeaders = function (rule) {
+
+						return rule.headers_shown ? "v" : ">";
+					};
+
+					$scope.toggleHeaders = function (rule) {
+						
+						rule.headers_shown = !rule.headers_shown;
+					};
+
+					$scope.statusCriteria = function (rule) {
+
+						return rule.criteria_shown ? "v" : ">";
+					};
+
+					$scope.toggleCriteria = function (rule) {
+						
+						rule.criteria_shown = !rule.criteria_shown;
+					};
+
+					$scope.addHeader = function (rule) {
+
+						rule.headers.push({ name: " ", text: " " });
+						
+					};
+
+					$scope.addCritAttr = function (rule) {
+
+						rule.criteria.attributes.push({ key: " ", value: " ", comp: " " });
+					};
+				}
+			});
 			
 			$stateProvider.state({
 				
 				resolve: {
-					dataOpts: () => { return {editor: self.bg.option_mgr.editor, jsl: self.bg.option_mgr.jsl}; } 
+					dataOpts: () => { return { editor: self.bg.option_mgr.editor, jsl: self.bg.option_mgr.jsl }; } 
 				},
 				
 				name: 'settings',

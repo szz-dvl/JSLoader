@@ -7,14 +7,20 @@
 	<!-- <meta charset="utf-8"> -->
 	
 	<link rel="stylesheet" href="chrome://browser/content/extension.css">
-	<link rel="stylesheet" href="../deps/json/json-formatter.css">
+	<link rel="stylesheet" href="../deps/allmighty-autocomplete/style/autocomplete.css">
+	<link rel="stylesheet" href="../deps/json/json-formatter.css">	
+	<link rel="stylesheet" href="../styles/angular-material.min.css">
 	<link rel="stylesheet" href="listener.css">
-
+	
 	<script src="../deps/jquery.min.js"></script>
 	<script src="../deps/angular.min.js"></script>
+	<script src="../deps/angular-animate.js"></script>
+    <script src="../deps/angular-aria.js"></script>
+	<script src="../deps/angular-material.min.js"></script>
 	
+	<script src="../deps/allmighty-autocomplete/script/autocomplete.js"></script>
 	<script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
-
+	
 	<script src="../deps/highlightjs/highlight.min.js"></script>
 	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	<script src="../partials/partials.js"></script>
@@ -25,7 +31,7 @@
   <body spellcheck=false ng-controller="bodyController as listener" ng-cloak>
 	
 	<div id="listener-header" class="panel-section panel-section-header header">
-
+	  
 	  <div class="header-title text-section-header">
 		<div class="header-title-text"> {{label}} || 
 		  <span>
@@ -35,7 +41,7 @@
 	  </div>
 	  
 	  <div class="filter-bucket">
-
+		
 		<div class="filter-list">
 		  
 		  <label ng-repeat="filter in filterOpts track by filter.text" class="filter-label">
@@ -55,7 +61,7 @@
 	
 	<div id="content" class="panel-section scrollable" ng-controller="listenerController as listener">
 	  <no-info ng-if="!infoShown()" text="getVoidText()"></no-info>
-
+	  
 	  <ul style="display:block;">
 		
 		<http-request ng-repeat="req in list"
@@ -76,9 +82,9 @@
 		<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
 		<button class="browser-style jslbtn-fl" ng-show="infoShown() && !config_sel" ng-click="configSelection()"> Config {{ btnStatus() }} </button>
 		<div ng-show="infoShown() && config_sel" class="config-sel-bucket">
-		  <button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Add rule </button>
+		  <button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Rule {{ btnStatus() }} </button>
 		  <rule-adder style="display: inline-block;" add="persistRuleSel" dismiss="dismissRuleSel" ng-show="rule_sel"></rule-adder>
-		  <button class="browser-style jslbtn" ng-show="!proxying_sel" ng-click="showProxySel()"> Set Proxy </button>
+		  <button class="browser-style jslbtn" ng-show="!proxying_sel" ng-click="showProxySel()"> Proxy {{ btnStatus() }} </button>
 		  <label ng-show="proxying_sel">
 			<span style="margin-left: 5px;"> Proxy through: </span>
 			<select class="browser-style" ng-model="currentProxySel" ng-options="proxy for proxy in page.statu.proxys" ng-change="proxySelChange()"></select>

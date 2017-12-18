@@ -1,0 +1,63 @@
+<div class="panel-section" >
+  <div id="rules_head" class="panel-section-header">
+	<div class="text-section-header">{{title}}
+	  <label class="input_import" style="float:right;">
+		<input id="import_scripts" class="browser-style" type="file"></input>
+	  </label>
+	  <button style="float:right;" class="browser-style" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
+	</div>
+  </div>
+</div><br></br>
+
+<ul ng-if="rules.length">
+  <li ng-repeat="rule in rules track by rule.id">
+	
+	<h4> {{ rule.id }} </h4>
+	
+	<rule-chooser style="display: inline-block;" policy="rule.policy.action" url="rule.policy.data" policies="['block', 'redirect', 'headers']" add="rule.updateRule" dismiss="rule.closeUpdate"></rule-chooser>
+	<!-- <label ng-show="rule.policy.action == 'redirect'"><span> to: </span><span style="display: inline-block;"> {{ rule.policy.data }} </span></label> -->
+	<br>
+	
+	<div>
+	  <h4> Modified Headers <bdi style="color:red" ng-click="toggleHeaders(rule)"> {{ statusHeaders(rule) }} </bdi></h4>
+	  <table id="table-headers" ng-show="rule.headers_shown">
+		<tbody>
+		  <tr ng-repeat="header in rule.headers track by header.name">
+			<td>
+			  <header-name name="header.name"></header-name>
+			</td>
+			<td>
+			  <bdi contenteditable="true"> {{ header.value }} </bdi>
+			</td>
+		  </tr>
+		</tbody>
+	  </table>
+	  <button class="browser-style" ng-click="addHeader(rule)" ng-show="rule.headers_shown"> + </button>
+	</div>
+
+	<div>
+	  <h4> Criteria <bdi style="color:red" ng-click="toggleCriteria(rule)"> {{ statusCriteria(rule) }} </bdi></h4>
+	  <table id="table-criteria" ng-show="rule.criteria_shown">
+		<tbody>
+		  <tr ng-repeat="attr in rule.criteria.attributes track by attr.key">
+			<td>
+			  <attr-key name="attr.key"></attr-key>
+			</td>
+			<td>
+			  <bdi contenteditable="true"> {{ attr.value }} </bdi>
+			</td>
+			<td>
+			  <select class="browser-style" ng-model="attr.comp" ng-options="comp for comp in ['=', '!=', ':', '!:']"></select>
+			</td>
+		  </tr>
+		</tbody>
+	  </table>
+	  <button class="browser-style" ng-click="addCritAttr(rule)" ng-show="rule.criteria_shown"> + </button>
+	</div>
+	
+	<button class="browser-style" ng-click="rule.toggleEabled()"> {{ rule.enabled ? "Disable" : "Enable" }} </button>
+	
+  </li>
+</ul>
+
+<no-info ng-if="!rules.length"></no-info>

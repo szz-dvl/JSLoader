@@ -8,6 +8,9 @@ function CriteriaAttr (opt) {
 
 		let str = JSON.stringify(val);
 		
+		if (this.val == '*')
+			return true;
+		
 		switch (this.comp) {
 
 		case "=":
@@ -15,7 +18,7 @@ function CriteriaAttr (opt) {
 			
 		case "!=":
 			return val != this.value
-
+			
 		/* Includes */
 		case ":":
 			return str.includes(this.value.toString());
@@ -23,7 +26,6 @@ function CriteriaAttr (opt) {
 		case "!:":
 			return str.includes(this.value.toString());
 		}
-		
 	}
 }
 
@@ -54,10 +56,14 @@ function Rule (opt) {
 	this.id = opt.id || UUID.generate().split("-").pop();
 	this.criteria = opt.criteria ? new RuleCriteria(opt.criteria) : null;
 	
-	this.policy = opt.policy ? {action: opt.policy.action, data: opt.policy.data } : null;
+	this.policy = opt.policy ? { action: opt.policy.action, data: opt.policy.data } : null;
 	
 	this.headers = opt.policy ? opt.policy.headers : [];
 	this.enabled = true;
+	
+	this.toggleEnabled = function () {	
+		this.enabled = !this.enabled;
+	};
 }
 
 function RulesMgr (bg) {
@@ -82,15 +88,25 @@ function RulesMgr (bg) {
 			{host: hostname, proxy: proxy },
 			{toProxyScript: true}
 		);
-	}
+	};
 	
 	this.addRule = function (rule) {
-
+		
 		let my_rule = new Rule(rule);
 		
 		self.rules.push(my_rule);
-		return my_rule.id;
 		
+		if (self.perID)
+			clearTimeout(self.perID);
+		
+		self.perID = setTimeout(
+			() => {
+				
+				self.storage.setRules(self.rules)
+				
+			}, 800);
+		
+		return my_rule.id;
 	};
 	
 	this.removeRule = function (rid) {
@@ -153,8 +169,7 @@ function RulesMgr (bg) {
 			pending.rules.push(info.rule);
 			
 		} else
-			this.pending.push({id: info.id, headers: info.rule.enabled ? info.rule.headers : [], rules: [info.rule]})
-		
+			this.pending.push({ id: info.id, headers: info.rule.enabled ? info.rule.headers : [], rules: [info.rule] });
 	}
 
 	this.discardPending = function (rid) {

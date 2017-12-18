@@ -313,14 +313,14 @@ function Storage () {
 		
 		return self.__set('rules', rules);
 	}
-
+	
 	this.getRules = function (cb) {
 
 		self.__get(rules => { cb(rules || []) }, 'rules');
 	}
-
+	
 	this.removeRules = function () {
-
+		
 		return self.__remove('rules');
 	}
 }

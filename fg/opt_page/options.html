@@ -9,19 +9,22 @@
 	<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self';">
 	
 	<link rel="stylesheet" href="chrome://browser/content/extension.css">
+	<link rel="stylesheet" href="../deps/json/json-formatter.css">
+	<link rel="stylesheet" href="../deps/allmighty-autocomplete/style/autocomplete.css">
+	<link rel="stylesheet" href="../styles/angular-material.min.css">
 	<link rel="stylesheet" href="../styles/tabs.css">
 	<link rel="stylesheet" href="../styles/script-list.css">
-
+	
 	<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
 	
 	<script src="../deps/jquery.min.js"></script>
 	<script src="../deps/angular.min.js"></script>
 	<script src="../deps/angular-ui-router.min.js"></script>
-	<script src="../deps/angular-route.js"></script>
 	<script src="../deps/highlightjs/highlight.min.js"></script>
+	<script src="../deps/allmighty-autocomplete/script/autocomplete.js"></script>
 	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	<script src="../partials/partials.js"></script>
-
+	
 	<script src="../../utils/jsloader-utils.js"></script>
 	<script src="../../utils/deps/async.min.js"></script>
 	<script src="../../utils/deps/underscore-min.js"></script>
@@ -48,7 +51,7 @@
 	<div id="content" class="td-tab-content">
 	  <ui-view></ui-view>
 	</div>
-
+	
 	<script src="../deps/json/json-formatter.js"></script>
 	<script src="options.js"></script>
 	 

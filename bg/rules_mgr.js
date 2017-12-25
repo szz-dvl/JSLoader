@@ -126,6 +126,114 @@ function Rule (opt, parent) {
 	}
 }
 
+function ProxyMgr (bg) {
+
+	let self = this;
+	
+	this.proxy_rules = [];
+
+	this.storage.getProxyRules(
+		new_rules => {
+
+			for (let prule of new_rules) {
+				
+				self.newProxy(prule.host, prule.proxy);
+				
+			}
+		}
+	);
+
+	this.persistProxys = function () {
+		
+		if (self.perProID)
+			clearTimeout(self.perProID);
+		
+		self.perProID = setTimeout(
+			() => {
+				
+				self.storage.setProxyRules(self.proxy_rules);
+				
+			}, 800);
+	};
+	
+	this.__proxyOps = function (hostname, proxy, to_persist) {
+		
+		let proxy_obj = self.bg.option_mgr.jsl.proxys[proxy];
+		let stored = this.proxy_rules.findIndex(
+			prule => {
+				
+				return prule.host == hostname;
+				
+			}
+		);
+		
+		if (proxy_obj) {
+			
+			if (stored >= 0)
+				this.proxy_rules[stored].proxy = proxy;
+			else
+				this.proxy_rules.push({ host: hostname, proxy: proxy });
+
+		} else if (stored >= 0) 	
+			this.proxy_rules.remove(stored);
+		
+
+		if (to_persist)
+			self.persistProxys();
+		
+		return browser.runtime.sendMessage(
+			{ host: hostname, proxy: proxy_obj },
+			{ toProxyScript: true }
+		);
+	};
+	
+	this.addProxy = function (hostname, proxy) {
+
+		return self.__proxyOps(hostname, proxy, true);
+		
+	};
+
+	this.newProxy = function (hostname, proxy) {
+		
+		return self.__proxyOps(hostname, proxy, false);
+		
+	};
+
+	this.proxyFactory = function () {
+		
+		self.proxy_rules.push({host: null, proxy: Object.keys(self.bg.option_mgr.jsl.proxys)[0]});
+		
+	};
+
+	this.upsertProxy = function (hostname, proxy) {
+
+		let exists = this.proxy_rules.find(
+			prule => {
+
+				return prule.host == hostname;
+				
+			}
+		);
+
+		if (exists)
+			self.addProxy(hostname, proxy);
+		else
+			self.newProxy(hostname, proxy);
+	};
+	
+	browser.proxy.onProxyError.addListener(error => {
+		console.error(`Proxy error: ${error.message}`);
+	});
+	
+	browser.runtime.onMessage.addListener(
+		(message, sender, response) => {
+			console.log("Proxy message: " + message);
+		}
+	);
+	
+	browser.proxy.register("pac.js");
+}
+
 function RulesMgr (bg) {
 	
 	let self = this;
@@ -135,6 +243,7 @@ function RulesMgr (bg) {
 	this.rules = [];
 	this.pending = [];
 	this.events = new EventEmitter();
+	ProxyMgr.call(this, bg);
 	
 	this.storage.getRules(
 		new_rules => {
@@ -145,11 +254,13 @@ function RulesMgr (bg) {
 	this.clear = function () {
 
 		this.storage.removeRules();
+		this.storage.removeProxyRules();
 		this.rules.length = 0;
+		this.proxy_rules.length = 0;
 	};
 	
 	this.persist = function () {
-
+		
 		if (self.perID)
 			clearTimeout(self.perID);
 		
@@ -159,14 +270,6 @@ function RulesMgr (bg) {
 				self.storage.setRules(self.rules.map(rule => { return rule.__getDBInfo() }).slice(0));
 				
 			}, 800);
-	};
-	
-	this.addProxy = function (hostname, proxy) {
-		
-		return browser.runtime.sendMessage(
-			{host: hostname, proxy: proxy },
-			{toProxyScript: true}
-		);
 	};
 	
 	this.addRule = function (rule) {
@@ -204,9 +307,9 @@ function RulesMgr (bg) {
 		if (rule)
 			rule.enabled = !rule.enabled;
 	};
-
+	
 	this.__mergeHeaders = function (actual, new_headers) {
-
+		
 		if (!new_headers)
 			return actual;
 		else {
@@ -358,18 +461,6 @@ function RulesMgr (bg) {
 					resolve();
 			});
 	};
-
-	browser.proxy.onProxyError.addListener(error => {
-		console.error(`Proxy error: ${error.message}`);
-	});
-	
-	browser.runtime.onMessage.addListener(
-		(message, sender, response) => {
-			console.log("Proxy message: " + message);
-		}
-	);
-	
-	browser.proxy.register("pac.js");
 	
 	browser.webRequest.onBeforeRequest.addListener(self.applyRules,
 												   {urls: ["<all_urls>"]},

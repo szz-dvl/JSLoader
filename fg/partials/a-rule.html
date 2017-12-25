@@ -1,55 +1,58 @@
-<h4> {{ rule.id }} </h4>
+<h4> {{ rule.id }} <bdi style="color:red" ng-click="toggleRule()"> {{ statusRule() }} </bdi></h4>
 
-<div style="width: 80%;">
+<div style="width: 100%;" ng-show="rule_shown">
+  <div style="width: 80%;">
+	
+	<h4> Modified Headers <bdi style="color:red" ng-click="toggleHeaders()"> {{ statusHeaders() }} </bdi></h4>
+	<table id="table-headers" ng-show="headers_shown">
+	  <tbody>
+		<tr ng-repeat="header in rule.headers track by $index" class="trrule">
+		  <td class="tdrule-15">
+			<header-name idire="buildIdFor($index, 'key')" name="header.name" events="events"></header-name>
+		  </td>
+		  <td class="tdrule-80">
+			<rule-value idval="buildIdFor($index, 'value')" type="'header'" value="header.value" events="events"></rule-value>
+		  </td>
+		  <td class="tdrule-5">
+			<button class="browser-style" ng-click="removeHeader($index)" ng-show="headers_shown"> x </button>
+		  </td>
+		</tr>
+	  </tbody>
+	</table>
+	
+	<button class="browser-style" ng-click="addHeader(rule)" ng-show="headers_shown"> + </button>
+	
+  </div>
 
-  <h4> Modified Headers <bdi style="color:red" ng-click="toggleHeaders()"> {{ statusHeaders() }} </bdi></h4>
-  <table id="table-headers" ng-show="headers_shown">
-	<tbody>
-	  <tr ng-repeat="header in rule.headers track by $index" class="trrule">
-		<td class="tdrule-15">
-		  <header-name idire="buildIdFor($index, 'key')" name="header.name" events="events"></header-name>
-		</td>
-		<td class="tdrule-80">
-		  <rule-value idval="buildIdFor($index, 'value')" type="'header'" value="header.value" events="events"></rule-value>
-		</td>
-		<td class="tdrule-5">
-		  <button class="browser-style" ng-click="removeHeader($index)" ng-show="headers_shown"> x </button>
-		</td>
-	  </tr>
-	</tbody>
-  </table>
-  
-  <button class="browser-style" ng-click="addHeader(rule)" ng-show="headers_shown"> + </button>
+  <div style="width: 80%;">
+	
+	<h4> Criteria <bdi style="color:red" ng-click="toggleCriteria()"> {{ statusCriteria() }} </bdi></h4>
+	<table id="table-criteria" ng-show="criteria_shown">
+	  <tbody>
+		<tr ng-repeat="attr in rule.criteria.attributes track by $index" class="trrule">
+		  <td class="tdrule-15">
+			<attr-key idire="buildIdFor($index, 'key')" name="attr.key" events="events"></attr-key>
+		  </td>
+		  <td class="tdrule-10">
+			<select class="browser-style" ng-model="attr.comp" ng-options="comp for comp in ['=', '!=', ':', '!:']"></select>
+		  </td>
+		  <td class="tdrule-70">
+			<rule-value idval="buildIdFor($index, 'value')" type="'attribute'" value="attr.value" events="events"></rule-value>
+		  </td>
+		  <td class="tdrule-5">
+			<button class="browser-style" ng-click="removeAttr($index)" ng-show="criteria_shown"> x </button>
+		  </td>
+		</tr>
+	  </tbody>
+	</table>
+	
+	<button class="browser-style" ng-click="addCritAttr(rule)" ng-show="criteria_shown"> + </button>
+	
+  </div>
+
+  <rule-chooser style="display: inline-block;" policy="rule.policy.action" url="rule.policy.data" policies="['block', 'redirect', 'headers']"></rule-chooser>
+  <button class="browser-style" ng-click="toggleEabled()"> {{ rule.enabled ? "Disable" : "Enable" }} </button>
+  <button class="browser-style" ng-click="events.emit('persist')"> Persist </button>
+  <button class="browser-style" ng-click="removeRule()"> Remove </button>
   
 </div>
-
-<div style="width: 80%;">
-  
-  <h4> Criteria <bdi style="color:red" ng-click="toggleCriteria()"> {{ statusCriteria() }} </bdi></h4>
-  <table id="table-criteria" ng-show="criteria_shown">
-	<tbody>
-	  <tr ng-repeat="attr in rule.criteria.attributes track by $index" class="trrule">
-		<td class="tdrule-15">
-		  <attr-key idire="buildIdFor($index, 'key')" name="attr.key" events="events"></attr-key>
-		</td>
-		<td class="tdrule-10">
-		  <select class="browser-style" ng-model="attr.comp" ng-options="comp for comp in ['=', '!=', ':', '!:']"></select>
-		</td>
-		<td class="tdrule-70">
-		  <rule-value idval="buildIdFor($index, 'value')" type="'attribute'" value="attr.value" events="events"></rule-value>
-		</td>
-		<td class="tdrule-5">
-		  <button class="browser-style" ng-click="removeAttr($index)" ng-show="criteria_shown"> x </button>
-		</td>
-	  </tr>
-	</tbody>
-  </table>
-  
-  <button class="browser-style" ng-click="addCritAttr(rule)" ng-show="criteria_shown"> + </button>
-  
-</div>
-
-<rule-chooser style="display: inline-block;" policy="rule.policy.action" url="rule.policy.data" policies="['block', 'redirect', 'headers']"></rule-chooser>
-<button class="browser-style" ng-click="toggleEabled()"> {{ rule.enabled ? "Disable" : "Enable" }} </button>
-<button class="browser-style" ng-click="events.emit('persist')"> Persist </button>
-<button class="browser-style" ng-click="removeRule()"> Remove </button>

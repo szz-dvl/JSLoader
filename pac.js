@@ -1,14 +1,13 @@
 // Array Remove - By John Resig (MIT Licensed)
 Array.prototype.remove = function(from, to) {
-
+	
 	if (from < 0)
 		return;
 	
 	let rest = this.slice((to || from) + 1 || this.length);
 	this.length = from; //from < 0 ? this.length + from : from;
-
+	
 	return this.push.apply(this, rest);
-
 };
 
 function PAC () { 
@@ -16,6 +15,36 @@ function PAC () {
 	let self = this;
 	
 	this.filtered = [];
+
+	this.isSubDomain = function (orig, modified) {
+
+		if (orig == modified || modified == '*')
+			return true;
+		else if (!modified.startsWith("*."))
+			return false
+		
+		// if (orig.endsWith("/"))
+		// 	orig = orig.slice(0, -1);
+		
+		// if (modified.endsWith("/"))
+		// 	modified = modified.slice(0, -1);
+		
+		var mod_arr = modified.split(".");
+		var orig_arr = orig.split(".");
+		
+		var cursor_mod = mod_arr.length - 1;
+		var cursor_orig = orig_arr.length - 1;
+		
+		while ( (mod_arr[cursor_mod] != "*") &&
+				(mod_arr[cursor_mod] == orig_arr[cursor_orig])
+			  ) {
+			
+			cursor_mod --;
+			cursor_orig --;	
+		}
+		
+		return mod_arr[cursor_mod] == "*";
+	};
 	
 	this.listener = function (message) {
 		
@@ -25,9 +54,8 @@ function PAC () {
 			}
 		);
 		
-
 		if (reg >= 0) {
-
+			
 			if (message.proxy) 
 				self.filtered[reg].proxy = message.proxy;
 			else
@@ -43,17 +71,17 @@ function PAC () {
 	
 	this.FindProxyForURL = function (url, host) {
 		
-		/* To-Do: complex matching */
-		
-		let got = self.filtered.find(
+		let proxys = self.filtered.filter(
+			
 			registered => {
-				return registered.host == host;
+				return self.isSubDomain(host, registered.host);
 			}
-		);
+			
+		).map(elem => { return elem.proxy });
 
 		// browser.runtime.sendMessage(`Proxy for ${host} > ` + (got ? JSON.stringify(got.proxy) : "DIRECT"));
 		
-		return got ? [got.proxy] : "DIRECT";
+		return proxys.length ? proxys : "DIRECT";
 	};
 	
 	browser.runtime.onMessage.addListener(this.listener);

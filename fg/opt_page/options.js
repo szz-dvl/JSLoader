@@ -436,7 +436,7 @@ function OP (bg, port) {
 				
 				resolve: {
 					dataRules: () => {
-						return self.bg.rules_mgr.rules;
+						return { rules: self.bg.rules_mgr.rules, proxys: self.bg.rules_mgr.proxy_rules };
 					}	
 				},
 				
@@ -448,13 +448,49 @@ function OP (bg, port) {
 					self.tabs.setActive('rules');
 					
 					$scope.title = "Stored rules";
-					$scope.rules = dataRules;
+					$scope.rules = dataRules.rules;
+					$scope.proxy_rules = dataRules.proxys;
+					$scope.names = Object.keys(self.bg.option_mgr.jsl.proxys);
 
+					$scope.proxy_shown = false;
+					$scope.req_shown = false;
+					$scope.mgr = self.bg.rules_mgr;
+					
 					$scope.addRule = function () {
-
-						self.bg.rules_mgr.addRule({});
+						
+						$scope.mgr.addRule({});
 						
 					};
+
+					$scope.addProxyRule = function () {
+
+						$scope.mgr.proxyFactory();
+						
+					};
+
+					$scope.toggleProxy = function () {
+
+						$scope.proxy_shown = !$scope.proxy_shown;
+
+					}
+
+					$scope.statusProxy = function () {
+
+						return $scope.proxy_shown ? 'v' : '>';
+
+					}
+
+					$scope.toggleReq = function () {
+
+						$scope.req_shown = !$scope.req_shown;
+
+					}
+
+					$scope.statusReq = function () {
+
+						return $scope.req_shown ? 'v' : '>';
+
+					}
 					
 				}
 			});

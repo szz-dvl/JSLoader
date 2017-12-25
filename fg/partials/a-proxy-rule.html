@@ -1,0 +1,22 @@
+<div style="width: 80%;">
+  
+  <table>
+	<tbody>
+	  <tr class="trrule">
+		<td class="tdrule-70">
+		  <host-validator host="rule.host" events="events"></host-validator>
+		</td>
+		<td class="tdrule-20">
+		  <select class="browser-style" ng-model="currentProxy" ng-options="pname for pname in pnames" ng-disabled="disabled"></select>
+		</td>
+		<td class="tdrule-5">
+		  <button class="browser-style" ng-click="removeProxyRule()" ng-disabled="disabled"> x </button>
+		</td>
+		<td class="tdrule-5">
+		  <button class="browser-style" ng-click="persistProxyRule()" ng-disabled="disabled"> Persist </button>
+		</td>
+	  </tr>
+	</tbody>
+  </table>
+  
+</div>

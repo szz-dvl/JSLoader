@@ -264,7 +264,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   if ($scope.req) {
 							   
 							   $scope.req.events.on('header-change', (text, name) => {
-
+								   
 								   let stored = $scope.headers.find(
 									   header => {
 
@@ -778,8 +778,19 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   $scope.id = UUID.generate().split('-').pop();
 						   $scope.headers_shown = false;
 						   $scope.criteria_shown = false;
+						   $scope.rule_shown = false;
 						   $scope.events = new EventEmitter();
 						   $scope.elems = $scope.rule.headers.length + $scope.rule.criteria.lenght + 1;
+
+						   $scope.statusRule = function () {
+							   
+							   return $scope.rule_shown ? "v" : ">";
+						   };
+
+						   $scope.toggleRule = function () {
+							   
+							   $scope.rule_shown = !$scope.rule_shown;
+						   };
 						   
 						   $scope.statusHeaders = function () {
 							   
@@ -790,7 +801,6 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 							   
 							   $scope.headers_shown = !$scope.headers_shown;
 						   };
-
 						   
 						   $scope.statusCriteria = function (rule) {
 
@@ -910,6 +920,138 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 									   
 							   	   }
 							   });
+					   }
+				   }
+			   })
+
+	.directive('aProxyRule',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   transclude: true,
+					   
+					   scope: {
+						   
+						   rule: '=',
+						   pnames: '=',
+						   mgr: '='
+						   
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/a-proxy-rule.html");
+					   },
+
+					   controller: function ($scope) {
+						   
+						   $scope.disabled = false;
+						   
+						   $scope.events = new EventEmitter();
+						   
+						   $scope.currentProxy = $scope.rule.proxy;
+
+						   $scope.removeProxyRule = function () {
+
+							   $scope.mgr.upsertProxy($scope.rule.host, "None");
+							   
+						   };
+
+						   $scope.persistProxyRule = function () {
+							   
+							   $scope.mgr.upsertProxy($scope.rule.host, $scope.currentProxy);	   
+						   };
+
+						   $scope.events
+							   .on('validation_start',
+								  unvalidated => {
+
+									  $scope.disabled = true;
+									  $scope.$digest();
+									  
+								  })
+						   
+							   .on('validation_ready',
+								   validated => {
+
+									   $scope.host = validated;
+									   $scope.disabled = false;
+									   $scope.$digest();
+									   
+								   });
+						   
+					   }
+				   }
+			   })
+
+	.directive('hostValidator',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   
+ 						   host: "=",
+						   events: "="
+						   
+					   },
+					   
+					   template: '<bdi contenteditable="true" placeholder="Enter value ... ">{{host}}</bdi>',
+					   
+					   link: function($scope, element) {
+						   
+						   element.on('input', $scope.validateHost);
+						   
+						   element.keypress(ev => { return ev.which != 13; });
+						   element.click(ev => { return false; });
+						   
+						   /* !!! Ctrl-C - Ctrl-V */
+					   },
+					   
+					   controller: function ($scope) {
+
+						   $scope.backup = $scope.host;
+						   
+						   $scope.validateHost = function (ev) {
+							   
+							   $scope.host = $(ev.target).text().trim();
+							   
+							   if ($scope.events)
+								   $scope.events.emit("validation_start", $scope.host);
+							   
+							   if($scope.changeID)
+								   clearTimeout($scope.changeID);
+							   
+							   $scope.changeID = setTimeout(
+								   ev => {
+									   
+									   try {
+										   
+										   var temp = new URL("http://" + $scope.host);
+
+										   $scope.backup = temp.hostname;
+										   
+									   } catch (e if e instanceof TypeError) {
+										   
+										   if ($scope.host != '*' && !$scope.host.startsWith("*.")) 
+											   $scope.host = $scope.backup;
+										   else 
+											   $scope.backup = $scope.host;
+									   }
+									   
+									   $(ev.target).text($scope.host);
+									   
+									   if ($scope.events)
+										   $scope.events.emit("validation_ready", $scope.host);
+									   
+									   $scope.$digest();
+									   
+								   }, 800, ev);
+						   };
+						   
 					   }
 				   }
 			   })

@@ -382,6 +382,12 @@ table {
 	min-width: 15% !important; 
 }
 
+.tdrule-25 {
+	
+	width: 25% !important; 
+	min-width: 25% !important; 
+}
+
 .tdrule-70 {
 	
 	width: 70% !important; 

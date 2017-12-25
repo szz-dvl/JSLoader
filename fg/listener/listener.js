@@ -566,29 +566,22 @@ function TabListener (id, page, port) {
 					
 					args.request.type = "modified";
 					break;
-
-				case "tab-proxy":
-
-					self.statu.currentProxy = args.proxy;
-					self.statu.$digest(); // ??
 					
 				default:
 					break;
 				}
 
-				if (args.action != "tab-proxy") {
+				
+				args.request.listener = $scope.listener;
+				args.request.shown = $scope.__reqMustShow(args.request);
+				$scope.list.push(new RequestWrapper(args.request));
+				
+				$scope.$digest();
 
-					args.request.listener = $scope.listener;
-					args.request.shown = $scope.__reqMustShow(args.request);
-					$scope.list.push(new RequestWrapper(args.request));
+				if (!$scope.user_moved) {
 					
-					$scope.$digest();
-
-					if (!$scope.user_moved) {
-						
-						$location.hash("bottom");
-						$anchorScroll();
-					}
+					$location.hash("bottom");
+					$anchorScroll();
 				}
 			}
 		);

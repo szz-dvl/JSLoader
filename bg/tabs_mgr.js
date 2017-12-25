@@ -81,7 +81,7 @@ function JSLTabListener(tabInfo, bg) {
 	/* If proxy not found in option_mgr host will be "DIRECTED" */
 	this.addProxyForTab = function (proxy) {
 		
-		self.bg.rules_mgr.addProxy(this.url.hostname, self.bg.option_mgr.jsl.proxys[proxy] || null);
+		self.bg.rules_mgr.addProxy(this.url.hostname, proxy);
 		
 	};
 
@@ -90,10 +90,8 @@ function JSLTabListener(tabInfo, bg) {
 		
 		let host = new URL(url).hostname;
 		
-		self.bg.rules_mgr.addProxy(host, self.bg.option_mgr.jsl.proxys[proxy] || null);
-
-		if (host == this.url.hostname)
-			self.port.postMessage({action: "tab-proxy", proxy: proxy});
+		self.bg.rules_mgr.addProxy(host, proxy);
+		
 	};
 
 	this.getProxyName = function (proxy_object) {
@@ -108,7 +106,7 @@ function JSLTabListener(tabInfo, bg) {
 			if ((stored.host == proxy_object.host) && (stored.port == proxy_object.port))
 				return proxy;
 		}
-
+		
 		return "None";
 	};
 

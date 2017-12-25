@@ -1,7 +1,65 @@
-function CSUtils () {
+function HttpRequest (opt, cs) {
+
+	let self = this;
+	
+	this.url = new URL(opt.url),
+	this.method = opt.method,
+	this.enoughState = opt.early ? 3 : 4;
+	this.proxy = opt.proxy || null;
+	this.headers = opt.headers || [];
+	this.data = opt.data  || null;
+	
+	this.rq = new XMLHttpRequest();
+	
+	return new Promise (
+		(resolve, reject) => {
+
+			let deps = [];
+			
+			if (self.proxy) {
+
+				deps.push(cs.__getMessageResponse("set-proxy",
+												  { host: url.hostname, proxy: self.proxy }));
+
+			}
+			
+			if (self.headers.length) {
+				
+				deps.push(cs.__getMessageResponse("set-rule",
+												  { headers: self.headers, criteria: {url: self.url.href, method: self.method }} ));
+
+			}
+
+
+			Promise.all(deps)
+				.then(responses => {
+					
+					self.rq.open(self.method, self.url.href);
+					
+					self.rq.onreadystatechange = function () {
+				
+						if (self.rq.readyState >= self.enoughState)
+							resolve (self.rq);
+						
+					}
+					
+					self.rq.onerror = function () {
+						
+						reject (self.rq);
+						
+					}
+					
+					self.rq.send(self.data);
+					
+				});
+		});
+}
+
+function CSUtils (parent) {
 
 	var self = this;
 
+	this.cs = parent;
 	this.events = new EventEmitter ();
 	
 	this.video = ["webm", "mp4", "ogg", "mkv"];
@@ -19,77 +77,62 @@ function CSUtils () {
 	};
 	
 	this.sendHttpRequest = function (url) {
-		
-		return new Promise (
-			(resolve, reject) => {
-				
-				let rq = new XMLHttpRequest();
-				rq.open("GET", url);
-                
-				rq.onload = function () {
-					
-					resolve (rq);
-					
-				}
-                
-				rq.onerror = function () {
-					
-					reject (rq);
-					
-				}
-                
-				rq.send();
-			});
+
+		return new HttpRequest({
+
+			url: url,
+			method: "GET"
+
+		}, self.cs);
 	};
 
 	/* Caller must care about aborting the request if needed. */
 	this.earlyHttpRequest = function (url) {
-		
-		return new Promise (
-			(resolve, reject) => {
-				
-				let rq = new XMLHttpRequest();
-				rq.open("GET", url);
-                
-				rq.onreadystatechange = function () {
-					
-					if (rq.readyState >= 3)
-						resolve (rq);
-					
-				}
-                
-				rq.onerror = function () {
-					
-					reject (rq);
-					
-				}
-                
-				rq.send();
-			});
+
+		return new HttpRequest({
+
+			url: url,
+			method: "GET",
+			early: true
+
+		}, self.cs);
 	};
 
 	this.postHttpRequest = function (url, data) {
-		
-		return new Promise (
-			(resolve, reject) => {
-				
-				let rq = new XMLHttpRequest();
-				rq.open("POST", url);
-                
-				rq.onreadystatechange = function () {
 
-					if (rq.readyState == 4)
-						resolve (rq);	
-				}
-                
-				rq.onerror = function () {
-					
-					reject (rq);
-					
-				}
-                
-				rq.send(data || null);
-			});
+		return new HttpRequest({
+
+			url: url,
+			method: "POST",
+			data: data
+
+		}, self.cs);
+	};
+
+	/* @proxy: Either a string, giving a name for a proxy known to JSL, or an object describing a proxy (host, port, type) */
+	this.proxyHttpRequest = function (url, proxy) {
+
+		return new HttpRequest({
+
+			url: url,
+			method: "GET",
+			proxy: proxy
+
+		}, self.cs);
+	};
+
+	this.modifiedHttpRequest = function (url, headers) {
+
+		return new HttpRequest({
+			url: url,
+			method: "GET",
+			headers: headers
+		}, self.cs);
+	};
+
+	this.complexHttpRequest = function (opt) {
+
+		return new HttpRequest(opt, self.cs);
 	};
 }
 
@@ -97,7 +140,7 @@ function CSApi () {
 
 	var self = this;
 	
-	this.JSLUtils = new CSUtils();
+	this.JSLUtils = new CSUtils(this);
 
 	this.__getMessageResponse = function (action, message) {
 		

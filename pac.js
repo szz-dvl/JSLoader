@@ -47,21 +47,25 @@ function PAC () {
 	};
 	
 	this.listener = function (message) {
-		
-		let reg = self.filtered.findIndex(
-			registered => {
-				return registered.host == message.host;
-			}
-		);
-		
-		if (reg >= 0) {
+
+		if (!message.temp) {
 			
-			if (message.proxy) 
-				self.filtered[reg].proxy = message.proxy;
-			else
-				self.filtered.remove(reg);
+			let reg = self.filtered.findIndex(
+				registered => {
+					return registered.host == message.host;
+				}
+			);
+		
+			if (reg >= 0) {
+				
+				if (message.proxy) 
+					self.filtered[reg].proxy = message.proxy;
+				else
+					self.filtered.remove(reg);
 			
-		} else if (message.proxy) 
+			} else if (message.proxy) 
+				self.filtered.push(message);
+		} else
 			self.filtered.push(message);
 		
 		// browser.runtime.sendMessage(`Proxy listener: ${message.host} > ` + JSON.stringify(self.filtered));
@@ -70,15 +74,45 @@ function PAC () {
 	};
 	
 	this.FindProxyForURL = function (url, host) {
-		
-		let proxys = self.filtered.filter(
+
+		var proxys = self.filtered.filter(
 			
 			registered => {
-				return self.isSubDomain(host, registered.host);
+				return registered.host == host && registered.temp;
 			}
 			
 		).map(elem => { return elem.proxy });
+		
+		if (!proxys.length) {
+			
+			proxys = self.filtered.filter(
+				
+				registered => {
+					return self.isSubDomain(host, registered.host);
+				}
+				
+			).map(elem => { return elem.proxy });
 
+		} else {
+
+			let idx = self.filtered.findIndex(
+				registered => {
+					return registered.host == host && registered.temp;
+				}
+			)
+
+			while (idx >= 0) {
+
+				self.filtered.remove(idx);
+
+				let idx = self.filtered.findIndex(
+					registered => {
+						return registered.host == host && registered.temp;
+					}
+				)
+			}
+		}
+		
 		// browser.runtime.sendMessage(`Proxy for ${host} > ` + (got ? JSON.stringify(got.proxy) : "DIRECT"));
 		
 		return proxys.length ? proxys : "DIRECT";

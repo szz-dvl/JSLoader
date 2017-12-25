@@ -99,6 +99,8 @@ function Rule (opt, parent) {
 	this.headers = opt.policy ? opt.policy.headers : [];
 	this.enabled = true;
 	
+	this.temp = opt.temp || false;
+	
 	this.toggleEnabled = function () {	
 		this.enabled = !this.enabled;
 	};
@@ -202,7 +204,6 @@ function ProxyMgr (bg) {
 	this.proxyFactory = function () {
 		
 		self.proxy_rules.push({host: null, proxy: Object.keys(self.bg.option_mgr.jsl.proxys)[0]});
-		
 	};
 
 	this.upsertProxy = function (hostname, proxy) {
@@ -214,14 +215,32 @@ function ProxyMgr (bg) {
 				
 			}
 		);
-
+		
 		if (exists >= 0) {
 			
 			self.proxy_rules.remove(exists);
-			self.addProxy(hostname, proxy);
+			return self.addProxy(hostname, proxy);
 			
-		} else
-			self.newProxy(hostname, proxy);
+		} 
+
+		return self.newProxy(hostname, proxy);
+	};
+
+	this.tempProxy = function (hostname, proxy) {
+
+		let proxy_obj = typeof(proxy) == 'string'
+			? self.bg.option_mgr.jsl.proxys[proxy]
+			: proxy;
+
+		if (!proxy_obj.host || !proxy_obj.port || !proxy_obj.type)
+			return false;
+		
+		browser.runtime.sendMessage(
+			{ host: hostname, proxy: proxy_obj, temp: true },
+			{ toProxyScript: true }
+		);
+
+		return true;
 	};
 	
 	browser.proxy.onProxyError.addListener(error => {
@@ -297,6 +316,21 @@ function RulesMgr (bg) {
 		);
 
 		self.persist();
+	};
+	
+	this.tempRule = function (criteria, headers) {
+		
+		let rule = new Rule({
+			
+			criteria: criteria,
+			policy: { action: 'headers', headers: headers },
+			temp: true
+			
+		});
+
+		self.rules.push(rule);
+		
+		return rule.id;
 	};
 
 	this.toggleEnable = function (rid) {
@@ -387,13 +421,25 @@ function RulesMgr (bg) {
 						
 						if (to_change)
 							to_change.value = header.value;
-						
-						/* Manually added headers missing! */
+						else
+							request.requestHeaders.push(header);
 					}
 					
 					resolve({ requestHeaders: request.requestHeaders });
 					self.pending.remove(idx);
-					
+
+					rules.filter(rule => { return rule.temp; } )
+						.map(rule => { return rule.id })
+						.forEach(id => {
+							
+							self.rules.remove(
+								self.rules.findIndex(
+									rule => {
+										return rule.id == id;
+									}
+								)
+							);	
+						});
 				} else 	
 					resolve();
 				

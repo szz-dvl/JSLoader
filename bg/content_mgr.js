@@ -298,6 +298,33 @@ function CSMgr (bg) {
 		return self.__forceMainFramesForTab(tabId, false);
 
 	};
+
+	this.contentSetProxy = function (port, tag, host, proxy) {
+		
+		self.__postTaggedResponse(port, tag,
+								  
+								  {status: self.bg.rules_mgr.tempProxy(host, proxy), /* !! Unfinished promise */
+
+								   content: {
+									   proxy: proxy,
+									   host: host
+								   }
+								   
+								  });
+	};
+
+	this.contentSetRule = function (port, tag, criteria, headers) {
+		
+		self.__postTaggedResponse(port, tag,
+								  
+								  {status: true,
+
+								   content: {
+									   rid: self.bg.rules_mgr.tempRule(criteria, headers)
+								   }
+								   
+								  });
+	};
 	
 	browser.runtime.onConnect
 		.addListener(
@@ -393,6 +420,14 @@ function CSMgr (bg) {
 								
 							case "set-global":
 								self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
+								break;
+								
+							case "set-proxy":
+								self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
+								break;
+
+							case "set-rule":
+								self.contentSetRule(port, args.tag, args.message.criteria, args.message.headers);
 								break;
 								
 							default:

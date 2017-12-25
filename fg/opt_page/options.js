@@ -448,68 +448,14 @@ function OP (bg, port) {
 					self.tabs.setActive('rules');
 					
 					$scope.title = "Stored rules";
+					$scope.rules = dataRules;
+
+					$scope.addRule = function () {
+
+						self.bg.rules_mgr.addRule({});
+						
+					};
 					
-					$scope.rules = dataRules.map(
-						rule => {
-							
-							rule.headers_shown = false;
-							rule.criteria_shown = false;
-							
-							rule.req = { adding: true, events: new EventEmitter(), id: rule.id };
-							
-							rule.req.events.on('header-change',
-											   (text, name) => {
-												   
-												   console.log("Header " + name + ": " + text);
-												   
-											   });
-
-							rule.updateRule = function (action, data) {
-								
-								console.log("Updating: " + action + ": " + data);
-								
-							};
-
-							rule.closeUpdate = function () {
-								
-								console.log("Closing update");
-								
-							};
-							
-							return rule;
-						}
-					)
-					
-					$scope.statusHeaders = function (rule) {
-
-						return rule.headers_shown ? "v" : ">";
-					};
-
-					$scope.toggleHeaders = function (rule) {
-						
-						rule.headers_shown = !rule.headers_shown;
-					};
-
-					$scope.statusCriteria = function (rule) {
-
-						return rule.criteria_shown ? "v" : ">";
-					};
-
-					$scope.toggleCriteria = function (rule) {
-						
-						rule.criteria_shown = !rule.criteria_shown;
-					};
-
-					$scope.addHeader = function (rule) {
-
-						rule.headers.push({ name: " ", text: " " });
-						
-					};
-
-					$scope.addCritAttr = function (rule) {
-
-						rule.criteria.attributes.push({ key: " ", value: " ", comp: " " });
-					};
 				}
 			});
 			

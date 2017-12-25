@@ -7,18 +7,14 @@
 	<!-- <meta charset="utf-8"> -->
 	
 	<link rel="stylesheet" href="chrome://browser/content/extension.css">
-	<link rel="stylesheet" href="../deps/allmighty-autocomplete/style/autocomplete.css">
+	<!-- <link rel="stylesheet" href="../deps/allmighty-autocomplete/style/autocomplete.css"> -->
 	<link rel="stylesheet" href="../deps/json/json-formatter.css">	
-	<link rel="stylesheet" href="../styles/angular-material.min.css">
 	<link rel="stylesheet" href="listener.css">
 	
 	<script src="../deps/jquery.min.js"></script>
 	<script src="../deps/angular.min.js"></script>
-	<script src="../deps/angular-animate.js"></script>
-    <script src="../deps/angular-aria.js"></script>
-	<script src="../deps/angular-material.min.js"></script>
 	
-	<script src="../deps/allmighty-autocomplete/script/autocomplete.js"></script>
+	<script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
 	<script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
 	
 	<script src="../deps/highlightjs/highlight.min.js"></script>
@@ -55,8 +51,7 @@
 		<input class="filter_inpt browser-style" type="text" ng-model="advFilter" ng-change="advFilterChange()">
 		
 		<button class="browser-style jslbtn-pause" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
-	  </div>
-	  
+	  </div>  
 	</div>
 	
 	<div id="content" class="panel-section scrollable" ng-controller="listenerController as listener">

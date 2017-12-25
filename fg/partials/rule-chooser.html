@@ -1,10 +1,11 @@
 <div>
   <span> <strong> Policy: </strong> </span>
-  <select class="browser-style" ng-model="policy" ng-options="policy for policy in policies"></select>
+  <select class="browser-style" ng-model="policy" ng-options="policy for policy in policies" ng-change="selectChange()"></select>
   <label ng-show="policy == 'redirect'">
 	<span> to: </span>
 	<input id="input-{{req.request.requestId}}" class="browser-style" type="text" ng-model="redirectUrl" ng-change="urlChange()"></input>
   </label>
-  <button class="browser-style jslbtn" ng-click="persist()" ng-disabled="policy == 'redirect' ? !validated : false"> + </button>
-  <button class="browser-style jslbtn" ng-click="dismiss()"> x </button>
+
+  <button class="browser-style jslbtn" ng-show="add" ng-click="persist()" ng-disabled="policy == 'redirect' ? !validated : false"> + </button>
+  <button class="browser-style jslbtn" ng-show="dismiss" ng-click="dismiss()"> x </button>
 </div>

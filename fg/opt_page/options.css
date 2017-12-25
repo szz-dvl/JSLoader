@@ -38,6 +38,13 @@ html, body {
 	/* visibility: hidden; */
 }
 
+[contenteditable=true]:empty:before {
+	content: attr(placeholder);
+	color: DarkGray;
+	outline: none !important;
+	/* display: block; */
+}
+
 /* .panel-list-item { */
 /* 	align-items: left; */
 /* 	flex-direction: column !important; */
@@ -54,6 +61,12 @@ html, body {
 .item-wrapper {
 
 	display: block !important;
+}
+
+.autocomplete-inpt {
+
+	width: 90% !important;
+
 }
 
 .path-name {
@@ -351,6 +364,50 @@ pre {
 	/* bottom: 0; */
 
 }
+
+table {
+
+	width: 100% !important;
+}
+
+.trrule {
+	
+	width: 80% !important; 
+	min-width: 80% !important; 
+}
+
+.tdrule-15 {
+	
+	width: 15% !important; 
+	min-width: 15% !important; 
+}
+
+.tdrule-70 {
+	
+	width: 70% !important; 
+	min-width: 70% !important; 
+}
+
+.tdrule-80 {
+	
+	width: 80% !important; 
+	min-width: 80% !important; 
+}
+
+.tdrule-10 {
+	
+	width: 10% !important; 
+	min-width: 10% !important;
+	text-align: center;
+}
+
+.tdrule-5 {
+	
+	width: 5% !important; 
+	min-width: 5% !important;
+	text-align: center;
+}
+
 
 /* #tdefs { */
 	

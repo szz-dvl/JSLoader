@@ -1,4 +1,4 @@
-angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
+angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'])
 
 	.directive('noInfo',
 			   () => {
@@ -264,8 +264,19 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 						   if ($scope.req) {
 							   
 							   $scope.req.events.on('header-change', (text, name) => {
-								   
-								   $scope.headers.push({ name: name, value: text });
+
+								   let stored = $scope.headers.find(
+									   header => {
+
+										   return header.name == name;
+										   
+									   }
+								   );
+
+								   if (stored)
+									   stored.text = text;
+								   else
+									   $scope.headers.push({ name: name, value: text });
 								   
 							   });
 						   }
@@ -282,8 +293,9 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 					   
 					   scope: {
 						   policies: '=',
-						   dismiss: '=',
-						   add: '=',
+						   events: '=?',
+						   dismiss: '=?',
+						   add: '=?',
 						   url: '=?',
 						   policy: '=?',
 					   },
@@ -293,7 +305,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 					   },
 
 					   controller: function ($scope) {
-
+						   
 						   $scope.policy = $scope.policy || 'block';
 						   $scope.backup = '';
 						   $scope.validated = $scope.url ? true : false;
@@ -330,11 +342,16 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 									   } else
 										   $scope.validated = false;
 									   
-								   }, 800
+								   }, 2000
 							   );
-
 						   };
 
+						   $scope.selectChange = function () {
+							   
+							   $scope.redirectUrl = "";
+							   
+						   };
+						   
 						   $scope.persist = function () {
 							   
 							   $scope.add(
@@ -342,7 +359,87 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 								   ($scope.policy == 'redirect' ? $scope.redirectUrl : null),
 							   );
 						   };
+
+						   if ($scope.events) {
+
+							   $scope.events.on('persist',
+												() => {
+													
+													$scope.events.emit('persist-data', {
+														
+														id: 'policy',
+														type: 'policy',
+														value: {
+															action: $scope.policy.split(' ')[0],
+															url: $scope.policy == 'redirect' ? $scope.redirectUrl : null
+														}
+														
+													});
+													
+												});
+
+						   }
 					   }, 
+				   }
+			   })
+
+	.directive('ruleValue',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   
+					   scope: {
+						   value: "=",
+						   type: "=",
+						   events: '=',
+						   idval: "="
+						   
+					   },
+					   
+					   template: '<bdi contenteditable="true" placeholder="Enter value ... " ng-bind="value"></bdi>',
+					   
+					   link: function($scope, element, attr) {
+						   
+						   element.css({
+							   
+							   "min-width": "100%",
+							   "width": "100% !important",
+							   "height": "5px !important",
+							   "min-height": "5px !important",
+							   "padding-left": "10px",
+							   "text-overflow": "ellipsis",
+							   "overflow": "hidden",
+							   "outline": "none !important",
+							   "display": "inline-block"
+						   });
+						   
+						   element.on('input', function(ev) {
+							   
+							   if ($scope.tID)
+								   clearTimeout($scope.tID);
+  
+							   $scope.tID = setTimeout(
+								   ev => {
+									   
+									   $scope.value = element.text().trim();
+									   		   
+								   }, 1200, ev
+							   );
+						   });
+						   
+						   element.keypress(ev => { return ev.which != 13; });
+						   
+						   $scope.events.on('persist', () => {
+
+							   $scope.events.emit('persist-data', {
+								   id: $scope.idval,
+								   value: $scope.value,
+								   type: $scope.type
+							   });
+						   })
+					   }
 				   }
 			   })
 
@@ -354,14 +451,18 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 					   restrict: 'E',
 					   
 					   scope: {
-						   name: '='
+
+						   name: '=',
+						   idire: '=',
+						   events: '='
 					   },
+
+					   template: '<array-validator style="display: inline-block; width: 90%;" text="name" valids="array" idire="idire" type="\'header\'" events="events"></array-validator><span style="display: inline-block;">: </span>',
 					   
-					   template: '<array-validator style="display: inline-block;" text="name" valids="array"></array-validator><span style="display: inline-block;">: </span>',
-
 					   controller: function ($scope) {
-
+						   
 						   $scope.array = [
+							   
 							   "Accept",
 							   "Accept-Charset",
 							   "Accept-Datetime",
@@ -372,8 +473,50 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 							   "Authorization",
 							   "Cache-Control",
 							   "Connection",
-							   "User-Agent" /* ... */
+							   "Cookie",
+							   "Content-Length",
+							   "Content-MD5",
+							   "Content-Type",
+							   "Date",
+							   "Expect",
+							   "Forwarded",
+							   "From",
+							   "Host",
+							   "If-Match",
+							   "If-Modified-Since",
+							   "If-None-Match",
+							   "If-Range",
+							   "If-Unmodified-Since",
+							   "Max-Forwards",
+							   "Origin",
+							   "Pragma",
+							   "Proxy-Authorization",
+							   "Range",
+							   "Referer",
+							   "TE",
+							   "User-Agent",
+							   "Upgrade",
+							   "Via",
+							   "Warning",
+
+							   /* Non standard */
+							   
+							   "X-Requested-With",
+							   "DNT",
+							   "X-Forwarded-For",
+							   "X-Forwarded-Host",
+							   "X-Forwarded-Proto",
+							   "Front-End-Https",
+							   "X-Http-Method-Override",
+							   "X-ATT-DeviceId",
+							   "X-Wap-Profile",
+							   "Proxy-Connection",
+							   "X-UIDH",
+							   "X-Csrf-Token",
+							   "X-Request-ID",
+							   "X-Correlation-ID"
 						   ];
+						   
 					   }
 				   }
 			   })
@@ -386,22 +529,26 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 					   restrict: 'E',
 					   
 					   scope: {
-						   name: '='
+						   
+						   name: '=',
+						   idire: '=',
+						   events: '='
 					   },
 					   
-					   template: '<array-validator style="display: inline-block;" text="name" valids="array"></array-validator><span style="display: inline-block;">: </span>',
-
+					   template: '<array-validator style="display: inline-block;" text="name" valids="array" idire="idire" type="\'attr\'" events="events"></array-validator>',
+					   
 					   controller: function ($scope) {
-
+						   
 						   $scope.array = [
+							   
 							   "frameId",
 							   "parentFrameId",
 							   "method",
 							   "type",
 							   "url",
 							   "originUrl",
-							   "documentUrl"
-						   ];
+							   "documentUrl"   
+						   ]; 
 					   }
 				   }
 			   })
@@ -414,26 +561,355 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 					   restrict: 'E',
 					   
 					   scope: {
+						   
 						   text: '=',
-						   valids: '='
+						   valids: '=',
+						   idire: '=',
+						   type: '=',
+						   events: '='
 					   },
 
-					   template: '<autocomplete ng-model="text" data="valids" on-type="updateItems"></autocomplete>',
+					   transclude: false,
 					   
-					   controller: function ($scope) {
+					   template: '<angucomplete-alt' +
+						   ' id="idire"' +
+						   ' placeholder="Enter name ..."' +
+						   ' local-data="data"' +
+						   ' minlength="1"' +
+						   ' pause="50"' +
+						   ' title-field="data"' +
+						   ' search-field="data"' +
+						   ' local-search="typing"' +
+						   ' selected-object="selected"' +
+						   ' input-class="autocomplete-inpt"' +
+						   ' auto-match="true"' +
+						   ' input-changed="changed"' + 
+						   ' initial-value="text"' +
+						   ' focus-out="focusOut()"' +  
+						   '></angucomplete-alt>',
+					   
+					   link: function ($scope, element, attr) {
+
+						   $scope.el = element;  
+					   },
+ 
+					   controller: function ($scope, $timeout) {
 						   
-						   $scope.disabled = false;
+						   $scope.actual = $scope.text;
+						   $scope.rejected = [];
 						   
-						   $scope.updateItems = function (query) {
+						   $scope.data = $scope.valids.map(
+							   item => {
+								   return {data: item};
+							   }
+						   );
+						   
+						   $scope.__diff = function (big, small) {
 							   
-							   return $scope.valids.filter(
+							   return big.map(
+								   item => {
+
+									   return small.findIndex(
+										   sitem => {
+											   
+											   return sitem.data == item.data;
+											   
+										   }) >= 0 ? false : item;  
+								   }
+								   
+							   ).filter(elem => { return elem; });
+							   
+						   };
+
+						   $scope.__appendRejected = function (name) {
+
+							   let exists = $scope.rejected.findIndex(
+										   
 								   item => {
 									   
-									   return item.startsWith(query);
-
+									   return item.data == name;
 								   }
 							   );
+							   
+							   if (exists < 0)
+								   $scope.rejected.push({data: name});
 						   }
+						   
+						   $scope.focusOut = function () {
+							   
+							   if ($scope.input.val() != $scope.actual) {
+
+								   $scope.input.val($scope.actual);
+								   $scope.input.trigger('input');
+							   }
+						   };
+
+						   $scope.selected = function (selection) {
+							   
+							   if (selection) {
+
+								   if (selection.title != $scope.actual) {
+									   
+									   $scope.events.emit('neighbour_update_' + $scope.type,
+									   					  $scope.idire,
+														  $scope.actual,
+														  selection.title 
+									   					 );
+									   
+									   $scope.actual = selection.title;
+								   }
+							   }  
+						   };
+
+						   $scope.typing = function (query, array) {
+							   
+							   return $scope.__diff(array, $scope.rejected).filter(
+								   item => {
+									   return item.data.match(new RegExp('^' + query, 'i'));
+								   }
+							   ); 
+					   	   };
+ 
+						   $scope.events
+							   .on('ack_' + $scope.idire,
+								   neighbour => {
+
+									   $scope.__appendRejected(neighbour);
+									   
+								   })
+						   
+							   .on('new_neighbour_' + $scope.type,
+								   (sender, name) => {
+									   
+									   if (sender != $scope.idire) {
+										   
+										   if (name.length) 
+											   $scope.__appendRejected(name);
+										   
+										   $scope.events.emit('ack_' + sender, $scope.actual);
+									   }
+									   
+								   })
+						   
+							   .on('neighbour_update_' + $scope.type,
+								   (sender, oldVal, newVal) => {
+									   
+									   if (sender != $scope.idire) {
+										   
+										   let to_update = $scope.rejected.findIndex(
+											   
+											   item => {
+												   
+												   return item.data == oldVal;
+											   }
+										   );
+										   
+										   if (to_update >= 0)
+											   $scope.rejected[to_update].data = newVal;
+										   else 
+											   $scope.rejected.push({data: newVal}); /* New values */
+									   }
+								   })
+						   
+							   .on('neighbour_remove_' + $scope.type,
+								   idx => {
+									   
+									   if ($scope.idire.split("_")[0] == idx) {
+										   
+										   $scope.events.emit('neighbour_delete_' + $scope.type, $scope.idire, $scope.actual);
+										   $scope.events.emit('key_remove', idx, $scope.type);
+										   $scope.$destroy();
+									   }
+								   })
+						   
+							   .on('neighbour_delete_' + $scope.type,
+								   (sender, name) => {
+									   
+									   if ($scope.idire != sender) {
+										   
+										   $scope.rejected.remove(
+											   $scope.rejected.findIndex(
+												   item => { return item.data == name; }
+											   )
+										   );
+									   }
+								   })
+
+							   .on('persist', () => {
+							   
+								   $scope.events.emit('persist-data', {
+									   id: $scope.idire,
+									   value: $scope.actual,
+									   type: $scope.type
+								   });
+							   });
+						   
+						   $timeout(
+							   () => {
+								   
+								   $scope.input = $scope.el.find('input'); 
+								   $scope.events.emit('new_neighbour_' + $scope.type, $scope.idire, $scope.text);
+							   }
+						   );
+					   }
+				   }
+			   })
+
+	.directive('aRule',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   transclude: true,
+					   
+					   scope: {
+						   
+						   rule: '='
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   return browser.extension.getURL("fg/partials/a-rule.html");
+					   },
+					   
+					   controller: function ($scope) {
+
+						   $scope.status = {}
+						   $scope.id = UUID.generate().split('-').pop();
+						   $scope.headers_shown = false;
+						   $scope.criteria_shown = false;
+						   $scope.events = new EventEmitter();
+						   $scope.elems = $scope.rule.headers.length + $scope.rule.criteria.lenght + 1;
+						   
+						   $scope.statusHeaders = function () {
+							   
+							   return $scope.headers_shown ? "v" : ">";
+						   };
+
+						   $scope.toggleHeaders = function () {
+							   
+							   $scope.headers_shown = !$scope.headers_shown;
+						   };
+
+						   
+						   $scope.statusCriteria = function (rule) {
+
+							   return $scope.criteria_shown ? "v" : ">";
+						   };
+
+						   $scope.toggleCriteria = function (rule) {
+							   
+							   $scope.criteria_shown = !$scope.criteria_shown;
+						   };
+
+						   $scope.addHeader = function (rule) {
+							   
+							   $scope.rule.headers.push({ name: " ", value: "" });
+							   
+						   };
+
+						   $scope.addCritAttr = function (rule) {
+							   
+							   $scope.rule.criteria.factory({ key: " ", value: "", comp: "=" });
+						   };
+						   
+						   $scope.buildIdFor = function (idx, type) {
+							   
+							   return new String (idx + '_' + type).toString();
+						   };
+						   
+						   $scope.removeHeader = function (idx) {
+							   
+							   $scope.events.emit('neighbour_remove_header', idx);
+							   
+						   };
+						   
+						   $scope.removeAttr = function (idx) {
+							   
+							   $scope.events.emit('neighbour_remove_attr', idx);
+							   
+						   };
+
+						   $scope.removeRule = function () {
+							   $scope.rule.mgr.removeRule($scope.rule.id);
+							   // $scope.$digest();
+						   };
+						   
+						   $scope.events
+							   .on('key_remove',
+								   (idx, type) => {
+												
+									   switch(type) {
+										   
+									   case "header":
+										   $scope.rule.headers.remove(idx);
+										   break;
+										   
+									   case "attr":
+										   $scope.rule.criteria.remove(idx);
+										   break;
+										   
+									   default:
+										   break;
+									   }
+								   })
+						   
+							   .on('persist-data', data => {
+
+							   	   $scope.elems --;
+
+							   	   // console.log('persist-data: ');
+							   	   // console.log(data);
+								   
+							   	   let idx = data.id.split('_')[0];
+							   	   let type = data.id.split('_').pop();
+								   
+							   	   switch(data.type) {
+									   
+							   	   case "header":
+
+									   if ($scope.rule.headers[idx]) {
+										   
+							   			   if (type == 'key') 
+							   				   $scope.rule.headers[idx].name = data.value;
+							   			   else if (type == 'value')
+							   				   $scope.rule.headers[idx].value = data.value;
+										   
+									   }
+									   
+							   		   break;
+									   
+							   	   case "attr":
+
+									   if ($scope.rule.criteria.attributes[idx]) {
+										   
+							   			   if (type == 'key') 
+							   				   $scope.rule.criteria.attributes[idx].key = data.value;
+							   			   else if (type == 'value')
+							   				   $scope.rule.criteria.attributes[idx].value = data.value;
+									   }
+									   
+							   		   break;
+									   
+							   	   case"policy":
+									   
+							   		   rule.policy.action = data.value.action;
+							   		   rule.policy.data = data.value.url;
+									   
+							   		   break;
+									   
+							   	   default:
+							   		   break;
+							   	   }
+								   
+
+							   	   if (!$scope.elems) {
+									   
+							   		   $scope.elems = $scope.rule.headers.length + $scope.rule.criteria.lenght + 1;
+							   		   $scope.rule.mgr.persist();
+									   
+							   	   }
+							   });
 					   }
 				   }
 			   })
@@ -625,7 +1101,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 							   
 							   if (orig.endsWith("/"))
 								   orig = orig.slice(0, -1);
-
+							   
 							   if (modified.endsWith("/"))
 								   modified = modified.slice(0, -1);
 							   
@@ -638,7 +1114,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'autocomplete'])
 							   while ( (mod_arr[cursor_mod] != "*") &&
 									   (mod_arr[cursor_mod] == orig_arr[cursor_orig])
 									 ) {
-
+								   
 								   cursor_mod --;
 								   cursor_orig --;	
 							   }

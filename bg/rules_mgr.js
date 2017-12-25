@@ -1,7 +1,7 @@
 function CriteriaAttr (opt) {
 
 	this.key = opt.key || null;
-	this.value = opt.value ? this.key.toLowerCase().includes("url") ? new URL(opt.value) : opt.value : null;
+	this.value = opt.value || null;//opt.value ? this.key.toLowerCase().includes("url") ? new URL(opt.value) : opt.value : null;
 	this.comp = opt.comp || null;
 
 	this.match = function (val) {
@@ -27,36 +27,74 @@ function CriteriaAttr (opt) {
 			return str.includes(this.value.toString());
 		}
 	}
+
+	this.__getDBInfo = function () {
+
+		let self = this;
+		
+		return {
+			
+			key: self.key,
+			value: self.value,
+			comp: self.comp
+			
+		};
+	}
 }
 
 function RuleCriteria (opt) {
-
-	this.attributes = [];
 	
-	for (let attr of opt) {
-		
-		this.attributes.push(new CriteriaAttr(attr));
-	}
-
+	this.attributes = opt
+		? opt.map(attr => {
+			
+			return new CriteriaAttr(attr);
+			
+		})
+	: [];
+	
+	this.lenght = this.attributes.length;
+	
 	this.match = function (request) {
 
-		return this.attributes.filter(
-			attr => {
+		return this.attributes.length
+		
+			? this.attributes.filter(
+				attr => {
+					
+					return attr.match(request[attr.key]);
+					
+				}
 				
-				return attr.match(request[attr.key]);
-				
-			}
-			
-		).length == this.attributes.length;
+			).length == this.attributes.length
+		
+		: false;
+	}
+
+	this.remove = function (idx) {
+
+		this.attributes.remove(idx);
+		this.length --;
+	}
+	
+	this.factory = function (attr) {
+
+		let new_attr = new CriteriaAttr(attr);
+
+		this.attributes.push(new_attr);
+		this.length ++;
+		
+		return new_attr;
 	}
 }
 
-function Rule (opt) {
+function Rule (opt, parent) {
+
+	this.mgr = parent;
 	
 	this.id = opt.id || UUID.generate().split("-").pop();
-	this.criteria = opt.criteria ? new RuleCriteria(opt.criteria) : null;
+	this.criteria = new RuleCriteria(opt.criteria);
 	
-	this.policy = opt.policy ? { action: opt.policy.action, data: opt.policy.data } : null;
+	this.policy = opt.policy ? { action: opt.policy.action, data: opt.policy.data } : {action: 'block', data: null};
 	
 	this.headers = opt.policy ? opt.policy.headers : [];
 	this.enabled = true;
@@ -64,6 +102,28 @@ function Rule (opt) {
 	this.toggleEnabled = function () {	
 		this.enabled = !this.enabled;
 	};
+
+	this.__getDBInfo = function () {
+		
+		let self = this;
+		
+		self.policy.headers = self.headers;
+		
+		return {
+			
+			id: self.id,
+			criteria: self.criteria.attributes.map(
+				crit => {
+					
+					return crit.__getDBInfo();
+					
+				}
+			),
+			
+			policy: self.policy,
+			enabled: self.enabled
+		};
+	}
 }
 
 function RulesMgr (bg) {
@@ -78,10 +138,29 @@ function RulesMgr (bg) {
 	
 	this.storage.getRules(
 		new_rules => {
-			self.rules = new_rules.map(rule => { return new Rule(rule) });
+			self.rules = new_rules.map(rule => { return new Rule(rule, self) });
 		}
 	);
 
+	this.clear = function () {
+
+		this.storage.removeRules();
+		this.rules.length = 0;
+	};
+	
+	this.persist = function () {
+
+		if (self.perID)
+			clearTimeout(self.perID);
+		
+		self.perID = setTimeout(
+			() => {
+				
+				self.storage.setRules(self.rules.map(rule => { return rule.__getDBInfo() }).slice(0));
+				
+			}, 800);
+	};
+	
 	this.addProxy = function (hostname, proxy) {
 		
 		return browser.runtime.sendMessage(
@@ -92,19 +171,11 @@ function RulesMgr (bg) {
 	
 	this.addRule = function (rule) {
 		
-		let my_rule = new Rule(rule);
+		let my_rule = new Rule(rule, self);
 		
 		self.rules.push(my_rule);
-		
-		if (self.perID)
-			clearTimeout(self.perID);
-		
-		self.perID = setTimeout(
-			() => {
-				
-				self.storage.setRules(self.rules)
-				
-			}, 800);
+
+		self.persist();
 		
 		return my_rule.id;
 	};
@@ -118,6 +189,8 @@ function RulesMgr (bg) {
 				}
 			)
 		);
+
+		self.persist();
 	};
 
 	this.toggleEnable = function (rid) {
@@ -145,9 +218,9 @@ function RulesMgr (bg) {
 				if (updated)
 					header.value = updated.value;	
 			}
-
+			
 			actual.push.apply(actual, new_headers.filter(nw => { return !actual.find(ac => { return ac.name == nw.name; }); } ));
-
+			
 			return actual;
 		}
 	};

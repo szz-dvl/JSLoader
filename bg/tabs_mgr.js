@@ -225,8 +225,8 @@ function JSLTabListener(tabInfo, bg) {
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
 
 		/* Temp! */
-		for (let id of self.filters)
-			self.bg.rules_mgr.removeRule(id);
+		// for (let id of self.filters)
+		// 	self.bg.rules_mgr.removeRule(id);
 	};
 	
 	browser.runtime.onConnect

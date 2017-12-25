@@ -1,0 +1,5 @@
+.autocomplete-list li.selected {
+
+	background-color: LightBlue;
+	outline: dotted;
+}

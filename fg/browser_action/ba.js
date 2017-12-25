@@ -1,7 +1,7 @@
 function Action (opt) {
 
 	var self = this;
-
+	
 	this.val = opt.val;
 	this.id = opt.id;
 	this.pointed = false;
@@ -108,6 +108,12 @@ function Menu (bg) {
 							self.bg.option_mgr.openPage();
 						}
 					   }),
+
+			new Action({val: "Reload", id: "reload",
+						onClick: function () {
+							browser.runtime.reload();
+						}
+					   }),
 			
 			new Action({val: "Clean", id: "clean", submenu:
 						[{val: "Groups", id: "clean_groups",
@@ -127,7 +133,14 @@ function Menu (bg) {
 							  ev.stopPropagation(ev);
 							  self.bg.domain_mgr.clear();
 							  
-						  }}],
+						  }},
+						 {val: "Rules", id: "clean_rules",
+						  onClick: function (ev) {
+							  ev.stopPropagation(ev);
+							  self.bg.rules_mgr.clear();
+							  
+						  }}
+						],
 						
 						onClick: function (ev) {
 							ev.stopPropagation();

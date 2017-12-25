@@ -436,7 +436,7 @@ function OP (bg, port) {
 				
 				resolve: {
 					dataRules: () => {
-						return { rules: self.bg.rules_mgr.rules, proxys: self.bg.rules_mgr.proxy_rules };
+						return { rules: self.bg.rules_mgr.rules.filter(rule => {return !rule.temp; }), proxys: self.bg.rules_mgr.proxy_rules.filter(rule => {return !rule.temp; }) };
 					}	
 				},
 				

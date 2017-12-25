@@ -12,7 +12,7 @@
   <h4> Proxy Rules <bdi style="color:red" ng-click="toggleProxy()"> {{ statusProxy() }} </bdi></h4>
   
   <ul ng-if="proxy_rules.length" ng-show="proxy_shown">
-	<li ng-repeat="proxy_rule in proxy_rules track by proxy_rule.host">
+	<li ng-repeat="proxy_rule in proxy_rules track by $index">
 	  
 	  <a-proxy-rule rule="proxy_rule" pnames="names" mgr="mgr"></a-proxy-rule>
 	  

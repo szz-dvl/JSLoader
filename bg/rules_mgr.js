@@ -207,7 +207,7 @@ function ProxyMgr (bg) {
 
 	this.upsertProxy = function (hostname, proxy) {
 
-		let exists = this.proxy_rules.find(
+		let exists = this.proxy_rules.findIndex(
 			prule => {
 
 				return prule.host == hostname;
@@ -215,9 +215,12 @@ function ProxyMgr (bg) {
 			}
 		);
 
-		if (exists)
+		if (exists >= 0) {
+			
+			self.proxy_rules.remove(exists);
 			self.addProxy(hostname, proxy);
-		else
+			
+		} else
 			self.newProxy(hostname, proxy);
 	};
 	

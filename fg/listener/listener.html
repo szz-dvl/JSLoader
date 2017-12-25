@@ -79,12 +79,14 @@
 		<div ng-show="infoShown() && config_sel" class="config-sel-bucket">
 		  <button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Rule {{ btnStatus() }} </button>
 		  <rule-adder style="display: inline-block;" add="persistRuleSel" dismiss="dismissRuleSel" ng-show="rule_sel"></rule-adder>
-		  <button class="browser-style jslbtn" ng-show="!proxying_sel" ng-click="showProxySel()"> Proxy {{ btnStatus() }} </button>
-		  <label ng-show="proxying_sel">
+
+		  <button class="browser-style jslbtn" ng-show="!proxying_sel && gotProxys" ng-click="showProxySel()"> Proxy {{ btnStatus() }} </button>
+		  <label ng-show="proxying_sel && gotProxys">
 			<span style="margin-left: 5px;"> Proxy through: </span>
 			<select class="browser-style" ng-model="currentProxySel" ng-options="proxy for proxy in page.statu.proxys" ng-change="proxySelChange()"></select>
 			<button class="browser-style jslbtn" ng-click="dismissProxySel()"> x </button>
 		  </label>
+
 		</div>
 	  </div>
 	</div>

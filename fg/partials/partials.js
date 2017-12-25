@@ -160,7 +160,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   return browser.extension.getURL("fg/partials/http-request.html");
 					   },
 					   
-					   controller : function ($scope) {
+					   controller: function ($scope) {
 
 						   $scope.proxying = false;
 						   $scope.currentProxy = $scope.req.currentProxy;
@@ -999,7 +999,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   
 					   },
 					   
-					   template: '<bdi contenteditable="true" placeholder="Enter value ... ">{{host}}</bdi>',
+					   template: '<bdi contenteditable="true" placeholder="Enter host name ... ">{{host}}</bdi>',
 					   
 					   link: function($scope, element) {
 						   

@@ -7,12 +7,14 @@
   <div ng-show="req.visible && config" style="display: inline-block;">
 	<button class="browser-style jslbtn" ng-show="req.visible && !req.adding" ng-click="showRuleAdder(req)"> Add rule </button>
 	<rule-adder style="display: inline-block;" req="req" add="persistRule" dismiss="dismissRule" ng-show="req.visible && req.adding"></rule-adder>
-	<button class="browser-style jslbtn" ng-show="req.visible && !proxying" ng-click="showProxyOps(req)"> Set Proxy </button>
-	<label ng-show="req.visible && proxying">
+
+	<button class="browser-style jslbtn" ng-show="req.visible && !proxying && proxys.length > 1" ng-click="showProxyOps(req)"> Set Proxy </button>
+	<label ng-show="req.visible && proxying && proxys.length > 1">
 	  <span style="margin-left: 5px;"> <strong> Proxy through: </strong> </span>
 	  <select class="browser-style" ng-model="currentProxy" ng-options="proxy for proxy in proxys" ng-change="proxyChange()"></select>
 	  <button class="browser-style jslbtn" ng-click="dismissProxy()"> x </button>
 	</label>
+
   </div>
   
   <div ng-show="req.visible && req.rules.length && !(req.adding || proxying)" class="rule-remover">

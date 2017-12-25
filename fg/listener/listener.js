@@ -240,6 +240,8 @@ function TabListener (id, page, port) {
 		
 		$scope.page = self;
 		$scope.port = port;
+
+		$scope.gotProxys = Object.keys(self.bg.option_mgr.jsl.proxys).length;
 		
 		$scope.config_sel = false;
 		$scope.proxying_sel = false;

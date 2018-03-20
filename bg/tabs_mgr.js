@@ -114,7 +114,7 @@ function JSLTabListener(tabInfo, bg) {
 		
 		if (self.active) {
 			
-			if (response.tabId == self.id) {
+			if (response.tabId == self.id || response.tabId < 0) {
 			
 				let req = self.__findRequest(response.requestId);
 			
@@ -158,7 +158,7 @@ function JSLTabListener(tabInfo, bg) {
 			(request, rules, mod) => {
 				
 				if (self.active) {
-					if (request.tabId == self.id) {
+					if (request.tabId == self.id || request.tabId < 0) {
 						
 						if (mod)
 							request.modifiedHeaders = mod;
@@ -179,7 +179,7 @@ function JSLTabListener(tabInfo, bg) {
 				/* Data Clone Error when posting rules to view */
 				
 				if (self.active) {
-					if (request.tabId == self.id)  {
+					if (request.tabId == self.id || request.tabId < 0)  {
 						
 						switch(action) {
 						case "block":
@@ -243,7 +243,6 @@ function JSLTabListener(tabInfo, bg) {
 								console.error("Disconnect error: " + port.error.message);
 							
 							console.log("Closing listener " + self.id);
-							
 						}
 					);
 					

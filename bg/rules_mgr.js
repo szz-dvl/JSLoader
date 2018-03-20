@@ -228,19 +228,23 @@ function ProxyMgr (bg) {
 
 	this.tempProxy = function (hostname, proxy) {
 
-		let proxy_obj = typeof(proxy) == 'string'
-			? self.bg.option_mgr.jsl.proxys[proxy]
-			: proxy;
+		return new Promise(
+			resolve => {
+				
+				let proxy_obj = typeof(proxy) == 'string'
+					? self.bg.option_mgr.jsl.proxys[proxy]
+					: proxy;
 
-		if (!proxy_obj.host || !proxy_obj.port || !proxy_obj.type)
-			return false;
-		
-		browser.runtime.sendMessage(
-			{ host: hostname, proxy: proxy_obj, temp: true },
-			{ toProxyScript: true }
-		);
+				if (!proxy_obj || !proxy_obj.host || !proxy_obj.port || !proxy_obj.type)
+					resolve(-1);
+				else {
 
-		return true;
+					browser.runtime.sendMessage(
+						{ host: hostname, proxy: proxy_obj, temp: true },
+						{ toProxyScript: true }
+					).then(resolve);
+				}
+			});
 	};
 	
 	browser.proxy.onProxyError.addListener(error => {

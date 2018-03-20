@@ -300,17 +300,22 @@ function CSMgr (bg) {
 	};
 
 	this.contentSetProxy = function (port, tag, host, proxy) {
-		
-		self.__postTaggedResponse(port, tag,
-								  
-								  {status: self.bg.rules_mgr.tempProxy(host, proxy), /* !! Unfinished promise */
 
-								   content: {
-									   proxy: proxy,
-									   host: host
-								   }
-								   
-								  });
+		self.bg.rules_mgr.tempProxy(host, proxy)
+			.then(
+				length => {
+					
+					self.__postTaggedResponse(port, tag,
+								  
+											  {status: length > 0,
+											   
+											   content: {
+												   proxy: proxy,
+												   host: host
+											   }
+											   
+											  });
+				});
 	};
 
 	this.contentSetRule = function (port, tag, criteria, headers) {

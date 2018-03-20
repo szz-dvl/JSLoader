@@ -74,14 +74,14 @@ function PAC () {
 	};
 	
 	this.FindProxyForURL = function (url, host) {
-
-		var proxys = self.filtered.filter(
+		
+		let proxys = self.filtered.filter(
 			
 			registered => {
 				return registered.host == host && registered.temp;
 			}
 			
-		).map(elem => { return elem.proxy });
+		).map(elem => { return elem.proxy }).slice(0);
 		
 		if (!proxys.length) {
 			
@@ -104,8 +104,8 @@ function PAC () {
 			while (idx >= 0) {
 
 				self.filtered.remove(idx);
-
-				let idx = self.filtered.findIndex(
+				
+				idx = self.filtered.findIndex(
 					registered => {
 						return registered.host == host && registered.temp;
 					}
@@ -113,7 +113,7 @@ function PAC () {
 			}
 		}
 		
-		// browser.runtime.sendMessage(`Proxy for ${host} > ` + (got ? JSON.stringify(got.proxy) : "DIRECT"));
+		browser.runtime.sendMessage(`Proxy for ${host} > ` + (proxys ? JSON.stringify(proxys) : "DIRECT"));
 		
 		return proxys.length ? proxys : "DIRECT";
 	};

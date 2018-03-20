@@ -1,3 +1,27 @@
+let forbidden = [
+
+	"Accept-Charset",
+	"Accept-Encoding",
+    "Access-Control-Request-Headers",
+    "Access-Control-Request-Method",
+    "Connection",
+    "Content-Length",
+    "Cookie",
+    "Cookie2",
+    "Date",
+    "DNT",
+    "Expect",
+    "Host",
+    "Keep-Alive",
+    "Origin",
+    "Referer",
+    "TE",
+    "Trailer",
+    "Transfer-Encoding",
+    "Upgrade",
+    "Via"
+]
+
 function HttpRequest (opt, cs) {
 
 	let self = this;
@@ -19,25 +43,44 @@ function HttpRequest (opt, cs) {
 			if (self.proxy) {
 
 				deps.push(cs.__getMessageResponse("set-proxy",
-												  { host: url.hostname, proxy: self.proxy }));
+												  { host: self.url.hostname, proxy: self.proxy }));
 
 			}
 			
 			if (self.headers.length) {
-				
-				deps.push(cs.__getMessageResponse("set-rule",
-												  { headers: self.headers, criteria: {url: self.url.href, method: self.method }} ));
+
+				let is_forbidden = self.headers.find(
+					header => {
+						return header.name.match(/^Proxy-|Sec-/) || forbidden.includes(header.name);
+					}
+				);
+
+				if (is_forbidden) {
+
+					deps.push(cs.__getMessageResponse("set-rule-req",
+													  {
+														  headers: self.headers,
+														  criteria: [
+															  
+															  { key: "url", value: self.url.href, comp: "=" },
+															  { key: "method", value: self.method, comp: "=" }
+															  
+														  ]
+													  }
+													  
+													 ));
+				} else
+					self.headers.forEach(header => { self.rq.setRequestHeader(header.name, header.value) });
 
 			}
-
-
+			
 			Promise.all(deps)
 				.then(responses => {
 					
 					self.rq.open(self.method, self.url.href);
 					
 					self.rq.onreadystatechange = function () {
-				
+						
 						if (self.rq.readyState >= self.enoughState)
 							resolve (self.rq);
 						
@@ -77,7 +120,7 @@ function CSUtils (parent) {
 	};
 	
 	this.sendHttpRequest = function (url) {
-
+		
 		return new HttpRequest({
 
 			url: url,
@@ -124,9 +167,11 @@ function CSUtils (parent) {
 	this.modifiedHttpRequest = function (url, headers) {
 
 		return new HttpRequest({
+			
 			url: url,
 			method: "GET",
 			headers: headers
+
 		}, self.cs);
 	};
 

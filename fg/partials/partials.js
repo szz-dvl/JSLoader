@@ -330,10 +330,13 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 											   $scope.redirectUrl = url.href;
 											   $scope.backup = $scope.redirectUrl;
 											   
-										   } catch (e if e instanceof TypeError) {
+										   } catch (e) {
 
-											   console.error(e);
-											   $scope.redirectUrl = $scope.backup;
+											   if (e instanceof TypeError) {
+												   
+												   console.error(e);
+												   $scope.redirectUrl = $scope.backup;
+											   }
 										   }
 										   
 										   $scope.validated = true;
@@ -1034,12 +1037,15 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 
 										   $scope.backup = temp.hostname;
 										   
-									   } catch (e if e instanceof TypeError) {
-										   
-										   if ($scope.host != '*' && !$scope.host.startsWith("*.")) 
-											   $scope.host = $scope.backup;
-										   else 
-											   $scope.backup = $scope.host;
+									   } catch (e) {
+
+										   if (e instanceof TypeError) {
+
+											   if ($scope.host != '*' && !$scope.host.startsWith("*.")) 
+												   $scope.host = $scope.backup;
+											   else 
+												   $scope.backup = $scope.host;
+										   }
 									   }
 									   
 									   $(ev.target).text($scope.host);
@@ -1322,23 +1328,26 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 											   
 										   }
 										   
-									   } catch (e if e instanceof TypeError) {
-										   
-										   if (!$scope.url.startsWith("*.")) 
-											   $scope.url = $scope.backup.name();
-										   else {
+									   } catch (e) {
 
-											   if ($scope.isSubDomain($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) {
+										   if (e instanceof TypeError) {
+											   
+											   if (!$scope.url.startsWith("*.")) 
+												   $scope.url = $scope.backup.name();
+											   else {
 												   
-												   $scope.url = $scope.url.split("/")[0]; /* "All subdomains" shortcut ... */
-												   $scope.backup = $scope.url;
-												   
-											   } else {
-
-												   if ($scope.isSubSet($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) 
+												   if ($scope.isSubDomain($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) {
+													   
+													   $scope.url = $scope.url.split("/")[0]; /* "All subdomains" shortcut ... */
 													   $scope.backup = $scope.url;
-												   else 
-													   $scope.url = typeof($scope.backup) == "string" ? $scope.backup : $scope.backup.name();
+													   
+												   } else {
+													   
+													   if ($scope.isSubSet($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) 
+														   $scope.backup = $scope.url;
+													   else 
+														   $scope.url = typeof($scope.backup) == "string" ? $scope.backup : $scope.backup.name();
+												   }
 											   }
 										   }
 									   }	  

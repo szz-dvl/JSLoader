@@ -160,12 +160,15 @@ function Script (opt) {
 			} else
 				return self.__updateParent(url);
 			
-		} catch (e if e instanceof TypeError) {
+		} catch (e) {
 
-			if (self.parent && self.parent.isSubdomain())
-				return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
-			else 
-				return self.__updateParent(url);
+			if (e instanceof TypeError) {
+
+				if (self.parent && self.parent.isSubdomain())
+					return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
+				else 
+					return self.__updateParent(url);
+			}
 		}
 	};
 

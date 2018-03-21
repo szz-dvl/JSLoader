@@ -1,0 +1,9 @@
+[submodule "fg/deps/angucomplete-alt"]
+	path = fg/deps/angucomplete-alt
+	url = https://github.com/ghiden/angucomplete-alt.git
+[submodule "fg/deps/angular-highlightjs-searchtext"]
+	path = fg/deps/angular-highlightjs-searchtext
+	url = https://github.com/amitgen414/angular-highlightjs-searchtext.git
+[submodule "utils/deps/EventEmitter"]
+	path = utils/deps/EventEmitter
+	url = https://github.com/Olical/EventEmitter.git

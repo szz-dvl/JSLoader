@@ -768,7 +768,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   
 					   scope: {
 						   
-						   rule: '='
+						   rule: '=',
+						   state: '='
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -845,7 +846,10 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 
 						   $scope.removeRule = function () {
 							   $scope.rule.mgr.removeRule($scope.rule.id);
-							   // $scope.$digest();
+
+							   $scope.state.transitionTo($scope.state.current, {"#": "rules"}, { 
+								   reload: true, inherit: false, notify: false 
+							   });
 						   };
 						   
 						   $scope.events
@@ -939,7 +943,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   
 						   rule: '=',
 						   pnames: '=',
-						   mgr: '='
+						   mgr: '=',
+						   state: '='
 						   
 					   },
 					   
@@ -954,11 +959,14 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   $scope.events = new EventEmitter();
 						   
 						   $scope.currentProxy = $scope.rule.proxy;
-
+						   
 						   $scope.removeProxyRule = function () {
 
 							   $scope.mgr.upsertProxy($scope.rule.host, "None");
-							   
+
+							   $scope.state.transitionTo($scope.state.current, {"#": "proxy"}, { 
+								   reload: true, inherit: false, notify: false 
+							   });
 						   };
 
 						   $scope.persistProxyRule = function () {

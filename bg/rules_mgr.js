@@ -176,7 +176,7 @@ function ProxyMgr (bg) {
 			else
 				this.proxy_rules.push({ host: hostname, proxy: proxy });
 
-		} else if (stored >= 0) 	
+		} else if (stored >= 0) /* Special keyword "None" will be treated here! */ 	
 			this.proxy_rules.remove(stored);
 		
 

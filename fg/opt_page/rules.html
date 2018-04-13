@@ -14,7 +14,7 @@
   <ul ng-if="proxy_rules.length" ng-show="proxy_shown">
 	<li ng-repeat="proxy_rule in proxy_rules track by $index">
 	  
-	  <a-proxy-rule rule="proxy_rule" pnames="names" mgr="mgr"></a-proxy-rule>
+	  <a-proxy-rule rule="proxy_rule" pnames="names" mgr="mgr" state="state"></a-proxy-rule>
 	  
 	</li>
   </ul>
@@ -29,7 +29,7 @@
   <ul ng-if="rules.length" ng-show="req_shown">
 	<li ng-repeat="rule in rules track by rule.id">
 	  
-	  <a-rule rule="rule"></a-rule>
+	  <a-rule rule="rule" state="state"></a-rule>
 	  
 	</li>
   </ul>

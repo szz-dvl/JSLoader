@@ -281,7 +281,7 @@ function OP (bg, port) {
 		
 		$scope.settingsFile = function (ev) {
 			
-			var reader = new FileReader();
+			let reader = new FileReader();
 			
 			reader.onload = function () {
 				
@@ -450,28 +450,37 @@ function OP (bg, port) {
 				name: 'rules',
 				templateUrl: 'rules.html',
 				
-				controller: function ($scope, dataRules) {
+				controller: function ($scope, $state, $stateParams, dataRules) {
 					
 					self.tabs.setActive('rules');
-					
+
+					$scope.state = $state
 					$scope.title = "Stored rules";
 					$scope.rules = dataRules.rules;
 					$scope.proxy_rules = dataRules.proxys;
 					$scope.names = Object.keys(self.bg.option_mgr.jsl.proxys);
 
-					$scope.proxy_shown = false;
-					$scope.req_shown = false;
+					$scope.proxy_shown = $stateParams["#"] == "proxy" ? true : false;
+					$scope.req_shown = $stateParams["#"] == "rules" ? true : false;
 					$scope.mgr = self.bg.rules_mgr;
 					
 					$scope.addRule = function () {
 						
 						$scope.mgr.addRule({});
+
+						$state.transitionTo($state.current, {"#": "rules"}, { 
+							reload: true, inherit: false, notify: false 
+						});
 						
 					};
 
 					$scope.addProxyRule = function () {
 
 						$scope.mgr.proxyFactory();
+
+						$state.transitionTo($state.current, {"#": "proxy"}, { 
+							reload: true, inherit: false, notify: false 
+						});
 						
 					};
 

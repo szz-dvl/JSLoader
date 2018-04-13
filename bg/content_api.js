@@ -236,6 +236,35 @@ function CSApi () {
 		
 	};
 
+	/* 
+	   @params: Either an string representing a valid URL or an options object for browser.downloads.download as described at: 
+	   
+	   https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/downloads/download
+	   
+	   @proxy: Either a string giving a name for a known proxy to JSL or a proxy object. If specified the requested proxy 
+	   will be used for downloading the file, analogously, two promises will be joined and returned.
+	 
+	 */
+	
+	this.JSLDownload = function (params, proxy) {
+
+		let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
+		
+		let promises = [];
+
+		if (proxy) {
+			promises.push(self.__getMessageResponse("set-proxy",
+				
+				{ host: url.hostname, proxy: proxy }
+				
+			));
+		}
+
+		promises.push(self.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
+		
+		return Promise.all(promises);
+	};
+	
 	this.JSLNotifyUser = function (title, message) {
 
 		self.port.postMessage({action: "notify", message: {title: title, body: message}});

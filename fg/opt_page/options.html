@@ -38,24 +38,24 @@
   </head>
   
   <body ng-controller="tabsController" spellcheck="false">
-
-	<nav style="padding-left: 5px;">
-	  <div class="td-tab-nav">
-		<a ng-repeat="tab in tabs"
-		   class="td-tab-link"
-		   id="tab-{{tab.sref}}"
-		   ui-sref="{{tab.sref}}">
-		  {{ tab.title }}
-		</a>
+	  
+	  <nav style="padding-left: 5px;">
+		  <div class="td-tab-nav">
+			  <a ng-repeat="tab in tabs"
+				  class="td-tab-link"
+				  id="tab-{{tab.sref}}"
+				  ui-sref="{{tab.sref}}">
+				  {{ tab.title }}
+			  </a>
+		  </div>
+	  </nav>
+	  
+	  <div id="content" class="td-tab-content">
+		<ui-view></ui-view>
 	  </div>
-	</nav>
 	
-	<div id="content" class="td-tab-content">
-	  <ui-view></ui-view>
-	</div>
-	
-	<script src="../deps/json/json-formatter.js"></script>
-	<script src="options.js"></script>
+	  <script src="../deps/json/json-formatter.js"></script>
+	  <script src="options.js"></script>
 	 
   </body>
 </html>

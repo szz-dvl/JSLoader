@@ -1,4 +1,4 @@
-function GroupChooserWdw () {
+function GroupChooserWdw (wc) {
 
 	return new Promise (
 		(resolve, reject) => {
@@ -8,11 +8,30 @@ function GroupChooserWdw () {
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/group/chooser.html"),
-				width: 900,
+				width: Math.min(Math.max(900, (200 + (wc * 8))), screen.width),
 				height: 120 
 				
-			}).then(resolve,reject);
-			
+			}).then(
+				wdw => {
+					
+					/* 
+					   Workaround to avoid blank windows: 
+					   
+					   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
+					   
+					 */
+					
+					var updateInfo = {
+						
+						width: wdw.width,
+						height: wdw.height + 1, // 1 pixel more than original size...
+						
+					};
+					
+					browser.windows.update (wdw.id, updateInfo)
+						.then(resolve, reject);
+					
+				}, reject);	
 		});
 }
 
@@ -49,7 +68,7 @@ function GroupMgr (bg) {
 							url => {
 								
 								self.adding = url;
-								new GroupChooserWdw().then(resolve, reject);
+								new GroupChooserWdw(url.name().length).then(resolve, reject);
 						
 							}
 						);

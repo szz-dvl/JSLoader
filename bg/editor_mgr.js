@@ -8,20 +8,40 @@ function EditorWdw (opt) {
 		(resolve, reject) => {
 
 			let editor = new Editor(opt);
+			let wc = editor.script.getUrl() ? editor.script.getUrl().name().length : editor.script.getParentName().length;
 			
 			browser.windows.create({
 				
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: 1024, 
+				width: Math.min(Math.max(1024, (200 + (wc * 10))), screen.width), 
 				height: 420 
 				
 			}).then (
 				wdw => {
-
+					
 					editor.wdw = wdw;
-					resolve (editor);
+
+					/* 
+					   Workaround to avoid blank windows: 
+					   
+					   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
+					 
+					 */
+
+					var updateInfo = {
+						width: wdw.width,
+						height: wdw.height + 1, // 1 pixel more than original size...
+					};
+					
+					browser.windows.update (wdw.id, updateInfo)
+						.then(
+							newWdw => {
+								
+								resolve(editor);								
+							}
+						);
 					
 				}, reject);
 		});

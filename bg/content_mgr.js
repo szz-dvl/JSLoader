@@ -217,8 +217,7 @@ function CSMgr (bg) {
 				
 				return cs.frame.url === cs.frame.tab.url;	
 				
-			}
-			
+			}		
 		);	
 	};
 
@@ -330,6 +329,41 @@ function CSMgr (bg) {
 								   
 								  });
 	};
+
+	this.contentDownload = function (port, tag, options) {
+
+		
+		browser.downloads.download(typeof(options) == 'string' ? {url: options} : options)
+			.then(
+
+				id => {
+					
+					self.__postTaggedResponse(port, tag,
+			
+						{ status: true,
+				
+							content: {
+								
+								did: id
+							}
+						}
+					);
+				},
+				err => {
+
+					self.__postTaggedResponse(port, tag,
+			
+						{ status: false,
+				
+							content: {
+								
+								err: err.message
+							}
+						}
+					);
+					
+				});
+	};
 	
 	browser.runtime.onConnect
 		.addListener(
@@ -433,6 +467,10 @@ function CSMgr (bg) {
 
 							case "set-rule":
 								self.contentSetRule(port, args.tag, args.message.criteria, args.message.headers);
+								break;
+
+							case "download-file":
+								self.contentDownload(port, args.tag, args.message.args);
 								break;
 								
 							default:

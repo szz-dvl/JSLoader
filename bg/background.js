@@ -37,7 +37,7 @@ function BG_mgr () {
 		
 		browser.tabs.query({currentWindow: true, active: true})
 			.then(tab_info => {
-					
+				
 				self.content_mgr.forceMainFramesForTab(tab_info[0].id)
 					.then(
 						() => {
@@ -51,7 +51,6 @@ function BG_mgr () {
 											
 						}
 					);
-				
 			}, self.logJSLError);
 	};
 
@@ -104,7 +103,6 @@ function BG_mgr () {
 			break;
 		}
 	};
-	
 }
 
 BG_mgr.call(this);

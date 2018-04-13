@@ -55,14 +55,6 @@ function EditorFG (id, bg) {
 			}
 		},
 		{
-			tab: 'B',
-			name: 'back',
-			parent: self,
-			onTrigger: function () {
-				self.editor.tabToOriginalState();
-			}
-		},
-		{
 			tab: '1',
 			name: 'collapse',
 			parent: self,
@@ -71,9 +63,10 @@ function EditorFG (id, bg) {
 			}
 		},
 	]
-
+	
 	this.editor = this.bg.editor_mgr.getEditorById(id);
 	this.editor.fg = this;
+
 	/* 
 	   To-Do: 
 	   
@@ -200,7 +193,7 @@ function EditorFG (id, bg) {
 		if (!self.scope.buttons.disabled) {
 			
 			self.scope.disableButtons();
-
+			
 			let error = self.getFirstError();
 
 			if (!error) {
@@ -370,6 +363,8 @@ function EditorFG (id, bg) {
 				
 		/* After interpolation ready ... */
 		$timeout(function () {
+
+			/* Any way to import "devtools/sourceeditor/editor" here ? */
 			
 			$scope.editor.ace = ace.edit("code_area");
 			$scope.editor.ace.session.setMode("ace/mode/javascript");
@@ -400,6 +395,9 @@ function EditorFG (id, bg) {
 			
 			if (!$scope.editor.opts.collapsed) 
 				self.collapseHeader();
+			
+			//self.onResize();
+			window.resizeBy(10, 10);
 		});
 	});
 

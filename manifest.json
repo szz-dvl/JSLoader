@@ -17,6 +17,7 @@
 			"utils/deps/EventEmitter/EventEmitter.min.js",
 			"utils/deps/async.min.js",
 			"utils/deps/underscore-min.js",
+			"utils/deps/require.js",
 			"utils/jsloader-utils.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
@@ -30,7 +31,8 @@
 			"bg/rules_mgr.js",
 			"bg/tabs_mgr.js",
 			"bg/content_mgr.js",
-			"bg/background.js"]
+			"bg/background.js"
+		]
 	},
 
 	"browser_action": {

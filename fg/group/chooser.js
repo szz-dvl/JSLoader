@@ -25,7 +25,7 @@ function GroupChooser (bg) {
 					group => {
 
 						if (group.ownerOf($scope.url))
-							$scope.action = "Remov";
+							$scope.action = "Remove";
 						else
 							$scope.action = "Add";
 
@@ -60,17 +60,15 @@ function GroupChooser (bg) {
 				});
 		
 		$scope.addSite = function () {
-
 			
 			if ($scope.action == "Add") 	
 				self.bg.group_mgr.addSiteTo($scope.current, $scope.url);
 			else
 				self.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
-
-			//window.close();
 			
+			window.close();
 		};
-
+		
 		$timeout(
 			() => {
 				
@@ -81,19 +79,20 @@ function GroupChooser (bg) {
 	
 	angular.element(document).ready(
 		() => {
-
+			
 			window.onblur = function () {
-				
+
+				console.log(window);
+
 				var oldX = window.screenX,
 					oldY = window.screenY;
 				
 				setTimeout(
 					() => {
 						
-						//window.close();
-						if (window.screenX == oldX || window.screenY == oldY)
-							console.warn("Close chooser!!")
-						
+						if (oldX == window.screenX || oldY == window.screenY)
+							window.close();
+							
 					}, 50);		
 			}
 			

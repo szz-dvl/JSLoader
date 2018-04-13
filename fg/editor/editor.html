@@ -3,61 +3,65 @@
 <html>
   <head>
 	
-	<meta charset="utf-8">
-	<link rel="stylesheet" href="chrome://browser/content/extension.css">
-	<link rel="stylesheet" href="editor.css"/>
+	  <meta charset="utf-8">
+	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
+	  <link rel="stylesheet" href="editor.css"/>
 
-	<script src="../deps/jquery.min.js"></script>
-	<script src="../deps/angular.min.js"></script>
+	  <script src="../deps/jquery.min.js"></script>
+	  <script src="../deps/angular.min.js"></script>
 	
-	<script src="../deps/shortcut.js"></script>
-	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
+	  <script src="../deps/shortcut.js"></script>
+	  <script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+	  <script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
 
-	<script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
-	<script src="../deps/highlightjs/highlight.min.js"></script>
-	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
-	<script src="../partials/partials.js"></script>
-	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	  <script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
+	  <script src="../deps/highlightjs/highlight.min.js"></script>
+	  <script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
+	  <script src="../partials/partials.js"></script>
 	
+	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	  
   </head>
   
   <body spellcheck=false ng-controller="editorController as editor" ng-click="buttonToggle($event)" ng-cloak> <!-- ng-angular-ready -->
-	
-	<bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
-	<div id="editor-header" class="panel-section panel-section-header">
-	  <div class="text-section-header"> {{label}} || 
-		<span>
-		  <bdi id="user_action" class="bold"> {{user_action}} </bdi>
-		  <site-validator ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>
-		  <group-validator ng-if="script.parent.isGroup()" ev="page.events" group="url"> </group-validator>
-		</span>
+	  
+	  <bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
+	  <div id="editor-header" class="panel-section panel-section-header">
+		  <div class="text-section-header"> {{label}} || 
+			  <span>
+				  <bdi id="user_action" class="bold"> {{user_action}} </bdi>
+				  <site-validator ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>
+				  <group-validator ng-if="script.parent.isGroup()" ev="page.events" group="url"> </group-validator>
+			  </span>
+		  </div>
 	  </div>
-	</div>
-	
-	<div id="code_container" class="panel-section">
 	  
-	  <pre id="code_area"> {{script.code}} </pre>
+	  <div id="code_container" class="panel-section">
+		  
+		  <pre id="code_area"> {{script.code}} </pre>
+		  
+	  </div>
 	  
-	</div>
-		
-	<div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()">
+	<!-- <div id="code_container" class="panel-section"></div> -->
 	  
-	  <button ng-repeat="button in buttons.arr"
+	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()">
+		  
+		  <button ng-repeat="button in buttons.arr"
 			  ng-if="button.available"
 			  ng-disabled="buttons.disabled"
 			  id="button.id"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="button.click()">
 
-		{{button.text}}
-		
-	  </button>
+			  {{button.text}}
+			  
+		  </button>
 	  
-	</div>
-
-	<script src="../deps/json/json-formatter.js"></script>
-	<script src="editor.js"></script>
-	
+	  </div>
+	  
+	  <script src="../deps/json/json-formatter.js"></script>
+	<!-- <script src="../../utils/deps/require.js"></script> -->
+	  <script src="editor.js"></script>
+	  
   </body>
 </html>

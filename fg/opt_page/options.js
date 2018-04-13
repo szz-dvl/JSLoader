@@ -223,10 +223,11 @@ function OP (bg, port) {
 		self.settings = $scope;
 		
 		$scope.opts = dataOpts;
+		
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
-
+		
 		$scope.proxys_shown = true;
 		
 		$scope.toggleProxys = function () {
@@ -250,23 +251,23 @@ function OP (bg, port) {
 					new Option({text:'Show gutter line', value: $scope.opts.editor.showGutter, type: "checkbox", id: "showGutter"}, $scope.opts.editor),
 					
 					new Option({text:'Font size', value: $scope.opts.editor.fontSize, type: "text", id: "fontSize",
-								change: that => {
-									
-									if (that.ToID)
-										clearTimeout(that.ToID);
-									
-									that.ToID = setTimeout(
-										() => {
-											$('code').each(
-												(i, block) => {
-													$(block).css("font-size", $scope.opts.editor.fontSize + "pt");
-												}
-											);									
-										}, 1000
-									);
-									
-								}}, $scope.opts.editor
-							  )
+						change: that => {
+							
+							if (that.ToID)
+								clearTimeout(that.ToID);
+							
+							that.ToID = setTimeout(
+								() => {
+									$('code').each(
+										(i, block) => {
+											$(block).css("font-size", $scope.opts.editor.fontSize + "pt");
+										}
+									);									
+								}, 1000
+							);
+							
+						}}, $scope.opts.editor
+					)
 				]
 			}
 		];
@@ -292,8 +293,14 @@ function OP (bg, port) {
 
 		$scope.updtOpts = function() {
 			
-			//$scope.page.bg.option_mgr.editor.theme.update($scope.page.themes.current);
-			$scope.opts.editor.theme = $scope.page.themes.current;
+			let theme = {};
+			
+			theme.name = $scope.page.themes.current.name;
+			theme.knownToHl = $scope.page.themes.current.knownToHl;
+			theme.title = $scope.page.themes.current.title;
+			
+			$scope.opts.editor.theme = theme;
+			console.log("Saving: " + JSON.stringify($scope.opts.editor.theme));
 			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
 		};
 		

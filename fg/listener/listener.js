@@ -53,7 +53,7 @@ function RequestModified (data) {
 };
 
 function RequestWrapper (opt) {
-
+	
 	let self = this;
 	
 	this.type = opt.type;
@@ -122,7 +122,7 @@ function listController (data) {
 		
 		controller.visible = true;
 		controller.toggleList = function (ev) {
-
+			
 			let el = $(ev.target);
 			var text;
 			
@@ -147,9 +147,9 @@ function listController (data) {
 		
 	};
 	
-	return data.constructor.name == 'Array'
-		? data.map(this.registerCrtl)
-		: this.registerCrtl(data);
+	return data.constructor.name == 'Array' ?
+									data.map(this.registerCrtl) :
+									this.registerCrtl(data);
 };
 
 function TabListener (id, page, port) {

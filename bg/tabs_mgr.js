@@ -19,8 +19,28 @@ function ListenerWdw (tabInfo, bg) {
 				wdw => {
 					
 					listener.wdw = wdw;
+
+					/* 
+					   Workaround to avoid blank windows: 
+					   
+					   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
+					   
+					 */
 					
-					resolve (listener);
+					var updateInfo = {
+						
+						width: wdw.width,
+						height: wdw.height + 1, // 1 pixel more than original size...
+						
+					};
+					
+					browser.windows.update (wdw.id, updateInfo)
+						.then(
+							newWdw => {
+
+								resolve (listener);
+								
+							}, reject);
 					
 				}, reject);
 					

@@ -55,40 +55,40 @@
 	</div>
 	
 	<div id="content" class="panel-section scrollable" ng-controller="listenerController as listener">
-	  <no-info ng-if="!infoShown()" text="getVoidText()"></no-info>
-	  
-	  <ul style="display:block;">
+		<no-info ng-if="!infoShown()" text="getVoidText()"></no-info>
 		
-		<http-request ng-repeat="req in list"
-					  ng-show="req.shown"
-					  req="req"
-					  proxys="page.statu.proxys"
-					  urlclick="urlClick"
-					  toggle="toggleRule"
-					  remove="removeRule"> </http-request>
+		<ul style="display:block;">
 		
-		<li class="buttons-landing">
-		  <a id="bottom"></a>
-		</li>
-	  </ul>
-	  
-	  <div class="button-bucket">
-		<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="flushRequests()"> Flush {{ btnStatus() }} </button>
-		<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
-		<button class="browser-style jslbtn-fl" ng-show="infoShown() && !config_sel" ng-click="configSelection()"> Config {{ btnStatus() }} </button>
-		<div ng-show="infoShown() && config_sel" class="config-sel-bucket">
-		  <button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Rule {{ btnStatus() }} </button>
-		  <rule-adder style="display: inline-block;" add="persistRuleSel" dismiss="dismissRuleSel" ng-show="rule_sel"></rule-adder>
-
-		  <button class="browser-style jslbtn" ng-show="!proxying_sel && gotProxys" ng-click="showProxySel()"> Proxy {{ btnStatus() }} </button>
-		  <label ng-show="proxying_sel && gotProxys">
-			<span style="margin-left: 5px;"> Proxy through: </span>
-			<select class="browser-style" ng-model="currentProxySel" ng-options="proxy for proxy in page.statu.proxys" ng-change="proxySelChange()"></select>
-			<button class="browser-style jslbtn" ng-click="dismissProxySel()"> x </button>
-		  </label>
-
+			<http-request ng-repeat="req in list"
+				ng-show="req.shown"
+				req="req"
+				proxys="page.statu.proxys"
+				urlclick="urlClick"
+				toggle="toggleRule"
+				remove="removeRule"> </http-request>
+			
+			<li class="buttons-landing">
+				<a id="bottom"></a>
+			</li>
+		</ul>
+		
+		<div class="button-bucket">
+			<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="flushRequests()"> Flush {{ btnStatus() }} </button>
+			<button class="browser-style jslbtn-fl" ng-show="infoShown()" ng-click="downloadCapture()"> Download {{ btnStatus() }} </button> 
+			<button class="browser-style jslbtn-fl" ng-show="infoShown() && !config_sel" ng-click="configSelection()"> Config {{ btnStatus() }} </button>
+			<div ng-show="infoShown() && config_sel" class="config-sel-bucket">
+				<button class="browser-style jslbtn" ng-show="!rule_sel" ng-click="showRuleSel()"> Rule {{ btnStatus() }} </button>
+				<rule-adder style="display: inline-block;" add="persistRuleSel" dismiss="dismissRuleSel" ng-show="rule_sel"></rule-adder>
+				
+				<button class="browser-style jslbtn" ng-show="!proxying_sel && gotProxys" ng-click="showProxySel()"> Proxy {{ btnStatus() }} </button>
+				<label ng-show="proxying_sel && gotProxys">
+					<span style="margin-left: 5px;"> Proxy through: </span>
+					<select class="browser-style" ng-model="currentProxySel" ng-options="proxy for proxy in page.statu.proxys" ng-change="proxySelChange()"></select>
+					<button class="browser-style jslbtn" ng-click="dismissProxySel()"> x </button>
+				</label>
+				
+			</div>
 		</div>
-	  </div>
 	</div>
 	
 	<script src="../deps/json/json-formatter.js"></script>

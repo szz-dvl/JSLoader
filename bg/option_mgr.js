@@ -35,6 +35,9 @@ function OptionMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 
+				/* Object.assign: Workaround to avoid strange "Can't acces dead object" in foreground pages. */
+
+				self.editor.theme = Object.assign({}, opts.editor.theme);
 				self.editor = Object.assign({}, opts.editor);
 				//self.jsl = Object.assign({}, opts.jsl);
 				

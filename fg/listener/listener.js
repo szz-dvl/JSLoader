@@ -152,6 +152,28 @@ function listController (data) {
 									this.registerCrtl(data);
 };
 
+
+function filterGroup (conditions) {
+
+	this.chunks = conditions.split("&&").map(chunk => { return new filterChunk(chunk.trim()); });
+
+}
+
+function filterChunk (filter) {
+	
+	for (let op of ['=', ':', '!=', '!:']) {
+		
+		let split = filter.split(op).map(chunk => { return chunk.trim(); });
+		
+		if (split.length == 2) {
+			
+			this.key = split[0];
+			this.value = split[1] != "" ? split[1] : undefined;
+			this.op = op;
+		}			
+	}
+}
+
 function TabListener (id, page, port) {
 	
 	let self = this;
@@ -223,7 +245,7 @@ function TabListener (id, page, port) {
 
 					self.list.advFilterChange($scope.advFilter);
 				
-				}, 800);
+				}, 1200);
 		}
 
 		$scope.anyFilter = function () {
@@ -251,11 +273,11 @@ function TabListener (id, page, port) {
 		$scope.listener = self.bg.tabs_mgr.getListenerById(id);
 		$scope.list = [];
 		$scope.currentFilter = {
-			
-			key: "",
-			value: "",
-			isEmpty: () => { return this.key == "" && this.value == ""; }
-			
+
+			isEmpty: function () { return (this.groups.length == 0 ||
+																 (this.groups[0].chunks.length == 1 &&
+																	 ((this.groups[0].chunks[0].key == "" && typeof(this.groups[0].chunks[0].value) == 'undefined') || !Object.keys(this.groups[0].chunks[0]).length ))); },
+			groups: []	
 		};
 
 		$scope.getVoidText = function () {
@@ -377,35 +399,39 @@ function TabListener (id, page, port) {
 		
 		$scope.__reqMustShow = function (req) {
 			
-			if ($scope.currentFilter.key != "") {
-				
-				for (let key of Object.keys(req.request)) {
-					
-					if (key == $scope.currentFilter.key) {
-						if (typeof(req.request[key]) != 'undefined') {
-							return (
-								(
-									(
-										typeof(req.request[key]) == 'string'
-											? req.request[key] == $scope.currentFilter.value
-											: JSON.stringify(req.request[key]) == $scope.currentFilter.value) || ($scope.currentFilter.value == "" && !req.request[key])
-									
-								) && $scope.getStatus(req.type)
-							);
-							
-						} else
-							return ($scope.currentFilter.value == 'undefined' || $scope.currentFilter.value == '') && $scope.getStatus(req.type);
-					}
-				}
-
-			} else
-				return $scope.currentFilter.value == "" ? $scope.getStatus(req.type) : false;
-			
+			return $scope.currentFilter.isEmpty() ?
+				   $scope.getStatus(req.type) :
+				   ($scope.currentFilter.groups.find(
+					   group => {
+						   
+						   return group.chunks.every(
+							   chunk => {
+								   
+								   for (let key of Object.keys(req.request)) {
+									   
+									   if (key == chunk.key || chunk.key == "") {
+										   
+										   let reqval = typeof(req.request[key]) != 'undefined' ? typeof(req.request[key]) == 'string' ? req.request[key] :  JSON.stringify(req.request[key]) : 'undefined';
+										   
+										   switch (chunk.op) {
+											   
+											   case ':':
+												   return (reqval.includes(chunk.value) || (reqval == 'undefined' && typeof(chunk.value) == 'undefined')) && $scope.getStatus(req.type);
+											   case '=':
+												   return (reqval == chunk.value || (reqval == 'undefined' && typeof(chunk.value) == 'undefined'))  && $scope.getStatus(req.type);
+											   case '!:':
+												   return (!reqval.includes(chunk.value) || (reqval == 'undefined' && typeof(chunk.value) != 'undefined')) && $scope.getStatus(req.type);
+											   case '!=':
+												   return (reqval != chunk.value || (reqval == 'undefined' && typeof(chunk.value) != 'undefined')) && $scope.getStatus(req.type);
+										   } 
+									   }
+								   }
+							   });
+						   
+					   }) ? true : false);
 		};
 		
 		$scope.__applyFilters = function () {
-			
-			//$scope.listener.printFilters();
 			
 			for (let req of $scope.list) {
 				
@@ -417,11 +443,8 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.advFilterChange = function (filter) {
-			
-			let split = filter.split(":").map(chunk => { return chunk.trim(); });
-			
-			$scope.currentFilter.key = split[0];
-			$scope.currentFilter.value = split.slice(1).join(":");
+
+			$scope.currentFilter.groups = filter.split("||").map(chunk => { return new filterGroup(chunk.trim()); });
 			
 			$scope.__applyFilters();
 			
@@ -453,11 +476,12 @@ function TabListener (id, page, port) {
 				request => {
 					
 					return request.shown == true;
-
+					
 				}
-			) || false;
+				
+			) ? true : false;
 		};
-
+		
 		$scope.configSelection = function () {
 			$scope.config_sel = true; 
 		};
@@ -467,7 +491,7 @@ function TabListener (id, page, port) {
 		};
 		
 		$scope.persistRuleSel = function (action, data) {
-
+			
 			$scope.list.filter(
 				stacked => {
 					
@@ -477,19 +501,18 @@ function TabListener (id, page, port) {
 					stacked => {
 						
 						$scope.listener.addFilter(stacked.request,
-												  {
-													  action: action,
-													  data: data,
-												  });
+							{
+								action: action,
+								data: data,
+							});
 					});
 			
-
 			$scope.rule_sel = false;
-
+			
 			if (!$scope.proxying_sel)
 				$scope.config_sel = false;
 		};
-
+		
 		$scope.dismissRuleSel = function () {
 			
 			$scope.rule_sel = false;
@@ -497,7 +520,7 @@ function TabListener (id, page, port) {
 			if (!$scope.proxying_sel)
 				$scope.config_sel = false;
 		};
-
+		
 		$scope.showProxySel = function () {
 			
 			$scope.proxying_sel = true;

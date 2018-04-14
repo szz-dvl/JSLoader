@@ -4,7 +4,7 @@ function GroupChooser (bg) {
 	
 	this.bg = bg;
 	this.form;
-
+	
 	this.app = angular.module('ChooserApp', ['jslPartials']);
 	
 	this.app.controller('formController', ($scope, $timeout) => {
@@ -18,12 +18,15 @@ function GroupChooser (bg) {
 		$scope.current = $scope.groups[0];
 		$scope.url = self.bg.group_mgr.adding.name();
 
+		if ($scope.url.slice(-1) == "/")
+			$scope.url = $scope.url.slice(0, -1);
+		
 		$scope.setAction = function () {
 			
 			self.bg.group_mgr.getOrBringCached($scope.current)
 				.then(
 					group => {
-
+						
 						if (group.ownerOf($scope.url))
 							$scope.action = "Remove";
 						else

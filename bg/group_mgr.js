@@ -46,7 +46,6 @@ function GroupMgr (bg) {
 	this.groups = []; /* Index */
 	this.storage = global_storage;
 	this.adding;
-
 	
 	this.storage.__getGroups(
 		new_groups => {
@@ -69,12 +68,16 @@ function GroupMgr (bg) {
 								
 								self.adding = url;
 								new GroupChooserWdw(url.name().length).then(resolve, reject);
-						
+								
 							}
 						);
 				});
-		} else
+			
+		} else {
+			
 			self.bg.notify_mgr.info("No groups available.");
+			
+		}
 	};
 
 	this.exists = function (group_name) {
@@ -135,7 +138,7 @@ function GroupMgr (bg) {
 												
 												if (!group.isEmpty())
 													pr.push(group.persist());
-											}
+ 											}
 											
 											Promise.all(pr)
 												.then(
@@ -172,15 +175,66 @@ function GroupMgr (bg) {
 
 	/* !!! */
 	this.importGroups = function (arr) {
+
+		let promises = [];
 		
-		for (group_info of arr)
-			self.updateCache(new Group (group_info));
+		for (group_info of arr) {
 			
+			promises.push(self.updateCache(group_info));
+			
+		}
+
+		/* 
+		   At this point all data from imported JSON must be properly merged, 
+		   need to check for unmet site relations. 
+ 
+		 */
+		
+		Promise.all(promises)
+			.then(
+				merged_groups => {
+					
+					for (let group of merged_groups) {
+						
+						for (let site_name of group.sites) {
+							
+							let url = new URL("http://" + site_name);
+							
+							global_storage.getDomain(
+								domain => {
+									
+									let site = domain.haveSite(url.pathname);
+									
+									if (site) {
+										
+										site.appendGroup(group);
+										site.persist();
+										
+									} else {
+										
+										group.sites.remove(group.sites.indexOf(site_name));
+									}
+
+									
+								}, url.hostname);
+						}
+						
+						group.persist();
+					}
+				})
+			
+			.finally(
+				() => {
+					
+					self.bg.domain_mgr.reload();
+					
+				}
+			);
 	};
-
+	
 	this.exportGroups = function () {
-
-		self.domain_mgr.getFullGroups(
+		
+		self.getAllItems().then(
 			groups => {
 				
 				var text = ["["];
@@ -190,7 +244,7 @@ function GroupMgr (bg) {
 					text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
 					text.push(",");
 				}
-
+				
 				text.pop(); // last comma
 				text.push("]");
 				

@@ -19,3 +19,5 @@
 -Unavailable?
 	- Use console editor (devtools/sourceeditor/editor) in foreground pages ? 
 	
+- Finally
+  - Big refactor, Shortcuts + Page Action + Opt Page ===> enough!

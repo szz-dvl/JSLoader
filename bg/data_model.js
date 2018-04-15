@@ -331,8 +331,11 @@ function __Script_Bucket (scripts) {
 		} else { 	
 			
 			script.parent = self;
-			self.scripts.push(script);
 			
+			if (script instanceof Script)
+				self.scripts.push(script);
+			else
+				self.scripts.push(new Script(script));
 		}
 		
 		return script;	
@@ -406,7 +409,7 @@ function Site (opt) {
 		return self.url == "/";
 		
 	};
-
+	
 	this.isSubdomain = function () {
 		
 		return self.parent.name.startsWith("*."); /* All subdomains shortcut. */
@@ -420,7 +423,7 @@ function Site (opt) {
 	};
 
 	this.siteName = function () {
-
+		
 		let name = self.parent.name + self.url;
 		
 		return name.slice(-1) == "/" ? name.slice(0, -1) : name;
@@ -446,10 +449,10 @@ function Site (opt) {
 		
 		self.groups.remove(self.groups.indexOf(group.name));
 		group.sites.remove(group.sites.indexOf(self.siteName()));
-
+		
 		if (self.isEmpty())
 			self.remove();
-
+		
 		if (group.isEmpty())
 			group.remove();
 	};
@@ -463,20 +466,26 @@ function Site (opt) {
 	};
 
 	this.persist = function () {
-	
+		
 		return self.parent.persist();
 		
 	};
-
+	
 	this.mergeInfo = function (imported) {
-
+		
 		for (script of imported.scripts)
 			self.upsertScript(script);
-
-		for (group_name of imported.groups)
-			self.upsertScript(script);
+		
+		for (group_name of imported.groups) {
+			
+			if (!self.groups.includes(group_name))
+				self.groups.push(group_name);
+			
+			/* The other half to be done from manager ¿¿?? */
+			
+		}
 	}
-
+	
 	/* Stringify */
 	this.__getDBInfo = function () {
 		
@@ -493,7 +502,7 @@ function Site (opt) {
 }
 
 function Domain (opt) {
-
+	
 	var self = this;
 	
 	if (!opt || !opt.name)
@@ -681,7 +690,7 @@ function Domain (opt) {
 			self.upsertScript(script);
 
 		for (site of imported.sites) 	
-			self.getOrCreateSite(site.url).appendGroup(self.name);
+			self.getOrCreateSite(site.url).mergeInfo(site);
 	};
 	
 	this.__getDBInfo = function () {
@@ -776,13 +785,12 @@ function Group (opt) {
 	};
 
 	this.appendSite = function (site) {
-
+		
 		if (!self.sites.includes(site.siteName()))
 			self.sites.push(site.siteName());
-
+		
 		if (!site.groups.includes(self.name))
 			site.groups.push(self.name);
-		
 	};
 
 	this.removeSite = function (site) {
@@ -810,9 +818,18 @@ function Group (opt) {
 
 		for (script of imported.scripts)
 			self.upsertScript(script);
-
-		for (site_name of imported.sites) 	
-			self.appendSite(site_name);	
+		
+		for (site_name of imported.sites) {
+			
+			if (!self.sites.includes(site_name))
+				self.sites.push(site_name);
+			
+			/* 
+			   The other half of the relation to be 
+			   done from mgr! 
+			   
+			 */
+		}
 	};
 
 	/* Only for groups ! */

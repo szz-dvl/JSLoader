@@ -18,7 +18,7 @@ function DomainMgr (bg) {
 	);
 
 	this.__isIPAddr = function (string) {
-
+		
 		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
 		
 		return string.match(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/);
@@ -26,10 +26,10 @@ function DomainMgr (bg) {
 	};
 
 	this.__getSubdomains = function () {
-
+		
 		return self.domains.filter(
 			domain_name => {
-
+				
 				return domain_name.startsWith("*.");
 				
 			}
@@ -40,7 +40,7 @@ function DomainMgr (bg) {
 
 		return new Promise (
 			(resolve, reject) => {
-
+				
 				let subdomains = [];
 				
 				/* SubDomain scripts */
@@ -48,32 +48,31 @@ function DomainMgr (bg) {
 				var last;
 				
 				async.eachSeries(split.slice(1).reverse(),
-								 (actual, cb) => {
-									 
-									 let subdomain_name = last ? actual + "." + last : actual;
-									 last = actual;
+					(actual, cb) => {
+						
+						let subdomain_name = last ? actual + "." + last : actual;
+						last = actual;
 
-									 this.storage.getDomain(
-										 subdomain => {
-											 
-											 if (subdomain) 
-												 subdomains.push(subdomain);
-											 
-											 cb();
-											 
-										 }, "*." + subdomain_name
-									 );
-								 },
-								 err => {
-									 
-									 if (err)
-										 reject(err);
-									 else
-										 resolve(subdomains);
-									 
-								 });
+						this.storage.getDomain(
+							subdomain => {
+								
+								if (subdomain) 
+									subdomains.push(subdomain);
+								
+								cb();
+								
+							}, "*." + subdomain_name
+						);
+					},
+					err => {
+						
+						if (err)
+							reject(err);
+						else
+							resolve(subdomains);
+						
+					});
 			});
-
 	};
 
 	this.__getGroupScripts = function (groups) {
@@ -84,33 +83,33 @@ function DomainMgr (bg) {
 				let scripts = [];
 
 				async.eachSeries(groups,
-								 (group, next) => {
-									 
-									 this.storage.getGroup(
-										 group => {
-											 
-											 if (group) {
-												 
-												 scripts.push.apply(scripts,
-																	group.scripts);
-											 } else 
-												 console.warn("Missing group: " + group);
-											 
-											 next();
-											 
-										 }, group
-									 );		
-								 },
-								 err => {
-									 
-									 if (err)
-										 reject(err);
-									 else
-										 resolve(scripts);
-									 
-								 });
+					(group, next) => {
+						
+						this.storage.getGroup(
+							group => {
+								
+								if (group) {
+									
+									scripts.push.apply(scripts,
+										group.scripts);
+								} else 
+								console.warn("Missing group: " + group);
+								
+								next();
+								
+							}, group
+						);		
+					},
+					err => {
+						
+						if (err)
+							reject(err);
+						else
+							resolve(scripts);
+						
+					});
 			});
-
+		
 	};
 
 	this.__getAggregatedScripts = function (groups, hostname) {
@@ -127,10 +126,10 @@ function DomainMgr (bg) {
 							for (let subdomain of subdomains) {
 								
 								scripts.push.apply(scripts,
-												   subdomain.scripts);
+									subdomain.scripts);
 								
 								groups.push.apply(groups,
-												  subdomain.groups);
+									subdomain.groups);
 								
 							}
 							
@@ -139,7 +138,7 @@ function DomainMgr (bg) {
 									group_scripts => {
 										
 										scripts.push.apply(scripts,
-														   group_scripts);
+											group_scripts);
 										
 										resolve(scripts);
 										
@@ -163,15 +162,15 @@ function DomainMgr (bg) {
 
 							let groups = [];
 							let scripts = [];
-						
+							
 							if (domain) {
 								
 								/* Domain & Site scripts */
 								scripts.push.apply(scripts,
-												   domain.scripts);
+									domain.scripts);
 								
 								groups.push.apply(groups,
-												  domain.groups);
+									domain.groups);
 								
 								var site = domain.haveSite(url.pathname);
 								
@@ -181,10 +180,10 @@ function DomainMgr (bg) {
 								if (site) {
 									
 									scripts.push.apply(scripts,
-													   site.scripts);
+										site.scripts);
 									
 									groups.push.apply(groups,
-													  site.groups);
+										site.groups);
 								}
 
 							}
@@ -196,7 +195,7 @@ function DomainMgr (bg) {
 								.then(group_scripts => {
 
 									scripts.push.apply(scripts,
-													   group_scripts);
+										group_scripts);
 									
 									resolve(scripts);
 									
@@ -209,7 +208,7 @@ function DomainMgr (bg) {
 
 		return new Promise (
 			(resolve, reject) => {
-					
+				
 				self.getOrBringCached(url.hostname)
 					.then(
 						domain => {
@@ -233,13 +232,13 @@ function DomainMgr (bg) {
 									if (domain) {
 										
 										groups.push.apply(groups,
-														  domain.groups);	
+											domain.groups);	
 									}
 
 									if (site) {
 										
 										groups.push.apply(groups,
-														  site.groups);	
+											site.groups);	
 									}									
 									
 									self.__getRepresentedBy(url.hostname)
@@ -252,10 +251,10 @@ function DomainMgr (bg) {
 
 													
 													scripts.push.apply(scripts,
-																	   subdomain.scripts);
+														subdomain.scripts);
 													
 													groups.push.apply(groups,
-																	  subdomain.groups);
+														subdomain.groups);
 													
 												}
 												
@@ -289,7 +288,7 @@ function DomainMgr (bg) {
 
 		return new Promise (
 			(resolve, reject) => {
-					
+				
 				self.getOrBringCached(url.hostname)
 					.then(
 						domain => {
@@ -303,14 +302,14 @@ function DomainMgr (bg) {
 								subdomains: [],
 								groups: []
 							};		
-								
+							
 							if (domain) {
 
 								if (domain.scripts.length)
 									editInfo.domain.push({ name: domain.name, scripts: domain.scripts });
 								
 								groups.push.apply(groups,
-												  domain.groups);
+									domain.groups);
 
 								site = domain.haveSite(url.pathname);
 							}
@@ -321,20 +320,20 @@ function DomainMgr (bg) {
 									editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
 								groups.push.apply(groups,
-												  site.groups);	
+									site.groups);	
 							}
 
 							self.__getRepresentedBy(url.hostname)
 								.then(
 									subdomains => {
-											
+										
 										for (let subdomain of subdomains) {
 											
 											if (subdomain.scripts.length)
 												editInfo.subdomains.push({ name: subdomain.name, scripts: subdomain.scripts });
 											
 											groups.push.apply(groups,
-															  subdomain.groups);
+												subdomain.groups);
 											
 										}
 										
@@ -368,10 +367,78 @@ function DomainMgr (bg) {
 	
 	/* !!! */
 	this.importDomains = function (arr) {
+
+		let promises = [];
 		
-		for (domain_info of arr)
-			self.updateCache(new Domain (domain_info));
+		for (domain_info of arr) {
+
+			promises.push(self.updateCache(domain_info));
 			
+		}
+
+		/* 
+		   At this point all data from imported JSON must be properly merged, 
+		   need to check for unmet group relations. 
+		   
+		 */
+
+		Promise.all(promises)
+			.then(
+				merged_domains => {
+					
+					for (let domain of merged_domains) {
+						
+						for (let group_name of domain.groups) {
+							
+							global_storage.getGroup(
+								group => {
+									
+									if (group) {
+										
+										group.appendSite(domain);
+										group.persist();
+										
+									} else {
+										
+										domain.groups.remove(domain.groups.indexOf(group_name));
+									}
+									
+								}, group_name);
+						}
+
+						
+						for (let site of domain.sites) {
+							for (let group_name of site.groups) {
+								
+								global_storage.getGroup(
+									group => {
+										
+										if (group) {
+											
+											group.appendSite(site);
+											group.persist();
+											
+										} else {
+
+											site.groups.remove(site.groups.indexOf(group_name));
+										}
+										
+										
+									}, group_name);
+							}
+						}
+
+						domain.persist();
+					}
+				})
+			
+			.finally(
+				() => {
+					
+					self.bg.group_mgr.reload();
+					
+				}
+			);
 	};
 
 	this.clear = function () {
@@ -391,22 +458,28 @@ function DomainMgr (bg) {
 
 	this.exportScripts = function () {
 
-		self.domain_mgr.getFullDomains(
+		self.getAllItems().then(
 			domains => {
 				
+				/* console.log("exporting domains: ");
+				   console.log(domains); */
+								
 				var text = ["["];
 				
 				for (domain of domains) {
 					
 					text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
 					text.push(",");
-
+					
 				}
-
+				
 				text.pop(); // last comma
 				text.push("]");
+
+				//console.log("My text: " + text);
 				
 				browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) });
+				
 			}
 		);
 	};

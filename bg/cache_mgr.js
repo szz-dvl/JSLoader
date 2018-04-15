@@ -285,18 +285,35 @@ function Cache (opt) {
 	/* Only when importing items, "cache-update-{ItemKey}" message will be broadcasted by "storeNew{ItemName}" on domain persist. !!!! */
 	this.updateCache = function (item) {
 
-		self.getOrBringCached(item.name)
-			.then(
-				cached => {
-					
-					if (cached)
-						cached.mergeInfo(item); /* Groups missing */ 			
-					else {
+		return new Promise(
+			(resolve, reject) => {
+				
+				self.feeding(
+					fed_item => {
 						
-						self.cacheItem(item);
-						item.persist();
-					}
-				}
-			);
+						if (fed_item) {
+							
+							fed_item.mergeInfo(item);								
+							self.forceCacheItem(fed_item);
+							fed_item.cache = self;
+
+							resolve(fed_item);
+							
+						} else {
+							
+							self.birth(
+								new_item => {	
+									
+									new_item.mergeInfo(item);								
+									self.cacheItem(new_item);
+									new_item.cache = self;
+									
+									resolve(new_item);
+									
+								}, item.name);
+						}
+						
+					}, item.name);
+			});
 	};
 }

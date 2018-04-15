@@ -300,7 +300,7 @@ function OP (bg, port) {
 			theme.title = $scope.page.themes.current.title;
 			
 			$scope.opts.editor.theme = theme;
-			console.log("Saving: " + JSON.stringify($scope.opts.editor.theme));
+			//console.log("Saving: " + JSON.stringify($scope.opts.editor.theme));
 			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
 		};
 		
@@ -384,7 +384,7 @@ function OP (bg, port) {
 		
 		$scope.port = port;
 		$scope.groups = dataGroups;
-
+		
 		$scope.shown = [];
 		
 		$scope.title = "Stored groups";
@@ -392,12 +392,12 @@ function OP (bg, port) {
 		$scope.import_gr_button = false;
 		
 		$scope.applyGrImport = function () {
-
+			
 			var reader = new FileReader();
 			
 			reader.onload = function () {
 				
-				$scope.page.bg.domain_mgr.importDomains(JSON.parse(reader.result));
+				$scope.page.bg.group_mgr.importGroups(JSON.parse(reader.result));
 				$scope.import_button = false;
 			}
 			
@@ -405,7 +405,7 @@ function OP (bg, port) {
 		};
 		
 		$scope.groupsFile = function (ev) {
-
+			
 			$scope.import_gr_button = true;
 			$scope.$digest();
 		};
@@ -416,10 +416,10 @@ function OP (bg, port) {
 			
 		});	
 	});
-
+	
 	this.app.config(
 		$stateProvider=> {
-		
+			
 			$stateProvider.state({
 				
 				resolve: {
@@ -602,7 +602,7 @@ function OP (bg, port) {
 					
 					self.tabs.setActive('storage');
 					
-					console.log(dataStorage);		
+					//console.log(dataStorage);		
 					$scope.content = dataStorage;
 
 					$scope.keys = Object.keys($scope.content);

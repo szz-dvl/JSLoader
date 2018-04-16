@@ -55,23 +55,23 @@ function RuleCriteria (opt) {
 	this.lenght = this.attributes.length;
 	
 	this.match = function (request) {
-
+		
 		return this.attributes.length
 		
-			? this.attributes.filter(
-				attr => {
+			 ? this.attributes.filter(
+				 attr => {
 					
-					return attr.match(request[attr.key]);
+					 return attr.match(request[attr.key]);
 					
-				}
+				 }
 				
-			).length == this.attributes.length
+			 ).length == this.attributes.length
 		
 		: false;
 	}
 
 	this.remove = function (idx) {
-
+		
 		this.attributes.remove(idx);
 		this.length --;
 	}
@@ -133,7 +133,7 @@ function ProxyMgr (bg) {
 	let self = this;
 	
 	this.proxy_rules = [];
-
+	
 	this.storage.getProxyRules(
 		new_rules => {
 
@@ -175,11 +175,10 @@ function ProxyMgr (bg) {
 				this.proxy_rules[stored].proxy = proxy;
 			else
 				this.proxy_rules.push({ host: hostname, proxy: proxy });
-
+			
 		} else if (stored >= 0) /* Special keyword "None" will be treated here! */ 	
 			this.proxy_rules.remove(stored);
 		
-
 		if (to_persist)
 			self.persistProxys();
 		
@@ -194,7 +193,7 @@ function ProxyMgr (bg) {
 		return self.__proxyOps(hostname, proxy, true);
 		
 	};
-
+	
 	this.newProxy = function (hostname, proxy) {
 		
 		return self.__proxyOps(hostname, proxy, false);
@@ -207,10 +206,10 @@ function ProxyMgr (bg) {
 	};
 
 	this.upsertProxy = function (hostname, proxy) {
-
+		
 		let exists = this.proxy_rules.findIndex(
 			prule => {
-
+				
 				return prule.host == hostname;
 				
 			}
@@ -219,10 +218,9 @@ function ProxyMgr (bg) {
 		if (exists >= 0) {
 			
 			self.proxy_rules.remove(exists);
-			return self.addProxy(hostname, proxy);
-			
+			return self.addProxy(hostname, proxy);	
 		} 
-
+		
 		return self.newProxy(hostname, proxy);
 	};
 
@@ -232,13 +230,13 @@ function ProxyMgr (bg) {
 			resolve => {
 				
 				let proxy_obj = typeof(proxy) == 'string'
-					? self.bg.option_mgr.jsl.proxys[proxy]
-					: proxy;
-
+											   ? self.bg.option_mgr.jsl.proxys[proxy]
+											   : proxy;
+				
 				if (!proxy_obj || !proxy_obj.host || !proxy_obj.port || !proxy_obj.type)
 					resolve(-1);
 				else {
-
+					
 					browser.runtime.sendMessage(
 						{ host: hostname, proxy: proxy_obj, temp: true },
 						{ toProxyScript: true }
@@ -301,9 +299,27 @@ function RulesMgr (bg) {
 	this.addRule = function (rule) {
 		
 		let my_rule = new Rule(rule, self);
-		
-		self.rules.push(my_rule);
 
+		let exists = self.rules.findIndex(
+			rl => {
+
+				return rl.id == rule.id;
+				
+			}
+		);
+		
+		if (exists >= 0) {
+
+			/* Importing rules */
+
+			self.rules[exists] = my_rule;
+			
+		} else {
+
+			self.rules.push(my_rule);
+			
+		}
+		
 		self.persist();
 		
 		return my_rule.id;
@@ -398,6 +414,52 @@ function RulesMgr (bg) {
 				}
 			)
 		);
+	}
+	
+	this.importRules = function (imported) {
+
+		for (let rule of imported.rules) {
+			
+			self.addRule(rule);
+			
+		}
+
+		for (let prule of imported.proxy_rules) {
+			
+			self.addProxy(prule.host, prule.proxy);
+			
+		}
+		
+	}
+	
+	this.exportRules = function (inline) {
+
+		let text = ["{\"rules\": ["];
+		
+		for (let rule of self.rules) {
+			
+			text.push.apply(text, JSON.stringify(rule.__getDBInfo()).split('\n'));
+			text.push(",");
+		}
+
+		text.pop(); // last comma
+		text.push("], \"proxy_rules\": [");
+
+		for (let rule of self.proxy_rules) {
+			
+			text.push.apply(text, JSON.stringify(rule).split('\n'));
+			text.push(",");
+		}
+		
+		text.pop(); // last comma
+		text.push("]}");
+		
+		//console.log("My text: " + text);
+
+		if (inline)
+			return text;
+		else
+			browser.downloads.download({ url: URL.createObjectURL( new File(text, "rules.json", {type: "application/json"}) ) });
 	}
 	
 	this.changeHeaders = function (request) {

@@ -2,7 +2,7 @@ function Options (opt) {
 
 	this.jsl = opt.jsl || {
 		
-		proxys: {}
+		proxys: {"example": {"host": "hostname", "port": 9050, "type": "socks | http5 | ... etc"}}
 	};
 	
 	this.editor = opt.editor || {
@@ -123,28 +123,42 @@ function OptionMgr (bg) {
 		);
 
 	this.clear = function () {
-
+		
 		self.storage.removeOptions();
 	};
 
 	this.setProxys = function (literal) {
-
+		
 		self.jsl.proxys = JSON.parse(literal);
-
+		
 	};
 	
-	this.exportSettings = function () {
+	this.exportApp = function () {
+
+		let text = ["{\"scripts\": "];
+		let promises = [self.bg.domain_mgr.exportScripts(true), self.bg.group_mgr.exportGroups(true)];
 		
-		browser.downloads.download(
-			{ url: URL.createObjectURL(
-				new File(
-					JSON.stringify(self.option_mgr.getFullOpts()).split('\n'),
-					"settings.json",
-					{type: "application/json"}
-				)
-			)}
-		);
-	};
+		Promise.all(promises).then(
+			data => {
+
+				text.push.apply(text, data[0]);
+				text.push(", \"groups\": ");
+				text.push.apply(text, data[1]);
+				text.push(", \"rules\": ");
+				text.push.apply(text, self.bg.rules_mgr.exportRules(true));
+				text.push("}");
+				
+				browser.downloads.download({ url: URL.createObjectURL( new File(text, "app.json", {type: "application/json"}) ) });
+			}
+		);	
+	}
+	
+	this.importApp = function (imported) {
+		
+		self.bg.domain_mgr.importDomains(imported.scripts);
+		self.bg.group_mgr.importGroups(imported.groups);
+		self.bg.rules_mgr.importRules(imported.rules);
+	}
 	
 	// this.storeNewOpts = function (changes, area) {
 		

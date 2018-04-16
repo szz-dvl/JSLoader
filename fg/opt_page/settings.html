@@ -1,20 +1,9 @@
 <form ng-submit="updtOpts()">
-  
-  <!-- <div class="panel-section">
-  <div id="settings_head" class="panel-section-header">
-  <div class="text-section-header"> {{title}}
-  <label class="input_import" style="float:right;">
-  <input id="import_settings" type="file"></input>
-  </label>
-  </div>
-  </div>
-  </div><br></br> -->
-  
-	<table>
+  	<table>
 		<thead></thead>
 		<tbody>
 			<tr>
-				<td class="option-col" style="min-width: 350px; width: 350px;">
+				<td class="option-col" style="min-width: 350px; width: 475px;">
 					<div id="jsl_head">
   						<h4>JSL Settings</h4>
 					</div>
@@ -33,6 +22,33 @@
 						<select ng-model="page.themes.current" ng-options="theme.name group by theme.title for theme in page.themes.list" ng-change="page.themes.themeChange()"></select>
 						
 					</label><br></br>
+				</td>
+				<td class="option-col" style="min-width: 350px; width: 600px;">
+					<div id="jsl_head">
+  						<h4>Input/output</h4>
+					</div>
+					
+					<div id="input_output" class="panel-section">
+						<div class="browser-style" style="display: inline-block;">
+							<p style="float:left;">Import app data:</p>
+							<input id="import_app" type="file" style="padding-left: 10px; width: 50%;"></input>
+							<table style="float:right; width: 25% !important;">
+								<thead></thead>
+								<tbody style="float:right;">
+									<tr style="float:right;">
+										<td>
+											<button class="browser-style" ng-click="AppExport()"> Export app </button>
+										</td>
+									</tr>
+									<tr style="float:right;">
+										<td>
+											<button class="browser-style" ng-show="import_app_button" ng-click="applyAppImport()"> Apply changes </button>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>				
 				</td>
 			</tr>
 		</tbody>

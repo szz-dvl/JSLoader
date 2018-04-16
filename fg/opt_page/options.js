@@ -70,12 +70,13 @@ function OP (bg, port) {
 	
 	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
 	
-	this.app.controller('tabsController', function ($scope, $state) {
+	this.app.controller('tabsController', function ($scope, $timeout, $state) {
 		
 		self.tabs = $scope;
 		$scope.page = self;
 		
 		$scope.active;
+		$scope.import_data_button = false;
 		
 		$scope.tabs = [
 			
@@ -87,15 +88,78 @@ function OP (bg, port) {
 			{sref: 'logs', title: 'Logs'},
 			{sref: 'storage', title: 'Storage'}
 		];
-
+		
 		//ui-sref
 		$scope.setActive = function (tab) {
 			
 			$("#tab-" + tab).siblings('.td-tab-link').removeClass("active");
 			$("#tab-" + tab).addClass("active");
-									
+			
 			$scope.active = tab;
+			$scope.import_data_button = false;
 		};
+		
+		$scope.inoutOk = function () {
+			
+			return ['domains', 'groups', 'rules'].includes($scope.active);
+			
+		}
+
+		$scope.applyDataImport = function (ev) {
+			
+			let reader = new FileReader();
+			
+			reader.onload = function () {
+				
+				switch ($scope.active) {
+					case "domains":
+						$scope.page.bg.domain_mgr.importDomains(JSON.parse(reader.result));
+						break;;
+					case "groups":
+						$scope.page.bg.group_mgr.importGroups(JSON.parse(reader.result));
+						break;;
+					case "rules":
+						$scope.page.bg.rules_mgr.importRules(JSON.parse(reader.result));
+						break;;
+				}
+				
+				$scope.import_data_button = false;
+				$scope.$digest();
+			}
+			
+			reader.readAsText($("#import_data")[0].files[0]);
+		};
+		
+		$scope.dataExport = function (ev) {
+
+			reader.onload = function () {
+				
+				switch ($scope.active) {
+					case "domains":
+						$scope.page.bg.domain_mgr.exportScripts();
+						break;;
+					case "groups":
+						$scope.page.bg.group_mgr.exportGroups();
+						break;;
+					case "rules":
+						$scope.page.bg.rules_mgr.exportRules();
+						break;;
+				}
+			}
+		};
+		
+		$scope.dataFile = function (ev) {
+			
+			$scope.import_data_button = true;
+			$scope.$digest();
+			
+		};
+
+		$timeout(() => {
+			
+			$("#import_data").on('change', $scope.dataFile);
+			
+		});
 	});
 	
 	this.app.controller('userdefsController', function ($scope) {
@@ -134,13 +198,13 @@ function OP (bg, port) {
 	
 	
 	this.app.controller('themeController', ($scope, $compile) => {
-
+		
 		self.themes = $scope;
 		$scope.page = self;
 		
 		/* Ace editor rules here, highlightjs will share theme if available */
 		$scope.list = [
-
+			
 			{name: "monokai", knownToHl: "monokai-sublime", title: "Hightlights available"}, /* "monokai-sublime" */
 			{name: "ambiance", knownToHl: false, title: "Hightlights unavailable"},
 			{name: "chaos", knownToHl: false, title: "Hightlights unavailable"},
@@ -206,9 +270,9 @@ function OP (bg, port) {
 		
 		$scope.themeChange = function () {
 			
-			var link = $scope.current.knownToHl ?
-				'<link rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">' :
-				'<link rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">';
+			let link = $scope.current.knownToHl ?
+					   '<link rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">' :
+					   '<link rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">';
 			
 			$('link')
 				.find('[ng-href]')
@@ -229,12 +293,13 @@ function OP (bg, port) {
 		$scope.title = "Settings";
 		
 		$scope.proxys_shown = true;
+		$scope.import_app_button = false;
 		
 		$scope.toggleProxys = function () {
 			
 			$scope.proxys_shown = !$scope.proxys_shown;
 		};
-
+		
 		$scope.statusProxys = function () {
 			
 			return $scope.proxys_shown ? "v" : ">";	
@@ -272,25 +337,33 @@ function OP (bg, port) {
 			}
 		];
 		
-		$scope.importOpts = function (newVals) {
-
-			$scope.port.postMessage({action: "import-opts", message: newVals});
-			
-			$scope.page.themes.setTheme(newVals.editor.theme.name);
-		};
-		
-		$scope.settingsFile = function (ev) {
+		$scope.applyAppImport = function (ev) {
 			
 			let reader = new FileReader();
 			
 			reader.onload = function () {
 				
-				$scope.importOpts(JSON.parse(reader.result));
+				$scope.page.bg.option_mgr.importApp(JSON.parse(reader.result));
+				$scope.import_app_button = false;
+				$scope.$digest();
 			}
 			
-			reader.readAsText(this.files[0]);
+			reader.readAsText($("#import_app")[0].files[0]);
 		};
-
+		
+		$scope.AppExport = function (ev) {
+			
+			$scope.page.bg.option_mgr.exportApp();
+			
+		};
+		
+		$scope.appFile = function (ev) {
+			
+			$scope.import_app_button = true;
+			$scope.$digest();
+			
+		};
+		
 		$scope.updtOpts = function() {
 			
 			let theme = {};
@@ -300,14 +373,14 @@ function OP (bg, port) {
 			theme.title = $scope.page.themes.current.title;
 			
 			$scope.opts.editor.theme = theme;
-			//console.log("Saving: " + JSON.stringify($scope.opts.editor.theme));
+			
 			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
 		};
 		
 		$timeout(
 			() => {
 				
-				$("#import_settings").on('change', $scope.settingsFile);
+				$("#import_app").on('change', $scope.appFile);
 				
 			}
 		);
@@ -321,35 +394,11 @@ function OP (bg, port) {
 		$scope.page.domain_list = $scope;
 		$scope.port = port;
 		$scope.domains = dataDomains;
-
-		// console.log("dataDomains: ");
-		// console.log(dataDomains);
 		
 		$scope.shown = [];
 		
 		$scope.title = "Stored scripts";
-
-		$scope.import_button = false;
-
-		$scope.applyImport = function () {
-
-			var reader = new FileReader();
-			
-			reader.onload = function () {
-
-				$scope.page.bg.domain_mgr.importDomains(JSON.parse(reader.result));
-				$scope.import_button = false;
-			}
-			
-			reader.readAsText($("#import_scripts")[0].files[0]);
-		};
 		
-		$scope.scriptsFile = function (ev) {
-
-			$scope.import_button = true;
-			$scope.$digest();
-		};
-
 		/* Redo! */
 		$scope.port.onMessage.addListener(
 
@@ -367,12 +416,6 @@ function OP (bg, port) {
 				}
 			}
 		);
-		
-		$timeout(() => {
-			
-			$("#import_scripts").on('change', $scope.scriptsFile);
-			
-		});	
 	});
 	
 	this.app.controller('groupController', function ($scope, $timeout, dataGroups) {
@@ -385,36 +428,7 @@ function OP (bg, port) {
 		$scope.port = port;
 		$scope.groups = dataGroups;
 		
-		$scope.shown = [];
-		
-		$scope.title = "Stored groups";
-		
-		$scope.import_gr_button = false;
-		
-		$scope.applyGrImport = function () {
-			
-			var reader = new FileReader();
-			
-			reader.onload = function () {
-				
-				$scope.page.bg.group_mgr.importGroups(JSON.parse(reader.result));
-				$scope.import_button = false;
-			}
-			
-			reader.readAsText($("#import_groups")[0].files[0]);
-		};
-		
-		$scope.groupsFile = function (ev) {
-			
-			$scope.import_gr_button = true;
-			$scope.$digest();
-		};
-
-		$timeout(() => {
-			
-			$("#import_groups").on('change', $scope.groupsFile);
-			
-		});	
+		$scope.shown = [];	
 	});
 	
 	this.app.config(
@@ -450,7 +464,7 @@ function OP (bg, port) {
 				name: 'rules',
 				templateUrl: 'rules.html',
 				
-				controller: function ($scope, $state, $stateParams, dataRules) {
+				controller: function ($scope, $state, $stateParams, $timeout, dataRules) {
 					
 					self.tabs.setActive('rules');
 
@@ -459,7 +473,7 @@ function OP (bg, port) {
 					$scope.rules = dataRules.rules;
 					$scope.proxy_rules = dataRules.proxys;
 					$scope.names = Object.keys(self.bg.option_mgr.jsl.proxys);
-
+					
 					$scope.proxy_shown = $stateParams["#"] == "proxy" ? true : false;
 					$scope.req_shown = $stateParams["#"] == "rules" ? true : false;
 					$scope.mgr = self.bg.rules_mgr;
@@ -471,13 +485,12 @@ function OP (bg, port) {
 						$state.transitionTo($state.current, {"#": "rules"}, { 
 							reload: true, inherit: false, notify: false 
 						});
-						
 					};
 
 					$scope.addProxyRule = function () {
-
+						
 						$scope.mgr.proxyFactory();
-
+						
 						$state.transitionTo($state.current, {"#": "proxy"}, { 
 							reload: true, inherit: false, notify: false 
 						});
@@ -487,7 +500,7 @@ function OP (bg, port) {
 					$scope.toggleProxy = function () {
 
 						$scope.proxy_shown = !$scope.proxy_shown;
-
+						
 					}
 
 					$scope.statusProxy = function () {
@@ -505,9 +518,8 @@ function OP (bg, port) {
 					$scope.statusReq = function () {
 
 						return $scope.req_shown ? 'v' : '>';
-
+						
 					}
-					
 				}
 			});
 			
@@ -602,7 +614,6 @@ function OP (bg, port) {
 					
 					self.tabs.setActive('storage');
 					
-					//console.log(dataStorage);		
 					$scope.content = dataStorage;
 
 					$scope.keys = Object.keys($scope.content);

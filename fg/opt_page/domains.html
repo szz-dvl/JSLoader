@@ -1,14 +1,3 @@
-<div class="panel-section" >
-  <div id="domain_head" class="panel-section-header">
-	<div class="text-section-header">{{title}}
-	  <label class="input_import" style="float:right;">
-		<input id="import_scripts" class="browser-style" type="file"></input>
-	  </label>
-	  <button style="float:right;" class="browser-style" ng-show="import_button" ng-click="applyImport()"> Apply changes </button>
-	</div>
-  </div>
-</div><br></br>
-
 <div ng-if="domains.length">
   <div class="panel-section" ng-repeat="domain in domains track by domain.name" ng-if="domain.haveData()">
 	

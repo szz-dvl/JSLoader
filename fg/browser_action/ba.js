@@ -87,19 +87,19 @@ function Menu (bg) {
 			
 			new Action({val: "Export ...", id: "export", submenu: [
 				{val: "Scripts", id: "export_scripts",
-				 onClick: function () {
-					 self.bg.domain_mgr.exportScripts();
-				 }
+					onClick: function () {
+						self.bg.domain_mgr.exportScripts();
+					}
 				},
-				{val: "Settings", id: "export_settings",
-				 onClick: function () {
-					 self.bg.option_mgr.exportSettings();
-				 }
+				{val: "Rules", id: "export_rules",
+					onClick: function () {
+						self.bg.rules_mgr.exportRules();
+					}
 				},
 				{val: "Groups", id: "export_groups",
-				 onClick: function () {
-					 self.bg.group_mgr.exportGroups();
-				 }
+					onClick: function () {
+						self.bg.group_mgr.exportGroups();
+					}
 				}
 			]}),
 			

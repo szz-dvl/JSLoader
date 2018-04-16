@@ -368,77 +368,84 @@ function DomainMgr (bg) {
 	/* !!! */
 	this.importDomains = function (arr) {
 
-		let promises = [];
-		
-		for (domain_info of arr) {
+		return new Promise(
+			(resolve, reject) => {
 
-			promises.push(self.updateCache(domain_info));
-			
-		}
+				
+				
+				let promises = [];
+				
+				for (domain_info of arr) {
 
-		/* 
-		   At this point all data from imported JSON must be properly merged, 
-		   need to check for unmet group relations. 
-		   
-		 */
-
-		Promise.all(promises)
-			.then(
-				merged_domains => {
-					
-					for (let domain of merged_domains) {
-						
-						for (let group_name of domain.groups) {
-							
-							global_storage.getGroup(
-								group => {
-									
-									if (group) {
-										
-										group.appendSite(domain);
-										group.persist();
-										
-									} else {
-										
-										domain.groups.remove(domain.groups.indexOf(group_name));
-									}
-									
-								}, group_name);
-						}
-
-						
-						for (let site of domain.sites) {
-							for (let group_name of site.groups) {
-								
-								global_storage.getGroup(
-									group => {
-										
-										if (group) {
-											
-											group.appendSite(site);
-											group.persist();
-											
-										} else {
-
-											site.groups.remove(site.groups.indexOf(group_name));
-										}
-										
-										
-									}, group_name);
-							}
-						}
-
-						domain.persist();
-					}
-				})
-			
-			.finally(
-				() => {
-					
-					self.bg.group_mgr.reload();
+					promises.push(self.updateCache(domain_info));
 					
 				}
-			);
+
+				/* 
+				   At this point all data from imported JSON must be properly merged, 
+				   need to check for unmet group relations. 
+				   
+				 */
+
+				Promise.all(promises)
+					.then(
+						merged_domains => {
+							
+							for (let domain of merged_domains) {
+								
+								for (let group_name of domain.groups) {
+									
+									global_storage.getGroup(
+										group => {
+											
+											if (group) {
+												
+												group.appendSite(domain);
+												group.persist();
+												
+											} else {
+												
+												domain.groups.remove(domain.groups.indexOf(group_name));
+											}
+											
+										}, group_name);
+								}
+
+								
+								for (let site of domain.sites) {
+									for (let group_name of site.groups) {
+										
+										global_storage.getGroup(
+											group => {
+												
+												if (group) {
+													
+													group.appendSite(site);
+													group.persist();
+													
+												} else {
+
+													site.groups.remove(site.groups.indexOf(group_name));
+												}
+												
+												
+											}, group_name);
+									}
+								}
+
+								domain.persist();
+							}
+						})
+					
+					.finally(
+						() => {
+							
+							self.bg.group_mgr.reload();
+							resolve();
+						}
+					);
+			}
+		);
 	};
 
 	this.clear = function () {
@@ -456,33 +463,41 @@ function DomainMgr (bg) {
 				   });
 	};
 
-	this.exportScripts = function () {
+	this.exportScripts = function (inline) {
 
-		self.getAllItems().then(
-			domains => {
+		return new Promise(
+			(resolve, reject) => {
 				
-				/* console.log("exporting domains: ");
-				   console.log(domains); */
-								
-				var text = ["["];
-				
-				for (domain of domains) {
-					
-					text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
-					text.push(",");
-					
-				}
-				
-				text.pop(); // last comma
-				text.push("]");
-
-				//console.log("My text: " + text);
-				
-				browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) });
-				
-			}
-		);
-	};
+				self.getAllItems().then(
+					domains => {
+						
+						/* console.log("exporting domains: ");
+						   console.log(domains); */
+						
+						var text = ["["];
+						
+						for (domain of domains) {
+							
+							text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
+							text.push(",");
+							
+						}
+						
+						text.pop(); // last comma
+						text.push("]");
+						
+						console.log("My scripts: ");
+						console.log(text);
+						
+						if (inline)
+							resolve(text);
+						else
+							resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) }));
+					}
+				);
+			});
+	}
+			
 
 	this.storeNewDomains = function (changes, area) {
 		

@@ -64,6 +64,8 @@ function Menu (bg) {
 		self.menu = $scope;
 		
 		$scope.user_actions = [
+
+			/* To page action */
 			
 			new Action({val: "Add script for this page", id: "add_script",
 						onClick: function () {
@@ -80,40 +82,31 @@ function Menu (bg) {
 					   }),
 
 			new Action({ val: "Listen page requests.", id: "listen_page_req",
-						 onClick: function () {
-							 self.bg.listenRequestsForCurrentTab();
-						 }
-					   }),
-			
-			new Action({val: "Export ...", id: "export", submenu: [
-				{val: "Scripts", id: "export_scripts",
-					onClick: function () {
-						self.bg.domain_mgr.exportScripts();
-					}
-				},
-				{val: "Rules", id: "export_rules",
-					onClick: function () {
-						self.bg.rules_mgr.exportRules();
-					}
-				},
-				{val: "Groups", id: "export_groups",
-					onClick: function () {
-						self.bg.group_mgr.exportGroups();
-					}
+				onClick: function () {
+					self.bg.listenRequestsForCurrentTab();
 				}
-			]}),
+			}),
+
+			/* END to page action */
+
+			/* Only shortcut? */
 			
 			new Action({val: "Options", id: "options_page",
-						onClick: function () {
-							self.bg.option_mgr.openPage();
-						}
-					   }),
+				onClick: function () {
+					self.bg.option_mgr.openPage();
+				}
+			}),
 
+			/* END only shortcut? */
+
+
+			/* Temp */
+			
 			new Action({val: "Reload", id: "reload",
-						onClick: function () {
-							browser.runtime.reload();
-						}
-					   }),
+				onClick: function () {
+					browser.runtime.reload();
+				}
+			}),
 			
 			new Action({val: "Clean", id: "clean", submenu:
 						[{val: "Groups", id: "clean_groups",
@@ -150,6 +143,8 @@ function Menu (bg) {
 					   })
 		];
 	});
+
+	/* END Temp */
 	
 	angular.element(document)
 		.ready(

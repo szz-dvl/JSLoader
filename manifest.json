@@ -7,7 +7,7 @@
 	
 	"applications": {
 		"gecko": {
-			"id": "{b02f8ca1-701c-48ad-bb21-3631bf946736}",
+			"id": "jsloader@afinehosttoget.com",
 			"strict_min_version": "42.0"
 		}
     },
@@ -31,6 +31,7 @@
 			"bg/rules_mgr.js",
 			"bg/tabs_mgr.js",
 			"bg/content_mgr.js",
+			"bg/database_mgr.js",
 			"bg/background.js"
 		]
 	},
@@ -108,6 +109,6 @@
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
 	
-	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab", "webRequest", "webRequestBlocking", "proxy" ]
+	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab", "webRequest", "webRequestBlocking", "proxy", "nativeMessaging" ]
 	
 }

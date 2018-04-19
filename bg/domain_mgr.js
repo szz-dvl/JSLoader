@@ -391,61 +391,64 @@ function DomainMgr (bg) {
 					.then(
 						merged_domains => {
 							
-							for (let domain of merged_domains) {
-								
-								for (let group_name of domain.groups) {
+							async.eachSeries(merged_domains,
+								(domain, next) => {
 									
-									global_storage.getGroup(
-										group => {
-											
-											if (group) {
-												
-												group.appendSite(domain);
-												group.persist();
-												
-											} else {
-												
-												domain.groups.remove(domain.groups.indexOf(group_name));
-											}
-											
-										}, group_name);
-								}
-
-								
-								for (let site of domain.sites) {
-									for (let group_name of site.groups) {
+									for (let group_name of domain.groups) {
 										
 										global_storage.getGroup(
 											group => {
 												
 												if (group) {
 													
-													group.appendSite(site);
+													group.appendSite(domain);
 													group.persist();
 													
 												} else {
-
-													site.groups.remove(site.groups.indexOf(group_name));
+													
+													domain.groups.remove(domain.groups.indexOf(group_name));
 												}
-												
 												
 											}, group_name);
 									}
-								}
+									
+									
+									for (let site of domain.sites) {
+										for (let group_name of site.groups) {
+											
+											global_storage.getGroup(
+												group => {
+													
+													if (group) {
+														
+														group.appendSite(site);
+														group.persist();
+														
+													} else {
 
-								domain.persist();
-							}
-						})
-					
-					.finally(
-						() => {
-							
-							self.bg.group_mgr.reload();
-							resolve();
-						}
-					);
-			}
-		);
+														site.groups.remove(site.groups.indexOf(group_name));
+													}
+													
+												}, group_name);
+										}
+									}
+
+									domain.persist().then(persisted => { next() }, next);	
+								},
+								err => {
+									
+									if (err)
+										reject(err);
+									else {
+										
+										self.bg.group_mgr.reload();
+										resolve();
+									}
+									
+								});
+						});
+			});
+
 	};
 
 	this.clear = function () {
@@ -471,9 +474,6 @@ function DomainMgr (bg) {
 				self.getAllItems().then(
 					domains => {
 						
-						/* console.log("exporting domains: ");
-						   console.log(domains); */
-						
 						var text = ["["];
 						
 						for (domain of domains) {
@@ -483,11 +483,8 @@ function DomainMgr (bg) {
 							
 						}
 						
-						text.pop(); // last comma
+						text.pop(); //last comma
 						text.push("]");
-						
-						console.log("My scripts: ");
-						console.log(text);
 						
 						if (inline)
 							resolve(text);
@@ -497,8 +494,8 @@ function DomainMgr (bg) {
 				);
 			});
 	}
-			
-
+	
+	
 	this.storeNewDomains = function (changes, area) {
 		
 		if (area != "local")

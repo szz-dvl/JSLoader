@@ -196,45 +196,56 @@ function GroupMgr (bg) {
 				Promise.all(promises)
 					.then(
 						merged_groups => {
-							
-							for (let group of merged_groups) {
-								
-								for (let site_name of group.sites) {
-									
-									let url = new URL("http://" + site_name);
-									
-									global_storage.getOrCreateDomain(
-										domain => {
-											
-											let site = domain.haveSite(url.pathname);
-											
-											if (site) {
-												
-												site.appendGroup(group);
-												site.persist();
-												
-											} else {
-												
-												group.sites.remove(group.sites.indexOf(site_name));
-											}
 
+							async.eachSeries(merged_groups,
+								(group, next) => {
+									
+									async.eachSeries(group.sites,
+										(site_name, next_site) => {
 											
-										}, url.hostname);
-								}
-								
-								group.persist();
-							}
+											let url = new URL("http://" + site_name);
+											
+											global_storage.getOrCreateDomain(
+												domain => {
+													
+													let site = domain.haveSite(url.pathname);
+													
+													if (site) {
+														
+														site.appendGroup(group);
+														site.persist().then(persisted => { next_site() }, next_site);
+														
+													} else {
+														
+														group.sites.remove(group.sites.indexOf(site_name));
+														next_site();
+													}
+													
+												}, url.hostname);
+
+										}, err => {
+
+											if (err)
+												reject(err);
+											else
+												group.persist().then(persisted => { next() }, next);
+										})
+										
+								}, err => {
+
+									if (err)
+
+										reject(err);
+
+									else {
+										
+										self.bg.domain_mgr.reload();
+										resolve();
+
+									}
+								})			
 						})
-					
-					.finally(
-						() => {
-							
-							self.bg.domain_mgr.reload();
-							resolve();
-						}
-					);
-			}
-		);
+			})
 	};
 	
 	this.exportGroups = function (inline) {

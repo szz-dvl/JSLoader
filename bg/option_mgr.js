@@ -2,7 +2,8 @@ function Options (opt) {
 
 	this.jsl = opt.jsl || {
 		
-		proxys: {"example": {"host": "hostname", "port": 9050, "type": "socks | http5 | ... etc"}}
+		proxys: {"example": {"host": "hostname", "port": 9050, "type": "socks | http5 | ... etc"}},
+		data_origin: "mongodb://localhost:27017/"
 	};
 	
 	this.editor = opt.editor || {
@@ -10,7 +11,7 @@ function Options (opt) {
 		showPrintMargin: false,
 		showGutter: false,
 		fontSize: 10,
-		collapsed: false
+		collapsed: false,
 	};
 
 	this.editor.theme = opt.editor ? new Theme(opt.editor.theme) : new Theme({});
@@ -27,16 +28,20 @@ function OptionMgr (bg) {
 		
 		new_options => {
 			Options.call(self, new_options || {});
+
+			self.bg.events.emit('options-ready');
 		}
 	);
 
+	
+	
 	this.persist = function (opts) {
 		
 		return new Promise (
 			(resolve, reject) => {
 
 				/* Object.assign: Workaround to avoid strange "Can't acces dead object" in foreground pages. */
-
+				
 				self.editor.theme = Object.assign({}, opts.editor.theme);
 				self.editor = Object.assign({}, opts.editor);
 				//self.jsl = Object.assign({}, opts.jsl);
@@ -45,11 +50,11 @@ function OptionMgr (bg) {
 					.setOptions({editor: Object.assign({}, opts.editor), jsl: self.jsl})
 					.then(
 						() => {
-
+							
 							self.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
 							
 							resolve(opts);
-
+							
 						}
 					);
 			}
@@ -68,7 +73,7 @@ function OptionMgr (bg) {
 	};
 	
 	this.sendMessage = function(action, message) {
-
+		
 		if (self.port)
 			self.port.postMessage({action: action, message: message});
 		
@@ -154,10 +159,26 @@ function OptionMgr (bg) {
 	}
 	
 	this.importApp = function (imported) {
-		
-		self.bg.domain_mgr.importDomains(imported.scripts);
-		self.bg.group_mgr.importGroups(imported.groups);
-		self.bg.rules_mgr.importRules(imported.rules);
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				let idx = 0;
+				
+				async.eachSeries([self.bg.domain_mgr.importDomains, self.bg.group_mgr.importGroups],
+					(promise, next) => {
+						
+						promise(idx ? imported.groups : imported.scripts)
+							.then(() => { idx ++; next(); }, next);
+							
+					}, err => {
+						
+						if (err)
+							reject(err);
+						else
+							self.bg.rules_mgr.importRules(imported.rules);
+					});
+			});
 	}
 	
 	// this.storeNewOpts = function (changes, area) {

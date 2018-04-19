@@ -77,6 +77,7 @@ function OP (bg, port) {
 		
 		$scope.active;
 		$scope.import_data_button = false;
+		$scope.db_buttons = $scope.page.bg.database_mgr.available;
 		
 		$scope.tabs = [
 			
@@ -105,6 +106,42 @@ function OP (bg, port) {
 			
 		}
 
+		$scope.databaseOk = function () {
+			
+			return $scope.db_buttons && ['domains', 'groups'].includes($scope.active);
+			
+		}
+
+		$scope.dbFeed = function () {
+
+			switch ($scope.active) {
+
+				case "domains":
+					$scope.page.bg.database_mgr.getDomains();
+					break;;
+				case "groups":
+					$scope.page.bg.database_mgr.getGroups();
+					break;;
+				default:
+					break;;
+			}
+		}
+		
+		$scope.dbPush = function () {
+			
+			switch ($scope.active) {
+				
+				case "domains":
+					$scope.page.bg.database_mgr.pushDomains();
+					break;;
+				case "groups":
+					$scope.page.bg.database_mgr.pushGroups();
+					break;;
+				default:
+					break;;
+			}
+		}
+		
 		$scope.applyDataImport = function (ev) {
 			
 			let reader = new FileReader();
@@ -131,7 +168,7 @@ function OP (bg, port) {
 		};
 		
 		$scope.dataExport = function (ev) {
-
+			
 			reader.onload = function () {
 				
 				switch ($scope.active) {
@@ -291,6 +328,7 @@ function OP (bg, port) {
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
+		$scope.data_origin_ok = $scope.page.bg.database_mgr.available;
 		
 		$scope.proxys_shown = true;
 		$scope.import_app_button = false;
@@ -339,6 +377,8 @@ function OP (bg, port) {
 		
 		$scope.applyAppImport = function (ev) {
 			
+			ev.preventDefault();
+			
 			let reader = new FileReader();
 			
 			reader.onload = function () {
@@ -353,8 +393,9 @@ function OP (bg, port) {
 		
 		$scope.AppExport = function (ev) {
 			
-			$scope.page.bg.option_mgr.exportApp();
+			ev.preventDefault();
 			
+			$scope.page.bg.option_mgr.exportApp();	
 		};
 		
 		$scope.appFile = function (ev) {
@@ -373,15 +414,16 @@ function OP (bg, port) {
 			theme.title = $scope.page.themes.current.title;
 			
 			$scope.opts.editor.theme = theme;
+			$scope.opts.jsl.data_origin = $("#data-origin-inpt").val();
 			
 			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
+
 		};
 		
 		$timeout(
 			() => {
 				
 				$("#import_app").on('change', $scope.appFile);
-				
 			}
 		);
 	});

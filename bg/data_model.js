@@ -551,7 +551,7 @@ function Domain (opt) {
 					.then(
 						() => {
 							
-							if (self.cache  && self.haveData())
+							if (self.cache && self.haveData())
 								self.cache.forceCacheItem(self); /* Caches must allways have persisted items. */
 							
 							resolve(self);

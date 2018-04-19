@@ -1,16 +1,19 @@
 function BG_mgr () {
 
 	let self = this;
+
+	this.events = new EventEmitter();
 	
+	this.option_mgr = new OptionMgr(self);
 	this.domain_mgr = new DomainMgr(self);
 	this.group_mgr = new GroupMgr(self);
 	this.content_mgr = new CSMgr(self);
-	this.option_mgr = new OptionMgr(self);
 	this.editor_mgr = new EditorMgr(self);
 	this.notify_mgr = new NotificationMgr(self);
 	this.tabs_mgr = new TabsMgr(self);
 	this.logs_mgr = new LogsMgr(self);
 	this.rules_mgr = new RulesMgr(self);
+	this.database_mgr = new DBMgr(self);
 	
 	this.getPASite = function () {
 		
@@ -25,12 +28,6 @@ function BG_mgr () {
 						
 					});
 			});
-	};
-	
-	this.logJSLError = function (err) {
-		
-		console.error(err);
-
 	};
 	
 	this.showEditorForCurrentTab = function () {
@@ -51,7 +48,8 @@ function BG_mgr () {
 											
 						}
 					);
-			}, self.logJSLError);
+				
+			}, console.error);
 	};
 
 	this.showUnattachedEditor = function (group_name) {
@@ -83,26 +81,27 @@ function BG_mgr () {
 		
 		switch(command) {
 			
-		case "add-script-for-tab":
-			self.showEditorForCurrentTab();
-			break;
+			case "add-script-for-tab":
+				self.showEditorForCurrentTab();
+				break;
+				
+			case "add-site-to-group":
+				self.addSiteToGroup();
+				break;
 			
-		case "add-site-to-group":
-			self.addSiteToGroup();
-			break;
-			
-		case "new-group-new-script":
-			self.showUnattachedEditor(null);
-			break;
-
-		case "listen-request-for-tab":
-			self.listenRequestsForCurrentTab();
-			break;
-			
-		default:
-			break;
+			case "new-group-new-script":
+				self.showUnattachedEditor(null);
+				break;
+				
+			case "listen-request-for-tab":
+				self.listenRequestsForCurrentTab();
+				break;
+				
+			default:
+				break;
 		}
 	};
+	
 }
 
 BG_mgr.call(this);

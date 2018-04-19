@@ -37,26 +37,32 @@
 								<tbody style="float:right;">
 									<tr style="float:right;">
 										<td>
-											<button class="browser-style" ng-click="AppExport()"> Export app </button>
+											<button class="browser-style" ng-click="AppExport($event)"> Export app </button>
 										</td>
 									</tr>
 									<tr style="float:right;">
 										<td>
-											<button class="browser-style" ng-show="import_app_button" ng-click="applyAppImport()"> Apply changes </button>
+											<button class="browser-style" ng-show="import_app_button" ng-click="applyAppImport($event)"> Apply changes </button>
 										</td>
 									</tr>
 								</tbody>
 							</table>
 						</div>
-					</div>				
+					</div>
+					
+					<div id="data_origin" class="browser-style" style="margin-top: 50px;" ng-show="data_origin_ok">
+						<input id="data-origin-inpt" type="text" value="{{opts.jsl.data_origin}}"></input>
+						<label style="float:left;padding-right: 20px;">Data origin: </label>
+					</div>
+					
 				</td>
 			</tr>
 		</tbody>
 	</table>
-
+	
 	<div class="opt-submit-outter">
 		<div class="opt-submit-inner">
-			<button type="submit" class="browser-style"> Save settings</button>
+			<button type="submit" class="browser-style">Save settings</button>
 		</div>
 	</div>
   

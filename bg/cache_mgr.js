@@ -296,7 +296,7 @@ function Cache (opt) {
 							fed_item.mergeInfo(item);								
 							self.forceCacheItem(fed_item);
 							fed_item.cache = self;
-
+							
 							resolve(fed_item);
 							
 						} else {

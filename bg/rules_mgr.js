@@ -417,7 +417,7 @@ function RulesMgr (bg) {
 	}
 	
 	this.importRules = function (imported) {
-
+		
 		for (let rule of imported.rules) {
 			
 			self.addRule(rule);

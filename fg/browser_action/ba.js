@@ -97,12 +97,6 @@ function Menu (bg) {
 				}
 			}),
 
-			new Action({val: "Test", id: "test_test",
-				onClick: function () {
-					self.bg.database_mgr.pushDomains();
-				}
-			}),
-
 			/* END only shortcut? */
 
 

@@ -14,6 +14,8 @@ function BG_mgr () {
 	this.logs_mgr = new LogsMgr(self);
 	this.rules_mgr = new RulesMgr(self);
 	this.database_mgr = new DBMgr(self);
+
+	this.app_events = new EventEmitter();
 	
 	this.getPASite = function () {
 		

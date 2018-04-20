@@ -41,9 +41,17 @@ while True:
 
         if tag == "connect": 
 
-            db = MongoClient(receivedMessage['content']).jsl;
+            client = MongoClient(receivedMessage['content'])
             
-            sendMessage(encodeMessage('{"tag": "alive"}'));
+            try:
+                
+                client.admin.command('ismaster'); #Connected?
+                
+                db = client.jsl;
+                sendMessage(encodeMessage('{"tag": "alive"}'));
+                
+            except Exception as e:     
+                sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '"}'));
             
         elif tag == 'domains_push':
             for domain in receivedMessage['content']:

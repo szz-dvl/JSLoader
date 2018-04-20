@@ -67,6 +67,8 @@ function OP (bg, port) {
 	this.themes;
 	this.settings;
 	this.tabs;
+
+	this.session = {};
 	
 	this.app = angular.module('OptionsApp', ['jslPartials', 'ui.router']); 
 	
@@ -77,7 +79,7 @@ function OP (bg, port) {
 		
 		$scope.active;
 		$scope.import_data_button = false;
-		$scope.db_buttons = $scope.page.bg.database_mgr.available;
+		$scope.db_buttons = $scope.page.bg.database_mgr.connected;
 		
 		$scope.tabs = [
 			
@@ -98,6 +100,8 @@ function OP (bg, port) {
 			
 			$scope.active = tab;
 			$scope.import_data_button = false;
+
+			$scope.db_buttons = $scope.page.bg.database_mgr.connected;
 		};
 		
 		$scope.inoutOk = function () {
@@ -328,10 +332,17 @@ function OP (bg, port) {
 		$scope.page = self;
 		$scope.port = port;
 		$scope.title = "Settings";
-		$scope.data_origin_ok = $scope.page.bg.database_mgr.available;
+		
+		if ($scope.page.bg.database_mgr.connected && $scope.page.session.data_origin_temp)
+			delete $scope.page.session.data_origin_temp;
+		
+		$scope.data_origin_ok = $scope.page.bg.database_mgr.available || $scope.page.bg.database_mgr.reconnecting;
+		$scope.data_origin_connected = $scope.page.bg.database_mgr.connected;
+		$scope.reconnecting = $scope.page.bg.database_mgr.reconnecting;
 		
 		$scope.proxys_shown = true;
 		$scope.import_app_button = false;
+		
 		
 		$scope.toggleProxys = function () {
 			
@@ -374,6 +385,37 @@ function OP (bg, port) {
 				]
 			}
 		];
+
+		$scope.page.bg.app_events.on('db_change',
+			() => {
+
+				$scope.reconnecting = false;
+				
+				$scope.data_origin_ok = $scope.page.bg.database_mgr.available;
+				$scope.data_origin_connected = $scope.page.bg.database_mgr.connected;
+				
+				$scope.$digest();
+			}
+		);
+		
+		$scope.validateConnection = function () {
+			
+			if ($scope.toID)
+				clearTimeout($scope.toID);
+
+			$scope.toID = setTimeout(
+				() => {
+
+					let value = $("#data-origin-inpt").val();
+					
+					$scope.reconnecting = true;
+					$scope.$digest();
+
+					$scope.page.session.data_origin_temp = value;
+					$scope.page.bg.database_mgr.reconnect(value);
+					
+				}, 150);
+		}
 		
 		$scope.applyAppImport = function (ev) {
 			
@@ -424,6 +466,7 @@ function OP (bg, port) {
 			() => {
 				
 				$("#import_app").on('change', $scope.appFile);
+				$("#data-origin-inpt").on('change', $scope.validateConnection);
 			}
 		);
 	});

@@ -458,9 +458,18 @@ function TabsMgr (bg) {
 	};
 
 	this.showPA = function (tid) {
-
-		browser.pageAction.show(tid.tabId || tid);
 		
+		browser.tabs.get(tid.tabId || tid)
+			.then(
+				tabInfo => {
+					
+					var url = new URL(tabInfo.url).sort();
+					
+					if (url.protocol != "moz-extension:") 	
+						browser.pageAction.show(tabInfo.id);
+					
+				}
+			);
 	}
 	
 	browser.tabs.onUpdated.addListener(this.__updateEditors);

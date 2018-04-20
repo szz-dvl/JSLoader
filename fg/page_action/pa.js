@@ -45,7 +45,7 @@ function PA (bg, info) {
 								$scope.page.info = $scope.info = info;
 								$scope.user_info = (info.domain.length + info.site.length + info.subdomains.length + info.groups.length) != 0;
 								
-								$state.transitionTo($state.current, {"#": currentGroup}, { 
+								$state.transitionTo($state.current, {"#": currentGroup || null}, { 
 									
 									reload: true, inherit: false, notify: false 
 									
@@ -77,9 +77,14 @@ function PA (bg, info) {
 		);
 	};
 	
+	this.removeAndUpdate = function (script) {
+		
+		script.remove().then($scope.page.list_mgr.updateData());
+	};
+	
 	this.app.config(
 		$stateProvider=> {
-		
+			
 			$stateProvider.state('pa-site', {
 
 				views: {
@@ -89,6 +94,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "domain";
+							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController($scope.key); 
 							
 						}
@@ -100,6 +106,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "site";
+							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController($scope.key);
 							
 						}
@@ -109,8 +116,9 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
-
+							
 							$scope.key = "group";
+							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController('groups');
 							
 						}
@@ -122,6 +130,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 							
 							$scope.key = "subdomain";
+							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("subdomains");
 						}
 					},
@@ -234,7 +243,7 @@ browser.runtime.getBackgroundPage()
 			page.getPASite()
 				.then(
 					info => {
-						
+
 						PA.call(this, page, info);
 						
 					}

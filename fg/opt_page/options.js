@@ -335,6 +335,8 @@ function OP (bg, port) {
 		
 		if ($scope.page.bg.database_mgr.connected && $scope.page.session.data_origin_temp)
 			delete $scope.page.session.data_origin_temp;
+		else if ($scope.page.bg.database_mgr.reconnecting)
+			document.getElementById("data-origin-inpt").disabled = true;
 		
 		$scope.data_origin_ok = $scope.page.bg.database_mgr.available || $scope.page.bg.database_mgr.reconnecting;
 		$scope.data_origin_connected = $scope.page.bg.database_mgr.connected;
@@ -386,6 +388,7 @@ function OP (bg, port) {
 			}
 		];
 
+		/* Can't acces dead object after some time */
 		$scope.page.bg.app_events.on('db_change',
 			() => {
 
@@ -395,6 +398,8 @@ function OP (bg, port) {
 				$scope.data_origin_connected = $scope.page.bg.database_mgr.connected;
 				
 				$scope.$digest();
+
+				document.getElementById("data-origin-inpt").disabled = false;
 			}
 		);
 		
@@ -406,13 +411,15 @@ function OP (bg, port) {
 			$scope.toID = setTimeout(
 				() => {
 
-					let value = $("#data-origin-inpt").val();
-					
 					$scope.reconnecting = true;
-					$scope.$digest();
+					document.getElementById("data-origin-inpt").disabled = true; /* disabled = {{...}} && ng-disabled fails here. */
+					
+					let value = $("#data-origin-inpt").val();
 
 					$scope.page.session.data_origin_temp = value;
 					$scope.page.bg.database_mgr.reconnect(value);
+
+					$scope.$digest();
 					
 				}, 150);
 		}

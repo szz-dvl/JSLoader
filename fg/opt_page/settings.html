@@ -51,7 +51,7 @@
 					</div>
 					
 					<div id="data_origin" class="browser-style" style="margin-top: 50px;" ng-show="data_origin_ok">
-						<input id="data-origin-inpt" type="text" value="{{page.session.data_origin_temp || opts.jsl.data_origin}}" ng-disable="reconnecting"></input>
+						<input id="data-origin-inpt" type="text" value="{{page.session.data_origin_temp || opts.jsl.data_origin}}"></input>
 						<label style="float:left;padding-right: 20px;">Data origin: </label>
 
 						<img src="../icons/ok_tick.png" ng-show="data_origin_connected && !reconnecting" style="float:right;">

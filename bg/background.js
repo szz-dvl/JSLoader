@@ -89,6 +89,7 @@ function BG_mgr () {
 				self.listenRequestsForCurrentTab();
 				break;
 				
+			case "open-option-page-devel":
 			case "open-option-page":
 				browser.runtime.openOptionsPage();
 				break;

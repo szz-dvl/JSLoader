@@ -228,13 +228,13 @@ function DomainMgr (bg) {
 								site = domain.haveSite(url.pathname);
 							}
 							
-							if (site) {
-							
-								if (site.scripts.length && site.url != "/")
+							if (site && site.url != "/") {
+
+								if (site.scripts.length)
 									editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
 								groups.push.apply(groups,
-									site.groups);	
+									site.groups);
 							}
 							
 							self.__getRepresentedBy(url.hostname)

@@ -21,14 +21,13 @@
 	
 - Finally:
 
-  - Style everything up!
+  - Style everything up! ====> paginate lists.
   - Initial examples for each info recipient.
   - Prevent context menu on extension windows.
   - Existing tabs are recreated when opening URLs from listener.
   - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
   - Add new groups in opt page.
-  - Script name changes not persisted when done from PA.
   
 -El raco d'en Santi
 	-Varies icones per Page Action ===> t'ha jungo!
-	
+	-Les fonts son petites si estas lluny de la pantalla!!

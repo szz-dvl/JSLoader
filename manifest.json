@@ -104,6 +104,12 @@
 				"linux": "Alt+Shift+O"
 			},
 			"description": "Shows configuration menu."
+		},
+		"open-option-page-devel": {
+			"suggested_key": {
+				"linux": "Alt+Shift+Q"
+			},
+			"description": "Shows configuration menu."
 		}
 	},
 

@@ -46,7 +46,7 @@ function OptionMgr (bg) {
 		
 		return new Promise (
 			(resolve, reject) => {
-
+				
 				/* Object.assign: Workaround to avoid strange "Can't acces dead object" in foreground pages. */
 				
 				self.editor.theme = Object.assign({}, opts.editor.theme);
@@ -89,33 +89,33 @@ function OptionMgr (bg) {
 	browser.runtime.onConnect
 		.addListener(
 			port => {
-
+				
 				if (port.name === "option-page") {
 					
 					self.port = port;
 				
 					self.port.onMessage.addListener(
 						args => {
-
+							
 							try {
 								switch (args.action) {
-								case "list-update":
-									self.sendMessage("list-update", args.message);
-									
-									break;
-									
-								case "import-opts":
-									self.sendMessage("import-opts", args.message);
-									
-									break;								
+									case "list-update":
+										self.sendMessage("list-update", args.message);
 										
-								default:
-									break;
+										break;
+										
+									case "import-opts":
+										self.sendMessage("import-opts", args.message);
+										
+										break;								
+										
+									default:
+										break;
 								}
 							} catch (e) {}
 						}
 					);
-				
+					
 					self.port.onDisconnect.addListener(
 						() => {
 							self.port = null;
@@ -157,7 +157,7 @@ function OptionMgr (bg) {
 	}
 	
 	this.importApp = function (imported) {
-
+		
 		return new Promise(
 			(resolve, reject) => {
 				

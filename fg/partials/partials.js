@@ -22,7 +22,6 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   
 					   scope: {
 						   script: "=script",
-						   parent: "=parent"
 					   },
 					   
 					   template: '<bdi contenteditable="true"> {{script.name}} </bdi>',
@@ -92,7 +91,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   },
 					   
 					   controller: function ($scope, $timeout) {
-
+						   
 						   if (!$scope.parent)
 							   $scope.parent = $scope.list[0].parent;
 						   
@@ -117,13 +116,9 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   );
 						   
 						   $scope.removeScript = function(script) {
-
-							   var url = script.getUrl(); 
+							   
 							   script.remove();
-							   
-							   if (url)
-								   $scope.pa(url.href); /* Solve for groups: URL array. */
-							   
+							   	   
 						   };
 						   
 						   //console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);

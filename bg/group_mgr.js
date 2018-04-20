@@ -1,40 +1,3 @@
-function GroupChooserWdw (wc) {
-
-	return new Promise (
-		(resolve, reject) => {
-			
-			browser.windows.create({
-							
-				type: "popup",
-				state: "normal",
-				url: browser.extension.getURL("fg/group/chooser.html"),
-				width: Math.min(Math.max(900, (200 + (wc * 8))), screen.width),
-				height: 120 
-				
-			}).then(
-				wdw => {
-					
-					/* 
-					   Workaround to avoid blank windows: 
-					   
-					   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
-					   
-					 */
-					
-					var updateInfo = {
-						
-						width: wdw.width,
-						height: wdw.height + 1, // 1 pixel more than original size...
-						
-					};
-					
-					browser.windows.update (wdw.id, updateInfo)
-						.then(resolve, reject);
-					
-				}, reject);	
-		});
-}
-
 function GroupMgr (bg) {
 
 	let self = this;
@@ -54,31 +17,6 @@ function GroupMgr (bg) {
 				self.groups = new_groups;
 		}
 	);
-	
-	this.showChooserWdw = function () {
-		
-		if (self.groups.length) {
-			
-			return new Promise (
-				(resolve, reject) => {
-					
-					self.bg.tabs_mgr.getCurrentURL()
-						.then(
-							url => {
-								
-								self.adding = url;
-								new GroupChooserWdw(url.name().length).then(resolve, reject);
-								
-							}
-						);
-				});
-			
-		} else {
-			
-			self.bg.notify_mgr.info("No groups available.");
-			
-		}
-	};
 
 	this.exists = function (group_name) {
 
@@ -95,9 +33,8 @@ function GroupMgr (bg) {
 	this.__siteOps = function (group_name, url, func) {
 
 		return new Promise (
-
 			(resolve, reject) => {
-
+				
 				self.getOrBringCached(group_name)
 					.then(
 						group => {
@@ -140,16 +77,10 @@ function GroupMgr (bg) {
 													pr.push(group.persist());
  											}
 											
-											Promise.all(pr)
-												.then(
-													res => {
-														
-														/* Feedback when creted !!! */
-														resolve(res);
-														
-													}
-												);	
-										});
+											Promise.all(pr).then(resolve); /* Feedback when created !!! */
+											
+										}
+									);
 							}
 							
 						});
@@ -169,11 +100,14 @@ function GroupMgr (bg) {
 	}
 	
 	this.clear = function () {
-		
-		cosnsole.error("Unimplemented!");
-	};
 
-	/* !!! */
+		for (let group of this.groups) {
+			
+			self.storage.removeGroup(group);
+			
+		}
+	};
+	
 	this.importGroups = function (arr) {
 
 		return new Promise(
@@ -186,12 +120,6 @@ function GroupMgr (bg) {
 					promises.push(self.updateCache(group_info));
 					
 				}
-
-				/* 
-				   At this point all data from imported JSON must be properly merged, 
-				   need to check for unmet site relations. 
-				   
-				 */
 				
 				Promise.all(promises)
 					.then(
@@ -263,8 +191,10 @@ function GroupMgr (bg) {
 							text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
 							text.push(",");
 						}
-				
-						text.pop(); // last comma
+
+						if (groups.length)
+							text.pop(); // last comma
+						
 						text.push("]");
 
 						if (inline)

@@ -1,5 +1,5 @@
 - In-progress:
-  - Big refactor, Shortcuts + Page Action + Opt Page ===> enough!     
+   - Big refactor, Shortcuts + Page Action + Opt Page ===> enough!     
 	 
 - Not started yet:
 	- Policy for disabling scripts (to be designed) => Domain scripts, Site Scripts, Group Scripts. As it is?? 
@@ -16,7 +16,7 @@
 - To be tested:
 	- Rules service from conetent script.
 	- Rules gral.
-	- Import/Export features.
+	- Import/Export features. =========> Exported JSONs will be corrupted if there is no data.
 	- Data origin ====> support for MongoDB only.
 	
 - Finally:
@@ -24,3 +24,10 @@
   - Style everything up!
   - Initial examples for each info recipient.
   - Prevent context menu on extension windows.
+  - Existing tabs are recreated when opening URLs from listener.
+  - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
+  - Add new groups in opt page.
+  
+-El raco d'en Santi
+	-Varies icones per Page Action ===> t'ha xungo!
+	

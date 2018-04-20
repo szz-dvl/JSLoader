@@ -241,10 +241,6 @@ function JSLTabListener(tabInfo, bg) {
 	this.listenerUnregister = function () {
 		
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
-
-		/* Temp! */
-		// for (let id of self.filters)
-		// 	self.bg.rules_mgr.removeRule(id);
 	};
 	
 	browser.runtime.onConnect
@@ -267,9 +263,9 @@ function JSLTabListener(tabInfo, bg) {
 					);
 					
 					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
-																	 {urls: ["<all_urls>"]},
-																	 [ "responseHeaders" ]);
-
+						{urls: ["<all_urls>"]},
+						[ "responseHeaders" ]);
+					
 				}
 			}
 		);
@@ -313,37 +309,6 @@ function TabsMgr (bg) {
 
 	this.bg = bg;
 	this.listeners = [];
-
-	this.__showPageAction = function (tabInfo) {
-
-		return new Promise (
-			(resolve, reject) => {
-
-				browser.tabs.get(tabInfo.tabId || tabInfo)
-					.then(
-						tab => {
-							
-							var url = new URL(tab.url).sort();
-							
-							if (["http:", "https:"].includes(url.protocol)) {
-								
-								self.bg.domain_mgr.haveInfoForUrl(url) /* !! */
-									.then(
-										any => {
-											
-											if (any)
-												browser.pageAction.show(tab.id).then(resolve, reject);
-											else 
-												browser.pageAction.hide(tab.id).then(resolve, reject);
-											
-
-										}, reject);	
-								
-							}
-							
-						}, reject);
-			});
-	};
 
 	this.__updateEditors = function (tabId, changeInfo, tabInfo) {
 		
@@ -491,68 +456,17 @@ function TabsMgr (bg) {
 
 			});
 	};
-	
-	/* If any content script needs to run a script this method will be called, so no need to worry about it on "tabs.onUpdated" */
-	this.updatePA = function (script) {
 
-		let urls = [];
+	this.showPA = function (tid) {
 
-		switch (typeof(script)) {
-			
-		case "object":
-			{
-				
-				let url = script.getUrl();
-			
-				if (url) /* parent instance of Site */
-					urls.push(url);
-				else if (script.parent.isSubdomain()) 
-					urls.push(script.getParentName());
-				else /* parent instance of Group */
-					urls.push.apply(urls, script.parent.sites);
-			}
-
-			break;
-			
-		case "string":
-			urls.push(script);
-			break;
-
-		default:
-			break;
-		}
+		browser.pageAction.show(tid.tabId || tid);
 		
-		async.each(urls,
-				   (url, next) => {
-
-					   self.getTabsForURL(url)
-						   .then(
-							   tabs => {
-								   async.each(tabs,
-											  (tab, tab_next) => {
-												  
-												  self.__showPageAction(tab.id).then(tab_next, tab_next);
-												  
-											  },
-											  err => {
-
-												  if (err)
-													  console.error("updatePA (tabs): " + err.message);
-												  
-												  next(err);
-											  })
-									   }
-						   );
-					   
-				   },
-				   err => {
-
-					   if (err)
-						   console.error("updatePA (urls): " + err.message);
-					   
-				   });
-	};
+	}
 	
-	browser.tabs.onActivated.addListener(this.__showPageAction);
 	browser.tabs.onUpdated.addListener(this.__updateEditors);
+	
+	browser.tabs.onUpdated.addListener(this.showPA);
+	browser.tabs.onActivated.addListener(this.showPA);
 }
+
+

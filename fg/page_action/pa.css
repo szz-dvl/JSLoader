@@ -44,6 +44,31 @@ html, body {
 	display: block !important;
 }
 
+.text-section-header-mod {
+	
+	align-self: center;
+	font-size: 1.2em;
+	font-weight: lighter;
+}
+
+.text-section-header-small {
+	
+	align-self: center;
+	font-size: 1.1em;
+	font-weight: normal;
+}
+
+.button-bucket {
+	
+	position: absolute;
+	display: block;
+	width: 100%;
+	height: 10%;
+	bottom: 0px;
+	max-height: 30px !important;
+	text-align: center;	
+}
+
 /* .list-bucket { */
 
 /* 	padding-left: 50px; */

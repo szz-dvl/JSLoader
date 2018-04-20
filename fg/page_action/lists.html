@@ -1,15 +1,14 @@
 <div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;">
 
-  <h4> Included from {{ key }} {{ item.name }}  <bdi style="color:red" ng-click="item.toggleList()">{{ item.listState() }}</bdi> </h4>
+	<h4> Included from {{ key }} {{ item.name }}  <bdi style="color:red" ng-click="item.toggleList()">{{ item.listState() }}</bdi> </h4>
   
-  <script-index
-	 ng-show="item.visible"
-	 list="item.scripts"
-	 editor="page.bg.editor_mgr.openEditorInstanceForScript"
-	 shown="[]"
-	 pa="page.bg.tabs_mgr.updatePA"
-	 opts="page.bg.option_mgr.editor"
-	 external="true">
-  </script-index>
+	<script-index
+		ng-show="item.visible"
+		list="item.scripts"
+		editor="page.bg.editor_mgr.openEditorInstanceForScript"
+		shown="[]"
+		opts="page.bg.option_mgr.editor"
+		external="true">
+	</script-index>
   
 </div>

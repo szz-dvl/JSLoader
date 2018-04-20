@@ -395,86 +395,83 @@ function CSMgr (bg) {
 										.then(
 											scripts => {
 												
-												if (scripts)
-													self.bg.tabs_mgr.updatePA(url.href);
-												
 												port.postMessage({action: "run",
-																  response: "ret-logs",
-																  message: (scripts || [])
-																  .filter(
-																	  script => {
-																		  
-																		  return !script.disabled;
-																		  
-																	  }
-																  )
-																  .map(
-																	  script => {
-																		  
-																		  return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
-																		  
-																	  }
-																  )
-																 });
+													response: "ret-logs",
+													message: (scripts || [])
+														.filter(
+															script => {
+																
+																return !script.disabled;
+																
+															}
+														)
+														.map(
+															script => {
+																
+																return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+																
+															}
+														)
+												});
 												
 											}
 										);
 								}
+									
+									break;
+								case "ret-logs":
+									
+									if (!args.status) 
+										self.bg.logs_mgr.logErrors(args.errors);
+									
+									break;
+									
+								case "site-to-group":
+									self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
+									break;
+									
+								case "notify":
+									self.bg.notify_mgr.user(args.message.title, args.message.body);
+									break;
 								
-								break;
-							case "ret-logs":
-								
-								if (!args.status) 
-									self.bg.logs_mgr.logErrors(args.errors);
-								
-								break;
-								
-							case "site-to-group":
-								self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
-								break;
-								
-							case "notify":
-								self.bg.notify_mgr.user(args.message.title, args.message.body);
-								break;
-								
-							case "event":
-								{
-									self.alive.map(
-										cs => {
-											
-											try {
+								case "event":
+									{
+										self.alive.map(
+											cs => {
 												
-												cs.port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
-											
-											} catch (e) {}
-										}
-									);
-								}
-								
-								break;
-								
-							case "get-global":
-								self.contentGetGlobal(port, args.tag, args.message.key);
-								break;
-								
-							case "set-global":
-								self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
-								break;
-								
-							case "set-proxy":
-								self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
-								break;
-
-							case "set-rule":
-								self.contentSetRule(port, args.tag, args.message.criteria, args.message.headers);
-								break;
-
-							case "download-file":
-								self.contentDownload(port, args.tag, args.message.args);
-								break;
-								
-							default:
-								break;
+												try {
+													
+													cs.port.postMessage({action: "content-script-ev", message: {name: args.message.name, args: args.message.args}});
+													
+												} catch (e) {}
+											}
+										);
+									}
+									
+									break;
+									
+								case "get-global":
+									self.contentGetGlobal(port, args.tag, args.message.key);
+									break;
+									
+								case "set-global":
+									self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
+									break;
+									
+								case "set-proxy":
+									self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
+									break;
+									
+								case "set-rule":
+									self.contentSetRule(port, args.tag, args.message.criteria, args.message.headers);
+									break;
+									
+								case "download-file":
+									self.contentDownload(port, args.tag, args.message.args);
+									break;
+									
+								default:
+									break;
 							}
 						}
 					);
@@ -495,5 +492,5 @@ function CSMgr (bg) {
 					);
 				}
 			});
-
+	
 }

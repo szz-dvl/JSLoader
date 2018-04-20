@@ -1085,8 +1085,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   port: "=port",
 						   editor: "=editor",
 						   shown: "=shown",
-						   opts: "=opts",
-						   pa: "=pa"
+						   opts: "=opts"
+						   
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -1434,7 +1434,6 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   editor: "=editor",
 						   shown: "=shown",
 						   opts: "=opts",
-						   pa: "=pa",
 						   sites: "=sites",
 						   mgr: "=mgr"
 						   

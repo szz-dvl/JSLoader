@@ -44,50 +44,12 @@ function Menu (bg) {
 	this.bg = bg;
 	this.menu;
 	this.app = angular.module('MenuApp', []);
-
-	this.groups = this.bg.group_mgr.groups.map(
-		group => {
-			
-			return {val: group, id: "add_grp_" + group,
-					onClick: function () {
-						self.bg.showUnattachedEditor(group);
-					}};
-		});
-
-	this.groups.push({val: "New Group", id: "add_new_grp",
-					  onClick: function () {
-						  self.bg.showUnattachedEditor();
-					  }});
 	
 	this.app.controller('menuController', function ($scope) {
 		
 		self.menu = $scope;
 		
 		$scope.user_actions = [
-
-			/* To page action */
-			
-			new Action({val: "Add script for this page", id: "add_script",
-						onClick: function () {
-							self.bg.showEditorForCurrentTab();
-						}
-					   }),
-			
-			new Action({ val: "Add script to group", id: "add_script_gr", submenu: self.groups }),
-			
-			new Action({ val: "Add this page to group", id: "add_site_to_grp",
-						 onClick: function () {
-							 self.bg.addSiteToGroup();
-						 }
-					   }),
-
-			new Action({ val: "Listen page requests.", id: "listen_page_req",
-				onClick: function () {
-					self.bg.listenRequestsForCurrentTab();
-				}
-			}),
-
-			/* END to page action */
 
 			/* Only shortcut? */
 			

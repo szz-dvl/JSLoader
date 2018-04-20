@@ -87,23 +87,23 @@
 			},
 			"description": "Open a new editor window, binded to the current tab."
 		},
-		"add-site-to-group": {
-			"suggested_key": {
-				"linux": "Alt+Shift+2"
-			},
-			"description": "Adds site to existing group."
-		},
 		"new-group-new-script": {
 			"suggested_key": {
-				"linux": "Alt+Shift+3"
+				"linux": "Alt+Shift+2"
 			},
 			"description": "Create new group, ¿adds the current site? and binds a new script."
 		},
 		"listen-request-for-tab": {
 			"suggested_key": {
-				"linux": "Alt+Shift+4"
+				"linux": "Alt+Shift+3"
 			},
 			"description": "Listen and prints request for the current tab."
+		},
+		"open-option-page": {
+			"suggested_key": {
+				"linux": "Alt+Shift+O"
+			},
+			"description": "Shows configuration menu."
 		}
 	},
 

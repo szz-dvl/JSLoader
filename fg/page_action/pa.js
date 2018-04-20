@@ -4,6 +4,7 @@ function PA (bg, info) {
 
 	this.bg = bg;
 	this.info = info;
+	this.lists = [];
 	
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
@@ -12,16 +13,70 @@ function PA (bg, info) {
 		$scope.page = self;
 		
 	});
-
-	this.app.controller('siteController', $scope => {
+	
+	this.app.controller('siteController', function ($scope, $timeout, $state, $stateParams) {
 		
 		$scope.page = self;
+		$scope.page.list_mgr = $scope;
+		
 		$scope.info = self.info;
+		$scope.user_info = ($scope.info.domain.length + $scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		
-		$scope.shown = [];
+		$scope.scripts_btn_text = "Show";
 		
+		$scope.scrips_active = false;
+		
+		$scope.toggleScripts = function () {
+			
+			$scope.scripts_active = !$scope.scripts_active;
+			$scope.scripts_btn_text = $scope.scripts_active ? "Hide" : "Show";
+
+		}
+		
+		$scope.updateData = function (currentGroup) {
+
+			return new Promise(
+				(resolve, reject) => {
+					
+					$scope.page.bg.getPASite()
+						.then(
+							info => {
+								
+								$scope.page.info = $scope.info = info;
+								$scope.user_info = (info.domain.length + info.site.length + info.subdomains.length + info.groups.length) != 0;
+								
+								$state.transitionTo($state.current, {"#": currentGroup}, { 
+									
+									reload: true, inherit: false, notify: false 
+									
+								});
+								
+								resolve();
+							}
+						);
+				});
+		}
 	});
 
+	this.listController = function (key) {
+		
+		return self.info[key].map(
+			item => {
+				
+				item.visible = false;
+				item.toggleList = function () {
+					item.visible = !item.visible;
+				}
+				
+				item.listState = function () {
+					return item.visible ? "v" : ">";
+				}
+				
+				return item;
+			}
+		);
+	};
+	
 	this.app.config(
 		$stateProvider=> {
 		
@@ -34,23 +89,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "domain";
-							
-							$scope.page = self;
-							$scope.data = self.info.domain.map(
-								domain => {
-
-									domain.visible = false;
-									domain.toggleList = function () {
-										domain.visible = !domain.visible;
-									}
-
-									domain.listState = function () {
-										return domain.visible ? "v" : ">";
-									}
-
-									return domain;
-								}
-							);
+							$scope.data = self.listController($scope.key); 
 							
 						}
 					},
@@ -61,23 +100,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "site";
-							
-							$scope.page = self;
-							$scope.data = self.info.site.map(
-								site => {
-
-									site.visible = false;
-									site.toggleList = function () {
-										site.visible = !site.visible;
-									}
-
-									site.listState = function () {
-										return site.visible ? "v" : ">";
-									}
-
-									return site;
-								}
-							);
+							$scope.data = self.listController($scope.key);
 							
 						}
 					},
@@ -88,23 +111,8 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "group";
+							$scope.data = self.listController('groups');
 							
-							$scope.page = self;
-							$scope.data = self.info.groups.map(
-								group => {
-
-									group.visible = false;
-									group.toggleList = function () {
-										group.visible = !group.visible;
-									}
-
-									group.listState = function () {
-										return group.visible ? "v" : ">";
-									}
-									
-									return group;
-								}
-							);
 						}
 					},
 
@@ -112,24 +120,96 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
-
-							$scope.key = "subdomains";
 							
-							$scope.page = self;
-							$scope.data = self.info.subdomains.map(
-								subdomain => {
-									
-									subdomain.visible = false;
-									
-									subdomain.toggleList = function () {
-										subdomain.visible = !subdomain.visible;
-									}
+							$scope.key = "subdomain";
+							$scope.data = self.listController("subdomains");
+						}
+					},
+					
+					'actions': {
 
-									subdomain.listState = function () {
-										return subdomain.visible ? "v" : ">";
-									}
+						templateUrl: 'actions.html',
+						controller: function ($scope, $timeout, $stateParams) {
+							
+							$scope.groups = $scope.page.bg.group_mgr.groups;
+							
+							$scope.current = $stateParams["#"] ? $stateParams["#"] : $scope.groups[0];
+							
+							$scope.url = new URL($scope.info.url).name();
+							
+							if ($scope.url.slice(-1) == "/")
+								$scope.url = $scope.url.slice(0, -1);
+							
+							$scope.events = new EventEmitter();
+							$scope.action;
+							
+							$scope.setAction = function () {
+			
+								$scope.page.bg.group_mgr.getOrBringCached($scope.current)
+									.then(
+										group => {
+											
+											if (group.ownerOf($scope.url))
+												$scope.action = "Remove";
+											else
+												$scope.action = "Add";
+											
+											$scope.$digest();
+										}
+									)
+							};
+
+							$scope.selectChange = function () {
+								
+								$scope.setAction();
+							};
+							
+							$scope.events
+								.on('validation_start',
+									pending => {
+										
+										console.log("Validation start: " + pending);
+										
+										$("#submit_btn").attr("disabled", true);
+										
+									})
+								
+								.on('validation_ready',
+									validated => {
+										
+										$scope.url = validated;
+										$scope.setAction();
+
+										console.log("Validated url: " + validated);
+										
+										$("#submit_btn").removeAttr("disabled");
+										
+									});
+							
+							$scope.addSite = function () {
+								
+								let promise = $scope.action == "Add" ?
+															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
+															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
+								
+								promise.then(() => { $scope.page.list_mgr.updateData($scope.current) });			
+							};
+							
+							$scope.addScript = function () {
+								
+								$scope.page.bg.showEditorForCurrentTab();
+							};
+							
+							$scope.listenTab = function () {
+								
+								$scope.page.bg.listenRequestsForCurrentTab();
+							};
+							
+							$timeout(
+								() => {
 									
-									return subdomain;
+									$scope.setAction();
+									
 								}
 							);
 						}
@@ -137,7 +217,7 @@ function PA (bg, info) {
 				}	
 			});
 		});
-
+	
 	this.app.run($state => { $state.go('pa-site') });
 	
 	angular.element(document).ready(
@@ -154,8 +234,7 @@ browser.runtime.getBackgroundPage()
 			page.getPASite()
 				.then(
 					info => {
-
-						console.log(info);
+						
 						PA.call(this, page, info);
 						
 					}

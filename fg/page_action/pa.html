@@ -20,34 +20,51 @@
 	<script src="../partials/partials.js"></script>
 	<script src="../../utils/jsloader-utils.js"></script>
 	<script src="../../utils/deps/async.min.js"></script>
+
+	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
 	
   </head>
   
-  <body ng-controller="siteController" ui-sref="pa-site" spellcheck="false">
-	
-	<div class="panel-section panel-section-header">
-	  <div class="text-section-header">JSLoader</div>
-	</div>
-	
-	<div ng-if="info.domain[0].scripts.length">
-	  <div ui-view="domain"></div>
-	</div>
-	
-	<div ng-if="info.site[0].scripts.length">
-	  <div ui-view="site"></div>
-	</div>
-	
-	<div ng-if="info.subdomains.length">
-	  <div ui-view="subdomains"></div>
-	</div>
-	
-	<div ng-if="info.groups.length">
-	  <div ui-view="groups"></div>
-	</div>
+  <body ng-controller="siteController" ui-sref="pa-site" spellcheck="false" ng-cloak>
+	  
+	  <div class="panel-section panel-section-header">
+		  <div class="text-section-header">JSLoader</div>
+	  </div>
+	  
+	  <div ng-show="user_info">
 
-	<script src="../deps/json/json-formatter.js"></script>
-	<script src="pa.js"></script>
-	
+		  <div class="panel-section panel-section-header" style="display: inline-block; width: 100%;"> 
+			  <div class="text-section-header-mod">Included scripts
+				  <button class="browser-style" ng-click="toggleScripts()" style="margin-left: 30px;"> {{scripts_btn_text}} </button>
+			  </div>
+		  </div>
+		  
+		  <div ng-show="scripts_active">
+			  
+			  <div ng-if="info.domain[0].scripts.length">
+				  <div ui-view="domain"></div>
+			  </div>
+			  
+			  <div ng-if="info.site[0].scripts.length">
+				  <div ui-view="site"></div>
+			  </div>
+			  
+			  <div ng-if="info.subdomains.length">
+				  <div ui-view="subdomains"></div>
+			  </div>
+			  
+			  <div ng-if="info.groups.length">
+				  <div ui-view="groups"></div>
+			  </div>
+		  </div>
+		  
+	  </div>
+
+	  <div ui-view="actions"></div>
+	  
+	  <script src="../deps/json/json-formatter.js"></script>
+	  <script src="pa.js"></script>
+	  
   </body>
-
+  
 </html>

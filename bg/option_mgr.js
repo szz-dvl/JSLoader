@@ -1,3 +1,10 @@
+function Theme (theme) {
+	
+	this.name = theme.name || "monokai";
+	this.knownToHl = theme.knownToHl || "monokai-sublime";
+	this.title = theme.title || "Hightlights available";
+}
+
 function Options (opt) {
 
 	this.jsl = opt.jsl || {
@@ -100,13 +107,8 @@ function OptionMgr (bg) {
 								case "import-opts":
 									self.sendMessage("import-opts", args.message);
 									
-									break;
-								
-								case "update-PA":
-									self.bg.tabs_mgr.updatePA(args.message);
-									
-									break;
-								
+									break;								
+										
 								default:
 									break;
 								}
@@ -116,11 +118,7 @@ function OptionMgr (bg) {
 				
 					self.port.onDisconnect.addListener(
 						() => {
-
-							//browser.runtime.reload(); /* !!! */
-
 							self.port = null;
-							console.log("Disconnecting port!");
 						}
 					);
 				}
@@ -145,7 +143,7 @@ function OptionMgr (bg) {
 		
 		Promise.all(promises).then(
 			data => {
-
+				
 				text.push.apply(text, data[0]);
 				text.push(", \"groups\": ");
 				text.push.apply(text, data[1]);

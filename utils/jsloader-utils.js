@@ -60,25 +60,9 @@ URL.prototype.name = function() {
 };
 
 URL.prototype.sort = function() {
-
+	
 	if (this.protocol === "wyciwyg:") 
 		return new URL(this.pathname.split(/^\/\/[0-9]+\//).pop());
 	else
 		return this;
 };
-
-function Theme (theme) {
-
-	var self = this;
-	
-	this.name = theme.name || "monokai";
-	this.knownToHl = theme.knownToHl || "monokai-sublime";
-	this.title = theme.title || "Hightlights available";
-
-	// this.update = function (theme) {
-
-	// 	this.name = theme.name;
-	// 	this.knownToHl = theme.knownToHl;
-	// 	this.title = theme.title;
-	// }
-}

@@ -210,7 +210,6 @@ function EditorFG (id, bg) {
 							.then(
 								parent => {
 									
-									self.bg.tabs_mgr.updatePA(script);
 									self.scope.enableButtons();
 									self.scope.$digest();
 									

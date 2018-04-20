@@ -174,9 +174,6 @@ function DomainMgr (bg) {
 								
 								var site = domain.haveSite(url.pathname);
 								
-								// console.log("Domain: ");
-								// console.log(scripts);
-								
 								if (site) {
 									
 									scripts.push.apply(scripts,
@@ -187,10 +184,7 @@ function DomainMgr (bg) {
 								}
 
 							}
-
-							// console.log("Domain & Site: ");
-							// console.log(scripts);
-							
+		
 							self.__getAggregatedScripts(groups, url.hostname)
 								.then(group_scripts => {
 
@@ -201,86 +195,6 @@ function DomainMgr (bg) {
 									
 								}, reject);
 						});
-			});
-	};
-	
-	this.haveInfoForUrl = function (url) {
-
-		return new Promise (
-			(resolve, reject) => {
-				
-				self.getOrBringCached(url.hostname)
-					.then(
-						domain => {
-
-							let groups = [];
-							
-							if (domain && domain.scripts.length)
-
-								resolve(true);
-
-							else {
-
-								let site = domain ? domain.haveSite(url.pathname) : null;
-								
-								if (site && site.haveData()) {
-									
-									resolve(true);
-									
-								} else {
-
-									if (domain) {
-										
-										groups.push.apply(groups,
-											domain.groups);	
-									}
-
-									if (site) {
-										
-										groups.push.apply(groups,
-											site.groups);	
-									}									
-									
-									self.__getRepresentedBy(url.hostname)
-										.then(
-											subdomains => {
-
-												let scripts = [];
-												
-												for (let subdomain of subdomains) {
-
-													
-													scripts.push.apply(scripts,
-														subdomain.scripts);
-													
-													groups.push.apply(groups,
-														subdomain.groups);
-													
-												}
-												
-												if (scripts.length)
-
-													resolve (true);
-
-												else {
-
-													self.__getGroupScripts(groups)
-														.then(
-															group_scripts => {
-
-																
-																resolve(group_scripts.length > 0);
-																
-															}, reject
-														);
-												}
-												
-											}, reject
-										);
-								}
-							}
-						});
-				
 			});
 	};
 
@@ -296,13 +210,13 @@ function DomainMgr (bg) {
 							let site = null;
 							let groups = [];
 							let editInfo = {
-
+								
 								domain: [],
 								site: [], 
 								subdomains: [],
 								groups: []
 							};		
-							
+								
 							if (domain) {
 
 								if (domain.scripts.length)
@@ -310,19 +224,19 @@ function DomainMgr (bg) {
 								
 								groups.push.apply(groups,
 									domain.groups);
-
+								
 								site = domain.haveSite(url.pathname);
 							}
 							
 							if (site) {
-
+							
 								if (site.scripts.length && site.url != "/")
 									editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
 								groups.push.apply(groups,
 									site.groups);	
 							}
-
+							
 							self.__getRepresentedBy(url.hostname)
 								.then(
 									subdomains => {
@@ -340,18 +254,18 @@ function DomainMgr (bg) {
 										self.__getGroupScripts(groups)
 											.then(
 												group_scripts => {
-													
+
 													for (let group of groups) {
 
 														let filtered = group_scripts
 															.filter(
 																script => {
-																	return script.parent.name == group;
+																	return group == script.parent.name;
 																});
-
+													
 														if (filtered.length)
 															editInfo.groups.push({ name: group, scripts: filtered });
-													};
+													}
 													
 													resolve(editInfo);
 													
@@ -365,7 +279,6 @@ function DomainMgr (bg) {
 			});
 	};		
 	
-	/* !!! */
 	this.importDomains = function (arr) {
 
 		return new Promise(
@@ -380,13 +293,7 @@ function DomainMgr (bg) {
 					promises.push(self.updateCache(domain_info));
 					
 				}
-
-				/* 
-				   At this point all data from imported JSON must be properly merged, 
-				   need to check for unmet group relations. 
-				   
-				 */
-
+				
 				Promise.all(promises)
 					.then(
 						merged_domains => {
@@ -482,8 +389,10 @@ function DomainMgr (bg) {
 							text.push(",");
 							
 						}
+
+						if (domains.length)
+							text.pop(); //last comma
 						
-						text.pop(); //last comma
 						text.push("]");
 						
 						if (inline)

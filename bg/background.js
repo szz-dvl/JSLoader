@@ -24,7 +24,7 @@ function BG_mgr () {
 					.then(url => {
 						
 						self.domain_mgr.getEditInfoForUrl(url)
-							.then(resolve, reject);
+							.then(nfo => { nfo.url = url.href; resolve(nfo) }, reject);
 						
 					});
 			});
@@ -60,12 +60,6 @@ function BG_mgr () {
 					self.editor_mgr.openEditorInstanceForGroup(group);
 				});
 	};
-	
-	this.addSiteToGroup = function () {
-		
-		self.group_mgr.showChooserWdw();
-		
-	};
 
 	this.listenRequestsForCurrentTab = function () {
 		
@@ -85,16 +79,16 @@ function BG_mgr () {
 				self.showEditorForCurrentTab();
 				break;
 				
-			case "add-site-to-group":
-				self.addSiteToGroup();
-				break;
-			
 			case "new-group-new-script":
 				self.showUnattachedEditor(null);
 				break;
 				
 			case "listen-request-for-tab":
 				self.listenRequestsForCurrentTab();
+				break;
+				
+			case "open-option-page":
+				browser.runtime.openOptionsPage();
 				break;
 				
 			default:

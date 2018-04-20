@@ -442,20 +442,22 @@ function RulesMgr (bg) {
 			text.push(",");
 		}
 
-		text.pop(); // last comma
+		if (self.rules.length)
+			text.pop(); // last comma
+		
 		text.push("], \"proxy_rules\": [");
-
+		
 		for (let rule of self.proxy_rules) {
 			
 			text.push.apply(text, JSON.stringify(rule).split('\n'));
 			text.push(",");
 		}
 		
-		text.pop(); // last comma
+		if (self.proxy_rules.length)
+			text.pop(); // last comma
+		
 		text.push("]}");
 		
-		//console.log("My text: " + text);
-
 		if (inline)
 			return text;
 		else

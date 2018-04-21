@@ -52,10 +52,11 @@ function DomainMgr (bg) {
 						
 						let subdomain_name = last ? actual + "." + last : actual;
 						last = actual;
-
+						
 						this.storage.getDomain(
 							subdomain => {
-								
+
+								/* Add those to cache? ====> to be tested!*/
 								if (subdomain) 
 									subdomains.push(subdomain);
 								
@@ -83,21 +84,25 @@ function DomainMgr (bg) {
 				let scripts = [];
 
 				async.eachSeries(groups,
-					(group, next) => {
+					(group_name, next) => {
 						
 						this.storage.getGroup(
 							group => {
 								
 								if (group) {
+
+									group.cache = self.bg.group_mgr;
 									
 									scripts.push.apply(scripts,
 										group.scripts);
-								} else 
-								console.warn("Missing group: " + group);
+									
+								} else {
+									console.warn("Missing group: " + group_name);
+								}
 								
 								next();
 								
-							}, group
+							}, group_name
 						);		
 					},
 					err => {
@@ -174,7 +179,7 @@ function DomainMgr (bg) {
 								
 								var site = domain.haveSite(url.pathname);
 								
-								if (site) {
+								if (site && site.url != "/") {
 									
 									scripts.push.apply(scripts,
 										site.scripts);
@@ -182,14 +187,19 @@ function DomainMgr (bg) {
 									groups.push.apply(groups,
 										site.groups);
 								}
-
 							}
-		
+
+							/* Group & Subdomain scripts */
 							self.__getAggregatedScripts(groups, url.hostname)
 								.then(group_scripts => {
-
+									
 									scripts.push.apply(scripts,
-										group_scripts);
+										group_scripts.filter(
+											script => {
+												return !script.disabledAt(url.name()); 
+											}
+										)
+									);
 									
 									resolve(scripts);
 									
@@ -283,13 +293,11 @@ function DomainMgr (bg) {
 
 		return new Promise(
 			(resolve, reject) => {
-
-				
 				
 				let promises = [];
 				
 				for (domain_info of arr) {
-
+					
 					promises.push(self.updateCache(domain_info));
 					
 				}

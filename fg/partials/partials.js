@@ -81,7 +81,6 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   editor: "=editor",
 						   shown: "=shown",
 						   opts: "=opts",
-						   pa: "=pa",
 						   uuid: "=?uuid",
 						   external: "=?external"
 					   },
@@ -118,7 +117,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 						   $scope.removeScript = function(script) {
 							   
 							   script.remove();
-							   	   
+							   
 						   };
 						   
 						   //console.log("New UUID for " + $scope.parent.parent.name + ": " + $scope.list_uuid);
@@ -1110,7 +1109,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 									   
 									   switch (args.action) {
 									   case "list-update":
-										   
+											   
 										   if ($scope.name == args.message) {
 											   
 											   //console.log("List update for: " + $scope.parent.parent.name + $scope.parent.url);
@@ -1394,7 +1393,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   },
 					   
 					   controller: function ($scope) {
-
+						   
 						   $scope.shown = true;
 						   $scope.state = ">";
 						   
@@ -1409,7 +1408,6 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 							   $scope.mgr.removeSiteFrom($scope.parent.name, sname);
 							   
 						   };
-						   
 					   }
 				   }
 			   })

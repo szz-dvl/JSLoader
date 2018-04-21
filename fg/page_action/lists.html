@@ -24,7 +24,7 @@
 				</td>
 
 				<td style="float: left;">
-					<button class="browser-style" ng-click="script.toggleDisable()" style="margin-left: 5px; width: 80px; text-align: center;"> {{ script.disabled ? "Enable" : "Disable" }} </button>
+					<button class="browser-style" ng-click="script.toggleDisableFor(url)" style="margin-left: 5px; width: 80px; text-align: center;"> {{ script.disabledAt(url) ? "Enable" : "Disable" }} </button>
 				</td>
 
 				<td style="float: left; margin-left: 5px;" ng-if="!script.parent.isGroup()">

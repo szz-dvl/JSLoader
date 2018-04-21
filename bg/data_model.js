@@ -1,4 +1,4 @@
-/* Represents an entity in a view. */
+/* ALMOST DEPRECATED */
 function Element (parent_id, shown, owner) {
 
 	var self = this;
@@ -73,10 +73,12 @@ function Script (opt) {
 	this.getUrl = function () {
 		
 		if (self.parent && !self.parent.isGroup()) {
+			
 			if (self.parent.isSubdomain())
 				return null;
 			else
 				return new URL('http://' + self.parent.parent.name + self.parent.url);
+			
 		} else
 			return null; /* !!! */
 	};
@@ -99,6 +101,19 @@ function Script (opt) {
 		else
 			return self.parent.parent.cache;
 	};
+
+	this.__schedulePersistAt = function (to) {
+
+		if (self.persistTID)
+			clearTimeout(self.persistTID);
+
+		self.persistTID = setTimeout(
+			() => {
+				
+				self.persist();
+				
+			}, to);
+	}
 	
 	this.__updateParent = function (url) {
 
@@ -186,7 +201,7 @@ function Script (opt) {
 								let cache = self.findCache();
 								
 								if (cache) { 
-
+									
 									cache.getOrCreateItem(name, false)
 										.then(
 											group => {
@@ -207,21 +222,48 @@ function Script (opt) {
 		} else
 			return Promise.resolve(self);
 	};
-	
+
+	/* ALMOST DEPRECATED */
 	this.toggleDisable = function () {
 		
 		self.disabled = !self.disabled;
 
-		if (self.persistTID)
-			clearTimeout(self.persistTID);
-
-		self.persistTID = setTimeout(
-			() => {
-
-				self.persist();
-			
-			}, 1000); 
+		self.__schedulePersistAt(500);
 	}
+
+	this.disabledAt = function (url_name) {
+		
+		if (self.parent.isGroup()) {
+
+			return url_name ?
+				   self.parent.isDisabled(self.uuid, url_name) :
+				   self.parent.disabledEverywhere(self.uuid);
+		} else
+			return self.disabled;
+	};
+
+	this.toggleDisableFor = function (url_name) {
+
+		if (self.parent.isGroup()) {
+
+			if (url_name)
+				self.parent.toggleDisableFor(self.uuid, url_name);
+			else {
+				
+				if (self.parent.disabledEverywhere(self.uuid)) 
+					self.parent.enableEverywhere(self.uuid);
+				else
+					self.parent.disableEverywhere(self.uuid);
+			}
+			
+		} else {
+			
+			self.disabled = !self.disabled;
+			
+		}
+		
+		self.__schedulePersistAt(500);
+	};
 	
 	this.persist = function () {
 
@@ -235,12 +277,12 @@ function Script (opt) {
 	this.getParentName = function () {
 
 		return self.parent.isGroup() ? self.parent.name : self.parent.parent.name;
-
-	}
-
-	/* Views */
+		
+	};
+	
+	/* Views ALMOST DEPRECATED */
 	this.elemFor = function (list_uuid) {
-
+		
 		return self.elems.filter(
 			elem => {
 				return elem.parent_id == list_uuid;
@@ -255,21 +297,21 @@ function Script (opt) {
 				return stored.parent_id == parent_id;
 			}
 		)[0];
-
+		
 		if (exists)
 			return exists;
 		else {
-
+			
 			var elem = new Element(parent_id, page_shown, self);
 			self.elems.push(elem);
-
+			
 			return elem;
 		}
 	};
 	
 	/* Stringify */
 	this.__getDBInfo = function () {
-
+		
 		return {
 			
 			uuid: self.uuid,
@@ -363,7 +405,7 @@ function __Script_Bucket (scripts) {
 		return new Script({parent: self});
 	};
 	
-	/* Views */
+	/* Views: ALMOST DEPRECATED */
 	this.elemFor = function (list_uuid) {
 		
 		return self.elems.filter(
@@ -723,10 +765,12 @@ function Group (opt) {
 	
 	this.name = opt.name || UUID.generate().split("-").pop();
 	this.sites = opt.sites || [];
+	this.disabledAt = opt.disabledAt || [];
 	
 	this.isDomain = function() {
 		
 		return false;
+		
 	};
 
 	this.isSubdomain = function() {
@@ -756,6 +800,8 @@ function Group (opt) {
 							
 							if (self.cache && self.haveData())
 								self.cache.forceCacheItem(self);
+							if (!self.cache)
+								console.log("Uncached group!!!");
 
 							resolve(self);
 							
@@ -798,6 +844,16 @@ function Group (opt) {
 		self.sites.remove(self.sites.indexOf(site.siteName()));
 		site.groups.remove(site.groups.indexOf(self.name));
 
+		let idx = 0;
+		
+		for (let tuple of self.disabledAt) {
+
+			if (tuple.url == site)
+				self.disabledAt.remove(idx);
+
+			idx ++;
+		}
+		
 		if (self.isEmpty())
 			self.remove();
 
@@ -816,10 +872,10 @@ function Group (opt) {
 	
 	this.mergeInfo = function (imported) {
 
-		for (script of imported.scripts)
+		for (let script of imported.scripts)
 			self.upsertScript(script);
 		
-		for (site_name of imported.sites) {
+		for (let site_name of imported.sites) {
 			
 			if (!self.sites.includes(site_name))
 				self.sites.push(site_name);
@@ -830,11 +886,39 @@ function Group (opt) {
 			   
 			 */
 		}
+
+		for (let tuple of imported.disabledAt) {
+
+			let script_mine = self.scripts.find(
+				script => {
+					return script.uuid == tuple.id;
+				}
+			) ? true : false;
+
+			let site_mine = self.sites.find(
+				site => {
+					return site.siteName() == tuple.url;
+				}
+			) ? true : false;
+			
+			if (site_mine && script_mine) {
+				
+				let idx = self.disabledAt.findIndex(
+					tuple => {
+						
+						return tuple.id == uuid && tuple.url == url_name;	
+					}
+				);
+				
+				if (idx < 0)
+					self.disabledAt.push({id: uuid, url: url_name});
+			}
+		}
 	};
 
 	/* Only for groups ! */
 	this.isShown = function () {
-
+		
 		return self.elems.filter(
 			elem => {
 				return elem.shown;								
@@ -848,13 +932,86 @@ function Group (opt) {
 		return self.scripts.length || self.sites.length;
 		
 	};
+
+	this.isDisabled = function (uuid, url_name) {
+		
+		return self.disabledAt.find(
+			tuple => {
+				return (tuple.id == uuid && tuple.url == url_name);
+			}
+		) ? true : false;
+	}
+
+	this.toggleDisableFor = function (uuid, url_name) {
+		
+		let idx = self.disabledAt.findIndex(
+			tuple => {
+				
+				return tuple.id == uuid && tuple.url == url_name;
+				
+			}
+		);
+		
+		if (idx >= 0)
+			self.disabledAt.remove(idx);
+		else
+			self.disabledAt.push({id: uuid, url: url_name});
+	}
+
+	this.disabledEverywhere = function (uuid) {
+		
+		return self.sites.length && self.disabledAt.filter(
+			tuple => {
+				
+				return tuple.id == uuid;
+			}
+			
+		).length == self.sites.length;
+	};
 	
+	this.disableEverywhere = function (uuid) {
+		
+		for (let site of self.sites) {
+			
+			let idx = self.disabledAt.findIndex(
+				tuple => {
+				
+					return tuple.id == uuid && tuple.url == site;
+
+				}
+			
+			);
+		
+			if (idx < 0)
+				self.disabledAt.push({id: uuid, url: site});
+		}
+	}
+
+	this.enableEverywhere = function (uuid) {
+		
+		for (let site of self.sites) {
+			
+			let idx = self.disabledAt.findIndex(
+				tuple => {
+				
+					return tuple.id == uuid && tuple.url == site;
+
+				}
+			
+			);
+		
+			if (idx >= 0)
+				self.disabledAt.remove(idx);
+		}
+	}
+
+	/* !!! */
 	this.ownerOf = function (site_name) {
 
 		return self.sites
 			.filter(
 				site => {
-
+					
 					if (site.startsWith("*."))
 						return new Domain ({name: site}).ownerOf(site_name.split("/")[0]);
 					else if (site.split("/").length == 2)
@@ -872,6 +1029,7 @@ function Group (opt) {
 			
 			name: self.name,
 			sites: self.sites,
+			disabledAt: self.disabledAt,
 			scripts: self.scripts.map(
 				script => {
 					return script.__getDBInfo();

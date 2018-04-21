@@ -55,7 +55,12 @@ URL.prototype.match = function(url) {
 
 URL.prototype.name = function() {
 
-	return this.hostname + this.pathname;
+	let retval = this.hostname + this.pathname;
+	
+	if (retval.slice(-1) == "/")
+		retval = retval.slice(0, -1);
+	
+	return retval;
 
 };
 

@@ -6,6 +6,8 @@ function PA (bg, info) {
 	this.info = info;
 	this.lists = [];
 	
+	this.url = new URL(this.info.url).name();
+
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
 	this.app.controller('headController', $scope => {
@@ -92,8 +94,9 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
-
+							
 							$scope.key = "domain";
+							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController($scope.key); 
 							
@@ -106,6 +109,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 
 							$scope.key = "site";
+							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController($scope.key);
 							
@@ -118,7 +122,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 							
 							$scope.key = "group";
-							$scope.remove = self.removeAndUpdate;
+							$scope.url = self.url;
 							$scope.data = self.listController('groups');
 							
 						}
@@ -130,6 +134,7 @@ function PA (bg, info) {
 						controller: function ($scope) {
 							
 							$scope.key = "subdomain";
+							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("subdomains");
 						}
@@ -144,10 +149,7 @@ function PA (bg, info) {
 							
 							$scope.current = $stateParams["#"] ? $stateParams["#"] : $scope.groups[0];
 							
-							$scope.url = new URL($scope.info.url).name();
-							
-							if ($scope.url.slice(-1) == "/")
-								$scope.url = $scope.url.slice(0, -1);
+							$scope.url = $scope.page.url;
 							
 							$scope.events = new EventEmitter();
 							$scope.action;

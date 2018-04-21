@@ -14,7 +14,7 @@
 			<button id="remove-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="removeScript(script)"> Remove </button>
 		  </td>
 		  <td>
-			<button id="disable-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="script.toggleDisable()"> {{script.elemFor(list_uuid).getEnabled()}} </button>
+			<button id="disable-btn_{{script.uuid}}" class="browser-style mright remove-script" ng-click="script.toggleDisableFor()"> {{script.disabledAt() ? "Enable" : "Disable"}} </button>
 		  </td>
 		</tr>
 	  </table>

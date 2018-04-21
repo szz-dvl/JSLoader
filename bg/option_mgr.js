@@ -112,6 +112,7 @@ function OptionMgr (bg) {
 									default:
 										break;
 								}
+								
 							} catch (e) {}
 						}
 					);

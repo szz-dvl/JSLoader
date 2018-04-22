@@ -7,16 +7,16 @@ function DomainMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	this.domains = []; /* Index */
-
+	
 	this.storage.__getDomains(
 		new_domains => {
 			
 			if (new_domains)
 				self.domains = new_domains;
-		
+			
 		}
 	);
-
+	
 	this.__isIPAddr = function (string) {
 		
 		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
@@ -164,9 +164,11 @@ function DomainMgr (bg) {
 				self.getOrBringCached(url.hostname)
 					.then(
 						domain => {
-
+							
 							let groups = [];
 							let scripts = [];
+							let sites = [];
+							let site = null;
 							
 							if (domain) {
 								
@@ -177,15 +179,28 @@ function DomainMgr (bg) {
 								groups.push.apply(groups,
 									domain.groups);
 								
-								var site = domain.haveSite(url.pathname);
-								
-								if (site && site.url != "/") {
+								let path = "/";
+								for (let endpoint of url.pathname.split("/").slice(1)) {
+
+									path += endpoint;
+									site = domain.haveSite(path);
 									
-									scripts.push.apply(scripts,
-										site.scripts);
+									if (site)
+										sites.push(site);
+
+									path += "/";	
+								}
+										
+								if (sites.length) {
+
+									for (site of sites) {
+
+										scripts.push.apply(scripts,
+											site.scripts);
 									
-									groups.push.apply(groups,
-										site.groups);
+										groups.push.apply(groups,
+											site.groups);
+									}
 								}
 							}
 
@@ -218,6 +233,7 @@ function DomainMgr (bg) {
 						domain => {
 
 							let site = null;
+							let sites = [];
 							let groups = [];
 							let editInfo = {
 								
@@ -234,17 +250,30 @@ function DomainMgr (bg) {
 								
 								groups.push.apply(groups,
 									domain.groups);
-								
-								site = domain.haveSite(url.pathname);
+
+								let path = "/";
+								for (let endpoint of url.pathname.split("/").slice(1)) {
+
+									path += endpoint;
+									site = domain.haveSite(path);
+									
+									if (site)
+										sites.push(site);
+
+									path += "/";	
+								}
 							}
 							
-							if (site && site.url != "/") {
+							if (sites.length) {
 
-								if (site.scripts.length)
-									editInfo.site.push({ name: site.url, scripts: site.scripts });
+								for (site of sites) {
+									
+									if (site.scripts.length)
+										editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
-								groups.push.apply(groups,
-									site.groups);
+									groups.push.apply(groups,
+										site.groups);
+								}
 							}
 							
 							self.__getRepresentedBy(url.hostname)
@@ -429,9 +458,32 @@ function DomainMgr (bg) {
 
 							else {
 
-								let site = domain ? domain.haveSite(url.pathname) : null;
-								
-								if (site && site.haveData()) {
+								let sites = [];
+								let site = null;
+
+								if (domain) {
+									
+									let path = "/";
+									
+									for (let endpoint of url.pathname.split("/").slice(1)) {
+
+										path += endpoint;	
+										site = domain.haveSite(path);
+										
+										if (site) {
+
+											if (site.haveData())
+												sites.push(site);
+											
+											groups.push.apply(groups,
+												site.groups);
+										}
+										
+										path += "/";	
+									}
+								}
+									
+								if (sites.length) {
 									
 									resolve(true);
 									
@@ -441,18 +493,12 @@ function DomainMgr (bg) {
 										
 										groups.push.apply(groups,
 											domain.groups);	
-									}
-
-									if (site) {
-										
-										groups.push.apply(groups,
-											site.groups);	
 									}									
 									
 									self.__getRepresentedBy(url.hostname)
 										.then(
 											subdomains => {
-
+												
 												let scripts = [];
 												
 												for (let subdomain of subdomains) {

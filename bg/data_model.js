@@ -800,9 +800,7 @@ function Group (opt) {
 							
 							if (self.cache && self.haveData())
 								self.cache.forceCacheItem(self);
-							if (!self.cache)
-								console.log("Uncached group!!!");
-
+							
 							resolve(self);
 							
 						}, reject
@@ -904,14 +902,14 @@ function Group (opt) {
 			if (site_mine && script_mine) {
 				
 				let idx = self.disabledAt.findIndex(
-					tuple => {
+					stored => {
 						
-						return tuple.id == uuid && tuple.url == url_name;	
+						return stored.id == tuple.id && tuple.url == stored.url;	
 					}
 				);
 				
 				if (idx < 0)
-					self.disabledAt.push({id: uuid, url: url_name});
+					self.disabledAt.push({id: tuple.id, url: tuple.url});
 			}
 		}
 	};
@@ -1005,22 +1003,30 @@ function Group (opt) {
 		}
 	}
 
-	/* !!! */
+	/* !!! ¿DEPRECATED? */
 	this.ownerOf = function (site_name) {
-
-		return self.sites
-			.filter(
-				site => {
-					
-					if (site.startsWith("*."))
-						return new Domain ({name: site}).ownerOf(site_name.split("/")[0]);
-					else if (site.split("/").length == 2)
-						return site_name.split("/")[0] == site.split("/")[0];
-					else
-						return site == site_name;
-				}
+		
+		return self.sites.find(
+			site => {
 				
-			).length > 0;
+				if (site.startsWith("*."))
+					return new Domain ({name: site}).ownerOf(site_name.split("/")[0]);
+				else
+					return site_name.startsWith(site);
+			}
+			
+		) ? true : false;
+	}
+	
+	this.isMySite = function (site_name) {
+		
+		return self.sites.find(
+			site => {
+
+				return site == site_name;
+			}
+			
+		) ? true : false;
 	}
 	
 	this.__getDBInfo = function () {

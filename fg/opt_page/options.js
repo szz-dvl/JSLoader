@@ -700,7 +700,7 @@ function OP (bg, port) {
 				},
 				
 				name: 'storage',
-				template: '<div ng-repeat="key in keys" style="margin-bottom: 60px;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
+				template: '<div ng-repeat="key in keys" style="margin-bottom: 60px; word-wrap:break-word;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
 				
 				controller: function ($scope, dataStorage) {
 					

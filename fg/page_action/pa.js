@@ -1,5 +1,5 @@
 function PA (bg, info) {
-
+	
 	var self = this;
 
 	this.bg = bg;
@@ -53,7 +53,6 @@ function PA (bg, info) {
 									reload: true, inherit: false, notify: false 
 									
 								});
-
 								
 								browser.pageAction.setIcon(
 									{
@@ -174,7 +173,7 @@ function PA (bg, info) {
 									.then(
 										group => {
 											
-											if (group.ownerOf($scope.url))
+											if (group.isMySite($scope.url))
 												$scope.action = "Remove";
 											else
 												$scope.action = "Add";

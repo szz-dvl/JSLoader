@@ -24,8 +24,6 @@ function BG_mgr () {
 
 				browser.tabs.query({currentWindow: true, active: true})
 					.then(tab_info => {
-
-						console.log(tab_info[0]);
 						
 						self.tabs_mgr.getCurrentURL()
 							.then(url => {

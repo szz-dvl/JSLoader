@@ -1,7 +1,5 @@
 - In-progress:
   - Existing tabs are recreated when opening URLs from listener.
-  - DB Managing ===> Unitary inserts / updates.
-  - Import Button / Disable Everywhere button text.
   
 - Big fails:
   - Something is registering rules!
@@ -19,6 +17,8 @@
   - Import/Export features.
   - Data origin ====> support for MongoDB only.
   - Group OwnerOf =====> Redesigned matching pattern.
+  - DB Managing ===> Unitary inserts / updates.
+  - Import Button / Disable Everywhere button text. .... ¬¬'
   
 - Finally:
   - Style everything up! ====> paginate lists.

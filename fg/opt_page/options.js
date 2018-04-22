@@ -489,6 +489,8 @@ function OP (bg, port) {
 		
 		$scope.shown = [];
 		
+		$scope.db_buttons = $scope.page.bg.database_mgr.connected;
+		
 		$scope.title = "Stored scripts";
 		
 		/* Redo! */
@@ -519,6 +521,8 @@ function OP (bg, port) {
 		
 		$scope.port = port;
 		$scope.groups = dataGroups;
+
+		$scope.db_buttons = $scope.page.bg.database_mgr.connected;
 		
 		$scope.shown = [];	
 	});

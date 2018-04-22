@@ -45,18 +45,25 @@ function DBMgr (bg) {
 				}
 			);
 			
-			self.pushDomains = function () {
+			self.pushDomains = function (domains) {
 
 				if (!self.reconnecting) {
-					
-					self.bg.domain_mgr.exportScripts(true)
-						.then(
-							text => {
-								
-								self.port.postMessage('{ "tag": "domains_push", "content":' + text.join("") + '}' );
-							
-							}
-						);
+
+					if (domains && domains.length > 0) {
+
+						self.port.postMessage('{ "tag": "domains_push", "content": [' + domains.map(domain => { return domain.getJSON(); }).join(",") + '] }' );
+
+					} else {
+						
+						self.bg.domain_mgr.exportScripts(true)
+							.then(
+								text => {
+									
+									self.port.postMessage('{ "tag": "domains_push", "content":' + text.join("") + '}' );
+									
+								}
+							);
+					}
 					
 				} else {
 					
@@ -65,11 +72,11 @@ function DBMgr (bg) {
 				}
 			}
 			
-			self.getDomains = function () {
+			self.getDomains = function (names) {
 
 				if (!self.reconnecting) {
 					
-					self.port.postMessage('{ "tag": "domains_get" }');
+					self.port.postMessage('{ "tag": "domains_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
 					
 				} else {
 					
@@ -77,18 +84,25 @@ function DBMgr (bg) {
 				}
 			}
 			
-			self.pushGroups = function () {
+			self.pushGroups = function (groups) {
 
 				if (!self.reconnecting) {
-					
-					self.bg.group_mgr.exportGroups(true)
-						.then(
-							text => {
-								
-								self.port.postMessage('{ "tag": "groups_push", "content":' + text.join("") + '}' );
-								
-							}
-						);
+
+					if (groups && groups.length > 0) {
+						
+						self.port.postMessage('{ "tag": "groups_push", "content": [' + groups.map(group => { return group.getJSON(); }).join(",") + '] }' );
+						
+					} else {
+						
+						self.bg.group_mgr.exportGroups(true)
+							.then(
+								text => {
+									
+									self.port.postMessage('{ "tag": "groups_push", "content":' + text.join("") + '}' );
+									
+								}
+							);
+					}
 
 				} else {
 					
@@ -98,11 +112,11 @@ function DBMgr (bg) {
 				
 			}
 			
-			self.getGroups = function () {
+			self.getGroups = function (names) {
 
 				if (!self.reconnecting) {
 
-					self.port.postMessage('{ "tag": "groups_get" }');
+					self.port.postMessage('{ "tag": "groups_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
 
 				} else {
 					

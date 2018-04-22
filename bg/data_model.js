@@ -734,6 +734,12 @@ function Domain (opt) {
 		for (site of imported.sites) 	
 			self.getOrCreateSite(site.url).mergeInfo(site);
 	};
+
+	this.getJSON = function () {
+
+		return JSON.stringify(self.__getDBInfo());
+		
+	};
 	
 	this.__getDBInfo = function () {
 		
@@ -900,7 +906,7 @@ function Group (opt) {
 
 			let site_mine = self.sites.find(
 				site => {
-					return site.siteName() == tuple.url;
+					return site == tuple.url;
 				}
 			) ? true : false;
 			
@@ -940,25 +946,35 @@ function Group (opt) {
 		
 		return self.disabledAt.find(
 			tuple => {
-				return (tuple.id == uuid && tuple.url == url_name);
+				return (tuple.id == uuid && url_name.startsWith(tuple.url));
 			}
 		) ? true : false;
 	}
 
 	this.toggleDisableFor = function (uuid, url_name) {
 		
-		let idx = self.disabledAt.findIndex(
-			tuple => {
-				
-				return tuple.id == uuid && tuple.url == url_name;
-				
-			}
-		);
+		let idx = -1;
+		let disabled = false;
 		
-		if (idx >= 0)
-			self.disabledAt.remove(idx);
-		else
-			self.disabledAt.push({id: uuid, url: url_name});
+		do {
+
+			idx = self.disabledAt.findIndex(
+				tuple => {
+					
+					return tuple.id == uuid && url_name.startsWith(tuple.url);
+					
+				}
+			);
+			
+			if (idx >= 0) {
+
+				self.disabledAt.remove(idx);
+				disabled = true;
+				
+			} else if (!disabled)
+				self.disabledAt.push({id: uuid, url: url_name});
+			
+		} while (idx >= 0);
 	}
 
 	this.disabledEverywhere = function (uuid) {
@@ -969,7 +985,7 @@ function Group (opt) {
 				return tuple.id == uuid;
 			}
 			
-		).length == self.sites.length;
+		).length >= self.sites.length;
 	};
 	
 	this.disableEverywhere = function (uuid) {
@@ -991,20 +1007,26 @@ function Group (opt) {
 	}
 
 	this.enableEverywhere = function (uuid) {
+
+		let idx = -1;
 		
 		for (let site of self.sites) {
-			
-			let idx = self.disabledAt.findIndex(
-				tuple => {
-				
-					return tuple.id == uuid && tuple.url == site;
 
-				}
-			
-			);
+			do {
+				
+				let idx = self.disabledAt.findIndex(
+					tuple => {
+						
+						return tuple.id == uuid && tuple.url.startsWith(site);
+
+					}
+					
+				);
 		
-			if (idx >= 0)
-				self.disabledAt.remove(idx);
+				if (idx >= 0)
+					self.disabledAt.remove(idx);
+				
+			} while (idx >= 0);
 		}
 	}
 
@@ -1033,6 +1055,12 @@ function Group (opt) {
 			
 		) ? true : false;
 	}
+
+	this.getJSON = function () {
+
+		return JSON.stringify(self.__getDBInfo());
+		
+	};
 	
 	this.__getDBInfo = function () {
 		

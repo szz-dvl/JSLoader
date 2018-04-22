@@ -59,7 +59,14 @@
 				
 				<button style="float:right;" class="browser-style" ng-click="dataExport()"> Export {{active}} </button>
 				<button style="float:right;" class="browser-style" ng-show="import_data_button" ng-click="applyDataImport()"> Apply changes </button>
-				<input style="float:right;" id="import_data" type="file" value="Import {{active}}"></input>
+
+				<label for="import_data" style="float:right;">
+
+					<bdi>Import {{active}} </bdi> 
+					<!-- <button class="browser-style" onclick="ev => {ev.preventDefault();}"> Import {{active}} </button> -->
+					<input style="float:right;" id="import_data" type="file" ng-show="false"></input>
+					
+				</label>
 			</div>
 		</div>
 		

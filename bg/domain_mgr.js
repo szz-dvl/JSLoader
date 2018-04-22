@@ -423,7 +423,7 @@ function DomainMgr (bg) {
 						
 						for (domain of domains) {
 							
-							text.push.apply(text, JSON.stringify(domain.__getDBInfo()).split('\n'));
+							text.push(domain.getJSON());
 							text.push(",");
 							
 						}

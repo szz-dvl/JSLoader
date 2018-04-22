@@ -1,5 +1,10 @@
 <div ng-if="groups.length">
 	<div class="panel-section" ng-repeat="group in groups track by group.name" ng-if="!group.isEmpty()">
+
+		<div class="browser-style" style="float:right;" ng-show="db_buttons">
+			<button style="float:right;" class="browser-style" ng-click="page.bg.database_mgr.getGroups([group.name])"> Update from DB </button>
+			<button style="float:right;" class="browser-style" ng-click="page.bg.database_mgr.pushGroups([group])"> Push to DB </button>
+		</div>
 		
 		<group-list ng-if="!group.isEmpty()"
 			scripts="group.scripts"

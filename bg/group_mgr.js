@@ -188,7 +188,7 @@ function GroupMgr (bg) {
 				
 						for (group of groups) {
 							
-							text.push.apply(text, JSON.stringify(group.__getDBInfo()).split('\n'));
+							text.push(group.getJSON());
 							text.push(",");
 						}
 

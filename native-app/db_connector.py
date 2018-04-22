@@ -54,6 +54,9 @@ while True:
                 sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '"}'));
             
         elif tag == 'domains_push':
+            
+            sys.stderr.write(json.dumps(receivedMessage['content']));
+            
             for domain in receivedMessage['content']:
                 
                 db.domains.replace_one(
@@ -72,10 +75,11 @@ while True:
                 );
                 
         elif tag == 'domains_get':
-            
+
             docs = [];
+            query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
             
-            for domain in db.domains.find():
+            for domain in db.domains.find(query):
                 del domain['_id']
                 docs.append(domain)
                 
@@ -84,10 +88,13 @@ while True:
         elif tag == 'groups_get':
             
             docs = [];
-            
-            for group in db.groups.find():
+            query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
+                
+            for group in db.groups.find(query):
                 del group['_id']
                 docs.append(group)
-                
+
             sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
+                
+                
             

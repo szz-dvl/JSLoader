@@ -262,21 +262,7 @@ browser.runtime.getBackgroundPage()
 
 						PA.call(this, page, info);
 						
-						let color = (info.domain.length + info.site.length + info.subdomains.length + info.groups.length) != 0 ? "red" : "blue";
-						
-						browser.pageAction.setIcon(
-							{
-								path: {
-									16: browser.extension.getURL("fg/icons/" + color + "-diskette-16.png"),
-									32: browser.extension.getURL("fg/icons/" + color + "-diskette-32.png")
-										
-								},
-								
-								tabId: info.tabId
-							}
-						);
-						
 					}
 				);						
 		}
-	);g
+	);

@@ -212,7 +212,22 @@ function EditorFG (id, bg) {
 									
 									self.scope.enableButtons();
 									self.scope.$digest();
-									
+
+									if (self.editor.tab) {
+
+										browser.pageAction.setIcon(
+											{
+												path: {
+													
+													16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
+													32: browser.extension.getURL("fg/icons/red-diskette-32.png")
+														
+												},
+												
+												tabId: self.editor.tab.id
+											}
+										);
+									}
 								}
 							)
 					}, err => { console.error(err); }

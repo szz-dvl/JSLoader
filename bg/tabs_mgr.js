@@ -324,7 +324,7 @@ function TabsMgr (bg) {
 					editor.newTabURL(new URL(changeInfo.url).sort());
 				
 				// let listener = self.getListenerById(tabId);
-
+				
 				// if (listener)
 				// 	listener.tabUpdate();
 			}
@@ -367,7 +367,7 @@ function TabsMgr (bg) {
 			}
 		)
 	};
-
+	
 	this.getCurrentURL = function () {
 		
 		return new Promise (
@@ -379,7 +379,6 @@ function TabsMgr (bg) {
 					}, reject)
 			}
 		);
-		
 	};
 
 	this.openOrCreateTab = function (url) {
@@ -465,12 +464,38 @@ function TabsMgr (bg) {
 					
 					var url = new URL(tabInfo.url).sort();
 					
-					if (url.protocol != "moz-extension:") 	
-						browser.pageAction.show(tabInfo.id);
-					
+					if (url.protocol != "moz-extension:") {
+
+						self.bg.domain_mgr.haveInfoForUrl(url)
+							.then(
+								any => {
+									
+									let nfo = any ? "red" : "blue";
+
+									browser.pageAction.show(tabInfo.id)
+										.then(
+											() => {
+
+												browser.pageAction.setIcon(
+													{
+														path: {
+															16: browser.extension.getURL("fg/icons/" + nfo + "-diskette-16.png"),
+															32: browser.extension.getURL("fg/icons/" + nfo + "-diskette-32.png")
+														
+														},
+														tabId: tabInfo.id
+													}
+													
+												);
+
+											}
+										);
+								}
+							);
+					}	
 				}
 			);
-	}
+	};
 	
 	browser.tabs.onUpdated.addListener(this.__updateEditors);
 	

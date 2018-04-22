@@ -21,15 +21,30 @@ function BG_mgr () {
 		
 		return new Promise (
 			(resolve, reject) => {
-				
-				self.tabs_mgr.getCurrentURL()
-					.then(url => {
+
+				browser.tabs.query({currentWindow: true, active: true})
+					.then(tab_info => {
+
+						console.log(tab_info[0]);
 						
-						self.domain_mgr.getEditInfoForUrl(url)
-							.then(nfo => { nfo.url = url.href; resolve(nfo) }, reject);
-						
+						self.tabs_mgr.getCurrentURL()
+							.then(url => {
+								
+								self.domain_mgr.getEditInfoForUrl(url)
+									.then(
+										nfo => {
+
+											nfo.url = url.href;
+											nfo.tabId = tab_info[0].id;
+											resolve(nfo);
+											
+										}, reject);
+								
+							});
 					});
+
 			});
+				
 	};
 	
 	this.showEditorForCurrentTab = function () {
@@ -42,12 +57,12 @@ function BG_mgr () {
 						() => {
 							
 							self.editor_mgr.openEditorInstanceForTab(tab_info[0]);
-								
+							
 						},
 						() => {
 							
 							self.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
-											
+							
 						}
 					);
 				

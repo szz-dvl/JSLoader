@@ -26,5 +26,5 @@
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
   
 -El raco d'en Santi
-  -Varies icones per Page Action ===> Olaf ho he trobat!!! ====> mira: "https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/pageAction/setIcon"
+  -Varies icones per Page Action ===> Olaf esta fet!! borra quan ho vegis!!! ;)
   -Les fonts son petites si estas lluny de la pantalla!!

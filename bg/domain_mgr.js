@@ -412,6 +412,84 @@ function DomainMgr (bg) {
 			});
 	}
 	
+	this.haveInfoForUrl = function (url) {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				self.getOrBringCached(url.hostname)
+					.then(
+						domain => {
+
+							let groups = [];
+							
+							if (domain && domain.scripts.length)
+
+								resolve(true);
+
+							else {
+
+								let site = domain ? domain.haveSite(url.pathname) : null;
+								
+								if (site && site.haveData()) {
+									
+									resolve(true);
+									
+								} else {
+
+									if (domain) {
+										
+										groups.push.apply(groups,
+											domain.groups);	
+									}
+
+									if (site) {
+										
+										groups.push.apply(groups,
+											site.groups);	
+									}									
+									
+									self.__getRepresentedBy(url.hostname)
+										.then(
+											subdomains => {
+
+												let scripts = [];
+												
+												for (let subdomain of subdomains) {
+
+													
+													scripts.push.apply(scripts,
+														subdomain.scripts);
+													
+													groups.push.apply(groups,
+														subdomain.groups);
+													
+												}
+												
+												if (scripts.length)
+
+													resolve (true);
+
+												else {
+													
+													self.__getGroupScripts(groups)
+														.then(
+															group_scripts => {
+																
+																resolve(group_scripts.length > 0);
+																
+															}, reject
+														);
+												}
+												
+											}, reject
+										);
+								}
+							}
+						});
+				
+			});
+	};
 	
 	this.storeNewDomains = function (changes, area) {
 		

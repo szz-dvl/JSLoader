@@ -6,6 +6,7 @@ function PA (bg, info) {
 	this.info = info;
 	this.lists = [];
 	
+	this.tabId = info.tabId;
 	this.url = new URL(this.info.url).name();
 
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
@@ -32,7 +33,7 @@ function PA (bg, info) {
 			
 			$scope.scripts_active = !$scope.scripts_active;
 			$scope.scripts_btn_text = $scope.scripts_active ? "Hide" : "Show";
-
+			
 		}
 		
 		$scope.updateData = function (currentGroup) {
@@ -52,6 +53,19 @@ function PA (bg, info) {
 									reload: true, inherit: false, notify: false 
 									
 								});
+
+								
+								browser.pageAction.setIcon(
+									{
+										path: {
+											16: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-16.png"),
+											32: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-32.png")
+												
+										},
+
+										tabId: $scope.page.tabId
+									}
+								);
 								
 								resolve();
 							}
@@ -81,7 +95,7 @@ function PA (bg, info) {
 	
 	this.removeAndUpdate = function (script) {
 		
-		script.remove().then($scope.page.list_mgr.updateData());
+		script.remove().then(self.list_mgr.updateData());
 	};
 	
 	this.app.config(
@@ -248,7 +262,21 @@ browser.runtime.getBackgroundPage()
 
 						PA.call(this, page, info);
 						
+						let color = (info.domain.length + info.site.length + info.subdomains.length + info.groups.length) != 0 ? "red" : "blue";
+						
+						browser.pageAction.setIcon(
+							{
+								path: {
+									16: browser.extension.getURL("fg/icons/" + color + "-diskette-16.png"),
+									32: browser.extension.getURL("fg/icons/" + color + "-diskette-32.png")
+										
+								},
+								
+								tabId: info.tabId
+							}
+						);
+						
 					}
 				);						
 		}
-	);
+	);g

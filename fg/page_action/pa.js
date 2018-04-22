@@ -259,6 +259,8 @@ browser.runtime.getBackgroundPage()
 				.then(
 					info => {
 
+						console.log(info);
+						
 						PA.call(this, page, info);
 						
 					}

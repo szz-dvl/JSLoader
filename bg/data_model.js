@@ -842,15 +842,20 @@ function Group (opt) {
 		self.sites.remove(self.sites.indexOf(site.siteName()));
 		site.groups.remove(site.groups.indexOf(self.name));
 
-		let idx = 0;
+		let disabled = -1;
 		
-		for (let tuple of self.disabledAt) {
-
-			if (tuple.url == site)
-				self.disabledAt.remove(idx);
-
-			idx ++;
-		}
+		do {
+			
+			self.disabledAt.remove(disabled);
+			
+			disabled = self.disabledAt.findIndex(
+				tuple => {
+					
+					return tuple.url.startsWith(site.siteName());
+				}
+			);
+			
+		} while (disabled >= 0);
 		
 		if (self.isEmpty())
 			self.remove();

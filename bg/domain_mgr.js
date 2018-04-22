@@ -205,7 +205,7 @@ function DomainMgr (bg) {
 							}
 
 							/* Group & Subdomain scripts */
-							self.__getAggregatedScripts(groups, url.hostname)
+							self.__getAggregatedScripts(groups.unique(), url.hostname)
 								.then(group_scripts => {
 									
 									scripts.push.apply(scripts,
@@ -290,26 +290,27 @@ function DomainMgr (bg) {
 											
 										}
 										
-										self.__getGroupScripts(groups)
-											.then(
-												group_scripts => {
+										groups = groups.unique();
+										
+										self.__getGroupScripts(groups).then(
+											group_scripts => {
+												
+												for (let group of groups) {
 
-													for (let group of groups) {
-
-														let filtered = group_scripts
-															.filter(
-																script => {
-																	return group == script.parent.name;
-																});
+													let filtered = group_scripts
+														.filter(
+															script => {
+																return group == script.parent.name;
+															});
 													
-														if (filtered.length)
-															editInfo.groups.push({ name: group, scripts: filtered });
-													}
-													
-													resolve(editInfo);
-													
-												}, reject
-											);
+													if (filtered.length)
+														editInfo.groups.push({ name: group, scripts: filtered });
+												}
+												
+												resolve(editInfo);
+												
+											}, reject
+										);
 										
 									}, reject
 								);
@@ -517,8 +518,8 @@ function DomainMgr (bg) {
 													resolve (true);
 
 												else {
-													
-													self.__getGroupScripts(groups)
+
+													self.__getGroupScripts(groups.unique())
 														.then(
 															group_scripts => {
 																

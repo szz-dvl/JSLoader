@@ -46,6 +46,17 @@ Array.prototype.insert = function(elem) {
 	
 };
 
+Array.prototype.unique = function() {
+	
+	return this.filter(
+		(item, idx) => {
+			
+			return this.indexOf(item) == idx;
+
+		}
+	);
+}
+
 URL.prototype.match = function(url) {
 
 	

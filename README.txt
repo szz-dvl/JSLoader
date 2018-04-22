@@ -1,6 +1,8 @@
 - In-progress:
   - Existing tabs are recreated when opening URLs from listener.
-	
+  - DB Managing ===> Unitary inserts / updates.
+  - Import Button / Disable Everywhere button text.
+  
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
@@ -24,5 +26,3 @@
   - Prevent context menu on extension windows.
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
   
--El raco d'en Santi
-  -Les fonts son petites si estas lluny de la pantalla!!

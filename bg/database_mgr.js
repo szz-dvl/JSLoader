@@ -5,7 +5,7 @@ function DBMgr (bg) {
 	this.bg = bg;
 	this.available = false;
 	this.connected = false;
-	self.reconnecting = false;
+	this.reconnecting = false;
 	
 	this.port = browser.runtime.connectNative("db_connector");
 

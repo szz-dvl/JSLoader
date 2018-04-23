@@ -353,17 +353,10 @@ function TabsMgr (bg) {
 				} else
 					url_name = url.name();
 
-				if (url_name.slice(-1) == "/")
-					url_name = url_name.slice(0, -1);
+				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				
-				browser.tabs.query({url: "*://" + url_name + "/*"})
-					.then(
-						tabs => {
-							
-							resolve(tabs);
-							
-						}
-					);
+				browser.tabs.query({url: "*://" + url_name })
+					.then(resolve, reject);
 			}
 		)
 	};

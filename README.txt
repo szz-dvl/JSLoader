@@ -1,5 +1,5 @@
 - In-progress:
-  - Existing tabs are recreated when opening URLs from listener.
+  - Testing time!
   
 - Big fails:
   - Something is registering rules!
@@ -19,6 +19,7 @@
   - Group OwnerOf =====> Redesigned matching pattern.
   - DB Managing ===> Unitary inserts / updates.
   - Import Button / Disable Everywhere button text. .... ¬¬'
+  - Existing tabs are recreated when opening URLs from listener ===> to be tested when editing existing script.
   
 - Finally:
   - Style everything up! ====> paginate lists.

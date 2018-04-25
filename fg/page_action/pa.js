@@ -23,7 +23,7 @@ function PA (bg, info) {
 		$scope.page.list_mgr = $scope;
 		
 		$scope.info = self.info;
-		$scope.user_info = ($scope.info.domain.length + $scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
+		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		
 		$scope.scripts_btn_text = "Show";
 		
@@ -46,7 +46,7 @@ function PA (bg, info) {
 							info => {
 								
 								$scope.page.info = $scope.info = info;
-								$scope.user_info = (info.domain.length + info.site.length + info.subdomains.length + info.groups.length) != 0;
+								$scope.user_info = (info.site.length + info.subdomains.length + info.groups.length) != 0;
 								
 								$state.transitionTo($state.current, {"#": currentGroup || null}, { 
 									
@@ -103,28 +103,16 @@ function PA (bg, info) {
 			$stateProvider.state('pa-site', {
 
 				views: {
-					'domain': {
-						
-						templateUrl: 'lists.html',
-						controller: function ($scope) {
-							
-							$scope.key = "domain";
-							$scope.url = self.url;
-							$scope.remove = self.removeAndUpdate;
-							$scope.data = self.listController($scope.key); 
-							
-						}
-					},
 					
 					'site': {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
 
-							$scope.key = "site";
+							$scope.key = "resource";
 							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
-							$scope.data = self.listController($scope.key);
+							$scope.data = self.listController("site");
 							
 						}
 					},
@@ -258,8 +246,6 @@ browser.runtime.getBackgroundPage()
 			page.getPASite()
 				.then(
 					info => {
-
-						console.log(info);
 						
 						PA.call(this, page, info);
 						

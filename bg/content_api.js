@@ -272,7 +272,7 @@ function CSApi () {
 	};
 
 	this.JSLEventNeighbours = function (name, args) {
-
+		
 		self.port.postMessage({action: "event", message: {name: name, args: args}});
 		
 	};

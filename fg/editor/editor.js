@@ -295,18 +295,18 @@ function EditorFG (id, bg) {
 			shown: true,
 			disabled: false,
 			arr: [{text:"Save", id: "save_btn", available: true,
-				   click: function () {
-					   
-					   self.saveCurrent();
-					   
-				   }},
-				  {text:"Run in Page", id: "run_btn", available: self.editor.tab,
-				   click: function () {
-					   
-					   self.runCurrent();
-					   
-				   }}]
-
+				click: function () {
+					
+					self.saveCurrent();
+					
+				}},
+				{text:"Run in Page", id: "run_btn", available: self.editor.tab ? true : false,
+					click: function () {
+						
+						self.runCurrent();
+						
+					}
+				}]
 		};
 		
 		$scope.dd_text = "<";
@@ -316,7 +316,7 @@ function EditorFG (id, bg) {
 				pending => {
 					
 					console.log("Validation start: " + pending);
-
+					
 					if (!$scope.buttons.disabled) {
 
 						$scope.disableButtons();

@@ -187,7 +187,7 @@ function JSLTabListener(tabInfo, bg) {
 							request: request,
 							responses: [],
 							rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }}),
-							mod: mod ? true : false
+							mod: mod ? true : false /* to be done in rules mgr! */
 						});
 					}
 				}
@@ -354,8 +354,8 @@ function TabsMgr (bg) {
 					url_name = url.name();
 
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
-				
-				browser.tabs.query({url: "*://" + url_name })
+
+				browser.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] })
 					.then(resolve, reject);
 			}
 		)
@@ -367,9 +367,12 @@ function TabsMgr (bg) {
 			(resolve, reject) => {
 			
 				browser.tabs.query({currentWindow: true, active: true})
-					.then(tab_info => {
-						resolve(new URL(tab_info[0].url).sort());
-					}, reject)
+					.then(
+						tab_info => {
+
+							resolve(new URL(tab_info[0].url).sort());
+
+						}, reject);
 			}
 		);
 	};

@@ -63,8 +63,8 @@
 				"utils/deps/async.min.js",
 				"utils/deps/underscore-min.js",
 				"utils/jsloader-utils.js",
-				"bg/content_api.js",
 				"utils/deps/EventEmitter/EventEmitter.min.js",
+				"bg/content_api.js",
 				"bg/content_script.js"
 			],
 			

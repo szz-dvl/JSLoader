@@ -27,7 +27,8 @@
 	  
 	  <bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
 	  <div id="editor-header" class="panel-section panel-section-header">
-		  <div class="text-section-header"> {{label}} || 
+		  <div class="text-section-header"> <script-name script="script" onlyval="true"></script-name> || 
+			  
 			  <span>
 				  <bdi id="user_action" class="bold"> {{user_action}} </bdi>
 				  <site-validator ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>

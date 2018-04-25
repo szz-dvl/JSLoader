@@ -22,6 +22,7 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   
 					   scope: {
 						   script: "=script",
+						   onlyval: '=?'
 					   },
 					   
 					   template: '<bdi contenteditable="true"> {{script.name}} </bdi>',
@@ -41,7 +42,9 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 									   if (name.match(/^[a-z0-9]+$/i)) {
 
 										   $scope.script.name = name;
-										   $scope.script.persist();
+
+										   if (!$scope.onlyval)
+											   $scope.script.persist();
 										   
 									   } else 
 										   $(ev.target).text($scope.script.name);

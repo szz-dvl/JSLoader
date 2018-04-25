@@ -249,11 +249,11 @@ function ProxyMgr (bg) {
 		console.error(`Proxy error: ${error.message}`);
 	});
 	
-	browser.runtime.onMessage.addListener(
-		(message, sender, response) => {
-			console.log("Proxy message: " + message);
-		}
-	);
+	/* browser.runtime.onMessage.addListener(
+	   (message, sender, response) => {
+	   console.log("Proxy message: " + message);
+	   }
+	   ); */
 	
 	browser.proxy.register("pac.js");
 }
@@ -438,7 +438,7 @@ function RulesMgr (bg) {
 		
 		for (let rule of self.rules) {
 			
-			text.push.apply(text, JSON.stringify(rule.__getDBInfo()).split('\n'));
+			text.push(JSON.stringify(rule.__getDBInfo()));
 			text.push(",");
 		}
 
@@ -449,7 +449,7 @@ function RulesMgr (bg) {
 		
 		for (let rule of self.proxy_rules) {
 			
-			text.push.apply(text, JSON.stringify(rule).split('\n'));
+			text.push(JSON.stringify(rule));
 			text.push(",");
 		}
 		

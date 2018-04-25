@@ -1,11 +1,16 @@
 - In-progress:
-  - Testing time!
+  - POSTS request do not show data on tab listener.
+  - Logs not registered when scripts are opened, notifications won't show.
   
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
   - Inform user of unpersisted data on views.
   - Opened windows after browser crash ==> to be recovered.
+  - Facility to detect if scripts properly run ====> API to load script from script on demand?
+  - Option to run several scripts in one URL in standalone mode, without sharing namespace ===> possible?
+  - Feature to duplicate scripts may be worthy.
+  - startsWith =====> "/" !!!
   
 - Unavailable?
   - Use console editor (devtools/sourceeditor/editor) in foreground pages ? 
@@ -22,8 +27,9 @@
   - Existing tabs are recreated when opening URLs from listener ===> to be tested when editing existing script.
   
 - Finally:
-  - Style everything up! ====> paginate lists.
+  - Style everything up! ====> paginate lists, filter for domains & groups lists.
   - Initial examples for each info recipient.
   - Prevent context menu on extension windows.
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
   
+  - Must dead scripts be garbage collected?? =S...

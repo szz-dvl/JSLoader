@@ -50,12 +50,12 @@ function ContentScript() {
 				
 			case "run":
 				
-				let errors = self.runAll(args.message);
+					let errors = self.runAll(args.message);
+					
+					for (error of errors)
+						console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
 				
-				for (error of errors)
-					console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
-				
-				this.port.postMessage({action: args.response, status: errors.length === 0, errors: errors});
+					this.port.postMessage({action: args.response, status: errors.length === 0, errors: errors});
 				
 				break;
 				

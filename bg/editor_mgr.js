@@ -72,7 +72,7 @@ function Editor (opt) {
 	};
 	
 	this.newTabURL = function (url) {
-
+		
 		if (self.tab) {
 			
 			if (url.hostname !== self.tab.url.hostname) 	
@@ -89,7 +89,7 @@ function Editor (opt) {
 				editor => {
 					
 					return editor.id == self.id;
-						
+					
 				}
 			)
 		);	
@@ -179,9 +179,8 @@ function EditorMgr (bg) {
 									
 									} else {
 										
-										new EditorWdw({parent: self, script: script, tab: null, mode: false, line: line, col: col})
+										new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
 											.then(resolve, reject);
-										
 									}
 									
 								}, reject
@@ -189,7 +188,7 @@ function EditorMgr (bg) {
 						
 					} else {
 						
-						new EditorWdw({parent: self, script: script, tab: null, mode: false, line: line, col: col})
+						new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
 							.then(resolve, reject);
 						
 					}
@@ -201,7 +200,7 @@ function EditorMgr (bg) {
 	this.openEditorInstanceForGroup = function (group) {
 		
 		new EditorWdw({ parent: self,
-						script: new Script({parent: group}),
+						script: new Script({ parent: group }),
 						tab: null,
 						mode: true });
 
@@ -211,12 +210,11 @@ function EditorMgr (bg) {
 
 		return self.editors.filter(
 			editor => {
-
+				
 				return editor.script.uuid == script.uuid;
-
+				
 			}
 		)[0] || null;
-		
 	};
 	
 	this.getEditorById = function (eid) {

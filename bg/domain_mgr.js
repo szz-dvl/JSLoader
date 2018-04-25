@@ -237,23 +237,22 @@ function DomainMgr (bg) {
 							let groups = [];
 							let editInfo = {
 								
-								domain: [],
 								site: [], 
 								subdomains: [],
 								groups: []
 							};		
 								
 							if (domain) {
-
+								
 								if (domain.scripts.length)
-									editInfo.domain.push({ name: domain.name, scripts: domain.scripts });
+									editInfo.site.push({ name: "/", scripts: domain.scripts });
 								
 								groups.push.apply(groups,
 									domain.groups);
 
 								let path = "/";
 								for (let endpoint of url.pathname.split("/").slice(1)) {
-
+									
 									path += endpoint;
 									site = domain.haveSite(path);
 									
@@ -470,8 +469,9 @@ function DomainMgr (bg) {
 
 										path += endpoint;	
 										site = domain.haveSite(path);
-										
-										if (site) {
+
+										/* !!! */
+										if (site && site.url != "/") {
 
 											if (site.haveData())
 												sites.push(site);
@@ -485,8 +485,12 @@ function DomainMgr (bg) {
 								}
 									
 								if (sites.length) {
-									
-									resolve(true);
+
+									for (let site of sites) {
+
+										if (url.pathname.slice(1).startsWith(site.url.slice(1))) 
+											resolve(true);	
+									}
 									
 								} else {
 
@@ -503,8 +507,7 @@ function DomainMgr (bg) {
 												let scripts = [];
 												
 												for (let subdomain of subdomains) {
-
-													
+																										
 													scripts.push.apply(scripts,
 														subdomain.scripts);
 													
@@ -514,9 +517,7 @@ function DomainMgr (bg) {
 												}
 												
 												if (scripts.length)
-
 													resolve (true);
-
 												else {
 
 													self.__getGroupScripts(groups.unique())

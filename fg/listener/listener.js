@@ -563,37 +563,41 @@ function TabListener (id, page, port) {
 				$scope.config_sel = false;	
 		}
 		
-		$scope.port.onMessage.addListener(
-			function (args) {
-				
+		$scope.fromBG = function (args) {
+
+			/* Temporal workaround port not disconnected on listener wdw close (sol: EventEmitter)*/
+			
+			let idx = $scope.list.findIndex(req => { return req.request.requestId == args.request.request.requestId });
+
+			if (idx < 0) {
 				switch (args.action) {
-				case "new-request":
-					
-					args.request.type = "ok";
-					break;
-					
-				case "error-request":
-					
-					args.request.type = "failured";
-					break;
-					
-				case "blocked-request":
-					
-					args.request.type = "blocked";
-					break;
+					case "new-request":
+						
+						args.request.type = "ok";
+						break;
+						
+					case "error-request":
+						
+						args.request.type = "failured";
+						break;
+						
+					case "blocked-request":
+						
+						args.request.type = "blocked";
+						break;
 
-				case "redirect-request":
-					
-					args.request.type = "redirected";
-					break;
+					case "redirect-request":
+						
+						args.request.type = "redirected";
+						break;
 
-				case "modified-request":
-					
-					args.request.type = "modified";
-					break;
-					
-				default:
-					break;
+					case "modified-request":
+						
+						args.request.type = "modified";
+						break;
+						
+					default:
+						break;
 				}
 
 				
@@ -609,8 +613,10 @@ function TabListener (id, page, port) {
 					$anchorScroll();
 				}
 			}
-		);
-
+		};
+		
+		$scope.port.onMessage.addListener($scope.fromBG);
+			
 		$timeout(() => {
 
 			$('#content').mousedown(
@@ -652,6 +658,7 @@ browser.runtime.getBackgroundPage()
 			window.onbeforeunload = function () {
 				
 				page.tabs_mgr.listenerClose(id);
+				port.onMessage.removeListener(this.list.fromBG);
 				port.disconnect();
 				
 			};

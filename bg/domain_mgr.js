@@ -256,7 +256,7 @@ function DomainMgr (bg) {
 									path += endpoint;
 									site = domain.haveSite(path);
 									
-									if (site)
+									if (site && site.url != "/")
 										sites.push(site);
 
 									path += "/";	

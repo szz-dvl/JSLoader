@@ -60,6 +60,17 @@ function JSLTabListener(tabInfo, bg) {
 	
 	this.requests = [];
 	this.filters = [];
+
+	this.__findRequestIdx = function(reqId) {
+		
+		return self.requests.findIndex(
+			req => {
+				
+				return req.request.requestId == reqId;
+				
+			}
+		);
+	};
 	
 	this.__findRequest = function(reqId) {
 		
@@ -137,16 +148,18 @@ function JSLTabListener(tabInfo, bg) {
 			if (response.tabId == self.id || response.tabId < 0) {
 			
 				let req = self.__findRequest(response.requestId);
-			
+				
 				if (req) {
-							
+					
 					req.responses.push(response);
 					
 					if (req.track)
 						clearTimeout(req.track)
-					
+						
 					/* 400 and 500 not to be tracked. Will get here? */
 					if (response.statusCode >= 200 && response.statusCode < 300) {
+						
+						/* 3xx codes here! */
 						
 						self.port.postMessage({ action: req.mod ? "modified-request" : "new-request", request: req });
 						self.__removeRequest(response.requestId);
@@ -162,7 +175,7 @@ function JSLTabListener(tabInfo, bg) {
 							}, 3000, req
 						);
 					}
-				
+					
 				} else {
 					
 					console.error(" --------------- Missing request ------------- ");
@@ -175,22 +188,31 @@ function JSLTabListener(tabInfo, bg) {
 	
 	this.bg.rules_mgr.events
 		.on('sending-request',
-			(request, rules, mod) => {
+			request => {
 				
 				if (self.active) {
 					if (request.tabId == self.id || request.tabId < 0) {
 						
-						if (mod)
-							request.modifiedHeaders = mod;
-							
 						self.requests.push({
 							request: request,
 							responses: [],
-							rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }}),
-							mod: mod ? true : false /* to be done in rules mgr! */
+							rules: [],
+							mod: false
 						});
 					}
 				}
+			})
+		
+		.on('headers-request',
+			(request, headers, rules) => {
+			
+				let idx = self.__findRequestIdx(request.requestId);
+				
+				self.requests[idx].request.requestHeaders = request.requestHeaders;
+				
+				if (headers) 
+					self.requests[idx].request.modifiedHeaders = headers;
+
 			})
 
 		.on('rule-match',
@@ -202,36 +224,45 @@ function JSLTabListener(tabInfo, bg) {
 					if (request.tabId == self.id || request.tabId < 0)  {
 						
 						switch(action) {
-						case "block":
+							case "block":
 							
-							self.port.postMessage({
-								action: "blocked-request",
-								request: {
-									request: request,
-									responses: [],
-									rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
-								}
-							});
-							
-							break;
-							
-						case "redirect":
-							
-							request.redirectedTo = redire;
+								self.port.postMessage({
+									action: "blocked-request",
+									request: {
+										request: request,
+										responses: [],
+										rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
+									}
+								});
+								
+								break;
+								
+							case "redirect":
+								
+								request.redirectedTo = redire;
+								
+								self.port.postMessage({
+									action: "redirect-request",
+									request: {
+										request: request,
+										responses: [],
+										rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
+									}
+								});
+								
+								break;
+								
+							case "headers":
 
-							self.port.postMessage({
-								action: "redirect-request",
-								request: {
+								self.requests.push({
 									request: request,
 									responses: [],
-									rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }})
-								}
-							});
-							
-							break;
-							
-						default:
-							break;
+									rules: rules.map(rule => { return {id: rule.id, enabled: rule.enabled }}),
+									mod: true
+								});
+								
+							default:
+								break;
 						}
 						
 					}
@@ -241,6 +272,11 @@ function JSLTabListener(tabInfo, bg) {
 	this.listenerUnregister = function () {
 		
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
+		self.requests.length = 0;
+		self.port.disconnect();
+		self.port = null;
+		delete self.port;
+		
 	};
 	
 	browser.runtime.onConnect
@@ -427,8 +463,12 @@ function TabsMgr (bg) {
 
 		if (idx >= 0) {
 
+			let lst = self.listeners[idx];
+			
 			self.listeners[idx].listenerUnregister();
 			self.listeners.remove(idx);
+
+			delete lst;
 			
 		} else
 			console.error("Missing listener " + id);

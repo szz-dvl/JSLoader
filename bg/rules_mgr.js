@@ -493,7 +493,7 @@ function RulesMgr (bg) {
 							request.requestHeaders.push(header);
 					}
 					
-					resolve({ requestHeaders: request.requestHeaders });
+					resolve({ requestHeaders: request.requestHeaders }); /* !!! */
 					self.pending.remove(idx);
 
 					rules.filter(rule => { return rule.temp; } )
@@ -508,10 +508,15 @@ function RulesMgr (bg) {
 								)
 							);	
 						});
-				} else 	
+
+					
+					self.events.emit("headers-request", request, headers, rules);
+					
+				} else {
+					
 					resolve();
-				
-				self.events.emit("sending-request", request, rules, headers);
+					self.events.emit("headers-request", request, null, null);
+				}
 			}
 		);
 	};
@@ -538,35 +543,38 @@ function RulesMgr (bg) {
 					for (let rule of rules) {
 						
 						if (res_val.cancel) {
-
+							
 							res_val = { cancel: true };
 							self.discardPending(request.requestId);
 							
 							break;
 						}
 						
-						if (rule.headers)
+						if (rule.headers) {
+							
 							self.upsertPending({id: request.requestId, rule: rule });
+							action = "headers";
+						}
 						
 						if (rule.enabled) {
 
 							switch(rule.policy.action) {
 								
-							case "block":
-
-								action = "block";
-								res_val.cancel = true;
-								break;
+								case "block":
+									
+									action = "block";
+									res_val.cancel = true;
+									break;
 								
-							case "redirect":
+								case "redirect": 
 
-								redirection = rule.policy.data;
-								action = "redirect";
-								res_val.redirectUrl = rule.policy.data;
-								break;
-								
-							default:
-								break;
+									redirection = rule.policy.data;
+									action = "redirect";
+									res_val.redirectUrl = rule.policy.data;
+									break;
+									
+								default:
+									break;
 							}	
 						} 
 					}
@@ -574,17 +582,20 @@ function RulesMgr (bg) {
 					resolve(res_val);
 					self.events.emit("rule-match", request, rules, action, redirection);
 					
-				} else
+				} else {
+					
 					resolve();
+					self.events.emit("sending-request", request);
+				}
 			});
 	};
 	
 	browser.webRequest.onBeforeRequest.addListener(self.applyRules,
-												   {urls: ["<all_urls>"]},
-												   ["blocking"]);
+		{urls: ["<all_urls>"]},
+		["blocking", "requestBody"]);
 
 	browser.webRequest.onBeforeSendHeaders.addListener(self.changeHeaders,
-													   {urls: ["<all_urls>"]},
-													   ["blocking", "requestHeaders"]);
+		{urls: ["<all_urls>"]},
+		["blocking", "requestHeaders"]);
 	
 }

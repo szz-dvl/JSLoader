@@ -117,4 +117,3 @@ function BG_mgr () {
 BG_mgr.call(this);
 
 browser.commands.onCommand.addListener(this.receiveCmd);
-

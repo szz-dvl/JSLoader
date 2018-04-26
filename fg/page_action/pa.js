@@ -21,8 +21,9 @@ function PA (bg, info) {
 		
 		$scope.page = self;
 		$scope.page.list_mgr = $scope;
-		
 		$scope.info = self.info;
+		$scope.hostname = new URL($scope.info.url).hostname;
+		
 		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		
 		$scope.scripts_btn_text = "Show";

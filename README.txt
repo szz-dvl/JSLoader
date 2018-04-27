@@ -1,11 +1,11 @@
 - In-progress:
   - Logs not registered when scripts are opened, notifications won't show.
+  - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
   
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
-  - Facility to detect if scripts properly run ====> API to load script from script on demand?
   - Feature to duplicate scripts may be worthy.
   - startsWith =====> "/" !!!
   - PA ====> show matching site when group includes scripts??

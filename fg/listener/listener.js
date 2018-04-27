@@ -174,7 +174,7 @@ function filterChunk (filter) {
 	}
 }
 
-function TabListener (id, page, port) {
+function TabListener (page) {
 	
 	let self = this;
 	
@@ -187,10 +187,13 @@ function TabListener (id, page, port) {
 	this.app.controller('bodyController', function ($scope, $timeout) {
 		
 		self.statu = $scope;
+		$scope.page = self;
 		
 		$scope.label = "JSLoader";
 		$scope.capture_status = 'Pause';
-		$scope.tabId = id;
+		$scope.tabId = $scope.page.bg.tabs_mgr.listener.id;
+		$scope.url = $scope.page.bg.tabs_mgr.listener.url.hostname == "" ? "blank" : $scope.page.bg.tabs_mgr.listener.url.hostname;
+		
 		$scope.advFilter = "";
 		$scope.currentProxy = "None";
 		
@@ -253,7 +256,16 @@ function TabListener (id, page, port) {
 			return $scope.advFilter != "" || $scope.filterOpts.find(filter => { return !filter.value; });
 			
 		}
-			
+
+		$scope.page.bg.app_events.on("listener-update",
+			args => {
+
+				$scope.tabId = args.id;
+				$scope.url = args.url == "" ? "blank" : args.url;
+				
+				$scope.$digest();
+				
+			});
 	});
 	
 	this.app.controller('listenerController', function ($scope, $timeout, $location, $anchorScroll) {
@@ -261,7 +273,6 @@ function TabListener (id, page, port) {
 		self.list = $scope;
 		
 		$scope.page = self;
-		$scope.port = port;
 
 		$scope.gotProxys = Object.keys(self.bg.option_mgr.jsl.proxys).length;
 		
@@ -270,10 +281,10 @@ function TabListener (id, page, port) {
 		$scope.rule_sel = false;
 		$scope.currentProxySel = "None";
 		
-		$scope.listener = self.bg.tabs_mgr.getListenerById(id);
+		$scope.listener = self.bg.tabs_mgr.listener;
 		$scope.list = [];
 		$scope.currentFilter = {
-
+			
 			isEmpty: function () { return (this.groups.length == 0 ||
 																 (this.groups[0].chunks.length == 1 &&
 																	 ((this.groups[0].chunks[0].key == "" && typeof(this.groups[0].chunks[0].value) == 'undefined') || !Object.keys(this.groups[0].chunks[0]).length ))); },
@@ -281,7 +292,7 @@ function TabListener (id, page, port) {
 		};
 
 		$scope.getVoidText = function () {
-
+			
 			return $scope.page.statu.anyFilter() && $scope.list.length ? 'No Match' : 'No Data';
 			
 		};
@@ -296,18 +307,18 @@ function TabListener (id, page, port) {
 					req => {
 						
 						return req.shown;
-					
+						
 					}
 				);
-
+				
 				while (idx >= 0) {
 					
 					$scope.list.remove(idx);
 					idx = $scope.list.findIndex(
 						req => {
-
+							
 							return req.shown;
-					
+							
 						}
 					);	
 				}
@@ -325,7 +336,7 @@ function TabListener (id, page, port) {
 					
 				}).value;
 		};
-
+		
 		$scope.removeRule = function (req) {
 			
 			let removed = req.currentRule.id;
@@ -337,7 +348,7 @@ function TabListener (id, page, port) {
 						rule => { return rule.id == removed; }
 					)
 				);
-
+				
 				stacked.currentRule = stacked.rules[0];
 			}
 			
@@ -563,13 +574,9 @@ function TabListener (id, page, port) {
 				$scope.config_sel = false;	
 		}
 		
-		$scope.fromBG = function (args) {
-
-			/* Temporal workaround port not disconnected on listener wdw close (sol: EventEmitter)*/
-			
-			let idx = $scope.list.findIndex(req => { return req.request.requestId == args.request.request.requestId });
-
-			if (idx < 0) {
+		$scope.page.bg.app_events.on("listener-view",
+			args => {
+				
 				switch (args.action) {
 					case "new-request":
 						
@@ -590,7 +597,7 @@ function TabListener (id, page, port) {
 						
 						args.request.type = "redirected";
 						break;
-
+						
 					case "modified-request":
 						
 						args.request.type = "modified";
@@ -599,37 +606,34 @@ function TabListener (id, page, port) {
 					default:
 						break;
 				}
-
+				
 				
 				args.request.listener = $scope.listener;
 				args.request.shown = $scope.__reqMustShow(args.request);
 				$scope.list.push(new RequestWrapper(args.request));
 				
 				$scope.$digest();
-
+				
 				if (!$scope.user_moved) {
 					
 					$location.hash("bottom");
 					$anchorScroll();
 				}
-			}
-		};
+			});
 		
-		$scope.port.onMessage.addListener($scope.fromBG);
-			
 		$timeout(() => {
-
+			
 			$('#content').mousedown(
 				ev => {
 					
 					if( $(window).outerWidth() <= ev.clientX ){
-
+						
 						$scope.user_moved = true;
 						
 					}
 					
 				});
-				
+			
 			$('#content').on('wheel', ev => {
 				
 				$scope.user_moved = true;
@@ -652,19 +656,14 @@ browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			
-			let id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
-			let port = browser.runtime.connect({name:"tab-listener-" + id}); //browser.runtime.id, 
-			
 			window.onbeforeunload = function () {
 				
-				page.tabs_mgr.listenerClose(id);
-				port.onMessage.removeListener(this.list.fromBG);
-				port.disconnect();
+				page.app_events = null; /* If not done next access will find DeadObject */
+				page.tabs_mgr.listenerClose();
 				
 			};
 			
-			TabListener.call(this, id, page, port);
-			
+			TabListener.call(this, page);
 		},
 	);
 

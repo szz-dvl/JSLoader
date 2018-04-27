@@ -88,7 +88,7 @@ function RuleCriteria (opt) {
 }
 
 function Rule (opt, parent) {
-
+	
 	this.mgr = parent;
 	
 	this.id = opt.id || UUID.generate().split("-").pop();
@@ -266,7 +266,7 @@ function RulesMgr (bg) {
 	this.storage = global_storage;
 	this.rules = [];
 	this.pending = [];
-	this.events = new EventEmitter();
+	
 	ProxyMgr.call(this, bg);
 	
 	this.storage.getRules(
@@ -510,12 +510,12 @@ function RulesMgr (bg) {
 						});
 
 					
-					self.events.emit("headers-request", request, headers, rules);
+					self.bg.app_events.emit("headers-request", request, headers, rules);
 					
 				} else {
 					
 					resolve();
-					self.events.emit("headers-request", request, null, null);
+					self.bg.app_events.emit("headers-request", request, null, null);
 				}
 			}
 		);
@@ -580,12 +580,12 @@ function RulesMgr (bg) {
 					}
 					
 					resolve(res_val);
-					self.events.emit("rule-match", request, rules, action, redirection);
+					self.bg.app_events.emit("rule-match", request, rules, action, redirection);
 					
 				} else {
 					
 					resolve();
-					self.events.emit("sending-request", request);
+					self.bg.app_events.emit("sending-request", request);
 				}
 			});
 	};

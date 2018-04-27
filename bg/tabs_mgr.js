@@ -11,7 +11,7 @@ function ListenerWdw (tabInfo, bg) {
 				
 				type: "popup",
 				state: "normal",
-				url: browser.extension.getURL("fg/listener/listener.html?" + listener.id),
+				url: browser.extension.getURL("fg/listener/listener.html"),
 				width: 1024, 
 				height: 420 
 				
@@ -54,10 +54,8 @@ function JSLTabListener(tabInfo, bg) {
 	Object.assign(this, tabInfo);
 
 	this.bg = bg;
-	this.active = true;
 	this.url = new URL(this.url).sort();
-	this.id = parseInt(this.id);
-	
+		
 	this.requests = [];
 	this.filters = [];
 
@@ -95,6 +93,15 @@ function JSLTabListener(tabInfo, bg) {
 				}
 			)
 		);
+	};
+
+	this.update = function (tabInfo) {
+		
+		Object.assign(self, tabInfo);
+		self.url = new URL(self.url).sort();
+
+		self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id });
+		
 	};
 	
 	this.addFilter = function (request, action) {
@@ -146,7 +153,7 @@ function JSLTabListener(tabInfo, bg) {
 		if (self.active) {
 			
 			if (response.tabId == self.id || response.tabId < 0) {
-			
+				
 				let req = self.__findRequest(response.requestId);
 				
 				if (req) {
@@ -161,7 +168,7 @@ function JSLTabListener(tabInfo, bg) {
 						
 						/* 3xx codes here! */
 						
-						self.port.postMessage({ action: req.mod ? "modified-request" : "new-request", request: req });
+						self.bg.app_events.emit("listener-view", { action: req.mod ? "modified-request" : "new-request", request: req });
 						self.__removeRequest(response.requestId);
 						
 					} else {
@@ -169,7 +176,7 @@ function JSLTabListener(tabInfo, bg) {
 						req.track = setTimeout(
 							req => {
 								
-								self.port.postMessage({action: "error-request", request: req});
+								self.bg.app_events.emit("listener-view", {action: "error-request", request: req});
 								self.__removeRequest(response.requestId);
 								
 							}, 3000, req
@@ -186,7 +193,7 @@ function JSLTabListener(tabInfo, bg) {
 		}
 	};
 	
-	this.bg.rules_mgr.events
+	this.bg.app_events
 		.on('sending-request',
 			request => {
 				
@@ -225,8 +232,8 @@ function JSLTabListener(tabInfo, bg) {
 						
 						switch(action) {
 							case "block":
-							
-								self.port.postMessage({
+								
+								self.bg.app_events.emit("listener-view", {
 									action: "blocked-request",
 									request: {
 										request: request,
@@ -241,7 +248,7 @@ function JSLTabListener(tabInfo, bg) {
 								
 								request.redirectedTo = redire;
 								
-								self.port.postMessage({
+								self.bg.app_events.emit("listener-view", {
 									action: "redirect-request",
 									request: {
 										request: request,
@@ -273,38 +280,13 @@ function JSLTabListener(tabInfo, bg) {
 		
 		browser.webRequest.onHeadersReceived.removeListener(self.onHeadersReceived);
 		self.requests.length = 0;
-		self.port.disconnect();
-		self.port = null;
-		delete self.port;
+		self.filters.length = 0;
 		
 	};
-	
-	browser.runtime.onConnect
-		.addListener(
-			port => {
-				
-				if (port.name === ("tab-listener-" + self.id)) {
-					
-					self.port = port;
-					
-					/* Not firing on window close.. Obs.*/
-					self.port.onDisconnect.addListener(
-						port => {
-							
-							if (port.error)
-								console.error("Disconnect error: " + port.error.message);
-							
-							console.log("Closing listener " + self.id);
-						}
-					);
-					
-					browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
-						{urls: ["<all_urls>"]},
-						[ "responseHeaders" ]);
-					
-				}
-			}
-		);
+
+	browser.webRequest.onHeadersReceived.addListener(self.onHeadersReceived,
+		{urls: ["<all_urls>"]},
+		[ "responseHeaders" ]);
 };
 
 function JSLTab (tabInfo, feeding) {
@@ -344,28 +326,7 @@ function TabsMgr (bg) {
 	let self = this;
 
 	this.bg = bg;
-	this.listeners = [];
-
-	this.__updateEditors = function (tabId, changeInfo, tabInfo) {
-		
-		var url = new URL(tabInfo.url).sort();
-					
-		if (url.protocol != "moz-extension:") {
-			
-			if (changeInfo.url) {
-				
-				let editor = self.bg.editor_mgr.getEditorForTab(tabId);
-				
-				if (editor)
-					editor.newTabURL(new URL(changeInfo.url).sort());
-				
-				// let listener = self.getListenerById(tabId);
-				
-				// if (listener)
-				// 	listener.tabUpdate();
-			}
-		}
-	};
+	this.listener;
 	
 	this.updateURLForTab = function (tabId, url) {
 
@@ -402,10 +363,10 @@ function TabsMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 			
-				browser.tabs.query({currentWindow: true, active: true})
+				browser.tabs.query({ currentWindow: true, active: true })
 					.then(
 						tab_info => {
-
+							
 							resolve(new URL(tab_info[0].url).sort());
 
 						}, reject);
@@ -440,100 +401,115 @@ function TabsMgr (bg) {
 						});
 			});
 	};
-	
-	this.getListenerById = function (lid) {
 		
-		return self.listeners.find(
-			listener => {
+	this.listenerClose = function () {
 
-				return listener.id == lid;
-				
-			}) || null;
-	}
-	
-	this.listenerClose = function (lid) {
+		if (self.listener) 
+			self.listener.listenerUnregister();
+
+		self.listener = null;
 		
-		let idx = self.listeners.findIndex(
-			listener => {
-				
-				return listener.id == lid;
-				
-			}
-		);
-
-		if (idx >= 0) {
-
-			let lst = self.listeners[idx];
-			
-			self.listeners[idx].listenerUnregister();
-			self.listeners.remove(idx);
-
-			delete lst;
-			
-		} else
-			console.error("Missing listener " + id);
-		
+		if (!self.bg.app_events)
+			self.bg.app_events = new EventEmitter();
 	};
 
 	this.openListenerInstance = function (tabInfo) {
 
 		return new Promise(
 			(resolve, reject) => {
+
+				if (self.listener) {
+					
+					self.listener.update(tabInfo);
+					
+					browser.windows.update(self.listener.wdw.id, { focused: true })
+						.then(
+							wdw => {
+							
+								resolve(self.listener);
+							
+							});  
+					
+				} else {
+					
+					new ListenerWdw(tabInfo, self.bg)
+						.then(
+							listener => {
+								
+								self.listener = listener;
+								resolve(listener);
+								
+							}, reject);
+				}
 				
-				new ListenerWdw(tabInfo, self.bg)
-					.then(
-						listener => {
-
-							self.listeners.push(listener);
-							resolve(listener);
-
-						}, reject);
-
 			});
 	};
-
-	this.showPA = function (tid) {
+	
+	this.showPA = function (tabId, changeInfo, tabInfo) {
 		
-		browser.tabs.get(tid.tabId || tid)
+		browser.tabs.get(tabId.tabId || tabId)
 			.then(
 				tabInfo => {
-					
+		
 					var url = new URL(tabInfo.url).sort();
 					
 					if (url.protocol != "moz-extension:") {
-
+						
 						self.bg.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
 									
 									let nfo = any ? "red" : "blue";
-
+									
 									browser.pageAction.show(tabInfo.id)
 										.then(
 											() => {
-
+												
 												browser.pageAction.setIcon(
 													{
 														path: {
 															16: browser.extension.getURL("fg/icons/" + nfo + "-diskette-16.png"),
 															32: browser.extension.getURL("fg/icons/" + nfo + "-diskette-32.png")
-														
+																
 														},
 														tabId: tabInfo.id
 													}
-													
 												);
-
 											}
 										);
 								}
 							);
-					}	
-				}
-			);
+					}
+					
+				});
+	};
+
+	this.updateWdws = function (tabId, changeInfo) {
+
+		browser.tabs.get(tabId.tabId || tabId)
+			.then(
+				tabInfo => {
+					
+					var url = new URL(tabInfo.url).sort();
+		
+					if (url.protocol != "moz-extension:") {
+						
+						if (changeInfo && changeInfo.url) {
+							
+							let editor = self.bg.editor_mgr.getEditorForTab(tabInfo.id);
+							
+							if (editor)
+								editor.newTabURL(new URL(changeInfo.url).sort());	
+						}
+						
+						if (self.listener) 
+							self.listener.update(tabInfo);
+					}
+				});
 	};
 	
-	browser.tabs.onUpdated.addListener(this.__updateEditors);
+	browser.tabs.onUpdated.addListener(this.updateWdws);
+	browser.tabs.onActivated.addListener(this.updateWdws);
 	
 	browser.tabs.onUpdated.addListener(this.showPA);
 	browser.tabs.onActivated.addListener(this.showPA);

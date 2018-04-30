@@ -12,8 +12,8 @@ function ListenerWdw (tabInfo, bg) {
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/listener/listener.html"),
-				width: 1024, 
-				height: 420 
+				width: 1124, 
+				height: 480 
 				
 			}).then (
 				wdw => {
@@ -55,7 +55,9 @@ function JSLTabListener(tabInfo, bg) {
 
 	this.bg = bg;
 	this.url = new URL(this.url).sort();
-		
+	this.clipped = false;
+	this.last = null;
+	
 	this.requests = [];
 	this.filters = [];
 
@@ -95,12 +97,22 @@ function JSLTabListener(tabInfo, bg) {
 		);
 	};
 
-	this.update = function (tabInfo) {
-		
-		Object.assign(self, tabInfo);
-		self.url = new URL(self.url).sort();
+	this.update = function (tabInfo, fromPA) {
 
-		self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id });
+		if (!self.clipped || fromPA) {
+			
+			Object.assign(self, tabInfo);
+			self.url = new URL(self.url).sort();
+			
+			if (fromPA)
+				self.clipped = false;
+			
+			self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id, fromPA: fromPA });
+			
+		} else if (self.clipped) {
+			
+			self.last = tabInfo;
+		}
 		
 	};
 	
@@ -274,6 +286,21 @@ function JSLTabListener(tabInfo, bg) {
 						
 					}
 				}
+			})
+		.on("listener-clipped",
+			clipped => {
+				
+				self.clipped = clipped;
+
+				if (!clipped && self.last) {
+					
+					Object.assign(self, self.last);
+					self.url = new URL(self.url).sort();
+					self.last = null;
+					
+					self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id, fromPA: false });
+				}
+
 			});
 	
 	this.listenerUnregister = function () {
@@ -420,7 +447,7 @@ function TabsMgr (bg) {
 
 				if (self.listener) {
 					
-					self.listener.update(tabInfo);
+					self.listener.update(tabInfo, true);
 					
 					browser.windows.update(self.listener.wdw.id, { focused: true })
 						.then(
@@ -503,7 +530,7 @@ function TabsMgr (bg) {
 						}
 						
 						if (self.listener) 
-							self.listener.update(tabInfo);
+							self.listener.update(tabInfo, false);
 					}
 				});
 	};

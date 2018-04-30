@@ -31,7 +31,12 @@
 	  <div class="header-title text-section-header">
 		  <div class="header-title-text"> 
 			  <span>
-				  <bdi id="listening_to"> {{ url }} in tab <strong> {{ tabId }} </strong> </bdi>
+				  <bdi id="listening_to"> {{ url }} in tab </bdi> <!-- <strong> -->
+				  <input type="submit" value="{{ tabId }}" ng-class="clipped ? 'clip-btn clip-btn-active' : 'clip-btn'" ng-click="toggleClipped()">
+				  
+				  <!-- <input class="tgl tgl-skewed" id="cb3" type="checkbox" ng-click="toggleClipped"/>
+				  <label class="tgl-btn" data-tg-off="{{ tabId }}" data-tg-on="{{ tabId }}" for="cb3"></label> -->
+				  <!-- </strong> --> 
 			  </span>
 		  </div>
 	  </div>

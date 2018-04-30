@@ -1,6 +1,7 @@
 - In-progress:
-  - Logs not registered when scripts are opened, notifications won't show.
+  - Logs not registered when errored scripts are opened, notifications won't show.
   - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
+  - Tab binded new windows found themselfs as current tab.
   
 - Big fails:
   - Something is registering rules!
@@ -29,9 +30,11 @@
   - Style everything up!
   		  * Inform user of unpersisted data on views.
 		  * paginate lists, filter for domains & groups lists.
+		  * Listener clip tab button outline won't disapear.
+		  * etc, etc, etc ...
 		  
   - Initial examples for each info recipient.
-  - Prevent context menu on extension windows.
+  - Prevent context menu on extension windows ??? 
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
-  
+ 
   - Must dead scripts be garbage collected?? =S... (Option to run several scripts in one URL in standalone mode, without sharing namespace)

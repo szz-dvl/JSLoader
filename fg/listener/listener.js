@@ -199,6 +199,8 @@ function TabListener (page) {
 		
 		$scope.proxys = Object.keys(self.bg.option_mgr.jsl.proxys);
 		$scope.proxys.push("None");
+		$scope.clipped = false;
+		$scope.last = {};
 		
 		$scope.proxyChange = function () { /* filter ?¿*/
 			self.list.listener.addProxyForTab($scope.currentProxy);
@@ -257,14 +259,22 @@ function TabListener (page) {
 			
 		}
 
+		$scope.toggleClipped = function () {
+			
+			$scope.clipped = !$scope.clipped;
+			$scope.page.bg.app_events.emit("listener-clipped", $scope.clipped);
+		};
+		
 		$scope.page.bg.app_events.on("listener-update",
 			args => {
-
+				
 				$scope.tabId = args.id;
 				$scope.url = args.url == "" ? "blank" : args.url;
+
+				if (args.fromPA)
+					$scope.clipped = false;
 				
 				$scope.$digest();
-				
 			});
 	});
 	

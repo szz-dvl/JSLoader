@@ -27,36 +27,40 @@
   <body spellcheck=false ng-controller="bodyController as listener" ng-cloak>
 	
 	<div id="listener-header" class="panel-section panel-section-header header">
-	  
-	  <div class="header-title text-section-header">
-		  <div class="header-title-text"> 
-			  <span>
-				  <bdi id="listening_to"> {{ url }} in tab </bdi> <!-- <strong> -->
-				  <input type="submit" value="{{ tabId }}" ng-class="clipped ? 'clip-btn clip-btn-active' : 'clip-btn'" ng-click="toggleClipped()">
-				  
-				  <!-- <input class="tgl tgl-skewed" id="cb3" type="checkbox" ng-click="toggleClipped"/>
-				  <label class="tgl-btn" data-tg-off="{{ tabId }}" data-tg-on="{{ tabId }}" for="cb3"></label> -->
-				  <!-- </strong> --> 
-			  </span>
-		  </div>
-	  </div>
-	  
-	  <div class="filter-bucket">
 		
-		<div class="filter-list">
-		  
-		  <label ng-repeat="filter in filterOpts track by filter.text" class="filter-label">
-			<input type="checkbox" ng-model="filter.value" ng-change="filter.change(filter.value)">
-			<span> {{ filter.text }} </span>
-		  </label>
-		  
+		<div class="header-title text-section-header">
+
+			<div class="header-title-text"> 
+
+				{{ url }}
+
+				<bdi style="float:right;padding-right: 10px;""> in tab
+					
+					<input type="submit" value="{{ tabId }}" ng-class="clipped ? 'clip-btn clip-btn-active' : 'clip-btn'" ng-click="toggleClipped()" style="float:right;margin-left: 5px;"> 
+				
+				</bdi>
+				
+			</div>
+		
 		</div>
 		
-		<span class="filter-label"> Filter: </span>
-		<input class="filter_inpt browser-style" type="text" ng-model="advFilter" ng-change="advFilterChange()">
+		<div class="filter-bucket">
+			
+			<div class="filter-list">
+				
+				<label ng-repeat="filter in filterOpts track by filter.text" class="filter-label">
+					<input type="checkbox" ng-model="filter.value" ng-change="filter.change(filter.value)">
+					<span> {{ filter.text }} </span>
+				</label>
+				
+			</div>
+			
+			<span class="filter-label"> Filter: </span>
+			<input class="filter_inpt browser-style" type="text" ng-model="advFilter" ng-change="advFilterChange()">
+			
+			<button class="browser-style jslbtn-pause" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
+		</div>
 		
-		<button class="browser-style jslbtn-pause" ng-click="toggleCapture()"> {{ capture_status }} capture </button>
-	  </div>  
 	</div>
 	
 	<div id="content" class="panel-section scrollable" ng-controller="listenerController as listener">

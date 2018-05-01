@@ -270,7 +270,7 @@ function TabListener (page) {
 				
 				$scope.tabId = args.id;
 				$scope.url = args.url == "" ? "blank" : args.url;
-
+				
 				if (args.fromPA)
 					$scope.clipped = false;
 				

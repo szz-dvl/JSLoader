@@ -77,8 +77,8 @@ function BG_mgr () {
 	};
 
 	this.listenRequestsForCurrentTab = function () {
-		
-		browser.tabs.query({currentWindow: true, active: true})
+
+		browser.tabs.query({active: true, windowType: 'normal'})
 			.then(
 				tab_info => {
 					self.tabs_mgr.openListenerInstance(tab_info[0]);

@@ -1,7 +1,7 @@
 - In-progress:
   - Logs not registered when errored scripts are opened, notifications won't show.
   - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
-  - Tab binded new windows found themselfs as current tab.
+  - Modified connection strings are not persisted.
   
 - Big fails:
   - Something is registering rules!
@@ -25,6 +25,7 @@
   - Import Button / Disable Everywhere button text. .... ¬¬'
   - Existing tabs are recreated when opening URLs from listener ===> to be tested when editing existing script.
   - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
+  - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   
 - Finally:
   - Style everything up!

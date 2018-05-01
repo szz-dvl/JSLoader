@@ -6,13 +6,14 @@ function ListenerWdw (tabInfo, bg) {
 		(resolve, reject) => {
 			
 			let listener = new JSLTabListener(tabInfo, bg);
-
+			let wc = listener.url.hostname.length;
+			
 			browser.windows.create({
 				
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/listener/listener.html"),
-				width: 1124, 
+				width: Math.min(Math.max(1124, (850 + (wc * 15))), screen.width), 
 				height: 480 
 				
 			}).then (
@@ -103,11 +104,32 @@ function JSLTabListener(tabInfo, bg) {
 			
 			Object.assign(self, tabInfo);
 			self.url = new URL(self.url).sort();
-			
+
 			if (fromPA)
 				self.clipped = false;
+
+			let next = Math.min(Math.max(1124, (850 + (self.url.hostname.length * 15))), screen.width);
 			
-			self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id, fromPA: fromPA });
+			if (next > self.wdw.width) {
+				
+				browser.windows.update (self.wdw.id, {
+					
+					width: next,
+					height: self.wdw.height,
+					
+				}).then(
+					newWdw => {
+						
+						self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id, fromPA: fromPA });
+						
+					}
+				);
+				
+			} else {
+				
+				self.bg.app_events.emit("listener-update", { url: self.url.hostname, id: self.id, fromPA: fromPA });
+				
+			}
 			
 		} else if (self.clipped) {
 			

@@ -1,15 +1,16 @@
 function ContentScript() {
 
 	let self = this;
+	Promise = P;
 	
 	this.id = UUID.generate();
 	
 	this.run = function (script) {
 		
 		try {
-			
-			(new Function(script.code)());
 
+			(new Function(script.code)());
+			
 			return void 0;
 			
 		} catch (err) {
@@ -29,14 +30,60 @@ function ContentScript() {
 		}
 	};
 
-	this.runAll = function (scripts) {
+	this.runAll = function (scripts, response) {
 
 		let errors = [];
-		
-		for (script of scripts)
-			errors.push(self.run(script));
 
-		return errors.filter(err => { return err; });
+		async.eachSeries(scripts,
+			(script, next) =>{
+
+				let id = null;
+				
+				Promise.onPossiblyUnhandledRejection(
+					err => {
+
+						if (id)
+							clearTimeout(id);
+						
+						errors.push({	
+
+							type: err.constructor.name,
+							message:  err.message,
+							line: err.lineNumber - 2,
+							col: err.columnNumber,
+							id: script.id,
+							name: script.name,
+							at: window.location.href,
+							parent: script.parent,
+							stamp: new Date().getTime()
+
+						});
+
+						next();
+					}
+				);
+				
+				let error = self.run(script);
+
+				if (error) {
+					
+					errors.push(error);
+					next();
+					
+				} else {
+
+					id = setTimeout(next, 150);
+				}
+
+			}, err => {
+
+				for (error of errors)
+					console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
+				
+				this.port.postMessage({action: response, status: errors.length === 0, errors: errors});
+
+			}
+		);
 	};
 
 	this.port = browser.runtime.connect({name:"CS_" + self.id});
@@ -49,16 +96,11 @@ function ContentScript() {
 			switch(args.action) {
 				
 			case "run":
-				
-					let errors = self.runAll(args.message);
-					
-					for (error of errors)
-						console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
-				
-					this.port.postMessage({action: args.response, status: errors.length === 0, errors: errors});
-				
+
+					self.runAll(args.message, args.response);
+									
 				break;
-				
+					
 			case "info":
 
 				try {
@@ -67,21 +109,24 @@ function ContentScript() {
 					
 				} catch (e) {
 					
-					this.port.postMessage({action: "ret-logs",
-										   status: false,
-										   errors: [{
-						
-											   type: "Bad user defs",
-											   message:  e.message,
-											   line: e.lineNumber - 2,
-											   col: e.columnNumber,
-											   id: "UserDefs",
-											   name: "UserDefs",
-											   at: window.location.href,
-											   parent: null,
-											   stamp: new Date().getTime()
-						
-										   }]});					
+					this.port.postMessage({
+
+						action: "ret-logs",
+						status: false,
+
+						errors: [{
+							
+							type: "Bad user defs",
+							message:  e.message,
+							line: e.lineNumber - 2,
+							col: e.columnNumber,
+							id: "UserDefs",
+							name: "UserDefs",
+							at: window.location.href,
+							parent: null,
+							stamp: new Date().getTime()
+								
+						}]});					
 				}
 
 				this.port.postMessage({action: "get-jobs", message: { url: window.location.toString() }});

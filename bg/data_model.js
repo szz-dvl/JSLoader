@@ -178,7 +178,7 @@ function Script (opt) {
 		} catch (e) {
 
 			if (e instanceof TypeError) {
-
+				
 				if (self.parent && self.parent.isSubdomain())
 					return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
 				else 
@@ -186,14 +186,14 @@ function Script (opt) {
 			}
 		}
 	};
-
+	
 	this.updateGroup = function (name) {
 		
 		if (self.parent.name != name) {
 	
 			return new Promise (
 				(resolve, reject) => {
-	
+					
 					self.remove()
 						.then(
 							() => {
@@ -205,7 +205,7 @@ function Script (opt) {
 									cache.getOrCreateItem(name, false)
 										.then(
 											group => {
-															
+												
 												resolve(group.upsertScript(self));
 												
 											}, reject
@@ -274,6 +274,12 @@ function Script (opt) {
 		
 	};
 
+	this.includedAt = function (url) {
+
+		return self.parent.includes(url);
+
+	};
+	
 	this.getParentName = function () {
 
 		return self.parent.isGroup() ? self.parent.name : self.parent.parent.name;
@@ -292,11 +298,11 @@ function Script (opt) {
 
 	this.insertElem = function (parent_id, page_shown) {
 		
-		var exists = self.elems.filter(
+		let exists = self.elems.find(
 			stored => {
 				return stored.parent_id == parent_id;
 			}
-		)[0];
+		);
 		
 		if (exists)
 			return exists;
@@ -471,6 +477,12 @@ function Site (opt) {
 		return name.slice(-1) == "/" ? name.slice(0, -1) : name;
 		
 	};
+
+	this.includes = function (url) {
+
+		return url.name().startsWith(self.siteName());
+		
+	}
 	
 	this.isEmpty = function () {
 		
@@ -870,13 +882,25 @@ function Group (opt) {
 			site.remove();
 		
 	};
+
+	this.includes = function (url) {
+
+		return self.sites.find(
+			site => {
+				return url.name().startsWith(site);
+			}
+			
+		) ? true : false;
+	};
 	
 	this.haveSite = function (site_name) {
 
-		return self.sites.filter(
+		return self.sites.find(
 			site => {	
+
 				return site == site_name;
-			})[0] || false;
+				
+			}) || false;
 	};
 	
 	this.mergeInfo = function (imported) {

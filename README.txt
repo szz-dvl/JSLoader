@@ -1,5 +1,5 @@
 - In-progress:
-  - Logs not registered when errored scripts are opened, notifications won't show.
+  - REFACTOR editor manager (URL included at)
   - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
   - Modified connection strings are not persisted.
   
@@ -26,6 +26,7 @@
   - Existing tabs are recreated when opening URLs from listener ===> to be tested when editing existing script.
   - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
+  - Logs not registered when errored scripts are opened, notifications won't show. ===> Moved to BlueBird Promises in content script side.
   
 - Finally:
   - Style everything up!

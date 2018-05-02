@@ -140,11 +140,11 @@ function EditorFG (id, bg) {
 	};
 	
 	this.runCurrent = function () {
-
+		
 		if (!self.scope.buttons.disabled) {
-
+			
 			self.scope.disableButtons();
-
+			
 			let error = self.getFirstError();
 
 			if (!error) {
@@ -188,14 +188,14 @@ function EditorFG (id, bg) {
 	};
 	
 	this.saveCurrent = function () {
-
+		
 		/* May be triggered from shortcut. */
 		if (!self.scope.buttons.disabled) {
 			
 			self.scope.disableButtons();
 			
 			let error = self.getFirstError();
-
+			
 			if (!error) {
 				
 				let promise = self.editor.script.parent.isGroup()
@@ -212,9 +212,9 @@ function EditorFG (id, bg) {
 									
 									self.scope.enableButtons();
 									self.scope.$digest();
-
+									
 									if (self.editor.tab) {
-
+										
 										browser.pageAction.setIcon(
 											{
 												path: {
@@ -232,7 +232,7 @@ function EditorFG (id, bg) {
 							)
 					}, err => { console.error(err); }
 				);
-
+				
 			} else {
 				
 				self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
@@ -246,7 +246,7 @@ function EditorFG (id, bg) {
 	this.onResize = function () {
 		
 		if (self.isCollapsed()) {
-
+			
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
 			
@@ -258,7 +258,7 @@ function EditorFG (id, bg) {
 		
 		self.editor.ace.resize();
 	};
-
+	
 	this.resetAce = function () {
 		
 		self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
@@ -288,7 +288,9 @@ function EditorFG (id, bg) {
 		$scope.label = "JSLoader";
 		
 		/* ¿¿ To wdw title ?? */
-		$scope.user_action = !$scope.script.parent.isGroup() ? (self.editor.mode ? "Adding script for: " : "Editing script for: ") : (self.editor.mode ? "Adding script for group: " : "Editing script for group: ");  
+		$scope.user_action = !$scope.script.parent.isGroup() ?
+							 (self.editor.mode ? "Adding script for: " : "Editing script for: ") :
+							 (self.editor.mode ? "Adding script for group: " : "Editing script for group: ");  
 		
 		$scope.buttons = {
 			
@@ -318,7 +320,7 @@ function EditorFG (id, bg) {
 					console.log("Validation start: " + pending);
 					
 					if (!$scope.buttons.disabled) {
-
+						
 						$scope.disableButtons();
 						$scope.$digest();
 

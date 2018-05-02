@@ -11,7 +11,7 @@ function CS (port) {
 
 		return new Promise(
 			resolve => {
-
+				
 				let my_listener = function (args) {
 					
 					if (args.action == "post-results") {
@@ -19,23 +19,23 @@ function CS (port) {
 						args.frame = Object.assign({}, self.frame);
 						resolve(args);
 						
-						self.port.onMessage.removeListener(my_listener);
-						
+						self.port.onMessage.removeListener(my_listener);	
 					}
 				};
-			
+				
 				self.port.onMessage.addListener(my_listener);
 				
-				self.port.postMessage({ action: "run",
-										response: "post-results",
-										message: scripts.map(
-											script => {
-												
-												return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
-												
-											}
-										)
-									  });
+				self.port.postMessage({
+					action: "run",
+					response: "post-results",
+					message: scripts.map(
+						script => {
+							
+							return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+							
+						}
+					)
+				});
 			}
 		);
 	};  
@@ -88,13 +88,13 @@ function CSMgr (bg) {
 	};
  
 	this.haveGlobal = function (key) {
-
+		
 		return typeof(self.globals[key]) !== 'undefined';
 		
 	};
 
 	this.__postTaggedResponse = function (port, tag, message) {
-
+		
 		port.postMessage({action: "response", message: message, tag: tag});
 		
 	};
@@ -102,13 +102,12 @@ function CSMgr (bg) {
 	this.contentGetGlobal = function (port, tag, key) {
 		
 		self.__postTaggedResponse(port, tag,
-								  {status: self.globals[key] ? true : false,
-								   content: {
-									   key: key,
-									   value: self.globals[key]
-								   }
-								  });
-
+			{status: self.globals[key] ? true : false,
+				content: {
+					key: key,
+					value: self.globals[key]
+				}
+			});
 	};
 
 	this.contentSetGlobal = function (port, tag, key, value) {
@@ -122,35 +121,35 @@ function CSMgr (bg) {
 				() => {
 					
 					self.__postTaggedResponse(port, tag,
-											  {
-												  status: true,
-												  content: {
-													  key: key,
-													  value: value,
-													  created: created
-												  }
-											  });
-				
+						{
+							status: true,
+							content: {
+								key: key,
+								value: value,
+								created: created
+							}
+						});
+					
 				},
 				() => {
-
+					
 					self.__postTaggedResponse(port, tag,
-											  {
-												  status: false,
-												  content: {
-													  err: "Persist error",
-													  key: key,
-													  value: value,
-													  created: created
-												  }
-											  });
+						{
+							status: false,
+							content: {
+								err: "Persist error",
+								key: key,
+								value: value,
+								created: created
+							}
+						});
 				});
 	};
-
+	
 	this.addSiteToGroup = function (port, tag, site_name, group_name) {
-
+		
 		var url;
-
+		
 		try {
 			
 			if (site_name.includes("://"))
@@ -299,49 +298,49 @@ function CSMgr (bg) {
 	};
 
 	this.contentSetProxy = function (port, tag, host, proxy) {
-
+		
 		self.bg.rules_mgr.tempProxy(host, proxy)
 			.then(
 				length => {
 					
 					self.__postTaggedResponse(port, tag,
 								  
-											  {status: length > 0,
-											   
-											   content: {
-												   proxy: proxy,
-												   host: host
-											   }
-											   
-											  });
+						{status: length > 0,
+							
+							content: {
+								proxy: proxy,
+								host: host
+							}
+							
+						});
 				});
 	};
 
 	this.contentSetRule = function (port, tag, criteria, headers) {
 		
 		self.__postTaggedResponse(port, tag,
-								  
-								  {status: true,
-
-								   content: {
-									   rid: self.bg.rules_mgr.tempRule(criteria, headers)
-								   }
-								   
-								  });
+			
+			{status: true,
+				
+				content: {
+					rid: self.bg.rules_mgr.tempRule(criteria, headers)
+				}
+				
+			});
 	};
-
+	
 	this.contentDownload = function (port, tag, options) {
 
 		
 		browser.downloads.download(typeof(options) == 'string' ? {url: options} : options)
 			.then(
-
+				
 				id => {
 					
 					self.__postTaggedResponse(port, tag,
-			
+						
 						{ status: true,
-				
+							
 							content: {
 								
 								did: id
@@ -350,7 +349,7 @@ function CSMgr (bg) {
 					);
 				},
 				err => {
-
+					
 					self.__postTaggedResponse(port, tag,
 			
 						{ status: false,

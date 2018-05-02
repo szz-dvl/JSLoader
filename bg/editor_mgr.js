@@ -1,7 +1,3 @@
-function onError (err) {
-	console.error(err);
-};
-
 function EditorWdw (opt) {
 	
 	return new Promise (
@@ -64,7 +60,7 @@ function Editor (opt) {
 	self.parent.editors.push(self);
 	
 	this.runInTab = function () {
-
+		
 		if (self.tab) 
 			return self.tab.run([self.script]);	
 		else
@@ -74,7 +70,7 @@ function Editor (opt) {
 	this.newTabURL = function (url) {
 		
 		if (self.tab) {
-			
+			/* script includes REFACTOR */
 			if (url.hostname !== self.tab.url.hostname) 	
 				self.fg.scope.disableRun();
 			else if (url.match(self.tab.url))
@@ -119,6 +115,7 @@ function EditorMgr (bg) {
 	
 	this.openEditorInstanceForTab = function (tab) {
 		
+
 		/* Focus editor if existent! */
 		
 		return new Promise(
@@ -208,33 +205,23 @@ function EditorMgr (bg) {
 
 	this.getOwnerOf = function (script) {
 
-		return self.editors.filter(
+		return self.editors.find(
 			editor => {
 				
 				return editor.script.uuid == script.uuid;
 				
 			}
-		)[0] || null;
+		) || null;
 	};
 	
 	this.getEditorById = function (eid) {
 		
-		return self.editors.filter(
+		return self.editors.find(
 			editor => {
 				
 				return editor.id == eid;
 				
-			})[0] || null;
-	};
-
-	this.getEditorForTab = function (tab_id) {
-		
-		return self.editors.filter(
-			editor => {
-				
-				return editor.tab ? editor.tab.id == tab_id : false;
-				
-			})[0] || null;
+			}) || null;
 	};
 
 	this.broadcastEditors = function (message) {

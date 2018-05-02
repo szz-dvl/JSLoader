@@ -543,17 +543,18 @@ function TabsMgr (bg) {
 		
 					if (url.protocol != "moz-extension:") {
 						
-						if (changeInfo && changeInfo.url) {
+						if ((changeInfo && changeInfo.url) || tabId.tabId) {
+
+							let nextUrl = (changeInfo && changeInfo.url) ? new URL(changeInfo.url).sort() : url;
 							
-							let editor = self.bg.editor_mgr.getEditorForTab(tabInfo.id);
+							for (let editor of self.bg.editor_mgr.editors) 
+								editor.newTabURL(nextUrl);
 							
-							if (editor)
-								editor.newTabURL(new URL(changeInfo.url).sort());	
+							if (self.listener) 
+								self.listener.update(tabInfo, false);
 						}
-						
-						if (self.listener) 
-							self.listener.update(tabInfo, false);
 					}
+					
 				});
 	};
 	

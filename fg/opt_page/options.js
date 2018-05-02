@@ -391,14 +391,14 @@ function OP (bg, port) {
 		/* Can't acces dead object after some time */
 		$scope.page.bg.app_events.on('db_change',
 			() => {
-
+				
 				$scope.reconnecting = false;
 				
 				$scope.data_origin_ok = $scope.page.bg.database_mgr.available;
 				$scope.data_origin_connected = $scope.page.bg.database_mgr.connected;
 				
 				$scope.$digest();
-
+				
 				document.getElementById("data-origin-inpt").disabled = false;
 			}
 		);
@@ -463,7 +463,7 @@ function OP (bg, port) {
 			theme.title = $scope.page.themes.current.title;
 			
 			$scope.opts.editor.theme = theme;
-			$scope.opts.jsl.data_origin = $("#data-origin-inpt").val();
+			$scope.opts.jsl.data_origin = $scope.data_origin_connected ? $("#data-origin-inpt").val() : $scope.opts.jsl.data_origin;
 			
 			$scope.page.bg.option_mgr.persist($scope.opts); /* !!! */
 

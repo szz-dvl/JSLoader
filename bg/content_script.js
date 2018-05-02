@@ -80,8 +80,8 @@ function ContentScript() {
 				for (error of errors)
 					console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
 				
-				this.port.postMessage({action: response, status: errors.length === 0, errors: errors});
-
+				this.port.postMessage( {action: response, status: errors.length === 0, errors: errors, run: scripts.map(script => { return script.id })} );
+				
 			}
 		);
 	};

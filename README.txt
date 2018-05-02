@@ -1,15 +1,13 @@
 - In-progress:
-  - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
-  - Modified connection strings are not persisted.
   - Big one:
 			* Bind rules to domains, show them in PA ¿¿??
-  			* Strong PA, Compressed opt page. 
+  			* Strong PA, Compressed opt page. [ Allow user to remove group scripts from any of its included sites PA?? ] 
   
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
-  - Feature to duplicate scripts may be worthy.
+  - Feature to duplicate scripts may be worthy (in jupiter) .. ¬¬'.
   - startsWith =====> "/" !!!
   - PA ====> show matching site when group includes scripts??
   
@@ -29,11 +27,13 @@
   - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   - Logs not registered when errored scripts are opened, notifications won't show. ===> Moved to BlueBird Promises in content script side.
+  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ?
+  - Modified connection strings are not persisted ===> Strange behavior sometimes.
   
 - Finally:
   - Style everything up!
   		  * Inform user of unpersisted data on views.
-		  * paginate lists, filter for domains & groups lists.
+		  * (( paginate lists, filter for domains & groups lists )).
 		  * Listener clip tab button outline won't disapear.
 		  * etc, etc, etc ...
 		  

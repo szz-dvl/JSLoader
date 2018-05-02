@@ -11,12 +11,6 @@ function PA (bg, info) {
 
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
-	this.app.controller('headController', $scope => {
-		
-		$scope.page = self;
-		
-	});
-	
 	this.app.controller('siteController', function ($scope, $timeout, $state, $stateParams) {
 		
 		$scope.page = self;
@@ -108,24 +102,49 @@ function PA (bg, info) {
 					'site': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope) {
+						controller: function ($scope, $timeout) {
 
 							$scope.key = "resource";
-							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("site");
-							
+
+							$timeout(
+								() => {
+
+									/* Temporal! */
+									$("img").each(
+										function () {
+											
+											let safe = $(this).attr("src").split("unsafe:")[1];
+											$(this).attr("src",  safe);
+										}
+									);
+								}
+							);
 						}
 					},
 					
 					'groups': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope) {
-							
+						controller: function ($scope, $timeout) {
+
 							$scope.key = "group";
-							$scope.url = self.url;
 							$scope.data = self.listController('groups');
+
+							$timeout(
+								() => {
+
+									/* Temporal! */
+									$("img").each(
+										function () {
+											
+											let safe = $(this).attr("src").split("unsafe:")[1];
+											$(this).attr("src",  safe);
+										}
+									);
+								}
+							);
 							
 						}
 					},
@@ -134,11 +153,24 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope) {
-							
+
 							$scope.key = "subdomain";
-							$scope.url = self.url;
 							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("subdomains");
+
+							$timeout(
+								() => {
+
+									/* Temporal! */
+									$("img").each(
+										function () {
+											
+											let safe = $(this).attr("src").split("unsafe:")[1];
+											$(this).attr("src",  safe);
+										}
+									);
+								}
+							);
 						}
 					},
 					

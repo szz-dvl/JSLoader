@@ -7,6 +7,10 @@
 			<th style="min-width: 30%;">
 				Name
 			</th>
+			<th>
+				Status
+			</th>
+			<th></th>
 			<th></th>
 			<th></th>
 			<th></th>
@@ -19,14 +23,18 @@
 					<script-name script="script"></script-name>
 				</td>
 				
-				<td style="float: left; margin-left: 5px;">
-					<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Edit </button>
+				<td style="float: left;margin-left: 10px;padding-right: 30px;">
+					<img src="{{ browser.runtime.getUrl('.') + '../icons/' + page.bg.content_mgr.getStatus(script.uuid, page.tabId) + '-ball.png' }}" width="24px" height="24px"></img>
 				</td>
-
-				<td style="float: left;">
-					<button class="browser-style" ng-click="script.toggleDisableFor(url)" style="margin-left: 5px; width: 80px; text-align: center;">
+				
+				<td style="float: left;margin-left: 5px;">
+					<button class="browser-style" ng-click="script.toggleDisableFor(page.url)" style="margin-left: 5px; width: 80px; text-align: center;">
 						{{ script.disabledAt(url) ? "Enable" : "Disable" }}
 					</button>
+				</td>
+				
+				<td style="float: left; margin-left: 5px;">
+					<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Edit </button>
 				</td>
 
 				<td style="float: left; margin-left: 5px;" ng-if="!script.parent.isGroup()">

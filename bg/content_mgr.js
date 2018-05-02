@@ -6,9 +6,10 @@ function CS (port) {
 	this.name = port.name;
 	this.frame = port.sender || null;
 	this.id = port.name.split("_")[1];
+	this.history = [];
 	
 	this.run = function (scripts) {
-
+		
 		return new Promise(
 			resolve => {
 				
@@ -38,7 +39,36 @@ function CS (port) {
 				});
 			}
 		);
-	};  
+	};
+
+	this.updateHistory = function (script_id, status) {
+
+		let idx = self.history.findIndex(
+			record => {
+
+				return record.id == script_id;
+
+			}
+		);
+
+		if (idx < 0)
+			self.history.push({id: script_id, status: status});
+		else
+			self.history[idx].status = status;
+	}
+
+	this.historyStatus = function (script_id) {
+		
+		let record = self.history.find(
+			record => {
+
+				return record.id == script_id;
+				
+			}
+		);
+		
+		return record ? (record.status ? 1 : -1) : 0;
+	}
 }
 
 function CSMgr (bg) {
@@ -196,6 +226,17 @@ function CSMgr (bg) {
 		}
 	};
 
+	this.getFrameForPort = function (port) {
+		
+		return self.alive.find(
+			cs => {
+				
+				return cs.id == port.name.split("_")[1];
+			
+			}
+		);
+	};
+	
 	this.getFramesForTab = function (tabId) {
 		
 		return self.alive.filter(
@@ -297,6 +338,24 @@ function CSMgr (bg) {
 
 	};
 
+	this.getStatus = function (script_id, tabId) {
+
+		let retval = 0;
+		
+		for (let frame of self.getMainFramesForTab(tabId)) {
+
+			let status = frame.historyStatus(script_id);
+
+			if (status) 
+				retval = !retval ? status : (retval < status ? status : retval);
+			
+			if (retval > 0)
+				break;
+		}
+		
+		return retval;
+	};
+	
 	this.contentSetProxy = function (port, tag, host, proxy) {
 		
 		self.bg.rules_mgr.tempProxy(host, proxy)
@@ -423,6 +482,15 @@ function CSMgr (bg) {
 									if (!args.status) 
 										self.bg.logs_mgr.logErrors(args.errors);
 									
+									function status (script_id) {
+										
+										return args.errors.find(error => { return error.id == script_id }) ? false : true;
+										
+									};
+									
+									for(let script of args.run)
+										self.getFrameForPort(port).updateHistory(script, status(script));
+									
 									break;
 									
 								case "site-to-group":
@@ -476,8 +544,9 @@ function CSMgr (bg) {
 					);
 					
 					port.onDisconnect.addListener(
-						() => {
-							
+						port => {
+
+							/* Check for error */
 							self.alive.remove(
 								self.alive.findIndex(
 									dead => {

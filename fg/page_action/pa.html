@@ -1,28 +1,25 @@
 <!DOCTYPE html>
 
 <html>
-  <head ng-controller="headController">
+  <head>
 	
-	<meta charset="utf-8">
-	<link rel="stylesheet" href="pa.css">
-	<link rel="stylesheet" href="chrome://browser/content/extension.css">
-	<link ng-if="!page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
-	<link ng-if="page.bg.option_mgr.editor.theme.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{page.bg.option_mgr.editor.theme.knownToHl}}.min.css">		
-	<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
-	<link rel="stylesheet" href="../styles/script-list.css">
-	
-	<script src="../deps/jquery.min.js"></script>
-	<script src="../deps/angular.min.js"></script>
-	<script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
-	<script src="../deps/angular-ui-router.min.js"></script>
-	<script src="../deps/highlightjs/highlight.min.js"></script>
-	<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
-	<script src="../partials/partials.js"></script>
-	<script src="../../utils/jsloader-utils.js"></script>
-	<script src="../../utils/deps/async.min.js"></script>
+	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval'; object-src 'self'; img-src 'self'">
+	  
+	  <link rel="stylesheet" href="pa.css">
+	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
+	  
+	  <script src="../deps/jquery.min.js"></script>
+	  <script src="../deps/angular.min.js"></script>
+	  <script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
+	  <script src="../deps/angular-ui-router.min.js"></script>
+	  <script src="../deps/highlightjs/highlight.min.js"></script>
+	  <script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
+	  <script src="../partials/partials.js"></script>
+	  <script src="../../utils/jsloader-utils.js"></script>
+	  <script src="../../utils/deps/async.min.js"></script>
 
-	<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
-	
+	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	  
   </head>
   
   <body ng-controller="siteController" ui-sref="pa-site" spellcheck="false" ng-cloak>

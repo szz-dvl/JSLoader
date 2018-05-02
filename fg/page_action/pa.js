@@ -1,7 +1,7 @@
 function PA (bg, info) {
 	
 	var self = this;
-
+	
 	this.bg = bg;
 	this.info = info;
 	this.lists = [];
@@ -87,9 +87,45 @@ function PA (bg, info) {
 		);
 	};
 	
-	this.removeAndUpdate = function (script) {
+	this.remove = function (script) {
 		
 		script.remove().then(self.list_mgr.updateData());
+	};
+	
+	this.reload = function (script, to) {
+		
+		self.bg.content_mgr.reloadScriptAt(script, self.tabId)
+			.then(results => {
+	
+				if (!results[0].status) {
+								
+					let error = results[0].errors[0];
+					
+					self.bg.notify_mgr.error(error.type + ": " + error.message);
+					
+				}
+				
+			}).finally(
+				err => {
+					
+					self.list_mgr.$digest();
+
+					/* Temporal workaround: CSP not working */
+					$("img").each(
+						function () {
+							
+							let src = $(this).attr("src");
+							
+							if (src.includes("unsafe:")) {
+								
+								let safe = $(this).attr("src").split("unsafe:")[1];
+								$(this).attr("src",  safe);
+								
+							}
+						}
+					);
+				}
+			);
 	};
 	
 	this.app.config(
@@ -105,7 +141,6 @@ function PA (bg, info) {
 						controller: function ($scope, $timeout) {
 
 							$scope.key = "resource";
-							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("site");
 
 							$timeout(
@@ -152,10 +187,9 @@ function PA (bg, info) {
 					'subdomains': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope) {
+						controller: function ($scope, $timeout) {
 
 							$scope.key = "subdomain";
-							$scope.remove = self.removeAndUpdate;
 							$scope.data = self.listController("subdomains");
 
 							$timeout(

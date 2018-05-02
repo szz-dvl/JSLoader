@@ -27,9 +27,15 @@
 					<img src="{{ browser.runtime.getUrl('.') + '../icons/' + page.bg.content_mgr.getStatus(script.uuid, page.tabId) + '-ball.png' }}" width="24px" height="24px"></img>
 				</td>
 				
+				<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
+					<button class="browser-style" ng-click="page.reload(script)" style="margin-left: 5px; width: 80px; text-align: center;">
+						Reload
+					</button>
+				</td>
+				
 				<td style="float: left;margin-left: 5px;">
 					<button class="browser-style" ng-click="script.toggleDisableFor(page.url)" style="margin-left: 5px; width: 80px; text-align: center;">
-						{{ script.disabledAt(url) ? "Enable" : "Disable" }}
+						{{ script.disabledAt(page.url) ? "Enable" : "Disable" }}
 					</button>
 				</td>
 				
@@ -38,7 +44,7 @@
 				</td>
 
 				<td style="float: left; margin-left: 5px;" ng-if="!script.parent.isGroup()">
-					<button class="browser-style" ng-click="remove(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Remove </button>
+					<button class="browser-style" ng-click="page.remove(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Remove </button>
 				</td>
 				
 			</tr>

@@ -27,7 +27,7 @@
   - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   - Logs not registered when errored scripts are opened, notifications won't show. ===> Moved to BlueBird Promises in content script side.
-  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ?
+  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ? [ ¡¡ Alert: images won't load properly at page action !! ]
   - Modified connection strings are not persisted ===> Strange behavior sometimes.
   
 - Finally:

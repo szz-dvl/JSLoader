@@ -18,6 +18,16 @@ function CS (port) {
 					if (args.action == "post-results") {
 						
 						args.frame = Object.assign({}, self.frame);
+
+						function status (script_id) {
+							
+							return args.errors.find(error => { return error.id == script_id }) ? false : true;
+										
+						};
+									
+						for(let script of args.run)
+							self.updateHistory(script, status(script));
+						
 						resolve(args);
 						
 						self.port.onMessage.removeListener(my_listener);	
@@ -355,6 +365,23 @@ function CSMgr (bg) {
 		
 		return retval;
 	};
+
+	this.framesFor = function (tabId) {
+
+		return self.getMainFramesForTab(tabId).length;
+
+	};
+
+	this.reloadScriptAt = function (script, tabId) {
+
+		let promises = [];
+		
+		for (let frame of self.getMainFramesForTab(tabId)) 
+			promises.push(frame.run([script]));
+
+		return Promise.all(promises);
+		
+	};
 	
 	this.contentSetProxy = function (port, tag, host, proxy) {
 		
@@ -374,7 +401,7 @@ function CSMgr (bg) {
 						});
 				});
 	};
-
+	
 	this.contentSetRule = function (port, tag, criteria, headers) {
 		
 		self.__postTaggedResponse(port, tag,

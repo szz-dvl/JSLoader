@@ -539,19 +539,18 @@ function TabsMgr (bg) {
 			.then(
 				tabInfo => {
 					
-					var url = new URL(tabInfo.url).sort();
-		
-					if (url.protocol != "moz-extension:") {
+					if (tabInfo.active) {
 						
-						if ((changeInfo && changeInfo.url) || tabId.tabId) {
-
-							let nextUrl = (changeInfo && changeInfo.url) ? new URL(changeInfo.url).sort() : url;
+						var url = new URL(tabInfo.url).sort();
+						
+						if (url.protocol != "moz-extension:") {
 							
 							for (let editor of self.bg.editor_mgr.editors) 
-								editor.newTabURL(nextUrl);
+								editor.newTab(tabInfo);
 							
 							if (self.listener) 
 								self.listener.update(tabInfo, false);
+							
 						}
 					}
 					

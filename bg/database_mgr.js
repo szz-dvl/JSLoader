@@ -16,7 +16,7 @@ function DBMgr (bg) {
 			
 			self.port.onMessage.addListener(
 				response => {
-					console.log(response);
+
 					let obj = JSON.parse(response);
 					self.reconnecting = false;
 					

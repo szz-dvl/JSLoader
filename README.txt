@@ -1,7 +1,9 @@
 - In-progress:
-  - REFACTOR editor manager (URL included at)
   - Facility to detect if scripts properly run ====> API to load script from script on demand? (Goal: Show script status [ loaded / not loaded ] in page action)
   - Modified connection strings are not persisted.
+  - Big one:
+			* Bind rules to domains, show them in PA ¿¿??
+  			* Strong PA, Compressed opt page. 
   
 - Big fails:
   - Something is registering rules!

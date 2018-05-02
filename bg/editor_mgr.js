@@ -67,14 +67,19 @@ function Editor (opt) {
 			return Promise.reject();			
 	};
 	
-	this.newTabURL = function (url) {
-		
-		if (self.tab) {
-			/* script includes REFACTOR */
-			if (url.hostname !== self.tab.url.hostname) 	
-				self.fg.scope.disableRun();
-			else if (url.match(self.tab.url))
+	this.newTab = function (tabInfo) {
+
+		if (self.fg) {
+
+			if (self.script.includedAt(new URL(tabInfo.url))) {
+			
+				self.tab = new JSLTab(tabInfo, self.parent.bg.content_mgr.forceMainFramesForTab);
 				self.fg.scope.enableRun();
+			
+			} else {
+			
+				self.fg.scope.disableRun();
+			}
 		}
 	}
 	

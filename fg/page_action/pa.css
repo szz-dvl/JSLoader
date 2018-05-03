@@ -135,3 +135,36 @@ code {
 
 	margin-right: 5px;
 }
+
+.ddbutton-shown {
+
+	/* None of those seems to be correctly interpreted by the browser ...*/
+	
+	/* outline-style: solid; */
+	/* outline-color: white; */
+	/* outline-width: 1px; */
+	/* outline: 1px hidden white; */
+	
+	-moz-transition: all 1s ease;
+	vertical-align: text-bottom
+
+	;
+}
+
+.ddbutton-shown:hover {
+	
+	-moz-transform: rotate(-90deg);
+	
+}
+
+.ddbutton-hidden {
+	
+	-moz-transition: all 1s ease;
+	vertical-align: text-bottom;
+}
+
+.ddbutton-hidden:hover {
+
+	-moz-transform: rotate(90deg);
+
+}

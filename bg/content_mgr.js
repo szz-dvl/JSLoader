@@ -353,9 +353,9 @@ function CSMgr (bg) {
 		let retval = 0;
 		
 		for (let frame of self.getMainFramesForTab(tabId)) {
-
+			
 			let status = frame.historyStatus(script_id);
-
+			
 			if (status) 
 				retval = !retval ? status : (retval < status ? status : retval);
 			

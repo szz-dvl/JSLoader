@@ -16,16 +16,19 @@ function ContentScript() {
 		} catch (err) {
 			
 			return {
+				raw: err,
+				info: {
 				
-				type: err.constructor.name,
-				message:  err.message,
-				line: err.lineNumber - 2,
-				col: err.columnNumber,
-				id: script.id,
-				name: script.name,
-				at: window.location.href,
-				parent: script.parent,
-				stamp: new Date().getTime()
+					type: err.constructor.name,
+					message:  err.message,
+					line: err.lineNumber - 2,
+					col: err.columnNumber,
+					id: script.id,
+					name: script.name,
+					at: window.location.href,
+					parent: script.parent,
+					stamp: new Date().getTime()
+				}
 			};
 		}
 	};
@@ -45,19 +48,24 @@ function ContentScript() {
 						if (id)
 							clearTimeout(id);
 						
-						errors.push({	
+						errors.push(
+							{
+								raw: err,
+								info: {	
 
-							type: err.constructor.name,
-							message:  err.message,
-							line: err.lineNumber - 2,
-							col: err.columnNumber,
-							id: script.id,
-							name: script.name,
-							at: window.location.href,
-							parent: script.parent,
-							stamp: new Date().getTime()
+									type: err.constructor.name,
+									message:  err.message,
+									line: err.lineNumber - 2,
+									col: err.columnNumber,
+									id: script.id,
+									name: script.name,
+									at: window.location.href,
+									parent: script.parent,
+									stamp: new Date().getTime()
 
-						});
+								}
+							}
+						);
 
 						next();
 					}
@@ -72,15 +80,16 @@ function ContentScript() {
 					
 				} else {
 
+					/* Wait for a jiffy for possible unhandled rejections */
 					id = setTimeout(next, 150);
 				}
 
 			}, err => {
 
 				for (error of errors)
-					console.error(error.type + ": " + error.message + "[" + error.line + ", " + error.col + "]");
+					console.error(error.raw);
 				
-				this.port.postMessage( {action: response, status: errors.length === 0, errors: errors, run: scripts.map(script => { return script.id })} );
+				this.port.postMessage( { action: response, status: errors.length === 0, errors: errors.map(error => { return error.info }), run: scripts.map(script => { return script.id }) } );
 				
 			}
 		);

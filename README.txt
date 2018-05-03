@@ -1,8 +1,9 @@
 - In-progress:
   - Big one:
-			* Bind rules to domains, show them in PA ¿¿??
-  			* Strong PA, Compressed opt page. [ Allow user to remove group scripts from any of its included sites PA?? ] 
-  
+  		* Strong PA, Compressed opt page. [ Allow user to remove group scripts from any of its included sites PA?? ] ====> Opt page refactor!
+  		* Bind rules to domains, show them in PA ¿¿??
+		* Completely remove logs feature !!.
+  		
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
@@ -23,7 +24,7 @@
   - Group OwnerOf =====> Redesigned matching pattern.
   - DB Managing ===> Unitary inserts / updates.
   - Import Button / Disable Everywhere button text. .... ¬¬'
-  - Existing tabs are recreated when opening URLs from listener ===> to be tested when editing existing script.
+  - Existing tabs are recreated when opening URLs from listener.
   - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   - Logs not registered when errored scripts are opened, notifications won't show. ===> Moved to BlueBird Promises in content script side.
@@ -42,3 +43,9 @@
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
  
   - Must dead scripts be garbage collected?? =S... (Option to run several scripts in one URL in standalone mode, without sharing namespace)
+
+- Caveats:
+  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ]
+  		  * Permissions controlled by user ==> how?
+		  * Limit third party domains for each site ==> how?
+		  * Possible conflicts between scripts ?? ... =S ...

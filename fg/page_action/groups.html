@@ -1,0 +1,35 @@
+<div ng-if="groups.length">
+	
+	<div class="panel-section panel-section-header" style="display: inline-block; width: 100%;"> 
+		<div class="text-section-header-mod">Group management
+			<button ng-class="groups_active ? 'ddbutton-shown' : 'ddbutton-hidden'" ng-click="toggleGroups($event)" style="border: 0; background: transparent;">
+				<img style="vertical-align: sub;" src="../icons/right-arrow-64.png" width="20px" height="20px" alt="submit" />
+			</button>
+		</div>
+	</div>
+	
+	<div style="display: inline-block; width: 100%; margin-top: 30px;" ng-show="groups_active">
+		
+		<form style="margin-top: 20px;margin-bottom: 70px;" ng-submit="addSite()" ng-show="groups.length">
+			
+			<label class="input" style="min-width: 60%; padding-left: 10px;">
+				
+				<site-validator style="width:55%;" ev="events" url="url"> </site-validator>
+				
+			</label>
+			
+			<div style="float: right; padding-right: 70px;">
+				
+				<label class="input">
+					
+					<span> to </span>
+					<select id="group_select" class="browser-style" ng-model="current" ng-options="group for group in groups" ng-change="selectChange()"></select>
+					
+				</label>
+				
+				<button class="browser-style" ng-click="addSite()"> {{action}} Site </button>
+			</div>
+		</form>
+		
+	</div>
+</div>

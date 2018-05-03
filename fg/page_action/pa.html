@@ -31,16 +31,14 @@
 	  <div ng-show="user_info">
 
 		  <div class="panel-section panel-section-header" style="display: inline-block; width: 100%;"> 
-			  <div class="text-section-header-mod">Included scripts
-				  <button class="browser-style" ng-click="toggleScripts()" style="margin-left: 30px;"> {{scripts_btn_text}} </button>
+			  <div class="text-section-header-mod"> Included scripts
+				  <button ng-class="scripts_active ? 'ddbutton-shown' : 'ddbutton-hidden'" ng-click="toggleScripts($event)" style="border: 0; background: transparent;">
+					  <img style="vertical-align: sub;" src="../icons/right-arrow-64.png" width="20px" height="20px" alt="submit" />
+				  </button>
 			  </div>
 		  </div>
 		  
 		  <div ng-show="scripts_active">
-			  
-			  <div ng-if="info.domain[0].scripts.length">
-				  <div ui-view="domain"></div>
-			  </div>
 			  
 			  <div ng-if="info.site[0].scripts.length">
 				  <div ui-view="site"></div>
@@ -57,6 +55,7 @@
 		  
 	  </div>
 
+	  <div ui-view="group_mgr"></div>
 	  <div ui-view="actions"></div>
 	  
 	  <script src="../deps/json/json-formatter.js"></script>

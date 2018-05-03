@@ -20,14 +20,12 @@ function PA (bg, info) {
 		
 		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		
-		$scope.scripts_btn_text = "Show";
-		
 		$scope.scrips_active = false;
 		
-		$scope.toggleScripts = function () {
-			
+		$scope.toggleScripts = function (ev) {
+
+			$(ev.currentTarget).blur();
 			$scope.scripts_active = !$scope.scripts_active;
-			$scope.scripts_btn_text = $scope.scripts_active ? "Hide" : "Show";
 			
 		}
 		
@@ -74,12 +72,10 @@ function PA (bg, info) {
 			item => {
 				
 				item.visible = false;
-				item.toggleList = function () {
+				item.toggleList = function (ev) {
+					
+					$(ev.currentTarget).blur(); /* Best I can do to remove outline ... */
 					item.visible = !item.visible;
-				}
-				
-				item.listState = function () {
-					return item.visible ? "v" : ">";
 				}
 				
 				return item;
@@ -92,13 +88,13 @@ function PA (bg, info) {
 		script.remove().then(self.list_mgr.updateData());
 	};
 	
-	this.reload = function (script, to) {
+	this.reload = function (script, compile, scope) {
 		
 		self.bg.content_mgr.reloadScriptAt(script, self.tabId)
 			.then(results => {
-	
+				
 				if (!results[0].status) {
-								
+					
 					let error = results[0].errors[0];
 					
 					self.bg.notify_mgr.error(error.type + ": " + error.message);
@@ -107,23 +103,11 @@ function PA (bg, info) {
 				
 			}).finally(
 				err => {
-					
-					self.list_mgr.$digest();
 
-					/* Temporal workaround: CSP not working */
-					$("img").each(
-						function () {
-							
-							let src = $(this).attr("src");
-							
-							if (src.includes("unsafe:")) {
-								
-								let safe = $(this).attr("src").split("unsafe:")[1];
-								$(this).attr("src",  safe);
-								
-							}
-						}
-					);
+					/* Digest won't recompute the directive ... */
+					$("#status-" + script.uuid)
+						.replaceWith(compile('<script-status id="status-' + script.uuid + '" status="' + self.bg.content_mgr.getStatus(script.uuid, self.tabId) + '"></script-status>')(scope));
+					
 				}
 			);
 	};
@@ -138,48 +122,29 @@ function PA (bg, info) {
 					'site': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $timeout) {
+						controller: function ($scope, $compile) {
 
+							$scope.reloadScript = function (scr) {
+								self.reload(scr, $compile, $scope);
+							}
+							
 							$scope.key = "resource";
 							$scope.data = self.listController("site");
-
-							$timeout(
-								() => {
-
-									/* Temporal! */
-									$("img").each(
-										function () {
-											
-											let safe = $(this).attr("src").split("unsafe:")[1];
-											$(this).attr("src",  safe);
-										}
-									);
-								}
-							);
 						}
 					},
 					
 					'groups': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $timeout) {
+						controller: function ($scope, $compile) {
 
+							
+							$scope.reloadScript = function (scr) {
+								self.reload(scr, $compile, $scope);
+							}
+							
 							$scope.key = "group";
 							$scope.data = self.listController('groups');
-
-							$timeout(
-								() => {
-
-									/* Temporal! */
-									$("img").each(
-										function () {
-											
-											let safe = $(this).attr("src").split("unsafe:")[1];
-											$(this).attr("src",  safe);
-										}
-									);
-								}
-							);
 							
 						}
 					},
@@ -187,30 +152,41 @@ function PA (bg, info) {
 					'subdomains': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $timeout) {
+						controller: function ($scope, $compile) {
 
+							$scope.reloadScript = function (scr) {
+								self.reload(scr, $compile, $scope);
+							}
+							
 							$scope.key = "subdomain";
 							$scope.data = self.listController("subdomains");
 
-							$timeout(
-								() => {
-
-									/* Temporal! */
-									$("img").each(
-										function () {
-											
-											let safe = $(this).attr("src").split("unsafe:")[1];
-											$(this).attr("src",  safe);
-										}
-									);
-								}
-							);
 						}
 					},
-					
+
 					'actions': {
 
 						templateUrl: 'actions.html',
+						controller: function ($scope) {
+
+							$scope.addScript = function () {
+								
+								$scope.page.bg.showEditorForCurrentTab();
+								
+							};
+							
+							$scope.listenTab = function () {
+								
+								$scope.page.bg.listenRequestsForCurrentTab();
+								
+							};
+							
+						}
+					},
+					
+					'group_mgr': {
+
+						templateUrl: 'groups.html',
 						controller: function ($scope, $timeout, $stateParams) {
 							
 							$scope.groups = $scope.page.bg.group_mgr.groups;
@@ -222,8 +198,17 @@ function PA (bg, info) {
 							$scope.events = new EventEmitter();
 							$scope.action;
 							
-							$scope.setAction = function () {
+							$scope.groups_active = false;
+		
+							$scope.toggleGroups = function (ev) {
+
+								$(ev.currentTarget).blur();
+								$scope.groups_active = !$scope.groups_active;
 			
+							}
+							
+							$scope.setAction = function () {
+								
 								$scope.page.bg.group_mgr.getOrBringCached($scope.current)
 									.then(
 										group => {
@@ -239,6 +224,9 @@ function PA (bg, info) {
 							};
 
 							$scope.selectChange = function () {
+
+								/* Not working, to be observed. */
+								$scope.current = $("#group_select").val().split(":")[1];
 								
 								$scope.setAction();
 							};
@@ -272,16 +260,6 @@ function PA (bg, info) {
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
 								promise.then(() => { $scope.page.list_mgr.updateData($scope.current) });			
-							};
-							
-							$scope.addScript = function () {
-								
-								$scope.page.bg.showEditorForCurrentTab();
-							};
-							
-							$scope.listenTab = function () {
-								
-								$scope.page.bg.listenRequestsForCurrentTab();
 							};
 							
 							$timeout(

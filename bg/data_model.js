@@ -1073,7 +1073,7 @@ function Group (opt) {
 		
 		return self.sites.find(
 			site => {
-
+				
 				return site == site_name;
 			}
 			

@@ -1,7 +1,11 @@
-<div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;">
+<div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 10px;">
 
-	<h4> Included from {{ key }} {{ item.name }}  <bdi style="color:red" ng-click="item.toggleList()">{{ item.listState() }}</bdi> </h4>
-
+	<h4> Included from {{ key }} {{ item.name }}
+		<button ng-class="item.visible ? 'ddbutton-shown' : 'ddbutton-hidden'" ng-click="item.toggleList($event)" style="border: 0; background: transparent;">
+			<img style="vertical-align: text-bottom;" src="../icons/right-arrow-64.png" width="14px" height="14px" alt="submit" />
+		</button>
+	</h4>
+	
 	<table style="margin-bottom: 30px;width: 100%;" ng-show="item.visible">
 		<thead>
 			<th style="min-width: 30%;">
@@ -24,11 +28,11 @@
 				</td>
 				
 				<td style="float: left;margin-left: 10px;padding-right: 30px;">
-					<img src="{{ browser.runtime.getUrl('.') + '../icons/' + page.bg.content_mgr.getStatus(script.uuid, page.tabId) + '-ball.png' }}" width="24px" height="24px"></img>
+					<script-status id="status-{{script.uuid}}" status="page.bg.content_mgr.getStatus(script.uuid, page.tabId)"></script-status>
 				</td>
 				
 				<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
-					<button class="browser-style" ng-click="page.reload(script)" style="margin-left: 5px; width: 80px; text-align: center;">
+					<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px; width: 80px; text-align: center;">
 						Reload
 					</button>
 				</td>

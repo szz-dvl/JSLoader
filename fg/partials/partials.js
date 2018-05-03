@@ -9,7 +9,40 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   scope: {
 						   text: "=?"
 					   },
-					   template : '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
+					   template: '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
+				   }
+			   })
+	
+	.directive('scriptStatus',
+			   () => {
+				   
+				   return {
+
+					   restrict: 'E',
+					   replace: true,
+					   scope: {
+						   status: "=?"
+					   },
+					   
+					   template: '<canvas width="24px" height="24px"></canvas>',
+					   
+					   link: function($scope, element, attr) {
+						   
+						   let color = $scope.status == "0" ? 'yellow' : ($scope.status == "1" ? 'green' : 'red');
+						   let context = element[0].getContext('2d');
+						   let centerX = element[0].width / 2;
+						   let centerY = element[0].height / 2;
+						   let radius = 10;
+						   
+						   context.beginPath();
+						   context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+						   context.fillStyle = color;
+						   context.fill();
+						   context.lineWidth = 0;
+						   context.strokeStyle = color;
+						   context.stroke();
+						   
+					   }
 				   }
 			   })
 

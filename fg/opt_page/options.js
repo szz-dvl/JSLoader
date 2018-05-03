@@ -88,7 +88,6 @@ function OP (bg, port) {
 			{sref: 'groups', title: 'Groups'}, 
 			{sref: 'userdefs', title: 'Userdefs'},
 			{sref: 'rules', title: 'Rules'},
-			{sref: 'logs', title: 'Logs'},
 			{sref: 'storage', title: 'Storage'}
 		];
 		
@@ -657,46 +656,7 @@ function OP (bg, port) {
 				controller: 'groupController'
 				
 			});
-
-			$stateProvider.state({
-
-				resolve: {
-					dataLogs: () => { return self.bg.logs_mgr.logs; }
-				},
-				
-				name: 'logs',
-				templateUrl: 'logs.html',
-				
-				controller: function ($scope, $state, dataLogs) {
-					
-					self.tabs.setActive('logs');
-					
-					$scope.page = self;
-					$scope.logs = dataLogs.sort((x,y) => { return y.stamp - x.stamp; });
-					
-					$scope.openEditor = function (ev, log) {
-						
-						$scope.page.bg.logs_mgr.openOffender(log.parent, log.offender, log.line, log.col)
-							.then(null,
-								  err => {
-
-									  log.removed = true;
-									  $(ev.target).text("Removed");
-									  $scope.$digest();
-									  
-								  });
-						
-					};
-					
-					$scope.showDefs = function () {
-						
-						$state.go("userdefs");
-						
-					};	
-				}
-				
-			});
-
+			
 			$stateProvider.state({
 				
 				resolve: {

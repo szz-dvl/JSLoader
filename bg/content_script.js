@@ -80,7 +80,7 @@ function ContentScript() {
 					
 				} else {
 
-					/* Wait for a jiffy for possible unhandled rejections */
+					/* Wait a jiffy for possible unhandled rejections */
 					id = setTimeout(next, 150);
 				}
 
@@ -89,8 +89,16 @@ function ContentScript() {
 				for (error of errors)
 					console.error(error.raw);
 				
-				this.port.postMessage( { action: response, status: errors.length === 0, errors: errors.map(error => { return error.info }), run: scripts.map(script => { return script.id }) } );
-				
+				this.port.postMessage(
+					
+					{
+						action: response,
+						status: errors.length === 0,
+						errors: errors.map(error => { return error.info }),
+						run: scripts.map(script => { return script.id })
+					}
+					
+				);
 			}
 		);
 	};
@@ -117,10 +125,12 @@ function ContentScript() {
 					new Function(args.message).call(self);
 					
 				} catch (e) {
+
+					console.error(e);
 					
 					this.port.postMessage({
 
-						action: "ret-logs",
+						action: "update-history",
 						status: false,
 
 						errors: [{
@@ -135,7 +145,10 @@ function ContentScript() {
 							parent: null,
 							stamp: new Date().getTime()
 								
-						}]});					
+						}],
+
+						run: ['UserDefs']
+					});					
 				}
 
 				this.port.postMessage({action: "get-jobs", message: { url: window.location.toString() }});

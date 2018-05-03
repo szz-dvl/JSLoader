@@ -481,7 +481,7 @@ function CSMgr (bg) {
 											scripts => {
 												
 												port.postMessage({action: "run",
-													response: "ret-logs",
+													response: "update-history",
 													message: (scripts || [])
 														.filter(
 															script => {
@@ -504,10 +504,10 @@ function CSMgr (bg) {
 								}
 									
 									break;
-								case "ret-logs":
+								case "update-history":
 									
-									if (!args.status) 
-										self.bg.logs_mgr.logErrors(args.errors);
+									if (!args.status && args.run[0] == 'UserDefs') 
+										self.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
 									
 									function status (script_id) {
 										

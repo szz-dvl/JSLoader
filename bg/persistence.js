@@ -1,7 +1,3 @@
-function onError (error) {
-	console.error(`Persistence Error: ${error}`);
-}
-
 //browser.storage.local.clear();
 
 function Storage () {
@@ -20,7 +16,7 @@ function Storage () {
 
 					cb(values[key]);
 			
-				}, onError
+				}, console.error
 			);	
 	};
 
@@ -292,22 +288,6 @@ function Storage () {
 		
 	}
 	
-	/* Logs: */
-	this.setLogs = function (logs) {
-		
-		return self.__set('logs', logs);
-	}
-
-	this.getLogs = function (cb) {
-
-		self.__get(logs => { cb(logs || []) }, 'logs');
-	}
-
-	this.removeLogs = function () {
-
-		return self.__remove('logs');
-	}
-
 	/* Rules: */
 	this.setRules = function (rules) {
 		

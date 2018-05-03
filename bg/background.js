@@ -11,7 +11,6 @@ function BG_mgr () {
 	this.editor_mgr = new EditorMgr(self);
 	this.notify_mgr = new NotificationMgr(self);
 	this.tabs_mgr = new TabsMgr(self);
-	this.logs_mgr = new LogsMgr(self);
 	this.rules_mgr = new RulesMgr(self);
 	this.database_mgr = new DBMgr(self);
 

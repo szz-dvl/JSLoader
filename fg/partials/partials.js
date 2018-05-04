@@ -1,50 +1,134 @@
 angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'])
 
 	.directive('noInfo',
-			   () => {
+		() => {
 				   
-				   return {
-					   restrict: 'E',
-					   replace: true,
-					   scope: {
-						   text: "=?"
-					   },
-					   template: '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
-				   }
-			   })
+			return {
+				restrict: 'E',
+				replace: true,
+				scope: {
+					text: "=?"
+				},
+				template: '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
+			}
+		})
+
+	.directive('dropDown',
+		() => {
+			
+			return {
+				restrict: 'E',
+				replace: true,
+				transclude: true,
+				
+				scope: {
+					
+					item: '=?',
+					shown: '=?',
+					width: "=?",
+					height: "=?"
+				},
+				
+				templateUrl: function (elem, attr) {
+					return browser.extension.getURL("fg/partials/drop-down.html");
+				},
+
+				link: function($scope, element, attrs){
+					
+					$scope.obj = 'item' in attrs;
+					
+				},
+				
+				controller: function ($scope) {
+					
+					$scope.mostra = $scope.obj ? $scope.item.visible : $scope.$parent[$scope.shown];
+					
+					$scope.toggleDD = function (ev) {
+						
+						$(ev.currentTarget).blur(); /* Avoid outline */
+						$scope.mostra = !$scope.mostra;
+						
+						if ($scope.obj)
+							$scope.item.visible = $scope.mostra;
+						else
+							$scope.$parent[$scope.shown] = $scope.mostra;
+					}
+				}	
+			}
+		})
+	
+	.directive('ddTitle',
+		() => {
+			
+			return {
+
+				restrict: 'E',
+				replace: true,
+				transclude: true,
+				
+				scope: {
+					val: '=',
+					text: '='
+				},
+				
+				templateUrl: function (elem, attr) {
+					return browser.extension.getURL("fg/partials/drop-title.html");
+				},
+
+				controller: function ($scope) {
+					
+					$scope[$scope.val] = $scope.$parent[$scope.val];
+					
+					$scope.$watch(
+						
+						function () {
+							
+							return $scope[$scope.val];
+							
+						},
+						
+						function (modelValue) {
+							
+							$scope.$parent[$scope.val] = modelValue;
+							
+						}
+					);
+				}
+			}
+		})
 	
 	.directive('scriptStatus',
-			   () => {
-				   
-				   return {
+		() => {
+			
+			return {
 
-					   restrict: 'E',
-					   replace: true,
-					   scope: {
-						   status: "=?"
-					   },
-					   
-					   template: '<canvas width="24px" height="24px"></canvas>',
-					   
-					   link: function($scope, element, attr) {
-						   
-						   let color = $scope.status == "0" ? 'yellow' : ($scope.status == "1" ? 'green' : 'red');
-						   let context = element[0].getContext('2d');
-						   let centerX = element[0].width / 2;
-						   let centerY = element[0].height / 2;
-						   let radius = 10;
-						   
-						   context.beginPath();
-						   context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
-						   context.fillStyle = color;
-						   context.fill();
-						   context.lineWidth = 0;
-						   context.strokeStyle = color;
-						   context.stroke();
-						   
-					   }
-				   }
-			   })
+				restrict: 'E',
+				replace: true,
+				scope: {
+					status: "="
+				},
+				
+				template: '<canvas width="24px" height="24px"></canvas>',
+				
+				link: function($scope, element, attr) {
+					
+					let color = $scope.status == "0" ? 'yellow' : ($scope.status == "1" ? 'green' : 'red');
+					let context = element[0].getContext('2d');
+					let centerX = element[0].width / 2;
+					let centerY = element[0].height / 2;
+					let radius = 10;
+					
+					context.beginPath();
+					context.arc(centerX, centerY, radius, 0, 2 * Math.PI, false);
+					context.fillStyle = color;
+					context.fill();
+					context.lineWidth = 0;
+					context.strokeStyle = color;
+					context.stroke();
+					
+				}
+			}
+		})
 
 	.directive('scriptName',
 			   () => {

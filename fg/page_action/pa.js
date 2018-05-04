@@ -22,13 +22,6 @@ function PA (bg, info) {
 		
 		$scope.scrips_active = false;
 		
-		$scope.toggleScripts = function (ev) {
-
-			$(ev.currentTarget).blur();
-			$scope.scripts_active = !$scope.scripts_active;
-			
-		}
-		
 		$scope.updateData = function (currentGroup) {
 
 			return new Promise(
@@ -63,7 +56,7 @@ function PA (bg, info) {
 							}
 						);
 				});
-		}
+		}	
 	});
 
 	this.listController = function (key) {
@@ -72,11 +65,6 @@ function PA (bg, info) {
 			item => {
 				
 				item.visible = false;
-				item.toggleList = function (ev) {
-					
-					$(ev.currentTarget).blur(); /* Best I can do to remove outline ... */
-					item.visible = !item.visible;
-				}
 				
 				return item;
 			}
@@ -103,8 +91,7 @@ function PA (bg, info) {
 				
 			}).finally(
 				err => {
-
-					/* Digest won't recompute the directive ... */
+					
 					$("#status-" + script.uuid)
 						.replaceWith(compile('<script-status id="status-' + script.uuid + '" status="' + self.bg.content_mgr.getStatus(script.uuid, self.tabId) + '"></script-status>')(scope));
 					
@@ -164,23 +151,15 @@ function PA (bg, info) {
 						}
 					},
 
-					'actions': {
+					'rules': {
 
-						templateUrl: 'actions.html',
+						templateUrl: 'rules.html',
 						controller: function ($scope) {
 
-							$scope.addScript = function () {
-								
-								$scope.page.bg.showEditorForCurrentTab();
-								
-							};
+							/* Not implemented yet. */
 							
-							$scope.listenTab = function () {
-								
-								$scope.page.bg.listenRequestsForCurrentTab();
-								
-							};
-							
+							$scope.rules_active = false;
+			
 						}
 					},
 					
@@ -199,13 +178,6 @@ function PA (bg, info) {
 							$scope.action;
 							
 							$scope.groups_active = false;
-		
-							$scope.toggleGroups = function (ev) {
-
-								$(ev.currentTarget).blur();
-								$scope.groups_active = !$scope.groups_active;
-			
-							}
 							
 							$scope.setAction = function () {
 								

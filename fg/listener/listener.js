@@ -259,8 +259,9 @@ function TabListener (page) {
 			
 		}
 
-		$scope.toggleClipped = function () {
-			
+		$scope.toggleClipped = function (ev) {
+
+			$(ev.currentTarget).blur(); /* Avoid outline */
 			$scope.clipped = !$scope.clipped;
 			$scope.page.bg.app_events.emit("listener-clipped", $scope.clipped);
 		};
@@ -391,16 +392,22 @@ function TabListener (page) {
 		$scope.downloadCapture = function () {
 			
 			let text = ["["];
+			let info = false;
 			
-			for (request of $scope.list.filter(req => { return req.shown })) {
+			for (request of $scope.list.filter(req => { return req.shown }).map(req => { return req.request; })) {
+
+				if (!info)
+					info = true;
 				
-				text.push.apply(text, [JSON.stringify(request)]);
+				text.push(JSON.stringify(request));
 				text.push(",");
 			}	
 			
-			text.pop(); // last comma
-			text.push("]");
+			if (info)
+				text.pop(); // last comma
 			
+			text.push("]");
+
 			browser.downloads.download({ url: URL.createObjectURL( new File(text, "capture.json", {type: "application/json"}) ) });
 		};
 		

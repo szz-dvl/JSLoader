@@ -1,9 +1,7 @@
 <div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 10px;">
 
 	<h4> Included from {{ key }} {{ item.name }}
-		<button ng-class="item.visible ? 'ddbutton-shown' : 'ddbutton-hidden'" ng-click="item.toggleList($event)" style="border: 0; background: transparent;">
-			<img style="vertical-align: text-bottom;" src="../icons/right-arrow-64.png" width="14px" height="14px" alt="submit" />
-		</button>
+		<drop-down item="item" width="16" height="16"></drop-down>
 	</h4>
 	
 	<table style="margin-bottom: 30px;width: 100%;" ng-show="item.visible">

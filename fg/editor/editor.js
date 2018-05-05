@@ -379,8 +379,6 @@ function EditorFG (id, bg) {
 				
 		/* After interpolation ready ... */
 		$timeout(function () {
-
-			/* Any way to import "devtools/sourceeditor/editor" here ? */
 			
 			$scope.editor.ace = ace.edit("code_area");
 			$scope.editor.ace.session.setMode("ace/mode/javascript");
@@ -409,11 +407,16 @@ function EditorFG (id, bg) {
 				}
 			);
 			
-			if (!$scope.editor.opts.collapsed) 
-				self.collapseHeader();
+			/* 
+			   DEPRECATED 
+			   
+			   if (!$scope.editor.opts.collapsed) 
+			   self.collapseHeader(); 
+			   
+			 */
 			
 			//self.onResize();
-			window.resizeBy(10, 10);
+			//window.resizeBy(10, 10);
 		});
 	});
 

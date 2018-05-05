@@ -1,0 +1,29 @@
+<div class="panel-section" ng-show="names.length">
+	
+	<h4> Proxy Rules <bdi style="color:red" ng-click="toggleProxy()"> {{ statusProxy() }} </bdi></h4>
+	
+	<ul ng-if="proxy_rules.length" ng-show="proxy_shown">
+		<li ng-repeat="proxy_rule in proxy_rules track by $index">
+			
+			<a-proxy-rule rule="proxy_rule" pnames="names" mgr="mgr" state="state"></a-proxy-rule>
+	  
+		</li>
+	</ul>
+	
+	<button class="browser-style" ng-click="addProxyRule()" ng-show="proxy_shown"> {{ proxy_rules.length ? "+" : "New Proxy Rule" }} </button>
+</div>
+
+<div class="panel-section">
+	
+	<h4> Request Rules <bdi style="color:red" ng-click="toggleReq()"> {{ statusReq() }} </bdi></h4>
+	
+	<ul ng-if="rules.length" ng-show="req_shown">
+		<li ng-repeat="rule in rules track by rule.id">
+			
+			<a-rule rule="rule" state="state"></a-rule>
+			
+		</li>
+	</ul>
+	
+	<button class="browser-style" ng-click="addRule()" ng-show="req_shown"> {{ rules.length ? "+" : "New Rule" }} </button>
+</div>

@@ -197,7 +197,7 @@ function TabListener (page) {
 		$scope.advFilter = "";
 		$scope.currentProxy = "None";
 		
-		$scope.proxys = Object.keys(self.bg.option_mgr.jsl.proxys);
+		$scope.proxys = Object.keys(self.bg.option_mgr.proxys);
 		$scope.proxys.push("None");
 		$scope.clipped = false;
 		$scope.last = {};
@@ -261,8 +261,8 @@ function TabListener (page) {
 
 		$scope.toggleClipped = function (ev) {
 
-			$(ev.currentTarget).blur(); /* Avoid outline */
-			$scope.clipped = !$scope.clipped;
+			/* $(ev.currentTarget).blur(); 
+			   $scope.clipped = !$scope.clipped; */
 			$scope.page.bg.app_events.emit("listener-clipped", $scope.clipped);
 		};
 		
@@ -285,7 +285,7 @@ function TabListener (page) {
 		
 		$scope.page = self;
 
-		$scope.gotProxys = Object.keys(self.bg.option_mgr.jsl.proxys).length;
+		$scope.gotProxys = Object.keys(self.bg.option_mgr.proxys).length;
 		
 		$scope.config_sel = false;
 		$scope.proxying_sel = false;

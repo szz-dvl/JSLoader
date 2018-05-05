@@ -1567,21 +1567,20 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 					   
 					   scope: {
 						   
-						   feeding: "=feeding",
 						   height: "=h",
 						   width: "=w"
 						   
 					   },
 					   
 					   templateUrl: function (elem, attr) {
-
+						   
 						   return browser.extension.getURL("fg/partials/ace-frame.html");
 
 					   },
 					   
 					   controller: function ($scope) {
 						   
-						   $scope.src = browser.extension.getURL("fg/partials/ace-inline.html") + "?feeding=" + $scope.feeding;
+						   $scope.src = browser.extension.getURL("fg/partials/ace-inline.html");
 
 					   }
 					   

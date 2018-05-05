@@ -1,0 +1,34 @@
+<div ng-if="domains.length">
+  <div class="panel-section" ng-repeat="domain in domains track by domain.name" ng-if="domain.haveData()">
+
+	  <div>
+		  <h4> {{domain.name}} </h4>
+		  <div class="browser-style" style="float:right;" ng-show="db_buttons">
+			  <button style="float:right;" class="browser-style" ng-click="page.bg.database_mgr.getDomains([domain.name])"> Update from DB </button>
+			  <button style="float:right;" class="browser-style" ng-click="page.bg.database_mgr.pushDomains([domain])"> Push to DB </button>
+		  </div>
+	  </div>
+	  
+	  <script-list ng-if="domain.scripts.length"
+		  list="domain.scripts"
+		  parent="domain"
+		  port="port"
+		  editor="page.bg.editor_mgr.openEditorInstanceForScript"
+		  shown="shown"
+		  opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+	<script-list ng-repeat="site in domain.sites"
+				 ng-if="site.scripts.length"
+				 list="site.scripts"
+				 parent="site"
+				 port="port"
+				 editor="page.bg.editor_mgr.openEditorInstanceForScript"
+				 shown="shown"
+				 opts="page.bg.option_mgr.editor">
+	</script-list>
+	
+  </div>
+</div>
+
+<no-info ng-if="!domains.length"></no-info>

@@ -63,7 +63,8 @@ function PA (bg, info) {
 		
 		return self.info[key].map(
 			item => {
-				
+
+				/* Preserve state between reloads, @stateParams */
 				item.visible = false;
 				
 				return item;
@@ -100,7 +101,7 @@ function PA (bg, info) {
 	};
 	
 	this.app.config(
-		$stateProvider=> {
+		$stateProvider => {
 			
 			$stateProvider.state('pa-site', {
 

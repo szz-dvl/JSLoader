@@ -3,42 +3,36 @@
 <html>
   <head>
 
-	<link rel="stylesheet" href="chrome://browser/content/extension.css">
+	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
 	
-	<script src="../deps/jquery.min.js"></script>
-	<script src="../deps/angular.min.js"></script>
-	<script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
-	
+	  <script src="../deps/jquery.min.js"></script>
+	  <script src="../deps/angular.min.js"></script>
+	  <script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+	  
   </head>
   <body ng-controller="aceInlineController">
 
 	<style>
-	  #code_area {
+	#code_area {
 
-	  width: 100%;
-	  height: 80%;
-	  margin: 0 auto;
+		width: 100%;
+		height: 80%;
+		margin: 0 auto;
+		
+	}
 	
-	  }
+	body, html {
+		
+		width: 100%;
+		height: 100%;
 	  
-	  body, html {
-
-	  width: 100%;
-	  height: 100%;
-	  
-	  }
+	}
 	</style>
 
-	<!-- <div> -->
-
-	  <pre id="code_area"> </pre>
-
-	<!-- </div> -->
+	<pre id="code_area"> </pre>
 	
-	<button ng-click="saveData()" style="margin-top: 20px; margin-left: 20px; width: 50px; text-align: center;" class="browser-style" > Save </button> <!-- !!! -->
-
   </body>
-
+  
   <script src="ace-inline.js"></script>
   
 </html>

@@ -1,18 +1,16 @@
 <!DOCTYPE html>
 
 <html>
-	<head ng-controller="themeController">
+	<head>
 		
 		<link rel="stylesheet" href="options.css"/>
 		
-		<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self';">
+		<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self' *;">
 		
 		<link rel="stylesheet" href="chrome://browser/content/extension.css">
 		<link rel="stylesheet" href="../deps/json/json-formatter.css">
 		<link rel="stylesheet" href="../deps/angucomplete-alt/angucomplete-alt.css">
-		<link rel="stylesheet" href="../styles/tabs.css">
-		<link rel="stylesheet" href="../styles/script-list.css">
-	<!-- <link rel="stylesheet" href="../styles/autocomplete.css"> -->
+		<link rel="stylesheet" href="../styles/jsl.css">
 		
 		<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
 		
@@ -21,8 +19,6 @@
 		<script src="../deps/angular-ui-router.min.js"></script>
 		<script src="../deps/highlightjs/highlight.min.js"></script>
 		<script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
-	<!-- <script src="../deps/angucomplete/angucomplete.js"></script> -->
-	<!-- <script src="../deps/angucomplete-alt/dist/angucomplete-alt.min.js"></script> -->
 		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 		<script src="../partials/partials.js"></script>
 		
@@ -35,47 +31,34 @@
 		<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
 		
 	</head>
-	
-	<body ng-controller="tabsController" spellcheck="false">
-		
-		<nav style="padding-left: 5px;">
-			<div class="td-tab-nav">
-				<a ng-repeat="tab in tabs"
-					class="td-tab-link"
-					id="tab-{{tab.sref}}"
-					ui-sref="{{tab.sref}}">
-					{{ tab.title }}
-				</a>
-			</div>
-		</nav>
-		
-		<div id="inout_head" class="panel-section-header panel-section" ng-show="inoutOk()">
-			<div class="text-section-header browser-style">Stored {{active}}
-				
-				<div class="browser-style" style="float:right;" ng-show="databaseOk()">
-					<button style="float:right;" class="browser-style" ng-click="dbFeed()"> Update {{active}} from DB </button>
-					<button style="float:right;" class="browser-style" ng-click="dbPush()"> Push {{active}} to DB </button>
-				</div>
-				
-				<button style="float:right;" class="browser-style" ng-click="dataExport()"> Export {{active}} </button>
-				<button style="float:right;" class="browser-style" ng-show="import_data_button" ng-click="applyDataImport()"> Apply changes </button>
 
-				<label for="import_data" style="float:right;">
+	<body ng-controller="optionsController" ng-cloak>
 
-					<bdi>Import {{active}} </bdi> 
-					<!-- <button class="browser-style" onclick="ev => {ev.preventDefault();}"> Import {{active}} </button> -->
-					<input style="float:right;" id="import_data" type="file" ng-show="false"></input>
-					
-				</label>
+
+		<div class="panel-section">
+
+			<div class="panel-section-header">
+				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">JSL Settings</div>
 			</div>
+
+			<div ui-view="editor-settings"></div>
+			<div ui-view="proxy-settings"></div>
+			
 		</div>
 		
-		<div id="content" class="td-tab-content">
-			<ui-view></ui-view>
+		<div class="panel-section">
+			
+			<div class="panel-section-header">
+				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">User Data</div>
+			</div>
+			
+			<div ui-view="app-data"></div>
+			<div ng-show="page.bg.database_mgr.available" "ui-view="app-db"></div>
+			
 		</div>
 		
 		<script src="../deps/json/json-formatter.js"></script>
 		<script src="options.js"></script>
-		
 	</body>
+	
 </html>

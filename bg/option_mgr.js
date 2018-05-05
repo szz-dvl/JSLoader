@@ -1,27 +1,16 @@
-function Theme (theme) {
-	
-	this.name = theme.name || "monokai";
-	this.knownToHl = theme.knownToHl || "monokai-sublime";
-	this.title = theme.title || "Hightlights available";
-}
-
 function Options (opt) {
-
-	this.jsl = opt.jsl || {
-		
-		proxys: {"example": {"host": "hostname", "port": 9050, "type": "socks | http5 | ... etc"}},
-		data_origin: "mongodb://localhost:27017/"
-	};
+	
+	this.proxys = opt.proxys || {"example": {"host": "hostname", "port": 9050, "type": "socks"}};
+	this.data_origin = opt.data_origin || "mongodb://localhost:27017/";
 	
 	this.editor = opt.editor || {
 		
-		showPrintMargin: false,
 		showGutter: false,
+		printMarginColumn: 80,
 		fontSize: 10,
-		collapsed: false,
+		theme: "monokai",
+		font: "monospace"
 	};
-
-	this.editor.theme = opt.editor ? new Theme(opt.editor.theme) : new Theme({});
 }
 
 function OptionMgr (bg) {
@@ -34,13 +23,12 @@ function OptionMgr (bg) {
 	this.storage.getOptions(
 		
 		new_options => {
-			Options.call(self, new_options || {});
-
+			
+			Options.call(self, {});
+			
 			self.bg.events.emit('options-ready');
 		}
 	);
-
-	
 	
 	this.persist = function (opts) {
 		
@@ -51,6 +39,7 @@ function OptionMgr (bg) {
 				
 				self.editor.theme = Object.assign({}, opts.editor.theme);
 				self.editor = Object.assign({}, opts.editor);
+				
 				//self.jsl = Object.assign({}, opts.jsl);
 				
 				self.storage
@@ -74,68 +63,68 @@ function OptionMgr (bg) {
 		
 	};
 	
-	this.getFullOpts = function () {
-		
-		return {editor: self.editor, jsl: self.jsl};
-	};
+	/* this.getFullOpts = function () {
+	   
+	   return {editor: self.editor, jsl: self.jsl};
+	   };
+	   
+	   this.sendMessage = function(action, message) {
+	   
+	   if (self.port)
+	   self.port.postMessage({action: action, message: message});
+	   
+	   }; */
 	
-	this.sendMessage = function(action, message) {
-		
-		if (self.port)
-			self.port.postMessage({action: action, message: message});
-		
-	};
-	
-	browser.runtime.onConnect
-		.addListener(
-			port => {
-				
-				if (port.name === "option-page") {
-					
-					self.port = port;
-				
-					self.port.onMessage.addListener(
-						args => {
-							
-							try {
-								switch (args.action) {
-									case "list-update":
-										self.sendMessage("list-update", args.message);
-										
-										break;
-										
-									case "import-opts":
-										self.sendMessage("import-opts", args.message);
-										
-										break;								
-										
-									default:
-										break;
-								}
-								
-							} catch (e) {}
-						}
-					);
-					
-					self.port.onDisconnect.addListener(
-						() => {
-							self.port = null;
-						}
-					);
-				}
-			}
-		);
+	/* browser.runtime.onConnect
+	   .addListener(
+	   port => {
+	   
+	   if (port.name === "option-page") {
+	   
+	   self.port = port;
+	   
+	   self.port.onMessage.addListener(
+	   args => {
+	   
+	   try {
+	   switch (args.action) {
+	   case "list-update":
+	   self.sendMessage("list-update", args.message);
+	   
+	   break;
+	   
+	   case "import-opts":
+	   self.sendMessage("import-opts", args.message);
+	   
+	   break;								
+	   
+	   default:
+	   break;
+	   }
+	   
+	   } catch (e) {}
+	   }
+	   );
+	   
+	   self.port.onDisconnect.addListener(
+	   () => {
+	   self.port = null;
+	   }
+	   );
+	   }
+	   }
+	   ); */
 
 	this.clear = function () {
 		
 		self.storage.removeOptions();
 	};
 
-	this.setProxys = function (literal) {
-		
-		self.jsl.proxys = JSON.parse(literal);
-		
-	};
+	/* this.setProxys = function (literal) {
+	   
+	   self.jsl.proxys = JSON.parse(literal);
+	   
+	   }; */
 	
 	this.exportApp = function () {
 
@@ -180,15 +169,5 @@ function OptionMgr (bg) {
 			});
 	}
 	
-	// this.storeNewOpts = function (changes, area) {
-		
-	// 	if (area != "local")
-	//  		return;
-		
-	// 	if (changes.options) 
-	// 		Options.call(self, changes.options.newValue || {});
-	// };
-
-	// browser.storage.onChanged.addListener(this.storeNewOpts);
 }
 

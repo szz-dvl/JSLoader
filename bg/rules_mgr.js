@@ -160,7 +160,7 @@ function ProxyMgr (bg) {
 	
 	this.__proxyOps = function (hostname, proxy, to_persist) {
 		
-		let proxy_obj = self.bg.option_mgr.jsl.proxys[proxy];
+		let proxy_obj = self.bg.option_mgr.proxys[proxy];
 		let stored = this.proxy_rules.findIndex(
 			prule => {
 				
@@ -202,7 +202,7 @@ function ProxyMgr (bg) {
 
 	this.proxyFactory = function () {
 		
-		self.proxy_rules.push({host: null, proxy: Object.keys(self.bg.option_mgr.jsl.proxys)[0]});
+		self.proxy_rules.push({host: null, proxy: Object.keys(self.bg.option_mgr.proxys)[0]});
 	};
 
 	this.upsertProxy = function (hostname, proxy) {
@@ -230,7 +230,7 @@ function ProxyMgr (bg) {
 			resolve => {
 				
 				let proxy_obj = typeof(proxy) == 'string'
-											   ? self.bg.option_mgr.jsl.proxys[proxy]
+											   ? self.bg.option_mgr.proxys[proxy]
 											   : proxy;
 				
 				if (!proxy_obj || !proxy_obj.host || !proxy_obj.port || !proxy_obj.type)

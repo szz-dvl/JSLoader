@@ -39,7 +39,7 @@
 									ng-click="removeDomain($index)"
 									style="z-index:999;"> Remove
 								</button>
-								<button class="browser-style"
+								<button ng-if="data_origin.writeable" class="browser-style"
 									ng-click="pushDomain($index)"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>
@@ -67,7 +67,7 @@
 									ng-click="removeGroup($index)"
 									style="z-index:999;"> Remove
 								</button>
-								<button class="browser-style"
+								<button ng-if="data_origin.writeable" class="browser-style"
 									ng-click="pushGroup($index)"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>

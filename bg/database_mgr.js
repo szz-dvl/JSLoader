@@ -6,9 +6,8 @@ function DBMgr (bg) {
 	this.available = false;
 	this.connected = false;
 	this.reconnecting = false;
-	
-	this.writable = true;
-	this.readable = true;
+	this.writeable = false;
+	this.readable = false;
 	
 	this.port = browser.runtime.connectNative("db_connector");
 

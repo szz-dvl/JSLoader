@@ -10,13 +10,16 @@ function OP (bg, data, content) {
 		
 		$scope.page = self;
 		$scope.data_origin = {
-
+			
 			reconnecting: false,
 			available: self.bg.database_mgr.available,
 			connected: self.bg.database_mgr.connected,
 			writeable: self.bg.database_mgr.writeable,
-			readable: self.bg.database_mgr.readable	
+			readable: self.bg.database_mgr.readable,
+			string: self.bg.option_mgr.data_origin
 		}
+
+		console.log($scope.data_origin);
 	});
 	
 	this.app.config(
@@ -174,14 +177,31 @@ function OP (bg, data, content) {
 						
 						templateUrl: 'app-db.html',
 						controller: function ($scope, $compile) {
-							console.log($scope.data_origin);
-							$scope.appdb_active = true;
 							
-							$scope.connectionString = self.bg.option_mgr.data_origin;
+							$scope.appdb_active = true;
+							$scope.db_query = "";
+
+							$scope.query_results = [
+
+								{ name: "test.domain.com", type: "Domain" },
+								{ name: "groupTest", type: "Group" }
+								
+							];
 							
 							$scope.dbChange = function () {
 								
-								console.log("DB changing " + $scope.connectionString);
+								console.log("DB changing: " + $scope.data_origin.string);
+							}
+
+							$scope.dbQuery = function () {
+								
+								console.log("DB query: " + $scope.db_query);
+							}
+							
+							$scope.updateFromDB = function (record) {
+								
+								console.log("updateFromDB: ");
+								console.log(record);
 							}
 						}
 					},
@@ -189,7 +209,7 @@ function OP (bg, data, content) {
 					'debug': {
 
 						template: '<div ng-repeat="key in keys" style="margin-bottom: 60px; word-wrap:break-word;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
-				
+						
 						controller: function ($scope) {
 							
 							$scope.content = content;		

@@ -5,46 +5,99 @@
 		<dd-title val="'appdb_active'" text="'Database'"></dd-title>
 
 		<div ng-show="appdb_active">
-			
-			<table>
-				<thead>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-					<th></th>
-				</thead>
-				<tbody>
-					<tr>
-						<td>
-							<h2> Data origin: </h2>
-						</td>
-						<td>
-							<div id="data_origin" class="browser-style">	
-								<label for="data-origin-inpt" style="float:left;padding-right: 20px;">
-									
-									<input id="data-origin-inpt" type="text" ng-model="connectionString" ng-change ="dbChange()" value="{{connectionString}}"></input>
-									
-								</label>
-							</div>
-						</td>
-						<td>
-							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
-							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
-							<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="24px" height="24px">
-							
-						</td>
-						<td>
-							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
-							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
-						</td>
-						<td>
-							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
-							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
-						</td>
-					</tr>
-				</tbody>
-			</table>
+
+			<div class="browser-style" style="width: 90%;">
+				
+				<table style="display: table;">
+					<thead>
+						<th></th>
+						<th></th>
+						<th style="text-align: center;"> Connected </th>
+						<th style="text-align: center;"> Readable </th>
+						<th style="text-align: center;"> Writeable </th>
+					</thead>
+					<tbody style="display: table-row-group;">
+						<tr>
+							<td style="width: 20%;">
+								<h2 style="float: right;margin-right: 100px;"> Data origin: </h2>
+							</td>
+							<td style="width: 60%;">	
+								<input
+									style="width: 100%;"
+									class="browser-style"
+									id="data-origin-inpt"
+									type="text"
+									ng-model="data_origin.string"
+									ng-change ="dbChange()"/>
+							</td>
+							<td style="text-align: center; width: 10%;padding: 55px">
+
+								<img src="../icons/ok_tick.png" ng-show="data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="!data_origin.connected && !data_origin.reconnecting" width="32px" height="32px">
+								<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="32px" height="32px">
+								
+							</td>
+							<td style="text-align: center; width: 10%;;padding: 55px" ng-show="data_origin.connected">
+								<img src="../icons/ok_tick.png" ng-show="data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="!data_origin.readable && !data_origin.reconnecting" width="32px" height="32px">
+							</td>
+							<td style="text-align: center; width: 10%;;padding: 55px" ng-show="data_origin.connected">
+								<img src="../icons/ok_tick.png" ng-show="data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="!data_origin.writeable && !data_origin.reconnecting" width="32px" height="32px">
+							</td>
+						</tr>
+						<tr ng-if="data_origin.connected">
+							<td style="width: 20%;">
+								<h2 style="float: right;margin-right: 100px;"> Query DB: </h2>
+							</td>
+							<td style="width: 60%;">
+								<input
+									id="querydb"
+									style="width: 100%;"
+									class="browser-style"
+									type="text"
+									ng-model="db_query"
+									ng-change ="dbQuery()"/>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+						<tr ng-repeat="record in query_results">
+							<td style="width: 20%;"></td>
+							<td style="width: 60%;">
+								<bdi style="float: left;margin-right: 100px;"> {{ record.type + " " + record.name }} </bdi>
+							</td>
+							<td style="width: 10%;text-align: center;">
+								<button
+									ng-if="data_origin.readable"
+									class="browser-style"
+									ng-click="updateFromDB(record)"
+									style="z-index:999;">
+									Update from DB
+								</button>
+							</td>
+							<td style="width: 10%;">  </td>
+							<td style="width: 10%;">  </td>
+						</tr>
+						<tr style="height: 30px;"></tr>
+						<tr ng-if="data_origin.readable">
+							<td></td>
+							<td style="width: 100%;text-align: center;">
+								<button
+									class="browser-style"
+									ng-click="updateFromDB()"
+									style="z-index:999;">
+									Bring all
+								</button>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 </div>

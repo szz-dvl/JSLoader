@@ -53,7 +53,7 @@
 			</div>
 			
 			<div ui-view="app-data"></div>
-			<div ng-show="data_origin.available" "ui-view="app-db"></div>
+			<div ng-if="data_origin.available" ui-view="app-db"></div>
 			
 		</div>
 		

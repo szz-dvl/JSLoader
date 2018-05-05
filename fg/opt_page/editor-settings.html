@@ -5,25 +5,52 @@
 		<dd-title val="'editor_active'" text="'Editor settings'"></dd-title>
 		
 		<div style="margin-top: 25px;" ng-show="editor_active">
-		
-			<label ng-repeat="opt in opts track by opt.id" for="{{opt.id}}" class="browser-style" style="margin-left: 25px;">
-				
-				<bdi class="browser-style" ng-if="['text', 'select'].includes(opt.type)"> {{opt.text}}: </bdi>
-				
-				<input
-					id="{{opt.id}}"
-					class="browser-style"
-					ng-if="'select' != opt.type"
-					type="{{opt.type}}"
-					ng-model="opt.value"
-					ng-change="opt.change(opt)">
-				
-				<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
-				<select id="{{opt.id}}" class="browser-style" ng-if="'select' == opt.type && 'theme' == opt.id" ng-model="opt.value" ng-options="theme for theme in themes" ng-change="opt.change(opt)"></select>
-				<select id="{{opt.id}}" class="browser-style" ng-if="'select' == opt.type && 'font' == opt.id" ng-model="opt.value" ng-options="font for font in fonts" ng-change="opt.change(opt)"></select>
+
+			<table style="display:table">
+				<thead>
+					<th ng-repeat="opt in opts track by opt.id"></th>
+				</thead>
+				<tbody style="display: table-row-group;">
+					<tr>
+						<td ng-repeat="opt in opts track by opt.id" ng-style="$index ? {} : {'width': '15%'}">
+							
+							<label for="{{opt.id}}" class="browser-style" style="margin-left: 25px;width: 100;display: inline-block">
+								
+								<bdi class="browser-style" ng-if="['text', 'select'].includes(opt.type)"> {{opt.text}}: </bdi>
+								
+								<input
+									id="{{opt.id}}"
+									class="browser-style"
+									ng-if="'select' != opt.type"
+									type="{{opt.type}}"
+									ng-model="opt.value"
+									ng-change="opt.change(opt)">
+								
+								<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
+								
+								<select
+									id="{{opt.id}}"
+									class="browser-style"
+									ng-if="'select' == opt.type && 'theme' == opt.id"
+									ng-model="opt.value"
+									ng-options="theme for theme in themes"
+									ng-change="opt.change(opt)"></select>
+
+								<select
+									id="{{opt.id}}"
+									class="browser-style"
+									ng-if="'select' == opt.type && 'font' == opt.id"
+									ng-model="opt.value"
+									ng-options="font for font in fonts"
+									ng-change="opt.change(opt)"></select>
+								
+							</label>
+						</td>
+					</tr>
+				</tbody>
+			</table>
 			
-			</label>
-			<ace-inline h="260" w="1024" style="margin-left: 15%;"></ace-inline>
+			<ace-inline h="260" w="1024" style="margin-left: 10%;"></ace-inline>
 
 			<div style="text-align: center;">
 				<button class="browser-style"

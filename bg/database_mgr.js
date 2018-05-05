@@ -7,12 +7,15 @@ function DBMgr (bg) {
 	this.connected = false;
 	this.reconnecting = false;
 	
+	this.writable = true;
+	this.readable = true;
+	
 	this.port = browser.runtime.connectNative("db_connector");
 
 	this.bg.events.on('options-ready',
 		() => {
 			
-			self.port.postMessage('{ "tag": "connect", "content": "' + self.bg.option_mgr.jsl.data_origin + '" }');
+			self.port.postMessage('{ "tag": "connect", "content": "' + self.bg.option_mgr.data_origin + '" }');
 			
 			self.port.onMessage.addListener(
 				response => {

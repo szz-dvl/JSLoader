@@ -1,0 +1,50 @@
+<div class="panel-section">
+	
+	<div class="panel-section-header">
+		
+		<dd-title val="'appdb_active'" text="'Database'"></dd-title>
+
+		<div ng-show="appdb_active">
+			
+			<table>
+				<thead>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+					<th></th>
+				</thead>
+				<tbody>
+					<tr>
+						<td>
+							<h2> Data origin: </h2>
+						</td>
+						<td>
+							<div id="data_origin" class="browser-style">	
+								<label for="data-origin-inpt" style="float:left;padding-right: 20px;">
+									
+									<input id="data-origin-inpt" type="text" ng-model="connectionString" ng-change ="dbChange()" value="{{connectionString}}"></input>
+									
+								</label>
+							</div>
+						</td>
+						<td>
+							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
+							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
+							<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="24px" height="24px">
+							
+						</td>
+						<td>
+							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
+							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
+						</td>
+						<td>
+							<img src="../icons/ok_tick.png" ng-show="data_origin.data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
+							<img src="../icons/ko_tick.png" ng-show="!data_origin.data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

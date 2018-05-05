@@ -1,15 +1,22 @@
-function OP (bg) {
+function OP (bg, data, content) {
 
 	let self = this;
 	
 	this.bg = bg;
-	
+
 	this.app = angular.module('optionsPageApp', ['jslPartials', 'ui.router']);
 	
 	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams) {
 		
 		$scope.page = self;
-			
+		$scope.data_origin = {
+
+			reconnecting: false,
+			available: self.bg.database_mgr.available,
+			connected: self.bg.database_mgr.connected,
+			writeable: self.bg.database_mgr.writeable,
+			readable: self.bg.database_mgr.readable	
+		}
 	});
 	
 	this.app.config(
@@ -108,7 +115,7 @@ function OP (bg) {
 						
 						templateUrl: 'proxy-settings.html',
 						controller: function ($scope, $compile) {
-
+							
 							$scope.proxy_active = true;
 							$scope.proxys = Object.keys(self.bg.option_mgr.proxys)
 								.map(
@@ -155,6 +162,10 @@ function OP (bg) {
 						templateUrl: 'app-data.html',
 						controller: function ($scope, $compile) {
 							
+							$scope.appdata_active = true;
+							
+							$scope.domains = data.domains;
+							$scope.groups = data.groups;
 							
 						}
 					},
@@ -163,10 +174,28 @@ function OP (bg) {
 						
 						templateUrl: 'app-db.html',
 						controller: function ($scope, $compile) {
-
+							console.log($scope.data_origin);
+							$scope.appdb_active = true;
 							
+							$scope.connectionString = self.bg.option_mgr.data_origin;
+							
+							$scope.dbChange = function () {
+								
+								console.log("DB changing " + $scope.connectionString);
+							}
 						}
-					}
+					},
+
+					'debug': {
+
+						template: '<div ng-repeat="key in keys" style="margin-bottom: 60px; word-wrap:break-word;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
+				
+						controller: function ($scope) {
+							
+							$scope.content = content;		
+							$scope.keys = Object.keys($scope.content);
+						}
+					}					
 				}
 			})
 		});
@@ -185,7 +214,16 @@ function OP (bg) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			
-			OP.call(this, page);
+			page.option_mgr.getDataInfo()
+				.then(
+					data => {
+						browser.storage.local.get()
+							.then(
+								content => {
+									OP.call(this, page, data, content);
+								}
+							)
+					}
+				)
 		}
 	);

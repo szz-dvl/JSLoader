@@ -62,6 +62,60 @@ function OptionMgr (bg) {
 		browser.runtime.openOptionsPage();
 		
 	};
+
+	this.getDataInfo = function () {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				let domains = [];
+				let groups = [];
+				
+				async.each(self.bg.domain_mgr.domains,
+					(domain_name, next) => {
+
+						self.storage.getDomain(
+							domain => {
+
+								if (domain.haveData())
+									domains.push({ name: domain_name, scripts: domain.getScriptCount(), sites: domain.sites.length });
+
+								next();
+								
+						}, domain_name);
+						
+					}, err => {
+						
+						if (err)
+							reject(err);
+						else {
+
+							async.each(self.bg.group_mgr.groups,
+								(group_name, next) => {
+									
+									self.storage.getGroup(
+										group => {
+											
+											groups.push({ name: group_name, scripts: group.getScriptCount(), sites: group.sites.length });
+											next();
+											
+										}, group_name);
+									
+								}, err => {
+
+									if (err)
+										reject(err);
+									else
+										resolve({ domains: domains, groups: groups });
+									
+								} 
+							);
+						}
+					}
+				);
+			}
+		);
+	};
 	
 	/* this.getFullOpts = function () {
 	   

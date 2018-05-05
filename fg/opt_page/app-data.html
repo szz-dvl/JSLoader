@@ -1,0 +1,102 @@
+<div class="panel-section">
+	
+	<div class="panel-section-header">
+		
+		<dd-title val="'appdata_active'" text="'Storage'"></dd-title>
+
+		<div ng-show="appdata_active">
+
+			<table style="display: table">
+				<thead>
+					<th></th>
+					<th style="text-align: center;"> Name </th>
+					<th style="text-align: center;"> Scripts </th>
+					<th style="text-align: center;"> Resources / Sites </th>
+					<th style="text-align: center;"> Actions </th>
+				</thead>
+				<tbody style="display: table-row-group;">
+					<tr ng-repeat="domain in domains track by domain.name">
+						<td>
+							<h2 ng-if="!$index" style="margin: 0;"> Domains: </h2>
+						</td>
+						<td style="text-align: center;">
+							{{ domain.name }}
+						</td>
+						<td style="text-align: center;">
+							{{ domain.scripts }}
+						</td>
+						<td style="text-align: center;">
+							{{ domain.sites }}
+						</td>
+						<td>
+							<div style="text-align: center;">
+								
+								<button class="browser-style"
+									ng-click="goToDomain($index)"
+									style="z-index:999;"> Go
+								</button>
+								<button class="browser-style"
+									ng-click="removeDomain($index)"
+									style="z-index:999;"> Remove
+								</button>
+								<button class="browser-style"
+									ng-click="pushDomain($index)"
+									style="z-index:999;"> Push to DB <!-- writting permissions -->
+								</button>
+								
+							</div>
+						</td>
+					</tr><br>
+					<tr ng-repeat="group in groups track by group.name">
+						<td>
+							<h2 ng-if="!$index" style="margin: 0;"> Groups: </h2>
+						</td>
+						<td style="text-align: center;">
+							{{ group.name }}
+						</td>
+						<td style="text-align: center;">
+							{{ group.scripts }}
+						</td>
+						<td style="text-align: center;">
+							{{ group.sites }}
+						</td>
+						<td style="text-align: center;">
+							<div style="text-align: center;">
+								
+								<button class="browser-style"
+									ng-click="removeGroup($index)"
+									style="z-index:999;"> Remove
+								</button>
+								<button class="browser-style"
+									ng-click="pushGroup($index)"
+									style="z-index:999;"> Push to DB <!-- writting permissions -->
+								</button>
+								
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<div style="text-align: center;margin-top: 25px;">
+				<button class="browser-style"
+					ng-click="ImportData()"
+					style="z-index:999;"> Import Data
+				</button>
+				<button class="browser-style"
+					ng-click="ExportData()"
+					style="z-index:999;"> Export Data
+				</button>
+				<button class="browser-style"
+					ng-click="EditUserDefs()"
+					style="z-index:999;"> Edit User Defs
+				</button>
+				<button class="browser-style"
+					ng-click="EditGlobals()"
+					style="z-index:999;"> Edit Globals
+				</button>
+			</div>
+			
+		</div>
+	</div>
+</div>

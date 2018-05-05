@@ -40,7 +40,7 @@
 			<div class="panel-section-header">
 				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">JSL Settings</div>
 			</div>
-
+			
 			<div ui-view="editor-settings"></div>
 			<div ui-view="proxy-settings"></div>
 			
@@ -53,9 +53,11 @@
 			</div>
 			
 			<div ui-view="app-data"></div>
-			<div ng-show="page.bg.database_mgr.available" "ui-view="app-db"></div>
+			<div ng-show="data_origin.available" "ui-view="app-db"></div>
 			
 		</div>
+		
+		<div ui-view="debug"></div>
 		
 		<script src="../deps/json/json-formatter.js"></script>
 		<script src="options.js"></script>

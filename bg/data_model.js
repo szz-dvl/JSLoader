@@ -535,7 +535,7 @@ function Site (opt) {
 			if (!self.groups.includes(group_name))
 				self.groups.push(group_name);
 			
-			/* The other half to be done from manager ¿¿?? */
+			/* The other half to be done from manager */
 			
 		}
 	}
@@ -581,6 +581,16 @@ function Domain (opt) {
 		
 		return !self.scripts.length && !self.sites.length && !self.groups.length;
 		
+	};
+
+	this.getScriptCount = function () {
+
+		let count = self.scripts.length;
+		
+		for (let site of self.sites)
+			count += site.scripts.length;
+
+		return count;
 	};
 	
 	this.haveData = function () {
@@ -805,6 +815,12 @@ function Group (opt) {
 	this.isEmpty = function () {
 		
 		return !self.sites.length && !self.scripts.length; 
+	};
+
+	this.getScriptCount = function () {
+
+		return self.scripts.length;
+		
 	};
 	
 	this.persist = function () {

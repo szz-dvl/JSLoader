@@ -28,25 +28,30 @@
 									id="data-origin-inpt"
 									type="text"
 									ng-model="data_origin.string"
-									ng-change ="dbChange()"/>
+									ng-change ="validateConnection()"
+									ng-disabled="in_progress"/>
 							</td>
 							<td style="text-align: center; width: 10%;padding: 55px">
-
-								<img src="../icons/ok_tick.png" ng-show="data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="!data_origin.connected && !data_origin.reconnecting" width="32px" height="32px">
-								<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="32px" height="32px">
-								
+								<div style="width: 40px;height: 40px;">
+									<img src="../icons/ok_tick.png" ng-show="data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
+									<img src="../icons/ko_tick.png" ng-show="!data_origin.connected && !data_origin.reconnecting" width="32px" height="32px">
+									<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="32px" height="32px">
+								</div>
 							</td>
-							<td style="text-align: center; width: 10%;;padding: 55px" ng-show="data_origin.connected">
-								<img src="../icons/ok_tick.png" ng-show="data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="!data_origin.readable && !data_origin.reconnecting" width="32px" height="32px">
+							<td style="text-align: center; width: 10%;padding: 55px">
+								<div style="width: 40px;height: 40px;">
+									<img src="../icons/ok_tick.png" ng-show="data_origin.connected && data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
+									<img src="../icons/ko_tick.png" ng-show="data_origin.connected && !data_origin.readable && !data_origin.reconnecting" width="32px" height="32px">
+								</div>
 							</td>
-							<td style="text-align: center; width: 10%;;padding: 55px" ng-show="data_origin.connected">
-								<img src="../icons/ok_tick.png" ng-show="data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="!data_origin.writeable && !data_origin.reconnecting" width="32px" height="32px">
+							<td style="text-align: center; width: 10%;padding: 55px">
+								<div style="width: 40px;height: 40px;">
+									<img src="../icons/ok_tick.png" ng-show="data_origin.connected && data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
+									<img src="../icons/ko_tick.png" ng-show="data_origin.connected && !data_origin.writeable && !data_origin.reconnecting" width="32px" height="32px">
+								</div>
 							</td>
 						</tr>
-						<tr ng-if="data_origin.connected">
+						<tr ng-show="data_origin.connected && data_origin.readable">
 							<td style="width: 20%;">
 								<h2 style="float: right;margin-right: 100px;"> Query DB: </h2>
 							</td>
@@ -57,16 +62,21 @@
 									class="browser-style"
 									type="text"
 									ng-model="db_query"
-									ng-change ="dbQuery()"/>
+									ng-change ="dbQuery()"
+									ng-disabled="data_origin.reconnecting"/>
 							</td>
-							<td></td>
-							<td></td>
-							<td></td>
+							<td style="width: 10%;"></td>
+							<td style="width: 10%;"></td>
+							<td style="width: 10%;"></td>
 						</tr>
-						<tr ng-repeat="record in query_results">
+						<tr ng-repeat="record in query_results track by record.name">
 							<td style="width: 20%;"></td>
 							<td style="width: 60%;">
-								<bdi style="float: left;margin-right: 100px;"> {{ record.type + " " + record.name }} </bdi>
+								
+								<bdi style="float: left;margin-right: 100px;min-width: 120px;"> {{ record.type }} </bdi>
+								<strong> {{ record.name }} </strong>
+								<bdi> ( scripts: {{ record.scripts }}, sites: {{ record.sites }} ) </bdi>
+								
 							</td>
 							<td style="width: 10%;text-align: center;">
 								<button
@@ -82,18 +92,27 @@
 						</tr>
 						<tr style="height: 30px;"></tr>
 						<tr ng-if="data_origin.readable">
-							<td></td>
+							<td style="width: 20%;"></td>
 							<td style="width: 100%;text-align: center;">
-								<button
-									class="browser-style"
-									ng-click="updateFromDB()"
-									style="z-index:999;">
-									Bring all
-								</button>
+								<div style="text-align: center;" ng-show="query_results.length">
+									<button
+										class="browser-style"
+										ng-click="updateFromDB()"
+										ng-show="query_results.length > 1"
+										style="z-index:999;">
+										Bring all
+									</button>
+									<button
+										class="browser-style"
+										ng-click="query_results.length = 0"
+										style="z-index:999;">
+										Flush results
+									</button>
+								</div>
 							</td>
-							<td></td>
-							<td></td>
-							<td></td>
+							<td style="width: 10%;"></td>
+							<td style="width: 10%;"></td>
+							<td style="width: 10%;"></td>
 						</tr>
 					</tbody>
 				</table>

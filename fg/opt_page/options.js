@@ -176,33 +176,117 @@ function OP (bg, data, content) {
 					'app-db': {
 						
 						templateUrl: 'app-db.html',
-						controller: function ($scope, $compile) {
+						controller: function ($scope, $compile, $timeout) {
 							
-							$scope.appdb_active = true;
+							$scope.appdb_active = false;
+							$scope.in_progress = false;
 							$scope.db_query = "";
-
-							$scope.query_results = [
-
-								{ name: "test.domain.com", type: "Domain" },
-								{ name: "groupTest", type: "Group" }
-								
-							];
 							
-							$scope.dbChange = function () {
-								
-								console.log("DB changing: " + $scope.data_origin.string);
-							}
-
+							$scope.query_results = [];
+							
 							$scope.dbQuery = function () {
 								
-								console.log("DB query: " + $scope.db_query);
+								if ($scope.queryID)
+									$timeout.cancel($scope.queryID);
+									
+								$scope.queryID = $timeout(
+									str => {
+										
+										self.bg.database_mgr.queryDB($scope.db_query);
+							
+									}, 350, false);
+								
 							}
 							
 							$scope.updateFromDB = function (record) {
+
+								let data = [];
 								
-								console.log("updateFromDB: ");
-								console.log(record);
+								if (record) {
+
+									if (record.type == "Group") {
+										
+										data.push(record.name);
+										$scope.page.bg.database_mgr.getGroups(data);
+										
+									} else {
+										
+										data.push(record.name);
+										$scope.page.bg.database_mgr.getDomains(data);
+									}
+
+								} else { 								
+							
+									$scope.page.bg.database_mgr.getDomains([]);
+									$scope.page.bg.database_mgr.getGroups([]);
+								}
+								
 							}
+
+							$scope.validateConnection = function (el) {
+								
+								/* Won't check options and database properly */
+								let str = $scope.data_origin.string;
+								let regex = new RegExp(/^mongodb\:\/\/(?:(?:[A-Za-z0-9.]+)\:(?:[A-Za-z0-9\$\_\-\?\/\=]+)\@)?(?:[A-Za-z0-9.]+)(?:((\:)(?:[0-9]+)))?((\/)?(?:(?:[A-Za-z0-9\=\_\-\?]+)?)?)$/)
+									.exec(str);
+								
+								if (regex) {		
+
+									$scope.data_origin.reconnecting = true;
+									
+									if ($scope.toID)
+										$timeout.cancel($scope.toID);
+									
+									$scope.toID = $timeout(
+										str => {
+
+											$scope.in_progress = true;
+											
+											$scope.page.bg.database_mgr.reconnect(str);
+											
+										}, 4500, true, str);
+
+								} else if ($scope.toID)
+									$timeout.cancel($scope.toID);
+								
+							}
+							
+							$scope.page.bg.app_events
+								.on('db_change',
+									string => {
+									
+										$scope.data_origin.available = $scope.page.bg.database_mgr.available;
+										$scope.data_origin.connected = $scope.page.bg.database_mgr.connected;
+										$scope.data_origin.writeable = $scope.page.bg.database_mgr.writeable;
+										$scope.data_origin.readable  = $scope.page.bg.database_mgr.readable;
+										
+										if ($scope.data_origin.connected)
+											$scope.data_origin.string = string;
+									
+										$scope.data_origin.reconnecting = false;
+										$scope.in_progress = false;
+
+										$scope.query_results.length = 0;
+										
+										$scope.$digest();
+									}
+								)
+								.on('db_query',
+									results => {
+										
+										$scope.query_results.length = 0;
+										$scope.query_results.push.apply(
+											$scope.query_results, results.map(
+												instance => {
+													
+													return { name: instance.name, type: instance.isGroup() ? "Group" : "Domain", scripts: instance.getScriptCount(), sites: instance.sites.length };
+												}
+											)
+										);
+											
+										$scope.$digest();
+									}
+								);
 						}
 					},
 
@@ -237,6 +321,14 @@ browser.runtime.getBackgroundPage()
 			page.option_mgr.getDataInfo()
 				.then(
 					data => {
+						
+						window.onbeforeunload = function () {
+							
+							/* Event emitter for opt page only! */
+							page.app_events = null;
+							page.option_mgr.onPageClose();
+						}
+						
 						browser.storage.local.get()
 							.then(
 								content => {

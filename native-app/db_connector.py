@@ -2,6 +2,7 @@
 
 # Install script ======> pymongo
 import sys
+import re
 import json
 import struct
 from pymongo import MongoClient
@@ -44,14 +45,34 @@ while True:
             client = MongoClient(receivedMessage['content'])
             
             try:
+
+                writeable = False;
+                readable = False;
                 
-                client.admin.command('ismaster'); #Connected?
-                
-                db = client.jsl;
-                sendMessage(encodeMessage('{"tag": "alive"}'));
+                db = client.get_database()
+                res = db.command("connectionStatus", 1, showPrivileges=True)
+
+                if len(res['authInfo']['authenticatedUserPrivileges']):
+                    
+                    for record in res['authInfo']['authenticatedUserPrivileges']:
+                        if record['resource']['db'] == db.name and not record['resource']['collection'].startswith('system.'):
+                            readable = 'find' in record['actions'] 
+                            writeable = 'update' in record['actions'] and 'insert' in record['actions']
+
+                else: #Running anonymously / no auth
+                    readable=True
+                    writeable=True
+                            
+                sendMessage(encodeMessage('{"tag": "alive", "readable": ' +
+                                          ("true" if readable else "false") +
+                                          ', "writeable": ' +
+                                          ("true" if writeable else "false") +
+                                          ', "string": "' +
+                                          receivedMessage['content'] +
+                                          '"}'));
                 
             except Exception as e:     
-                sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '"}'));
+                sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '" ' + ', "string": "' + receivedMessage['content'] + '"}'));
             
         elif tag == 'domains_push':
             
@@ -95,6 +116,20 @@ while True:
                 docs.append(group)
 
             sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
+
+        elif tag == 'query_for':
+            
+            docs = [];
+            query = { "name": { "$regex": ".*" + re.escape(receivedMessage['content']) + ".*" }} if len(receivedMessage['content']) > 0 else None;
                 
+            for group in db.groups.find(query):
+                del group['_id']
+                docs.append({'data': group, 'type': 'Group'})
+
+            for domain in db.domains.find(query):
+                del domain['_id']
+                docs.append({'data': domain, 'type': 'Domain'})
+                
+            sendMessage ( encodeMessage( '{ "tag": "query", "content":' + json.dumps(docs) + ' }' ));
                 
             

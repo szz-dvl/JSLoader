@@ -24,7 +24,7 @@ function Cache (opt) {
 			)
 		);
 
-		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item_name);
+		//self.bg.option_mgr.sendMessage("cache-update-" + self.key, item_name);
 	}
 	
 	/* item must exists in storage. ~ And ~ */
@@ -77,7 +77,7 @@ function Cache (opt) {
 	};
 
 	this.getAndCacheItem = function (item_name) {
-
+		
 		return self.__getAndCacheItem(item_name, true);
 
 	};
@@ -113,7 +113,7 @@ function Cache (opt) {
 
 	this.forceCacheItem = function (item) {
 
-		self.bg.option_mgr.sendMessage("cache-update-" + self.key, item.name);
+		//self.bg.option_mgr.sendMessage("cache-update-" + self.key, item.name);
 		
 		return self.__cacheItem(item, true);
 		

@@ -1,7 +1,7 @@
 function Options (opt) {
 	
 	this.proxys = opt.proxys || {"example": {"host": "hostname", "port": 9050, "type": "socks"}};
-	this.data_origin = opt.data_origin || "mongodb://localhost:27017/";
+	this.data_origin = opt.data_origin || "mongodb://localhost:27017/jsl";
 	
 	this.editor = opt.editor || {
 		
@@ -61,6 +61,12 @@ function OptionMgr (bg) {
 		
 		browser.runtime.openOptionsPage();
 		
+	};
+
+	this.onPageClose = function () {
+
+		if (!self.bg.app_events)
+			self.bg.app_events = new EventEmitter();
 	};
 
 	this.getDataInfo = function () {

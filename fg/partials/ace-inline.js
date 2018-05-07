@@ -8,7 +8,7 @@ function AceInline (bg) {
 
 		$scope.page = self;
 
-		self.bg.app_events.on("editor-preview",
+		self.bg.option_mgr.events.on("editor-preview",
 			opts => {
 				
 				$scope.setOpts(opts);

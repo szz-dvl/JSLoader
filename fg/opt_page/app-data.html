@@ -6,7 +6,7 @@
 
 		<div ng-show="appdata_active">
 
-			<table style="display: table">
+			<table style="display: table" ng-if="domains.length || groups.length">
 				<thead>
 					<th></th>
 					<th style="text-align: center;"> Name </th>
@@ -32,15 +32,15 @@
 							<div style="text-align: center;">
 								
 								<button class="browser-style"
-									ng-click="goToDomain($index)"
+									ng-click="goToDomain(domain.name)"
 									style="z-index:999;"> Go
 								</button>
 								<button class="browser-style"
-									ng-click="removeDomain($index)"
+									ng-click="removeItem(domain.name, 'domain')"
 									style="z-index:999;"> Remove
 								</button>
 								<button ng-if="data_origin.writeable" class="browser-style"
-									ng-click="pushDomain($index)"
+									ng-click="pushItem(domain.name, 'domain')"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>
 								
@@ -64,11 +64,11 @@
 							<div style="text-align: center;">
 								
 								<button class="browser-style"
-									ng-click="removeGroup($index)"
+									ng-click="removeItem(group.name, 'group')"
 									style="z-index:999;"> Remove
 								</button>
 								<button ng-if="data_origin.writeable" class="browser-style"
-									ng-click="pushGroup($index)"
+									ng-click="pushItem(group.name, 'group')"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>
 								
@@ -79,20 +79,36 @@
 			</table>
 			
 			<div style="text-align: center;margin-top: 25px;">
+				<label for="import_data"
+					<bdi> Import Data </bdi>
+					<input
+						class="browser-style"
+						id="import_data"
+						ng-on-change="importData()"
+						type="file"/>
+				</label>
 				<button class="browser-style"
-					ng-click="ImportData()"
-					style="z-index:999;"> Import Data
-				</button>
-				<button class="browser-style"
-					ng-click="ExportData()"
+					ng-if="domains.length || groups.length"
+					ng-click="exportData()"
 					style="z-index:999;"> Export Data
 				</button>
 				<button class="browser-style"
-					ng-click="EditUserDefs()"
+					ng-if="data_origin.writeable && (domains.length + groups.length > 1)"
+					ng-disable="data-origin.reconnecting"
+					ng-click="pushItem()"
+					style="z-index:999;"> Push all to DB
+				</button>
+				<button class="browser-style"
+					ng-if="domains.length || groups.length"
+					ng-click="clearStoredData()"
+					style="z-index:999;"> Clear Storage
+				</button>
+				<button class="browser-style"
+					ng-click="editUserDefs()"
 					style="z-index:999;"> Edit User Defs
 				</button>
 				<button class="browser-style"
-					ng-click="EditGlobals()"
+					ng-click="editGlobals()"
 					style="z-index:999;"> Edit Globals
 				</button>
 			</div>

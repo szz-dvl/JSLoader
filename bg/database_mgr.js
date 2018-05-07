@@ -11,7 +11,7 @@ function DBMgr (bg) {
 	
 	this.port = browser.runtime.connectNative("db_connector");
 
-	this.bg.events.on('options-ready',
+	this.bg.app_events.on('options-ready',
 		() => {
 			
 			self.port.postMessage('{ "tag": "connect", "content": "' + self.bg.option_mgr.data_origin + '" }');
@@ -29,31 +29,47 @@ function DBMgr (bg) {
 							self.connected = true;
 							self.writeable = obj.writeable;
 							self.readable = obj.readable;
-							self.bg.app_events.emit("db_change", obj.string);
+
+							if (self.bg.option_mgr.events)
+								self.bg.option_mgr.events.emit("db_change", obj.string);
+
 							break;;
 						case "bad-params":
 							self.available = true;
 							self.connected = false;
 							self.writeable = false;
 							self.readable = false;
-							self.bg.app_events.emit("db_change", obj.string);
+
+							if (self.bg.option_mgr.events)
+								self.bg.option_mgr.events.emit("db_change", obj.string);
+							
 							console.error("DB connection failed: " + obj.content + " for " + obj.string);
 							break;;
-						case "domains":
-							self.bg.domain_mgr.importDomains(obj.content);
-							break;;
 						case "groups":
-							self.bg.group_mgr.importGroups(obj.content);
+						case "domains":
+							
+							self.bg[obj.tag.slice(0, -1) + "_mgr"].importData(obj.content)
+								.then(() => {
+									
+									if (self.bg.option_mgr.events)
+										self.bg.option_mgr.events.emit("db_newdata");
+								});
+							
 							break;;
 						case "query":
-							self.bg.app_events.emit("db_query", obj.content.map(
-								record => {
+							if (self.bg.option_mgr.events) {
+								
+								self.bg.option_mgr.events.emit("db_query", obj.content.map(
+									record => {
 
-									return record.type == "Domain" ?
-														  new Domain(record.data) :
-														  new Group(record.data);
-								})
-							);
+										/* try - catch */
+										return record.type == "Domain" ?
+															  new Domain(record.data) :
+															  new Group(record.data);
+									})
+								);
+							}
+							
 							break;
 							
 						default:

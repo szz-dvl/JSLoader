@@ -391,7 +391,7 @@ function TabsMgr (bg) {
 				
 				if (typeof(url) == "string") {
 					
-					if (url.startsWith("*."))
+					if (url.startsWith("*.") || !url.includes("://")) /* !!! */
 						url_name = url;
 					else
 						url_name = new URL(url).name();
@@ -424,14 +424,13 @@ function TabsMgr (bg) {
 	};
 
 	this.openOrCreateTab = function (url) {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 						
 				self.getTabsForURL(url)
 					.then(
 						tabs => {
-							
 							let tab = tabs[0];
 							
 							if (tab) {
@@ -441,6 +440,7 @@ function TabsMgr (bg) {
 
 							} else {
 
+								/* !!! */
 								browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
 									.then(wdws => {
 										browser.tabs.create({active: true, url: url, windowId: wdws[0].id})

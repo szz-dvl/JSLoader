@@ -318,7 +318,7 @@ function DomainMgr (bg) {
 			});
 	};		
 	
-	this.importDomains = function (arr) {
+	this.importData = function (arr) {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -399,7 +399,7 @@ function DomainMgr (bg) {
 
 		async.each(self.domains,
 				   (domain_name, next) => {
-
+					   
 					   self.feeding(
 						   domain => {
 								   
@@ -409,6 +409,48 @@ function DomainMgr (bg) {
 					   
 				   });
 	};
+
+	this.pushToDB = function (names) {
+
+		let domains = [];
+		
+		async.each(names,
+			(domain_name, next) => {
+				
+				self.storage.getDomain(
+					domain => {
+
+						if (!domain)
+							next(new Error("Bad domain: " + domain_name));
+						else {
+
+							domains.push(domain);
+							next();
+						}
+						
+					}, domain_name);	
+				
+			}, err => {
+
+				if (err)
+					console.error(err);
+				else
+					self.bg.database_mgr.pushDomains(domains);
+			});
+	};
+
+	this.removeItem = function (domain_name) {
+		
+		return new Promise(
+			resolve => {
+				self.storage.getDomain(
+					domain => {
+						
+						resolve(domain.remove());
+						
+					}, domain_name);
+			})
+	}
 
 	this.exportScripts = function (inline) {
 

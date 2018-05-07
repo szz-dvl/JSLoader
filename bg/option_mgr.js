@@ -8,7 +8,7 @@ function Options (opt) {
 		showGutter: false,
 		printMarginColumn: 80,
 		fontSize: 10,
-		theme: "monokai",
+		theme: "github",
 		font: "monospace"
 	};
 }
@@ -19,6 +19,7 @@ function OptionMgr (bg) {
 	
 	this.bg = bg;
 	this.storage = global_storage;
+	this.events = null;
 	
 	this.storage.getOptions(
 		
@@ -26,7 +27,7 @@ function OptionMgr (bg) {
 			
 			Options.call(self, {});
 			
-			self.bg.events.emit('options-ready');
+			self.bg.app_events.emit('options-ready');
 		}
 	);
 	
@@ -48,7 +49,6 @@ function OptionMgr (bg) {
 						() => {
 							
 							self.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
-							
 							resolve(opts);
 							
 						}
@@ -58,15 +58,11 @@ function OptionMgr (bg) {
 	};
 
 	this.openPage = function() {
-		
+
+		console.log("Openning page.");
+		self.events = new EventEmitter();
 		browser.runtime.openOptionsPage();
 		
-	};
-
-	this.onPageClose = function () {
-
-		if (!self.bg.app_events)
-			self.bg.app_events = new EventEmitter();
 	};
 
 	this.getDataInfo = function () {
@@ -83,9 +79,18 @@ function OptionMgr (bg) {
 						self.storage.getDomain(
 							domain => {
 
-								if (domain.haveData())
-									domains.push({ name: domain_name, scripts: domain.getScriptCount(), sites: domain.sites.length });
+								if (domain) {
 
+									if (domain.haveData())
+										domains.push({ name: domain_name, scripts: domain.getScriptCount(), sites: domain.sites.length });
+
+									
+								} else {
+									
+									console.warn("Missing indexed domain: " + domain_name);
+									
+								}
+								
 								next();
 								
 						}, domain_name);
@@ -101,8 +106,12 @@ function OptionMgr (bg) {
 									
 									self.storage.getGroup(
 										group => {
-											
-											groups.push({ name: group_name, scripts: group.getScriptCount(), sites: group.sites.length });
+
+											if (group)
+												groups.push({ name: group_name, scripts: group.getScriptCount(), sites: group.sites.length });
+											else
+												console.warn("Missing indexed domain: " + group_name);
+												
 											next();
 											
 										}, group_name);
@@ -213,7 +222,7 @@ function OptionMgr (bg) {
 				
 				let idx = 0;
 				
-				async.eachSeries([self.bg.domain_mgr.importDomains, self.bg.group_mgr.importGroups],
+				async.eachSeries([self.bg.domain_mgr.importData, self.bg.group_mgr.importData],
 					(promise, next) => {
 						
 						promise(idx ? imported.groups : imported.scripts)
@@ -223,8 +232,11 @@ function OptionMgr (bg) {
 						
 						if (err)
 							reject(err);
-						else
+						else {
+
+							resolve();
 							self.bg.rules_mgr.importRules(imported.rules);
+						}
 					});
 			});
 	}

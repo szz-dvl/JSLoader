@@ -638,7 +638,7 @@ function Domain (opt) {
 							if (self.cache && self.cache.amICached(self.name))
 								self.cache.removeCached(self.name);
 										
-							resolve();
+							resolve(self);
 										
 						}, reject);
 			}
@@ -855,7 +855,7 @@ function Group (opt) {
 							if (self.cache && self.cache.amICached(self.name))
 								self.cache.removeCached(self.name);
 							
-							resolve();
+							resolve(self);
 							
 						}, reject);
 			}

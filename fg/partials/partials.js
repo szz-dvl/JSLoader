@@ -130,6 +130,22 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 			}
 		})
 
+	.directive('ngOnChange', function() {
+		
+		return {
+			
+			restrict: "A",
+			scope: {
+				ngOnChange: '&'
+			},
+			
+			link: function (scope, element) {
+				
+				element.on('change', scope.ngOnChange);
+			}
+		};
+	})
+	
 	.directive('scriptName',
 			   () => {
 				   

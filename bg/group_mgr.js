@@ -107,8 +107,50 @@ function GroupMgr (bg) {
 			
 		}
 	};
+
+	this.removeItem = function (group_name) {
+
+		return new Promise(
+			resolve => {
+				self.storage.getGroup(
+					group => {
+						
+						resolve(group.remove());
+						
+					}, group_name);
+			});
+	}
+
+	this.pushToDB = function (names) {
+
+		let groups = [];
+		
+		async.each(names,
+			(group_name, next) => {
+				
+				self.storage.getGroup(
+					group => {
+						
+						if (!group)
+							next(new Error("Bad group: " + group_name));
+						else {
+							
+							groups.push(group);
+							next();
+						}
+						
+					}, group_name);	
+				
+			}, err => {
+
+				if (err)
+					console.error(err);
+				else
+					self.bg.database_mgr.pushGroups(groups);
+			});
+	};
 	
-	this.importGroups = function (arr) {
+	this.importData = function (arr) {
 
 		return new Promise(
 			(resolve, reject) => {

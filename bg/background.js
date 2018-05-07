@@ -1,8 +1,8 @@
 function BG_mgr () {
-
+	
 	let self = this;
 
-	this.events = new EventEmitter();
+	this.app_events = new EventEmitter();
 	
 	this.option_mgr = new OptionMgr(self);
 	this.domain_mgr = new DomainMgr(self);
@@ -13,8 +13,6 @@ function BG_mgr () {
 	this.tabs_mgr = new TabsMgr(self);
 	this.rules_mgr = new RulesMgr(self);
 	this.database_mgr = new DBMgr(self);
-
-	this.app_events = new EventEmitter();
 	
 	this.getPASite = function () {
 		
@@ -103,7 +101,7 @@ function BG_mgr () {
 				
 			case "open-option-page-devel":
 			case "open-option-page":
-				browser.runtime.openOptionsPage();
+				self.option_mgr.openPage();
 				break;
 				
 			default:

@@ -1,4 +1,4 @@
-function OP (bg, data, content) {
+function OP (bg) {
 
 	let self = this;
 	
@@ -19,7 +19,7 @@ function OP (bg, data, content) {
 			string: self.bg.option_mgr.data_origin
 		}
 
-		console.log($scope.data_origin);
+		
 	});
 	
 	this.app.config(
@@ -27,6 +27,11 @@ function OP (bg, data, content) {
 		$stateProvider => {
 			
 			$stateProvider.state('opt-site', {
+
+				resolve: {
+					dataStorage: () => { return self.bg.option_mgr.getDataInfo(); },
+					storageContent: () => { return browser.storage.local.get(); }
+				},
 				
 				views: {
 					
@@ -94,7 +99,7 @@ function OP (bg, data, content) {
 										
 									});
 								
-								self.bg.app_events.emit("editor-preview", aux);
+								self.bg.option_mgr.events.emit("editor-preview", aux);
 								
 							};
 							
@@ -163,20 +168,93 @@ function OP (bg, data, content) {
 					'app-data': {
 						
 						templateUrl: 'app-data.html',
-						controller: function ($scope, $compile) {
-							
+						controller: function ($scope, $compile, $rootScope, $state, dataStorage) {
+
 							$scope.appdata_active = true;
 							
-							$scope.domains = data.domains;
-							$scope.groups = data.groups;
+							$scope.domains = dataStorage.domains;
+							$scope.groups = dataStorage.groups;
+
+							self.updateData = $scope.__updateData = function () {
+								
+								self.bg.option_mgr.getDataInfo()
+									.then(data => {
+										
+										$scope.domains = data.domains;
+										$scope.groups = data.groups;
+										
+										$scope.$digest();
+									});
+							}
 							
+							$scope.goToDomain = function (name) {
+								
+								self.bg.tabs_mgr.openOrCreateTab('https://' + name);
+								
+							}
+							
+							$scope.removeItem = function (name, type) {
+								
+								self.bg[type + "_mgr"].removeItem(name)
+									.then($scope.__updateData);
+							}
+
+							$scope.pushItem = function (name, type) {
+								
+								if (name) 
+									self.bg[type + "_mgr"].pushToDB([name]);
+								else {
+									
+									if ($scope.groups.length)
+										self.bg.group_mgr.pushToDB($scope.groups.map(group => { return group.name }));
+									
+									if ($scope.domains.length)
+										self.bg.domain_mgr.pushToDB($scope.domains.map(domain => { return domain.name }));
+								}
+							}
+
+							/* Any way to get the input element as a parameter here? */
+							$scope.importData = function () {
+								
+								let reader = new FileReader();
+								
+								reader.onload = function () {
+									
+									self.bg.option_mgr.importApp(JSON.parse(reader.result))
+										.then($scope.__updateData);
+									
+								}
+								
+								reader.readAsText($("#import_data")[0].files[0]);
+							}
+
+							$scope.exportData = function () {
+								
+								self.bg.option_mgr.exportApp();
+							}
+
+							$scope.clearStoredData = function () {
+								
+								browser.storage.local.clear()
+									.then(self.updateData);
+							}
+							
+							$scope.editUserDefs = function () {
+								
+								console.log("Editing user defs");
+							}
+
+							$scope.editGlobals = function () {
+								
+								console.log("Editing globals");
+							}
 						}
 					},
 					
 					'app-db': {
 						
 						templateUrl: 'app-db.html',
-						controller: function ($scope, $compile, $timeout) {
+						controller: function ($scope, $compile, $timeout, $rootScope) {
 							
 							$scope.appdb_active = false;
 							$scope.in_progress = false;
@@ -204,23 +282,16 @@ function OP (bg, data, content) {
 								
 								if (record) {
 
-									if (record.type == "Group") {
-										
-										data.push(record.name);
-										$scope.page.bg.database_mgr.getGroups(data);
-										
-									} else {
-										
-										data.push(record.name);
-										$scope.page.bg.database_mgr.getDomains(data);
-									}
+									if (record.type == "Group") 
+										$scope.page.bg.database_mgr.getGroups([record.name]);
+									else 
+										$scope.page.bg.database_mgr.getDomains([record.name]);
 
 								} else { 								
 							
-									$scope.page.bg.database_mgr.getDomains([]);
-									$scope.page.bg.database_mgr.getGroups([]);
+									$scope.page.bg.database_mgr.getDomains($scope.query_results.filter(record => { return record.type == "Domain" }).map(domain => { return domain.name }));
+									$scope.page.bg.database_mgr.getGroups($scope.query_results.filter(record => { return record.type == "Group" }).map(group => { return group.name }));	
 								}
-								
 							}
 
 							$scope.validateConnection = function (el) {
@@ -251,7 +322,7 @@ function OP (bg, data, content) {
 								
 							}
 							
-							$scope.page.bg.app_events
+							self.bg.option_mgr.events
 								.on('db_change',
 									string => {
 									
@@ -268,7 +339,7 @@ function OP (bg, data, content) {
 
 										$scope.query_results.length = 0;
 										
-										$scope.$digest();
+										$rootScope.$digest();
 									}
 								)
 								.on('db_query',
@@ -283,20 +354,27 @@ function OP (bg, data, content) {
 												}
 											)
 										);
-											
+										
 										$scope.$digest();
 									}
-								);
+								)
+								.on('db_newdata',
+									() => {
+										
+										$timeout(self.updateData, 350);
+										
+									}
+								)
 						}
 					},
 
 					'debug': {
-
+						
 						template: '<div ng-repeat="key in keys" style="margin-bottom: 60px; word-wrap:break-word;"><h4> {{ key }} </h4> {{ content[key] }} </div>',
 						
-						controller: function ($scope) {
+						controller: function ($scope, storageContent) {
 							
-							$scope.content = content;		
+							$scope.content = storageContent;		
 							$scope.keys = Object.keys($scope.content);
 						}
 					}					
@@ -306,6 +384,10 @@ function OP (bg, data, content) {
 	
 	this.app.run($state => { $state.go('opt-site') });
 
+	/* this.app.factory('dataStorage', function($q) {
+	   return $q.resolve(self.bg.option_mgr.getDataInfo());
+	   }); */
+	
 	angular.element(document).ready(
 		() => {
 			
@@ -318,24 +400,16 @@ function OP (bg, data, content) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			page.option_mgr.getDataInfo()
-				.then(
-					data => {
-						
-						window.onbeforeunload = function () {
-							
-							/* Event emitter for opt page only! */
-							page.app_events = null;
-							page.option_mgr.onPageClose();
-						}
-						
-						browser.storage.local.get()
-							.then(
-								content => {
-									OP.call(this, page, data, content);
-								}
-							)
-					}
-				)
+
+			if (!page.option_mgr.events)
+				page.option_mgr.events = new EventEmitter();
+			
+			window.onbeforeunload = function () {
+				
+				page.option_mgr.events = null;
+				
+			}
+			
+			OP.call(this, page);				
 		}
 	);

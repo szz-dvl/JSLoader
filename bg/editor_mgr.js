@@ -156,43 +156,52 @@ function EditorMgr (bg) {
 				if (alive)
 					resolve(alive);
 				else {
-					
-					if (!script.parent.isGroup()) {
-						
-						let endpoint = script.getUrl() || script.getParentName();
-						
-						self.bg.tabs_mgr.getTabsForURL(endpoint)
-							.then(
-								tabs => {
-									
-									let tab = tabs[0];
-									
-									if (tab) {
-										
-										browser.tabs.update(tab.id, {active: true})
-											.then(
-												tab => {
 
-													new EditorWdw({parent: self, script: script, tab: tab, mode: false, line: line, col: col })
-														.then(resolve, reject);
-													
-												}
-											);
-									
-									} else {
+					if (script.parent) {
+						
+						if (!script.parent.isGroup()) {
+						
+							let endpoint = script.getUrl() || script.getParentName();
+							
+							self.bg.tabs_mgr.getTabsForURL(endpoint)
+								.then(
+									tabs => {
 										
-										new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
-											.then(resolve, reject);
-									}
-									
-								}, reject
-							);
+										let tab = tabs[0];
+										
+										if (tab) {
+											
+											browser.tabs.update(tab.id, {active: true})
+												.then(
+													tab => {
+														
+														new EditorWdw({parent: self, script: script, tab: tab, mode: false, line: line, col: col })
+															.then(resolve, reject);
+														
+													}
+												);
+											
+										} else {
+											
+											new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
+												.then(resolve, reject);
+										}
+										
+									}, reject
+								);
+							
+						} else {
+						
+							new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
+								.then(resolve, reject);
+						
+						}
 						
 					} else {
-						
+
+						/* Globals or User definitions */
 						new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
 							.then(resolve, reject);
-						
 					}
 				}
 			}

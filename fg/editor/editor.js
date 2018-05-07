@@ -198,9 +198,11 @@ function EditorFG (id, bg) {
 			
 			if (!error) {
 				
-				let promise = self.editor.script.parent.isGroup()
-					? self.editor.script.updateGroup(self.scope.url)
-					: self.editor.script.updateParent(self.scope.url);
+				let promise = self.editor.script.parent ?
+							  (self.editor.script.parent.isGroup()
+									  ? self.editor.script.updateGroup(self.scope.url)
+									  : self.editor.script.updateParent(self.scope.url)):
+							  Promise.resolve(self.editor.script);
 				
 				promise.then (
 					script => {
@@ -288,9 +290,11 @@ function EditorFG (id, bg) {
 		$scope.label = "JSLoader";
 		
 		/* ¿¿ To wdw title ?? */
-		$scope.user_action = !$scope.script.parent.isGroup() ?
-							 (self.editor.mode ? "Adding script for: " : "Editing script for: ") :
-							 (self.editor.mode ? "Adding script for group: " : "Editing script for group: ");  
+		$scope.user_action = $scope.script.parent ?
+							 (!$scope.script.parent.isGroup() ?
+							  (self.editor.mode ? "Adding script for: " : "Editing script for: ") :
+							  (self.editor.mode ? "Adding script for group: " : "Editing script for group: ")):
+							 null;
 		
 		$scope.buttons = {
 			
@@ -381,7 +385,7 @@ function EditorFG (id, bg) {
 		$timeout(function () {
 			
 			$scope.editor.ace = ace.edit("code_area");
-			$scope.editor.ace.session.setMode("ace/mode/javascript");
+			$scope.editor.ace.session.setMode("ace/mode/" + $scope.editor.script.type);
 			
 			$scope.editor.ace.getSession()
 				.on('change',

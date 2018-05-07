@@ -68,6 +68,7 @@ function Script (opt) {
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); 
 	this.disabled = opt.disabled || false;
+	this.type = opt.type || "javascript";
 	this.elems = [];
 	
 	this.getUrl = function () {
@@ -267,11 +268,25 @@ function Script (opt) {
 	
 	this.persist = function () {
 
-		if (!self.parent.haveScript(self.id))
-			self.parent.upsertScript(self);
-		
-		return self.parent.persist();
-		
+		if (self.parent) {
+			
+			if (!self.parent.haveScript(self.id))
+				self.parent.upsertScript(self);
+
+			return self.parent.persist();
+
+		} else {
+
+			switch (self.type) {
+				
+				case "javascript":
+					return global_storage.setUserDefs(self.code);
+				case "json":
+					return global_storage.setGlobals(self.code);
+				default:
+					return Promise.reject();
+			}
+		}
 	};
 
 	this.includedAt = function (url) {
@@ -282,7 +297,7 @@ function Script (opt) {
 	
 	this.getParentName = function () {
 
-		return self.parent.isGroup() ? self.parent.name : self.parent.parent.name;
+		return self.parent ? (self.parent.isGroup() ? self.parent.name : self.parent.parent.name) : self.name;
 		
 	};
 	

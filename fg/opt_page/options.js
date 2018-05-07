@@ -236,17 +236,18 @@ function OP (bg) {
 							$scope.clearStoredData = function () {
 								
 								browser.storage.local.clear()
-									.then(self.updateData);
+									.then($scope.__updateData);
 							}
 							
 							$scope.editUserDefs = function () {
-								
-								console.log("Editing user defs");
-							}
 
+								self.bg.option_mgr.editUserDefs();
+
+							}
+							
 							$scope.editGlobals = function () {
 								
-								console.log("Editing globals");
+								self.bg.option_mgr.editGlobals();								
 							}
 						}
 					},

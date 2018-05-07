@@ -59,12 +59,48 @@ function OptionMgr (bg) {
 
 	this.openPage = function() {
 
-		console.log("Openning page.");
 		self.events = new EventEmitter();
 		browser.runtime.openOptionsPage();
 		
 	};
 
+	this.editUserDefs = function () {
+
+		self.storage.getUserDefs(
+			defs => {
+				
+				self.bg.editor_mgr.openEditorInstanceForScript(
+					new Script (
+						{
+							name: "UserDefs",
+							id:"UserDefs",
+							parent: null,
+							code: defs
+						}
+					)
+				);
+			});
+	}
+
+	this.editGlobals = function () {
+
+		self.storage.getGlobals(
+			globals => {
+				
+				self.bg.editor_mgr.openEditorInstanceForScript(
+					new Script (
+						{
+							name: "Globals",
+							id:"Globals",
+							parent: null,
+							code: globals,
+							type: "json"
+						}
+					)
+				);
+			});
+	}
+	
 	this.getDataInfo = function () {
 
 		return new Promise(

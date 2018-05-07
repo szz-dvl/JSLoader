@@ -277,7 +277,7 @@ function Storage () {
 
 	/* User definitions: */
 	this.getUserDefs = function (cb) {
-
+		
 		self.__get(defs => { cb(defs || "") }, 'userdefs');
 		
 	}

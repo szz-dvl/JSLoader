@@ -10,16 +10,13 @@ function AceInline (bg) {
 
 		self.bg.option_mgr.events.on("editor-preview",
 			opts => {
-				
+
 				$scope.setOpts(opts);
 				
 			}
 		);
 		
 		$scope.setOpts = function (opts) {
-			
-			console.log("Ace inline: ");
-			console.log(opts);
 			
 			$scope.ace.setPrintMarginColumn(opts.printMarginColumn);
 			$scope.ace.renderer.setShowGutter(opts.showGutter);

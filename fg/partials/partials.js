@@ -13,6 +13,8 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 			}
 		})
 
+	
+
 	.directive('dropDown',
 		() => {
 			
@@ -96,6 +98,30 @@ angular.module('jslPartials', ['hljsSearch', 'jsonFormatter', 'angucomplete-alt'
 				}
 			}
 		})
+
+	.directive('infoProtected', function() {
+		
+		return {
+			
+			restrict: "A",
+			scope: false,
+			
+			link: function (scope, element) {
+				
+				element.on('blur', () => {
+
+					element.attr('type', 'password');
+
+				});
+
+				element.on('focus', () => {
+
+					element.attr('type', 'text');
+
+				});
+			}
+		};
+	})
 	
 	.directive('scriptStatus',
 		() => {

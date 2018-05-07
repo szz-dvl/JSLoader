@@ -3,7 +3,7 @@
   		* Strong PA, Compressed opt page. [ Allow user to remove group scripts from any of its included sites PA?? ] ====> Opt page refactor!
   		* Bind rules to domains, show them in PA ¿¿??
 		* Completely remove logs feature !!.
-  		* Protect data origin string, (input type pwd to text)
+  		* Proxys!!
 		
 - Big fails:
   - Something is registering rules!

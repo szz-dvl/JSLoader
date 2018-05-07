@@ -19,7 +19,7 @@
 
 .ddbutton-hidden {
 	
-	-moz-transition: all 1s ease;
+	-moz-transition: all 0.5s ease;
 	vertical-align: text-bottom;
 }
 
@@ -31,4 +31,12 @@
 
 .pressed {
 	background-color: #ebebeb;
+}
+
+.text-section-header-mod {
+	
+	align-self: center;
+	font-size: 1.2em;
+	font-weight: lighter;
+	padding: 15px;
 }

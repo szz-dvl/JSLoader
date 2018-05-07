@@ -1,6 +1,5 @@
 function Options (opt) {
 	
-	this.proxys = opt.proxys || {"example": {"host": "hostname", "port": 9050, "type": "socks"}};
 	this.data_origin = opt.data_origin || "mongodb://localhost:27017/jsl";
 	
 	this.editor = opt.editor || {
@@ -30,42 +29,49 @@ function OptionMgr (bg) {
 			self.bg.app_events.emit('options-ready');
 		}
 	);
-	
-	this.persist = function (opts) {
+
+	this.__schedulePersistAt = function (to) {
 		
-		return new Promise (
-			(resolve, reject) => {
-				
-				/* Object.assign: Workaround to avoid strange "Can't acces dead object" in foreground pages. */
-				
-				self.editor.theme = Object.assign({}, opts.editor.theme);
-				self.editor = Object.assign({}, opts.editor);
-				
-				//self.jsl = Object.assign({}, opts.jsl);
+		if (self.persistID)
+			clearTimeout(self.persistID);
+		
+		self.persistID = setTimeout(
+			() => {
 				
 				self.storage
-					.setOptions({editor: Object.assign({}, opts.editor), jsl: self.jsl})
+					.setOptions({ editor: self.editor, data_origin: self.data_origin })
 					.then(
-						() => {
-							
+						() => {			
+							/* !!! */
 							self.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
-							resolve(opts);
-							
 						}
 					);
-			}
-		);
+			}, to
+		);	
+	};
+	
+	this.persistEditorOpt = function (opt) {
+		
+		self.editor[opt.id] = opt.value;
+		self.__schedulePersistAt(350);
 	};
 
+	this.persistDBString = function (string) {
+		
+		self.data_origin = string;
+		self.__schedulePersistAt(350);
+		
+	};
+	
 	this.openPage = function() {
-
+		
 		self.events = new EventEmitter();
 		browser.runtime.openOptionsPage();
 		
 	};
 
 	this.editUserDefs = function () {
-
+		
 		self.storage.getUserDefs(
 			defs => {
 				
@@ -80,26 +86,7 @@ function OptionMgr (bg) {
 					)
 				);
 			});
-	}
-
-	this.editGlobals = function () {
-
-		self.storage.getGlobals(
-			globals => {
-				
-				self.bg.editor_mgr.openEditorInstanceForScript(
-					new Script (
-						{
-							name: "Globals",
-							id:"Globals",
-							parent: null,
-							code: globals,
-							type: "json"
-						}
-					)
-				);
-			});
-	}
+	};
 	
 	this.getDataInfo = function () {
 
@@ -111,7 +98,7 @@ function OptionMgr (bg) {
 				
 				async.each(self.bg.domain_mgr.domains,
 					(domain_name, next) => {
-
+						
 						self.storage.getDomain(
 							domain => {
 

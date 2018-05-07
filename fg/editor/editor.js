@@ -263,13 +263,14 @@ function EditorFG (id, bg) {
 	
 	this.resetAce = function () {
 		
-		self.editor.ace.setShowPrintMargin(self.editor.opts.showPrintMargin);
-		self.editor.ace.renderer.setShowGutter(self.editor.opts.showGutter);
-		self.editor.ace.setTheme("ace/theme/" + self.editor.opts.theme.name);
-		
+		self.editor.ace.setPrintMarginColumn(self.bg.option_mgr.editor.printMarginColumn);
+		self.editor.ace.renderer.setShowGutter(self.bg.option_mgr.editor.showGutter);
+		self.editor.ace.setTheme("ace/theme/" + self.bg.option_mgr.editor.theme);
+			
 		self.editor.ace.setOptions({
 			
-			fontSize: self.editor.opts.fontSize + "pt"
+			fontSize: self.bg.option_mgr.editor.fontSize + "pt",
+			fontFamily: self.bg.option_mgr.editor.font
 			
 		});
 	}
@@ -385,7 +386,7 @@ function EditorFG (id, bg) {
 		$timeout(function () {
 			
 			$scope.editor.ace = ace.edit("code_area");
-			$scope.editor.ace.session.setMode("ace/mode/" + $scope.editor.script.type);
+			$scope.editor.ace.session.setMode("ace/mode/javascript");
 			
 			$scope.editor.ace.getSession()
 				.on('change',

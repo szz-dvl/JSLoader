@@ -89,6 +89,8 @@ function OP (bg) {
 							];
 
 							$scope.onOptChange = function (opt) {
+
+								self.bg.option_mgr.persistEditorOpt(opt);
 								
 								let aux = {};
 								
@@ -111,60 +113,9 @@ function OP (bg) {
 								{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select", change: $scope.onOptChange},
 								{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select", change: $scope.onOptChange}
 							];
-							
-							$scope.persistEditor = function () {
-								
-								console.log("Persisting editor!");
-							}
 						}
 					},
 					
-					'proxy-settings': {
-						
-						templateUrl: 'proxy-settings.html',
-						controller: function ($scope, $compile) {
-							
-							$scope.proxy_active = true;
-							$scope.proxys = Object.keys(self.bg.option_mgr.proxys)
-								.map(
-									jsl_proxy => {
-										
-										return {
-											
-											name: jsl_proxy,
-											host: self.bg.option_mgr.proxys[jsl_proxy].host,
-											port: self.bg.option_mgr.proxys[jsl_proxy].port,
-											type: self.bg.option_mgr.proxys[jsl_proxy].type
-										}
-									}
-								);
-
-							$scope.proxyChange = function (proxy) {
-								
-								console.log("Proxy changing: ");
-								console.log(proxy);
-								
-							}
-							
-							$scope.addProxy = function () {
-
-								$scope.proxys.push({ name:"", host: "", port: "", type: "" });
-								
-							}
-
-							$scope.removeProxy = function (idx) {
-								
-								$scope.proxys.remove(idx);								
-							}
-							
-							$scope.persistProxys = function () {
-
-								console.log("Persisting proxys!");
-								
-							}
-						}
-					},
-
 					'app-data': {
 						
 						templateUrl: 'app-data.html',
@@ -243,11 +194,6 @@ function OP (bg) {
 
 								self.bg.option_mgr.editUserDefs();
 
-							}
-							
-							$scope.editGlobals = function () {
-								
-								self.bg.option_mgr.editGlobals();								
 							}
 						}
 					},
@@ -384,7 +330,7 @@ function OP (bg) {
 		});
 	
 	this.app.run($state => { $state.go('opt-site') });
-
+	
 	/* this.app.factory('dataStorage', function($q) {
 	   return $q.resolve(self.bg.option_mgr.getDataInfo());
 	   }); */

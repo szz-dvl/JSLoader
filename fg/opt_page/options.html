@@ -38,22 +38,24 @@
 		<div class="panel-section">
 
 			<div class="panel-section-header">
+				
 				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">JSL Settings</div>
+				<div ui-view="editor-settings"></div>
+
 			</div>
-			
-			<div ui-view="editor-settings"></div>
-			<div ui-view="proxy-settings"></div>
 			
 		</div>
 		
 		<div class="panel-section">
 			
 			<div class="panel-section-header">
+				
 				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">User Data</div>
+				
+				<div ui-view="app-data"></div>
+				<div ng-if="data_origin.available" ui-view="app-db"></div>
+
 			</div>
-			
-			<div ui-view="app-data"></div>
-			<div ng-if="data_origin.available" ui-view="app-db"></div>
 			
 		</div>
 		

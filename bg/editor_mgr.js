@@ -53,7 +53,6 @@ function Editor (opt) {
 	this.pos = {line: opt.line || 0, col: opt.col || 0};
 	this.id = this.parent.__getEID();
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
-	this.opts = self.parent.bg.option_mgr.editor;
 	
 	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.forceMainFramesForTab) : null;
 	

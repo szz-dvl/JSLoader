@@ -22,7 +22,8 @@
   
   <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle($event)" ng-cloak>
 
-	  <div id="dropdown-header">
+	  <!-- ng-if fails here ¿¿?? -->
+	  <div ng-show="editor.script.parent" id="dropdown-header">
 		  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
 	  </div>
 	  

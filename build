@@ -9,4 +9,4 @@ fi
 sudo cp native-app/db_connector.json /usr/lib/mozilla/native-messaging-hosts/db_connector.json
 sudo cp native-app/db_connector.py /usr/lib/mozilla/native-messaging-hosts/db_connector.py
 
-zip -r jsload.xpi *
+zip -r jsload-unsigned.xpi *

@@ -167,9 +167,6 @@ function OptionMgr (bg) {
 				self.bg[name + "_mgr"].exportData(true)
 					.then(
 						data => {
-
-							console.log("Pushing " + name);
-							console.log(data);
 							
 							text.push.apply(text, data);
 							text.push(",");

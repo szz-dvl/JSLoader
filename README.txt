@@ -4,6 +4,7 @@
   		* Bind rules to domains, show them in PA ¿¿??
 		* Completely remove logs feature !!.
   		* Proxys!!
+		* Modify fb connector replace_one ==> update_one.
 		
 - Big fails:
   - Something is registering rules!

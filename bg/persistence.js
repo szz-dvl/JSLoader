@@ -110,7 +110,7 @@ function Storage () {
 	};
 
 	this.getOrCreateDomain = function (cb, name) {
-		/* To promise!!! */
+		
 		if (name.startsWith("*."))
 			return self.__getOrCreateSubDomain(cb, name.slice(2));
 		else {

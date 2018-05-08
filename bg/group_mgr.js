@@ -2,7 +2,7 @@ function GroupMgr (bg) {
 
 	let self = this;
 
-	Cache.call(this, {feeding: global_storage.getGroup, birth: global_storage.getOrCreateGroup, key: "groups"});
+	DataMgr.call(this, { key: "Group" });
 	
 	this.bg = bg;
 	
@@ -29,61 +29,96 @@ function GroupMgr (bg) {
 		) || false;
 
 	};
+
+	this.getGroupScripts = function (groups) {
+
+		return new Promise (
+			(resolve, reject) => {
+
+				let scripts = [];
+
+				async.eachSeries(groups,
+					(group_name, next) => {
+						
+						self.storage.getGroup(
+							group => {
+								
+								if (group) {
+									
+									scripts.push.apply(scripts,
+										group.scripts);
+									
+								} else 
+									console.warn("Missing group: " + group_name);
+								
+								next();
+								
+							}, group_name
+						);		
+					},
+					err => {
+						
+						if (err)
+							reject(err);
+						else
+							resolve(scripts);
+						
+					});
+			});
+	};
 	
 	this.__siteOps = function (group_name, url, func) {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.getOrBringCached(group_name)
-					.then(
-						group => {
+				self.storage.getGroup(
+					group => {
+						
+						if (! group)
+							console.error("Group " + group_name + " not existent, site: " + url + " not added.");
+						else {
 							
-							if (! group)
-								console.error("Group " + group_name + " not existent, site: " + url + " not added.");
-							else {
-
-								var pathname, hostname;
+							var pathname, hostname;
+							
+							try {
 								
-								try {
-
-									let temp = new URL("http://" + url);
-									
-									pathname = temp.pathname;
-									hostname = temp.hostname;
-									
-								} catch(e) {
-
-									hostname = url;
-									pathname = null;
-								}
-
-								/* !! */
-								self.bg.domain_mgr.getOrCreateItem(hostname, false)
-									.then(
-										domain => {
-											
-											let site = func == "append" ? domain.getOrCreateSite(pathname) : domain.haveSite(pathname);
-											let pr = [];
-											
-											if (site) {
-												
-												group[func + "Site"](site);								
-												
-												if (!site.isEmpty()) 
-													pr.push(site.persist());
-												
-												if (!group.isEmpty())
-													pr.push(group.persist());
- 											}
-											
-											Promise.all(pr).then(resolve); /* Feedback when created !!! */
-											
-										}
-									);
+								let temp = new URL("http://" + url);
+								
+								pathname = temp.pathname;
+								hostname = temp.hostname;
+								
+							} catch(e) {
+								
+								hostname = url;
+								pathname = null;
 							}
 							
-						});
+
+							self.storage.getOrCreateDomain(
+								domain => {
+									
+									let site = func == "append" ? domain.getOrCreateSite(pathname) : domain.haveSite(pathname);
+									let pr = [];
+									
+									if (site) {
+										
+										group[func + "Site"](site);								
+										
+										if (!site.isEmpty()) 
+											pr.push(site.persist());
+										
+										if (!group.isEmpty())
+											pr.push(group.persist());
+ 									}
+									
+									Promise.all(pr).then(resolve); /* Feedback when created !!! */
+									
+								}, hostname
+							);
+						}
+						
+					}, group_name);
 			});
 	};
 
@@ -99,155 +134,145 @@ function GroupMgr (bg) {
 		
 	}
 	
-	this.clear = function () {
+	/* this.clear = function () {
 
-		for (let group of this.groups) {
+	   for (let group of this.groups) {
+	   
+	   self.storage.removeGroup(group);
+	   
+	   }
+	   }; */
+
+	this.updateParentFor = function (script, name) {
+		
+		if (script.parent.name != name) {
+	
+			return new Promise (
+				(resolve, reject) => {
+					
+					script.remove()
+						.then(
+							() => {
+
+								self.storage.getOrCreateGroup(
+									group => {
+									
+										resolve(group.upsertScript(script));
+									
+									}, name);
+								
+							}, reject
+						);
+				}
+			);
 			
-			self.storage.removeGroup(group);
+		} else {
 			
+			return Promise.resolve(script);
 		}
-	};
-
-	this.removeItem = function (group_name) {
-
-		return new Promise(
-			resolve => {
-				self.storage.getGroup(
-					group => {
-						
-						resolve(group.remove());
-						
-					}, group_name);
-			});
 	}
 
-	this.pushToDB = function (names) {
-
-		let groups = [];
-		
-		async.each(names,
-			(group_name, next) => {
-				
-				self.storage.getGroup(
-					group => {
-						
-						if (!group)
-							next(new Error("Bad group: " + group_name));
-						else {
-							
-							groups.push(group);
-							next();
-						}
-						
-					}, group_name);	
-				
-			}, err => {
-
-				if (err)
-					console.error(err);
-				else
-					self.bg.database_mgr.pushGroups(groups);
-			});
-	};
-	
-	this.importData = function (arr) {
+	this.importData = function (items) {
 
 		return new Promise(
 			(resolve, reject) => {
-				
-				let promises = [];
-				
-				for (group_info of arr) {
-					
-					promises.push(self.updateCache(group_info));
-					
-				}
-				
-				Promise.all(promises)
-					.then(
-						merged_groups => {
 
-							async.eachSeries(merged_groups,
-								(group, next) => {
+				async.eachSeries(items,
+					(item, next) => {
+						
+						self.storage.getOrCreateGroup(
+							group => {
+
+								group.mergeInfo(item);
+
+								async.eachSeries(group.sites,
+									(site_name, next_site) => {
+										
+										let url = new URL("http://" + site_name);
+										
+										self.storage.getOrCreateDomain(
+											domain => {
+												
+												let site = domain.haveSite(url.pathname);
+												
+												if (site) {
+													
+													site.appendGroup(group);
+													site.persist().then(persisted => { next_site() }, next_site);
+													
+												} else {
+													
+													group.sites.remove(group.sites.indexOf(site_name));
+													next_site();
+												}
+												
+											}, url.hostname);
+
+									}, err => {
+										
+										if (err)
+											reject(err);
+										else
+											group.persist().then(persisted => { next() }, next);
+									})
 									
-									async.eachSeries(group.sites,
-										(site_name, next_site) => {
-											
-											let url = new URL("http://" + site_name);
-											
-											global_storage.getOrCreateDomain(
-												domain => {
-													
-													let site = domain.haveSite(url.pathname);
-													
-													if (site) {
-														
-														site.appendGroup(group);
-														site.persist().then(persisted => { next_site() }, next_site);
-														
-													} else {
-														
-														group.sites.remove(group.sites.indexOf(site_name));
-														next_site();
-													}
-													
-												}, url.hostname);
+							}, item.name);
 
-										}, err => {
+					}, err => {
 
-											if (err)
-												reject(err);
-											else
-												group.persist().then(persisted => { next() }, next);
-										})
-										
-								}, err => {
-
-									if (err)
-
-										reject(err);
-
-									else {
-										
-										self.bg.domain_mgr.reload();
-										resolve();
-
-									}
-								})			
-						})
-			})
-	};
+						if (err)
+							reject(err);
+						else
+							resolve();
+					});
+			});
+	}
 	
 	this.exportGroups = function (inline) {
 
 		return new Promise(
 			(resolve, reject) => {
 				
-				self.getAllItems().then(
-					groups => {
+				let text = ["["];
 				
-						var text = ["["];
-				
-						for (group of groups) {
-							
-							text.push(group.getJSON());
-							text.push(",");
-						}
-
-						if (groups.length)
-							text.pop(); // last comma
+				async.each(self.groups,
+					(group_name, next) => {
 						
-						text.push("]");
+						self.storage.getGroup(
+							group => {
+								
+								if (group) {
 
-						if (inline)
-							resolve(text);
-						else
-							resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) }));
-					}
-				);
+									text.push(group.getJSON());
+									text.push(",");
+									
+								}
+
+								next();
+								
+							}, group_name);
+						
+					}, err => {
+
+						if (err) 
+							reject (err); 
+						else {
+							
+							if (text.length > 1)
+								text.pop(); //last comma
+							
+							text.push("]");
+							
+							if (inline)
+								resolve(text);
+							else
+								resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) }));
+						}
+						
+					});
 			});
-	};
-	
+	}
+		
 	this.storeNewGroups = function (changes, area) {
 		
 		if (area != "local")

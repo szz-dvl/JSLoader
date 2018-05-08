@@ -182,10 +182,11 @@ function PA (bg, info) {
 							
 							$scope.setAction = function () {
 								
-								$scope.page.bg.group_mgr.getOrBringCached($scope.current)
+								$scope.page.bg.group_mgr.getItem($scope.current)
 									.then(
 										group => {
-											
+
+											/* ¿¿ isMySite vs ownerOf ??*/
 											if (group.isMySite($scope.url))
 												$scope.action = "Remove";
 											else
@@ -195,7 +196,7 @@ function PA (bg, info) {
 										}
 									)
 							};
-
+							
 							$scope.selectChange = function () {
 
 								/* Not working, to be observed. */

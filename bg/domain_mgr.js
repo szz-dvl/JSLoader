@@ -1,8 +1,8 @@
 function DomainMgr (bg) {
 
-	var self = this;
-	
-	Cache.call(this, {feeding: global_storage.getDomain, birth: global_storage.getOrCreateDomain, key: "domains"});
+	let self = this;
+
+	DataMgr.call(this, { key: "Domain" });
 	
 	this.bg = bg;
 	this.storage = global_storage;
@@ -55,8 +55,7 @@ function DomainMgr (bg) {
 						
 						this.storage.getDomain(
 							subdomain => {
-
-								/* Add those to cache? ====> to be tested!*/
+								
 								if (subdomain) 
 									subdomains.push(subdomain);
 								
@@ -75,48 +74,7 @@ function DomainMgr (bg) {
 					});
 			});
 	};
-
-	this.__getGroupScripts = function (groups) {
-
-		return new Promise (
-			(resolve, reject) => {
-
-				let scripts = [];
-
-				async.eachSeries(groups,
-					(group_name, next) => {
-						
-						this.storage.getGroup(
-							group => {
-								
-								if (group) {
-
-									group.cache = self.bg.group_mgr;
-									
-									scripts.push.apply(scripts,
-										group.scripts);
-									
-								} else {
-									console.warn("Missing group: " + group_name);
-								}
-								
-								next();
-								
-							}, group_name
-						);		
-					},
-					err => {
-						
-						if (err)
-							reject(err);
-						else
-							resolve(scripts);
-						
-					});
-			});
-		
-	};
-
+	
 	this.__getAggregatedScripts = function (groups, hostname) {
 
 		return new Promise (
@@ -138,7 +96,7 @@ function DomainMgr (bg) {
 								
 							}
 							
-							self.__getGroupScripts(groups)
+							self.bg.group_mgr.getGroupScripts(groups)
 								.then(
 									group_scripts => {
 										
@@ -161,65 +119,65 @@ function DomainMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.getOrBringCached(url.hostname)
-					.then(
-						domain => {
+				self.storage.getDomain(
+					domain => {
+						
+						let groups = [];
+						let scripts = [];
+						let sites = [];
+						let site = null;
+						
+						if (domain) {
 							
-							let groups = [];
-							let scripts = [];
-							let sites = [];
-							let site = null;
+							/* Domain & Site scripts */
+							scripts.push.apply(scripts,
+								domain.scripts);
 							
-							if (domain) {
-								
-								/* Domain & Site scripts */
-								scripts.push.apply(scripts,
-									domain.scripts);
-								
-								groups.push.apply(groups,
-									domain.groups);
-								
-								let path = "/";
-								for (let endpoint of url.pathname.split("/").slice(1)) {
+							groups.push.apply(groups,
+								domain.groups);
+							
+							let path = "/";
+							for (let endpoint of url.pathname.split("/").slice(1)) {
 
-									path += endpoint;
-									site = domain.haveSite(path);
+								path += endpoint;
+								site = domain.haveSite(path);
+								
+								if (site)
+									sites.push(site);
+
+								path += "/";	
+							}
+							
+							if (sites.length) {
+
+								for (site of sites) {
+
+									scripts.push.apply(scripts,
+										site.scripts);
 									
-									if (site)
-										sites.push(site);
-
-									path += "/";	
-								}
-										
-								if (sites.length) {
-
-									for (site of sites) {
-
-										scripts.push.apply(scripts,
-											site.scripts);
-									
-										groups.push.apply(groups,
-											site.groups);
-									}
+									groups.push.apply(groups,
+										site.groups);
 								}
 							}
+						}
 
-							/* Group & Subdomain scripts */
-							self.__getAggregatedScripts(groups.unique(), url.hostname)
-								.then(group_scripts => {
-									
-									scripts.push.apply(scripts,
-										group_scripts.filter(
-											script => {
-												return !script.disabledAt(url.name()); 
-											}
-										)
-									);
-									
-									resolve(scripts);
-									
-								}, reject);
-						});
+						/* Group & Subdomain scripts */
+						self.__getAggregatedScripts(groups.unique(), url.hostname)
+							.then(group_scripts => {
+								
+								scripts.push.apply(scripts,
+									group_scripts.filter(
+										script => {
+											return !script.disabledAt(url.name()); 
+										}
+									)
+								);
+								
+								resolve(scripts);
+								
+							}, reject);
+						
+					}, url.hostname);
 			});
 	};
 
@@ -227,356 +185,426 @@ function DomainMgr (bg) {
 
 		return new Promise (
 			(resolve, reject) => {
-				
-				self.getOrBringCached(url.hostname)
-					.then(
-						domain => {
 
-							let site = null;
-							let sites = [];
-							let groups = [];
-							let editInfo = {
+				self.storage.getDomain(
+					domain => {
+
+						let site = null;
+						let sites = [];
+						let groups = [];
+						let editInfo = {
+							
+							site: [], 
+							subdomains: [],
+							groups: []
+						};		
+						
+						if (domain) {
+							
+							if (domain.scripts.length)
+								editInfo.site.push({ name: "/", scripts: domain.scripts });
+							
+							groups.push.apply(groups,
+								domain.groups);
+
+							let path = "/";
+							for (let endpoint of url.pathname.split("/").slice(1)) {
 								
-								site: [], 
-								subdomains: [],
-								groups: []
-							};		
+								path += endpoint;
+								site = domain.haveSite(path);
 								
-							if (domain) {
+								if (site && site.url != "/")
+									sites.push(site);
+
+								path += "/";	
+							}
+						}
+						
+						if (sites.length) {
+
+							for (site of sites) {
 								
-								if (domain.scripts.length)
-									editInfo.site.push({ name: "/", scripts: domain.scripts });
+								if (site.scripts.length)
+									editInfo.site.push({ name: site.url, scripts: site.scripts });
 								
 								groups.push.apply(groups,
-									domain.groups);
-
-								let path = "/";
-								for (let endpoint of url.pathname.split("/").slice(1)) {
-									
-									path += endpoint;
-									site = domain.haveSite(path);
-									
-									if (site && site.url != "/")
-										sites.push(site);
-
-									path += "/";	
-								}
+									site.groups);
 							}
-							
-							if (sites.length) {
-
-								for (site of sites) {
+						}
+						
+						self.__getRepresentedBy(url.hostname)
+							.then(
+								subdomains => {
 									
-									if (site.scripts.length)
-										editInfo.site.push({ name: site.url, scripts: site.scripts });
-								
-									groups.push.apply(groups,
-										site.groups);
-								}
-							}
-							
-							self.__getRepresentedBy(url.hostname)
-								.then(
-									subdomains => {
+									for (let subdomain of subdomains) {
 										
-										for (let subdomain of subdomains) {
-											
-											if (subdomain.scripts.length)
-												editInfo.subdomains.push({ name: subdomain.name, scripts: subdomain.scripts });
-											
-											groups.push.apply(groups,
-												subdomain.groups);
-											
-										}
+										if (subdomain.scripts.length)
+											editInfo.subdomains.push({ name: subdomain.name, scripts: subdomain.scripts });
 										
-										groups = groups.unique();
+										groups.push.apply(groups,
+											subdomain.groups);
 										
-										self.__getGroupScripts(groups).then(
-											group_scripts => {
-												
-												for (let group of groups) {
+									}
+									
+									groups = groups.unique();
+									
+									self.bg.group_mgr.getGroupScripts(groups).then(
+										group_scripts => {
+											
+											for (let group of groups) {
 
-													let filtered = group_scripts
-														.filter(
-															script => {
-																return group == script.parent.name;
-															});
-													
-													if (filtered.length)
-														editInfo.groups.push({ name: group, scripts: filtered });
-												}
+												let filtered = group_scripts
+													.filter(
+														script => {
+															return group == script.parent.name;
+														});
 												
-												resolve(editInfo);
-												
-											}, reject
-										);
-										
-									}, reject
-								);
-						});
-				
+												if (filtered.length)
+													editInfo.groups.push({ name: group, scripts: filtered });
+											}
+											
+											resolve(editInfo);
+											
+										}, reject
+									);
+									
+								}, reject
+							);
+						
+					}, url.hostname);	
 			});
 	};		
-	
-	this.importData = function (arr) {
+
+	this.importData = function (items) {
 
 		return new Promise(
 			(resolve, reject) => {
-				
-				let promises = [];
-				
-				for (domain_info of arr) {
-					
-					promises.push(self.updateCache(domain_info));
-					
-				}
-				
-				Promise.all(promises)
-					.then(
-						merged_domains => {
-							
-							async.eachSeries(merged_domains,
-								(domain, next) => {
+
+				async.eachSeries(items,
+					(item, next) => {
+						
+						self.storage.getOrCreateDomain(
+							domain => {
+								
+								domain.mergeInfo(item);								
+
+								/* !!! */
+								for (let group_name of domain.groups) {
 									
-									for (let group_name of domain.groups) {
+									self.storage.getGroup(
+										group => {
+											
+											if (group) {
+												
+												group.appendSite(domain);
+												group.persist();
+												
+											} else {
+												
+												domain.groups.remove(domain.groups.indexOf(group_name));
+												
+											}
+											
+										}, group_name);
+								}
+								
+								for (let site of domain.sites) {
+									for (let group_name of site.groups) {
 										
-										global_storage.getGroup(
+										self.storage.getGroup(
 											group => {
 												
 												if (group) {
 													
-													group.appendSite(domain);
+													group.appendSite(site);
 													group.persist();
 													
 												} else {
-													
-													domain.groups.remove(domain.groups.indexOf(group_name));
+
+													site.groups.remove(site.groups.indexOf(group_name));
 												}
 												
 											}, group_name);
 									}
-									
-									
-									for (let site of domain.sites) {
-										for (let group_name of site.groups) {
-											
-											global_storage.getGroup(
-												group => {
-													
-													if (group) {
-														
-														group.appendSite(site);
-														group.persist();
-														
-													} else {
+								}
 
-														site.groups.remove(site.groups.indexOf(group_name));
-													}
-													
-												}, group_name);
-										}
-									}
-
-									domain.persist().then(persisted => { next() }, next);	
-								},
-								err => {
-									
-									if (err)
-										reject(err);
-									else {
-										
-										self.bg.group_mgr.reload();
-										resolve();
-									}
-									
-								});
-						});
-			});
-
-	};
-
-	this.clear = function () {
-
-		async.each(self.domains,
-				   (domain_name, next) => {
-					   
-					   self.feeding(
-						   domain => {
-								   
-							   domain.remove();
-								   
-						   }, domain_name);
-					   
-				   });
-	};
-
-	this.pushToDB = function (names) {
-
-		let domains = [];
-		
-		async.each(names,
-			(domain_name, next) => {
-				
-				self.storage.getDomain(
-					domain => {
-
-						if (!domain)
-							next(new Error("Bad domain: " + domain_name));
-						else {
-
-							domains.push(domain);
-							next();
-						}
+								domain.persist().then(persisted => { next() }, next);
+								
+							}, item.name);
 						
-					}, domain_name);	
-				
-			}, err => {
+					}, err => {
 
-				if (err)
-					console.error(err);
-				else
-					self.bg.database_mgr.pushDomains(domains);
+						if (err)
+							reject(err);
+						else
+							resolve();
+						
+					});
 			});
 	};
+	
+	this.__updateParentFor = function (script, url) {
 
-	this.removeItem = function (domain_name) {
-		
-		return new Promise(
-			resolve => {
-				self.storage.getDomain(
-					domain => {
-						
-						resolve(domain.remove());
-						
-					}, domain_name);
-			})
-	}
-
-	this.exportScripts = function (inline) {
-
-		return new Promise(
+		return new Promise (
 			(resolve, reject) => {
 				
-				self.getAllItems().then(
-					domains => {
-						
-						var text = ["["];
-						
-						for (domain of domains) {
+				script.remove()
+					.then(
+						() => {
 							
-							text.push(domain.getJSON());
-							text.push(",");
+							var pathname, hostname;
 							
-						}
-
-						if (domains.length)
-							text.pop(); //last comma
-						
-						text.push("]");
-						
-						if (inline)
-							resolve(text);
-						else
-							resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) }));
-					}
-				);
+							try {
+								
+								let temp = new URL("http://" + url);
+								
+								pathname = temp.pathname;
+								hostname = temp.hostname;
+								
+							} catch (e) {
+								
+								/* All subdomains shortcut. */
+								
+								hostname = url; 
+								pathname = null;
+								
+							}
+							
+							self.storage.getOrCreateDomain(
+								domain => {
+									
+									resolve(domain.getOrCreateSite(pathname).upsertScript(script));
+									
+								}, hostname);
+							
+						}, reject
+					);
 			});
-	}
+	};
+
+	/* Validated "url" strings must come here. */
+	this.updateParentFor = function (script, url) {
+		
+		try {
+			
+			let my_url = new URL ("http://" + url);
+			
+			if (script.parent && my_url.match(script.getUrl())) 
+				return Promise.resolve(script);
+			else
+				return self.__updateParentFor(script, url);
+			
+		} catch (e) {
+			
+			if (e instanceof TypeError) {
+				
+				if (script.parent && script.parent.isSubdomain())
+					return script.parent.name == url ? Promise.resolve(script) : self.__updateParentFor(script, url); 
+				else 
+					return self.__updateParentFor(script, url);
+			}
+		}
+	};
+	
+	
+	
+	/* this.clear = function () {
+
+	   async.each(self.domains,
+	   (domain_name, next) => {
+	   
+	   self.feeding(
+	   domain => {
+	   
+	   domain.remove();
+	   
+	   }, domain_name);
+	   
+	   });
+	   }; */
+
+	/* this.pushToDB = function (names) {
+
+	   let domains = [];
+	   
+	   async.each(names,
+	   (domain_name, next) => {
+	   
+	   self.storage.getDomain(
+	   domain => {
+
+	   if (!domain)
+	   next(new Error("Bad domain: " + domain_name));
+	   else {
+
+	   domains.push(domain);
+	   next();
+	   }
+	   
+	   }, domain_name);	
+	   
+	   }, err => {
+
+	   if (err)
+	   console.error(err);
+	   else
+	   self.bg.database_mgr.pushDomains(domains);
+	   });
+	   };
+
+	   this.removeItem = function (domain_name) {
+	   
+	   return new Promise(
+	   resolve => {
+	   self.storage.getDomain(
+	   domain => {
+	   
+	   resolve(domain.remove());
+	   
+	   }, domain_name);
+	   })
+	   } */
+
+	/* this.exportScripts = function (inline) {
+
+	   return new Promise(
+	   (resolve, reject) => {
+
+	   let text = ["["];
+	   
+	   async.each(self.domains,
+	   (domain_name, next) => {
+	   
+	   self.storage.getDomain(
+	   domain => {
+
+	   if (domain) {
+
+	   text.push(domain.getJSON());
+	   text.push(",");
+
+	   }
+	   
+	   next();
+	   
+	   }, domain_name);
+	   
+	   }, err => {
+
+	   if (err) 
+	   reject (err); 
+	   else {
+	   
+	   if (text.length > 1)
+	   text.pop(); //last comma
+	   
+	   text.push("]");
+	   
+	   if (inline)
+	   resolve(text);
+	   else
+	   resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "scripts.json", {type: "application/json"}) ) }));
+	   }
+	   
+	   });
+	   });
+	   } */
+	
 	
 	this.haveInfoForUrl = function (url) {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.getOrBringCached(url.hostname)
-					.then(
-						domain => {
+				self.storage.getDomain(
+					domain => {
+						
+						let groups = [];
+						
+						if (domain && domain.scripts.length)
 
-							let groups = [];
+							resolve(true);
+
+						else {
+
+							let sites = [];
+							let site = null;
+
+							if (domain) {
+								
+								let path = "/";
+								
+								for (let endpoint of url.pathname.split("/").slice(1)) {
+
+									path += endpoint;	
+									site = domain.haveSite(path);
+
+									/* !!! */
+									if (site && site.url != "/") {
+
+										if (site.haveData())
+											sites.push(site);
+										
+										groups.push.apply(groups,
+											site.groups);
+									}
+									
+									path += "/";	
+								}
+							}
 							
-							if (domain && domain.scripts.length)
+							if (sites.length) {
 
-								resolve(true);
+								for (let site of sites) {
 
-							else {
-
-								let sites = [];
-								let site = null;
+									if (url.pathname.slice(1).startsWith(site.url.slice(1))) 
+										resolve(true);	
+								}
+								
+							} else {
 
 								if (domain) {
 									
-									let path = "/";
-									
-									for (let endpoint of url.pathname.split("/").slice(1)) {
-
-										path += endpoint;	
-										site = domain.haveSite(path);
-
-										/* !!! */
-										if (site && site.url != "/") {
-
-											if (site.haveData())
-												sites.push(site);
+									groups.push.apply(groups,
+										domain.groups);	
+								}									
+								
+								self.__getRepresentedBy(url.hostname)
+									.then(
+										subdomains => {
 											
-											groups.push.apply(groups,
-												site.groups);
-										}
-										
-										path += "/";	
-									}
-								}
-									
-								if (sites.length) {
-
-									for (let site of sites) {
-
-										if (url.pathname.slice(1).startsWith(site.url.slice(1))) 
-											resolve(true);	
-									}
-									
-								} else {
-
-									if (domain) {
-										
-										groups.push.apply(groups,
-											domain.groups);	
-									}									
-									
-									self.__getRepresentedBy(url.hostname)
-										.then(
-											subdomains => {
+											let scripts = [];
+											
+											for (let subdomain of subdomains) {
 												
-												let scripts = [];
+												scripts.push.apply(scripts,
+													subdomain.scripts);
 												
-												for (let subdomain of subdomains) {
-																										
-													scripts.push.apply(scripts,
-														subdomain.scripts);
-													
-													groups.push.apply(groups,
-														subdomain.groups);
-													
-												}
+												groups.push.apply(groups,
+													subdomain.groups);
 												
-												if (scripts.length)
-													resolve (true);
-												else {
+											}
+											
+											if (scripts.length)
+												resolve (true);
+											else {
 
-													self.__getGroupScripts(groups.unique())
-														.then(
-															group_scripts => {
-																
-																resolve(group_scripts.length > 0);
-																
-															}, reject
-														);
-												}
-												
-											}, reject
-										);
-								}
+												self.bg.group_mgr.getGroupScripts(groups.unique())
+													.then(
+														group_scripts => {
+															
+															resolve(group_scripts.length > 0);
+															
+														}, reject
+													);
+											}
+											
+										}, reject
+									);
 							}
-						});
+						}
+						
+					}, url.hostname);
 				
 			});
 	};

@@ -170,9 +170,11 @@ function OP (bg) {
 								let reader = new FileReader();
 								
 								reader.onload = function () {
+
+									console.log(reader.result);
 									
 									self.bg.option_mgr.importApp(JSON.parse(reader.result))
-										.then($scope.__updateData);
+										.then($scope.__updateData, console.error);
 									
 								}
 								
@@ -278,8 +280,12 @@ function OP (bg) {
 										$scope.data_origin.writeable = $scope.page.bg.database_mgr.writeable;
 										$scope.data_origin.readable  = $scope.page.bg.database_mgr.readable;
 										
-										if ($scope.data_origin.connected)
+										if ($scope.data_origin.connected) {
+											
 											$scope.data_origin.string = string;
+											self.bg.option_mgr.persistDBString(string);
+
+										}
 									
 										$scope.data_origin.reconnecting = false;
 										$scope.in_progress = false;

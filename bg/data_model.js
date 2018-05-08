@@ -1,63 +1,63 @@
 /* ALMOST DEPRECATED */
-function Element (parent_id, shown, owner) {
+/* function Element (parent_id, shown, owner) {
 
-	var self = this;
+   var self = this;
 
-	this.parent_id = parent_id;
-	this.owner = owner;
-	this.view_state = shown;
-	
-	this.id = this.owner ? this.owner.uuid : null;
-	this.shown = this.id ? this.view_state.includes(this.id) : false;
-	this.state = this.shown ? "v" : ">";
-	// this.available = this.owner ? this.owner.disabled ? "Enable" : "Disable" : "None";
-	
-	this.show = function () {
+   this.parent_id = parent_id;
+   this.owner = owner;
+   this.view_state = shown;
+   
+   this.id = this.owner ? this.owner.uuid : null;
+   this.shown = this.id ? this.view_state.includes(this.id) : false;
+   this.state = this.shown ? "v" : ">";
+   
+   this.show = function () {
 
-		self.shown = true;
-		self.state = "v";
+   self.shown = true;
+   self.state = "v";
 
-		if (self.id) {
-			
-			if (!self.view_state.includes(self.id))
-				self.view_state.push(self.id);		
-		}
-	};
+   if (self.id) {
+   
+   if (!self.view_state.includes(self.id))
+   self.view_state.push(self.id);		
+   }
+   };
 
-	this.hide = function () {
+   this.hide = function () {
 
-		self.shown = false;
-		self.state = ">";
+   self.shown = false;
+   self.state = ">";
 
-		if (self.id) {
-			
-			if (self.view_state.includes(self.id))
-				self.view_state.remove(self.view_state.indexOf(self.id));
-		}
-	};
+   if (self.id) {
+   
+   if (self.view_state.includes(self.id))
+   self.view_state.remove(self.view_state.indexOf(self.id));
+   }
+   };
 
-	this.toggle = function () {
-		
-		if (self.shown)
-			self.hide();
-		else
-			self.show();
-	};
+   this.toggle = function () {
+   
+   if (self.shown)
+   self.hide();
+   else
+   self.show();
+   };
 
-	this.isShown = function () {
+   this.isShown = function () {
 
-		return self.shown;
-		
-	};
+   return self.shown;
+   
+   };
 
-	this.getEnabled = function () {
+   this.getEnabled = function () {
 
-		if (self.owner)
-			return self.owner.disabled ? "Enable" : "Disable";
-		else
-			return "None"; /* Must never be reached. */
-	}
-};
+   if (self.owner)
+   return self.owner.disabled ? "Enable" : "Disable";
+   else
+   return "None";
+   }
+   };
+ */
 
 function Script (opt) {
 	
@@ -87,20 +87,19 @@ function Script (opt) {
 
 		if (self.elems.length)
 			self.elems = [];
-
-		/* Must always be present! */
+		
 		return self.parent 
 			? self.parent.removeScript(self.uuid)
 			: Promise.resolve();
 	};
 	
-	this.findCache = function () {
+	/* this.findCache = function () {
 
-		if (self.parent && self.parent.isGroup())
-			return self.parent.cache;
-		else
-			return self.parent.parent.cache;
-	};
+	   if (self.parent && self.parent.isGroup())
+	   return self.parent.cache;
+	   else
+	   return self.parent.parent.cache;
+	   }; */
 
 	this.__schedulePersistAt = function (to) {
 
@@ -115,121 +114,118 @@ function Script (opt) {
 			}, to);
 	}
 	
-	this.__updateParent = function (url) {
+	/* this.__updateParent = function (url) {
 
-		return new Promise (
-			(resolve, reject) => {
-				
-				self.remove()
-					.then(
-						() => {
-							
-							let cache = self.findCache();
-							
-							if (cache) {
-								
-								var pathname, hostname;
-								
-								try {
-									
-									let temp = new URL("http://" + url);
-									
-									pathname = temp.pathname;
-									hostname = temp.hostname;
-									
-								} catch(e) {
-									
-									/* All subdomains shortcut. */
-									
-									hostname = url; 
-									pathname = null;
-									
-								}
-								
-								cache.getOrCreateItem(hostname, false)
-									.then(
-										domain => {
-											
-											resolve(domain.getOrCreateSite(pathname).upsertScript(self));
-											
-										}, reject);
-							} else 
-								console.error("Attempting to upudate parent on uncached domain.");
-							
-						}, reject
-					);
-			}
-		)
-	};
+	   return new Promise (
+	   (resolve, reject) => {
+	   
+	   self.remove()
+	   .then(
+	   () => {
+	   
+	   let cache = self.findCache();
+	   
+	   if (cache) {
+	   
+	   var pathname, hostname;
+	   
+	   try {
+	   
+	   let temp = new URL("http://" + url);
+	   
+	   pathname = temp.pathname;
+	   hostname = temp.hostname;
+	   
+	   } catch(e) {
+	   
+	   hostname = url; 
+	   pathname = null;
+	   
+	   }
+	   
+	   cache.getOrCreateItem(hostname, false)
+	   .then(
+	   domain => {
+	   
+	   resolve(domain.getOrCreateSite(pathname).upsertScript(self));
+	   
+	   }, reject);
+	   } else 
+	   console.error("Attempting to upudate parent on uncached domain.");
+	   
+	   }, reject
+	   );
+	   }
+	   )
+	   };
 
-	/* Validated "url" strings must come here. */
-	this.updateParent = function (url) {
+	   this.updateParent = function (url) {
 
-		try {
-			
-			let my_url = new URL ("http://" + url);
-			
-			if (self.parent && my_url.match(self.getUrl())) { 
-				return Promise.resolve(self);
-				
-			} else
-				return self.__updateParent(url);
-			
-		} catch (e) {
+	   try {
+	   
+	   let my_url = new URL ("http://" + url);
+	   
+	   if (self.parent && my_url.match(self.getUrl())) { 
+	   return Promise.resolve(self);
+	   
+	   } else
+	   return self.__updateParent(url);
+	   
+	   } catch (e) {
 
-			if (e instanceof TypeError) {
-				
-				if (self.parent && self.parent.isSubdomain())
-					return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
-				else 
-					return self.__updateParent(url);
-			}
-		}
-	};
-	
-	this.updateGroup = function (name) {
-		
-		if (self.parent.name != name) {
-	
-			return new Promise (
-				(resolve, reject) => {
-					
-					self.remove()
-						.then(
-							() => {
-								
-								let cache = self.findCache();
-								
-								if (cache) { 
-									
-									cache.getOrCreateItem(name, false)
-										.then(
-											group => {
-												
-												resolve(group.upsertScript(self));
-												
-											}, reject
-										);
-									
-								} else
-									console.error("Attempting to upudate parent on uncached domain.");
-								
-							}, reject
-						);
-				}
-			);
-			
-		} else
-			return Promise.resolve(self);
-	};
+	   if (e instanceof TypeError) {
+	   
+	   if (self.parent && self.parent.isSubdomain())
+	   return self.parent.name == url ? Promise.resolve(self) : self.__updateParent(url); 
+	   else 
+	   return self.__updateParent(url);
+	   }
+	   }
+	   };
+	   
+	   this.updateGroup = function (name) {
+	   
+	   if (self.parent.name != name) {
+	   
+	   return new Promise (
+	   (resolve, reject) => {
+	   
+	   self.remove()
+	   .then(
+	   () => {
+	   
+	   let cache = self.findCache();
+	   
+	   if (cache) { 
+	   
+	   cache.getOrCreateItem(name, false)
+	   .then(
+	   group => {
+	   
+	   resolve(group.upsertScript(self));
+	   
+	   }, reject
+	   );
+	   
+	   } else
+	   console.error("Attempting to upudate parent on uncached domain.");
+	   
+	   }, reject
+	   );
+	   }
+	   );
+	   
+	   } else
+	   return Promise.resolve(self);
+	   }; */
 
 	/* ALMOST DEPRECATED */
-	this.toggleDisable = function () {
-		
-		self.disabled = !self.disabled;
+	/* this.toggleDisable = function () {
+	   
+	   self.disabled = !self.disabled;
 
-		self.__schedulePersistAt(500);
-	}
+	   self.__schedulePersistAt(500);
+	   } */
 
 	this.disabledAt = function (url_name) {
 		
@@ -274,11 +270,8 @@ function Script (opt) {
 
 			return self.parent.persist();
 
-		} else {
-
+		} else 	
 			return global_storage.setUserDefs(self.code);
-
-		}
 		
 	};
 
@@ -295,33 +288,33 @@ function Script (opt) {
 	};
 	
 	/* Views ALMOST DEPRECATED */
-	this.elemFor = function (list_uuid) {
-		
-		return self.elems.filter(
-			elem => {
-				return elem.parent_id == list_uuid;
-			}
-		)[0] || null;
-	};
+	/* this.elemFor = function (list_uuid) {
+	   
+	   return self.elems.filter(
+	   elem => {
+	   return elem.parent_id == list_uuid;
+	   }
+	   )[0] || null;
+	   };
 
-	this.insertElem = function (parent_id, page_shown) {
-		
-		let exists = self.elems.find(
-			stored => {
-				return stored.parent_id == parent_id;
-			}
-		);
-		
-		if (exists)
-			return exists;
-		else {
-			
-			var elem = new Element(parent_id, page_shown, self);
-			self.elems.push(elem);
-			
-			return elem;
-		}
-	};
+	   this.insertElem = function (parent_id, page_shown) {
+	   
+	   let exists = self.elems.find(
+	   stored => {
+	   return stored.parent_id == parent_id;
+	   }
+	   );
+	   
+	   if (exists)
+	   return exists;
+	   else {
+	   
+	   var elem = new Element(parent_id, page_shown, self);
+	   self.elems.push(elem);
+	   
+	   return elem;
+	   }
+	   }; */
 	
 	/* Stringify */
 	this.__getDBInfo = function () {
@@ -345,7 +338,7 @@ function __Script_Bucket (scripts) {
 	
 	if (scripts) {
 		
-		for (script of scripts) {
+		for (let script of scripts) {
 			
 			script.parent = this;
 			this.scripts.push(new Script(script));
@@ -420,32 +413,32 @@ function __Script_Bucket (scripts) {
 	};
 	
 	/* Views: ALMOST DEPRECATED */
-	this.elemFor = function (list_uuid) {
-		
-		return self.elems.filter(
-			elem => {
-				return elem.parent_id == list_uuid;
-			}
-		)[0] || null;
-	};
-	
-	this.insertElem = function (parent_id, page_shown) {
-		
-		var exists = self.elems.filter(
-			stored => {
-				return stored.parent_id == parent_id;
-			}
-		)[0];
-		
-		if (!exists)
-			self.elems.push(new Element(parent_id, page_shown));
-	};
-	
-	this.shownFor = function (list_uuid) {
-		
-		return self.elemFor(list_uuid).shown; 
-		
-	};
+	/* this.elemFor = function (list_uuid) {
+	   
+	   return self.elems.filter(
+	   elem => {
+	   return elem.parent_id == list_uuid;
+	   }
+	   )[0] || null;
+	   };
+	   
+	   this.insertElem = function (parent_id, page_shown) {
+	   
+	   var exists = self.elems.filter(
+	   stored => {
+	   return stored.parent_id == parent_id;
+	   }
+	   )[0];
+	   
+	   if (!exists)
+	   self.elems.push(new Element(parent_id, page_shown));
+	   };
+	   
+	   this.shownFor = function (list_uuid) {
+	   
+	   return self.elemFor(list_uuid).shown; 
+	   
+	   }; */
 	
 }
 
@@ -623,9 +616,6 @@ function Domain (opt) {
 					.then(
 						() => {
 							
-							if (self.cache && self.haveData())
-								self.cache.forceCacheItem(self); /* Caches must allways have persisted items. */
-							
 							resolve(self);
 							
 						}, reject
@@ -642,10 +632,7 @@ function Domain (opt) {
 				global_storage.removeDomain(self.name)
 					.then(
 						() => {
-										
-							if (self.cache && self.cache.amICached(self.name))
-								self.cache.removeCached(self.name);
-										
+							
 							resolve(self);
 										
 						}, reject);
@@ -840,9 +827,6 @@ function Group (opt) {
 					.then(
 						() => {
 							
-							if (self.cache && self.haveData())
-								self.cache.forceCacheItem(self);
-							
 							resolve(self);
 							
 						}, reject
@@ -859,9 +843,6 @@ function Group (opt) {
 				global_storage.removeGroup(self.name)
 					.then(
 						() => {
-
-							if (self.cache && self.cache.amICached(self.name))
-								self.cache.removeCached(self.name);
 							
 							resolve(self);
 							
@@ -974,21 +955,21 @@ function Group (opt) {
 	};
 
 	/* Only for groups ! */
-	this.isShown = function () {
-		
-		return self.elems.filter(
-			elem => {
-				return elem.shown;								
-			}
-		)[0] || false;
-	};
+	/* this.isShown = function () {
+	   
+	   return self.elems.filter(
+	   elem => {
+	   return elem.shown;								
+	   }
+	   )[0] || false;
+	   }; */
 
 	/* Cache compatibility */
-	this.haveData = function () {
-		
-		return self.scripts.length || self.sites.length;
-		
-	};
+	/* this.haveData = function () {
+	   
+	   return self.scripts.length || self.sites.length;
+	   
+	   }; */
 
 	this.isDisabled = function (uuid, url_name) {
 		
@@ -1078,7 +1059,7 @@ function Group (opt) {
 		}
 	}
 
-	/* !!! ¿DEPRECATED? */
+	/* ??? */
 	this.ownerOf = function (site_name) {
 		
 		return self.sites.find(
@@ -1104,6 +1085,8 @@ function Group (opt) {
 		) ? true : false;
 	}
 
+	/* -- ??? -- */
+	
 	this.getJSON = function () {
 
 		return JSON.stringify(self.__getDBInfo());

@@ -2,6 +2,9 @@
 
 function Cache (opt) {
 
+	console.log("New cache");
+	console.log(opt);
+	
 	var self = this;
 
 	if (!opt.feeding || !opt.birth)

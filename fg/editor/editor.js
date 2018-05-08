@@ -200,12 +200,15 @@ function EditorFG (id, bg) {
 				
 				let promise = self.editor.script.parent ?
 							  (self.editor.script.parent.isGroup()
-									  ? self.editor.script.updateGroup(self.scope.url)
-									  : self.editor.script.updateParent(self.scope.url)):
+									  ? self.bg.group_mgr.updateParentFor(self.editor.script, self.scope.url)
+									  : self.bg.domain_mgr.updateParentFor(self.editor.script, self.scope.url)):
 							  Promise.resolve(self.editor.script);
 				
 				promise.then (
 					script => {
+
+						console.log("Script");
+						console.log(script);
 						
 						script.code = self.editor.ace.getValue().toString().trim();
 						script.persist()

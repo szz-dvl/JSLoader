@@ -220,47 +220,59 @@ function OptionMgr (bg) {
 	
 	this.exportApp = function () {
 
-		let text = ["{\"scripts\": "];
-		let promises = [self.bg.domain_mgr.exportScripts(true), self.bg.group_mgr.exportGroups(true)];
+		let text = ["{"];
 		
-		Promise.all(promises).then(
-			data => {
-				
-				text.push.apply(text, data[0]);
-				text.push(", \"groups\": ");
-				text.push.apply(text, data[1]);
-				text.push(", \"rules\": ");
-				text.push.apply(text, self.bg.rules_mgr.exportRules(true));
-				text.push("}");
-				
-				browser.downloads.download({ url: URL.createObjectURL( new File(text, "app.json", {type: "application/json"}) ) });
+		async.eachSeries(["domain", "group"],
+
+			(name, next) => {
+
+				text.push("\"" + name + "s\": ");
+				self.bg[name + "_mgr"].exportData(true)
+					.then(
+						data => {
+
+							console.log("Pushing " + name);
+							console.log(data);
+							
+							text.push.apply(text, data);
+							text.push(",");
+							next();
+						}
+					);
+			
+			}, err => {
+
+				if (err)
+					console.error(err);
+				else {
+
+					text.pop();
+					text.push("}");
+
+					browser.downloads.download({ url: URL.createObjectURL( new File(text, "app.json", {type: "application/json"}) ) });
+				}
 			}
-		);	
+		);
 	}
 	
 	this.importApp = function (imported) {
 		
 		return new Promise(
 			(resolve, reject) => {
-				
-				let idx = 0;
-				
-				async.eachSeries([self.bg.domain_mgr.importData, self.bg.group_mgr.importData],
-					(promise, next) => {
+
+				async.eachSeries(["domain", "group"],
+					(name, next) => {
 						
-						promise(idx ? imported.groups : imported.scripts)
-							.then(() => { idx ++; next(); }, next);
-							
+						self.bg[name + "_mgr"].importData(imported[name + "s"])
+							.then(next, next);
+						
 					}, err => {
-						
+
 						if (err)
 							reject(err);
-						else {
-
-							resolve();
-							self.bg.rules_mgr.importRules(imported.rules);
-						}
-					});
+						else 
+							resolve();	
+					})
 			});
 	}
 	

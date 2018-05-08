@@ -111,22 +111,7 @@ function CSMgr (bg) {
 		return this.storage.setUserDefs(literal);
 		
 	};
-
-	this.setGlobals = function (literal) {
-		
-		self.globals = JSON.parse(literal); /* Validated in view */
-		return this.storage.setGlobals(self.globals);
-		
-	};
 	
-	this.addDomainToGroup = function (port, domain_name, group_name) {
-		
-		if (domain_name[domain_name.length - 1] != "/")
-			domain_name += "/";
-	
-		self.bg.group_mgr.addSiteTo(group_name, domain_name);
-	};
- 
 	this.haveGlobal = function (key) {
 		
 		return typeof(self.globals[key]) !== 'undefined';
@@ -138,53 +123,15 @@ function CSMgr (bg) {
 		port.postMessage({action: "response", message: message, tag: tag});
 		
 	};
-	
-	this.contentGetGlobal = function (port, tag, key) {
+
+	this.addDomainToGroup = function (port, domain_name, group_name) {
 		
-		self.__postTaggedResponse(port, tag,
-			{status: self.globals[key] ? true : false,
-				content: {
-					key: key,
-					value: self.globals[key]
-				}
-			});
+		/* if (domain_name[domain_name.length - 1] != "/")
+		   domain_name += "/"; */
+			
+			return self.bg.group_mgr.addSiteTo(group_name, domain_name);
 	};
 
-	this.contentSetGlobal = function (port, tag, key, value) {
-
-		let created = !haveGlobal(key);
-		
-		self.globals[key] = value;
-		
-		this.storage.setGlobals(self.globals)
-			.then(
-				() => {
-					
-					self.__postTaggedResponse(port, tag,
-						{
-							status: true,
-							content: {
-								key: key,
-								value: value,
-								created: created
-							}
-						});
-					
-				},
-				() => {
-					
-					self.__postTaggedResponse(port, tag,
-						{
-							status: false,
-							content: {
-								err: "Persist error",
-								key: key,
-								value: value,
-								created: created
-							}
-						});
-				});
-	};
 	
 	this.addSiteToGroup = function (port, tag, site_name, group_name) {
 		
@@ -197,13 +144,13 @@ function CSMgr (bg) {
 			else
 				url = site_name;
 
-			if (url[0] != "*") {
-				
-				let aux = new URL("http://" + url); 
+			/* if (url[0] != "*") {
+			   
+			   let aux = new URL("http://" + url); 
 
-				if (aux.pathname == "/" && site_name[site_name.length - 1] != "/")
-					site_name += "/";
-			}
+			   if (aux.pathname == "/" && site_name[site_name.length - 1] != "/")
+			   site_name += "/";
+			   } */
 			
 			self.bg.group_mgr.addSiteTo(group_name, site_name)
 				.then(
@@ -382,39 +329,88 @@ function CSMgr (bg) {
 		return Promise.all(promises);
 		
 	};
-	
-	this.contentSetProxy = function (port, tag, host, proxy) {
+
+	this.contentGetGlobal = function (port, tag, key) {
 		
-		self.bg.rules_mgr.tempProxy(host, proxy)
+		self.__postTaggedResponse(port, tag,
+			{status: self.globals[key] ? true : false,
+				content: {
+					key: key,
+					value: self.globals[key]
+				}
+			});
+	};
+
+	this.contentSetGlobal = function (port, tag, key, value) {
+
+		let created = !self.haveGlobal(key);
+		
+		self.globals[key] = value;
+		
+		this.storage.setGlobals(self.globals)
+			.then(
+				() => {
+					
+					self.__postTaggedResponse(port, tag,
+						{
+							status: true,
+							content: {
+								key: key,
+								value: value,
+								created: created
+							}
+						});
+					
+				},
+				() => {
+					
+					self.__postTaggedResponse(port, tag,
+						{
+							status: false,
+							content: {
+								err: "Persist error",
+								key: key,
+								value: value,
+								created: created
+							}
+						});
+				});
+	};
+	
+	this.contentSetProxy = function (port, tag, host, proxy, times) {
+		
+		self.bg.proxy_mgr.updatePAC(host, proxy, times)
 			.then(
 				length => {
 					
 					self.__postTaggedResponse(port, tag,
 								  
-						{status: length > 0,
-							
+						{
+							status: length >= 0,
 							content: {
 								proxy: proxy,
-								host: host
+								host: host,
+								times: times
 							}
 							
 						});
+					
+				}, err => {
+
+					self.__postTaggedResponse(port, tag,
+						
+						{ status: false,
+							
+							content: {
+								
+								err: err.message
+							}
+						}
+					);
+					
 				});
 	};
-	
-	this.contentSetRule = function (port, tag, criteria, headers) {
 		
-		self.__postTaggedResponse(port, tag,
-			
-			{status: true,
-				
-				content: {
-					rid: self.bg.rules_mgr.tempRule(criteria, headers)
-				}
-				
-			});
-	};
-	
 	this.contentDownload = function (port, tag, options) {
 
 		
@@ -553,11 +549,7 @@ function CSMgr (bg) {
 									break;
 									
 								case "set-proxy":
-									self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
-									break;
-									
-								case "set-rule":
-									self.contentSetRule(port, args.tag, args.message.criteria, args.message.headers);
+									self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy, args.message.times);
 									break;
 									
 								case "download-file":
@@ -587,5 +579,18 @@ function CSMgr (bg) {
 					);
 				}
 			});
+
+	this.storeNewDefs = function (changes, area) {
+		
+		if (area != "local")
+	 		return;
+		
+		for (key of Object.keys(changes)) {
+			
+			if (key == "userdefs") 
+				self.defs = changes.userdefs.newValue || "";			
+		}
+	};
 	
+	browser.storage.onChanged.addListener(this.storeNewDefs);
 }

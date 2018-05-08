@@ -5,30 +5,21 @@
 		
 		<link rel="stylesheet" href="options.css"/>
 		
-		<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self' *;">
+		<meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self';">
 		
 		<link rel="stylesheet" href="chrome://browser/content/extension.css">
-		<link rel="stylesheet" href="../deps/json/json-formatter.css">
-		<link rel="stylesheet" href="../deps/angucomplete-alt/angucomplete-alt.css">
 		<link rel="stylesheet" href="../styles/jsl.css">
 		
-		<link rel="stylesheet" href="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.css">
 		
 		<script src="../deps/jquery.min.js"></script>
 		<script src="../deps/angular.min.js"></script>
 		<script src="../deps/angular-ui-router.min.js"></script>
-		<script src="../deps/highlightjs/highlight.min.js"></script>
-		<script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
-		<script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 		<script src="../partials/partials.js"></script>
 		
 		<script src="../../utils/jsloader-utils.js"></script>
-		<script src="../../utils/deps/async.min.js"></script>
-		<script src="../../utils/deps/underscore-min.js"></script>
+		<!-- <script src="../../utils/deps/async.min.js"></script>
+		<script src="../../utils/deps/underscore-min.js"></script> -->
 		<script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
-		
-		<link ng-if="!current.knownToHl" rel="stylesheet" ng-href="../deps/highlightjs/default.min.css">
-		<link ng-if="current.knownToHl" rel="stylesheet" ng-href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/{{current.knownToHl}}.min.css">
 		
 	</head>
 
@@ -37,7 +28,7 @@
 
 		<div class="panel-section">
 
-			<div class="panel-section-header">
+			<div class="panel-section-header" style="width: 100%;">
 				
 				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">JSL Settings</div>
 				<div ui-view="editor-settings"></div>
@@ -48,7 +39,7 @@
 		
 		<div class="panel-section">
 			
-			<div class="panel-section-header">
+			<div class="panel-section-header" style="width: 100%;">
 				
 				<div class="text-section-header browser-style" style="font-weight: 475;font-size: 1.67em;">User Data</div>
 				
@@ -61,7 +52,6 @@
 		
 		<!-- <div ui-view="debug"></div> -->
 		
-		<script src="../deps/json/json-formatter.js"></script>
 		<script src="options.js"></script>
 	</body>
 	

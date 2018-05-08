@@ -135,6 +135,7 @@ function OP (bg) {
 										$scope.groups = data.groups;
 										
 										$scope.$digest();
+										
 									});
 							}
 							
@@ -148,6 +149,8 @@ function OP (bg) {
 								
 								self.bg[type + "_mgr"].removeItem(name)
 									.then($scope.__updateData);
+
+								self.query_results.length = 0;
 							}
 
 							$scope.pushItem = function (name, type) {
@@ -162,6 +165,8 @@ function OP (bg) {
 									if ($scope.domains.length)
 										self.bg.domain_mgr.pushToDB($scope.domains.map(domain => { return domain.name }));
 								}
+
+								self.query_results.length = 0;
 							}
 
 							/* Any way to get the input element as a parameter here? */
@@ -170,8 +175,6 @@ function OP (bg) {
 								let reader = new FileReader();
 								
 								reader.onload = function () {
-
-									console.log(reader.result);
 									
 									self.bg.option_mgr.importApp(JSON.parse(reader.result))
 										.then($scope.__updateData, console.error);
@@ -209,7 +212,7 @@ function OP (bg) {
 							$scope.in_progress = false;
 							$scope.db_query = "";
 							
-							$scope.query_results = [];
+							self.query_results = $scope.query_results = [];
 							
 							$scope.dbQuery = function () {
 								
@@ -231,6 +234,8 @@ function OP (bg) {
 								
 								if (record) {
 
+									record.exists = true;
+									
 									if (record.type == "Group") 
 										$scope.page.bg.database_mgr.getGroups([record.name]);
 									else 
@@ -303,7 +308,14 @@ function OP (bg) {
 											$scope.query_results, results.map(
 												instance => {
 													
-													return { name: instance.name, type: instance.isGroup() ? "Group" : "Domain", scripts: instance.getScriptCount(), sites: instance.sites.length };
+													return {
+
+														name: instance.name,
+														type: instance.isGroup() ? "Group" : "Domain",
+														scripts: instance.getScriptCount(),
+														sites: instance.sites.length,
+														exists: self.bg[instance.isGroup() ? "group_mgr" : "domain_mgr"].exists(instance.name)
+													};
 												}
 											)
 										);

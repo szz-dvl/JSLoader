@@ -53,47 +53,35 @@ function EditorFG (id, bg) {
 			onTrigger: function () {
 				self.saveCurrent();
 			}
-		},
-		{
-			tab: '1',
-			name: 'collapse',
-			parent: self,
-			onTrigger: function () {
-				self.collapseHeader();
-			}
-		},
+		}
 	]
 	
 	this.editor = this.bg.editor_mgr.getEditorById(id);
 	this.editor.fg = this;
 
-	/* 
-	   To-Do: 
-	   
-	      * Notify user on run error 
-	      * Update URL on tab update, if attached.
-	*/
+	if (this.editor.script.parent) {
 
-	this.isCollapsed = function () {
+		this.shortcuts.push({
+			tab: '1',
+			name: 'collapse',
+			parent: self,
+			onTrigger: function () {
+
+				self.scope.editor_collapsed = !self.scope.editor_collapsed;
+				self.scope.$digest();
+			}
+		})
+	}
 		
-		return self.scope.dd_text == "<";
-		
-	};
 	
 	this.collapseHeader = function () {
 		
-		if (self.isCollapsed()) {
-			
-			self.dropdown.text("v");
-			self.scope.dd_text = "v"; //fails from shortcut.
+		if (!self.scope.editor_collapsed) {
 			
 			self.editor_bucket.css("top", "50px");
 			self.editor_bucket.css("height", window.innerHeight - 50);
 			
 		} else {
-			
-			self.dropdown.text("<");
-			self.scope.dd_text = "<"; //fails from shortcut.
 			
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
@@ -206,9 +194,6 @@ function EditorFG (id, bg) {
 				
 				promise.then (
 					script => {
-
-						console.log("Script");
-						console.log(script);
 						
 						script.code = self.editor.ace.getValue().toString().trim();
 						script.persist()
@@ -250,7 +235,7 @@ function EditorFG (id, bg) {
 
 	this.onResize = function () {
 		
-		if (self.isCollapsed()) {
+		if (self.scope.editor_collapsed) {
 			
 			self.editor_bucket.css("top", 0);
 			self.editor_bucket.css("height", "100%");
@@ -283,15 +268,28 @@ function EditorFG (id, bg) {
 	this.app.controller('editorController', ($scope, $timeout) => {
 		
 		self.scope = $scope;
+		$scope.page = self;
 		
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
-		
-		$scope.page = self;
-		
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName();
 		
-		$scope.label = "JSLoader";
+		$scope.editor_collapsed = false;
+		
+		$scope.$watch(
+			
+			function () {
+				
+				return $scope.editor_collapsed;
+				
+			},
+						
+			function (nval, oval) {
+				
+				if (nval != oval)
+					self.collapseHeader();
+			}
+		);
 		
 		/* ¿¿ To wdw title ?? */
 		$scope.user_action = $scope.script.parent ?
@@ -318,8 +316,6 @@ function EditorFG (id, bg) {
 					}
 				}]
 		};
-		
-		$scope.dd_text = "<";
 		
 		$scope.page.events
 			.on('validation_start',
@@ -373,12 +369,6 @@ function EditorFG (id, bg) {
 			
 		};
 		
-		$scope.dropdownClick = function () {
-			
-			self.collapseHeader();
-			
-		};
-		
 		$scope.buttonToggle = function () {
 			
 			if (!$scope.buttons.shown)
@@ -400,7 +390,7 @@ function EditorFG (id, bg) {
 					});
 			
 			self.resetAce();
-
+			
 			self.editor.ace.gotoLine($scope.editor.pos.line, $scope.editor.pos.col, true);
 			
 			// $scope.editor.ace.find($scope.script.code);
@@ -415,16 +405,14 @@ function EditorFG (id, bg) {
 				}
 			);
 			
-			/* 
-			   DEPRECATED 
-			   
-			   if (!$scope.editor.opts.collapsed) 
-			   self.collapseHeader(); 
-			   
-			 */
 			
-			//self.onResize();
-			//window.resizeBy(10, 10);
+			if ($scope.editor.script.parent) {
+				
+				self.editor_bucket.css("top", "50px");
+				self.editor_bucket.css("height", window.innerHeight - 50);
+				
+			}
+				
 		});
 	});
 
@@ -433,13 +421,12 @@ function EditorFG (id, bg) {
 		request => {
 			
 			switch (request.action) {
-			case "opts":
+				case "opts":
 				
-				self.editor.opts = request.message;
-				self.resetAce();
+					self.resetAce();
 				
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 	);

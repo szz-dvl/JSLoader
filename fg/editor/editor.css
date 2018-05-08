@@ -171,7 +171,8 @@ body {
 	z-index: 99999999;
 	color: red;
 	margin-right: 15px;
-
+	margin-top: 15px;
+	-moz-transform: scaleX(-1);
 }
 
 .info-container {

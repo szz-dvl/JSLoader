@@ -17,19 +17,7 @@ function GroupMgr (bg) {
 				self.groups = new_groups;
 		}
 	);
-
-	this.exists = function (group_name) {
-
-		return self.groups.find(
-			gname => {
-
-				return gname == group_name;
-			}
-			
-		) || false;
-
-	};
-
+	
 	this.getGroupScripts = function (groups) {
 
 		return new Promise (
@@ -112,7 +100,7 @@ function GroupMgr (bg) {
 											pr.push(group.persist());
  									}
 									
-									Promise.all(pr).then(resolve); /* Feedback when created !!! */
+									Promise.all(pr).then(resolve); /* Feedback when created ? */
 									
 								}, hostname
 							);
@@ -134,15 +122,6 @@ function GroupMgr (bg) {
 		
 	}
 	
-	/* this.clear = function () {
-
-	   for (let group of this.groups) {
-	   
-	   self.storage.removeGroup(group);
-	   
-	   }
-	   }; */
-
 	this.updateParentFor = function (script, name) {
 		
 		if (script.parent.name != name) {

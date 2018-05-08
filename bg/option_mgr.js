@@ -24,7 +24,7 @@ function OptionMgr (bg) {
 		
 		new_options => {
 			
-			Options.call(self, {});
+			Options.call(self, new_options);
 			
 			self.bg.app_events.emit('options-ready');
 		}
@@ -133,7 +133,7 @@ function OptionMgr (bg) {
 											if (group)
 												groups.push({ name: group_name, scripts: group.getScriptCount(), sites: group.sites.length });
 											else
-												console.warn("Missing indexed domain: " + group_name);
+												console.warn("Missing indexed group: " + group_name);
 												
 											next();
 											
@@ -154,69 +154,6 @@ function OptionMgr (bg) {
 			}
 		);
 	};
-	
-	/* this.getFullOpts = function () {
-	   
-	   return {editor: self.editor, jsl: self.jsl};
-	   };
-	   
-	   this.sendMessage = function(action, message) {
-	   
-	   if (self.port)
-	   self.port.postMessage({action: action, message: message});
-	   
-	   }; */
-	
-	/* browser.runtime.onConnect
-	   .addListener(
-	   port => {
-	   
-	   if (port.name === "option-page") {
-	   
-	   self.port = port;
-	   
-	   self.port.onMessage.addListener(
-	   args => {
-	   
-	   try {
-	   switch (args.action) {
-	   case "list-update":
-	   self.sendMessage("list-update", args.message);
-	   
-	   break;
-	   
-	   case "import-opts":
-	   self.sendMessage("import-opts", args.message);
-	   
-	   break;								
-	   
-	   default:
-	   break;
-	   }
-	   
-	   } catch (e) {}
-	   }
-	   );
-	   
-	   self.port.onDisconnect.addListener(
-	   () => {
-	   self.port = null;
-	   }
-	   );
-	   }
-	   }
-	   ); */
-
-	this.clear = function () {
-		
-		self.storage.removeOptions();
-	};
-
-	/* this.setProxys = function (literal) {
-	   
-	   self.jsl.proxys = JSON.parse(literal);
-	   
-	   }; */
 	
 	this.exportApp = function () {
 

@@ -287,38 +287,6 @@ function Storage () {
 		return self.__set('userdefs', literal);
 		
 	}
-	
-	/* Rules: */
-	this.setRules = function (rules) {
-		
-		return self.__set('rules', rules);
-	}
-	
-	this.getRules = function (cb) {
-
-		self.__get(rules => { cb(rules || []) }, 'rules');
-	}
-	
-	this.removeRules = function () {
-		
-		return self.__remove('rules');
-	}
-
-	/* Proxy Rules: */
-	this.setProxyRules = function (rules) {
-		
-		return self.__set('prules', rules);
-	}
-	
-	this.getProxyRules = function (cb) {
-
-		self.__get(rules => { cb(rules || []) }, 'prules');
-	}
-	
-	this.removeProxyRules = function () {
-		
-		return self.__remove('prules');
-	}
 }
 
 let global_storage = new Storage();

@@ -6,7 +6,7 @@
 
 		<div ng-show="appdb_active">
 
-			<div class="browser-style" style="width: 90%;">
+			<div class="browser-style" style="width: 100%;">
 				
 				<table style="display: table;">
 					<thead>
@@ -85,7 +85,7 @@
 									class="browser-style"
 									ng-click="updateFromDB(record)"
 									style="z-index:999;">
-									Update from DB
+									{{ record.exists ? "Update" : "Import" }} from DB
 								</button>
 							</td>
 							<td style="width: 10%;">  </td>

@@ -50,11 +50,16 @@ function Editor (opt) {
 	this.parent = opt.parent;
 	this.script = opt.script;
 
-	this.pos = {line: opt.line || 0, col: opt.col || 0};
+	this.pos = {
+
+		line: opt.line || 0,
+		col: opt.col || 0
+	};
+	
 	this.id = this.parent.__getEID();
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	
-	this.tab = opt.tab ? new JSLTab(opt.tab, self.parent.bg.content_mgr.forceMainFramesForTab) : null;
+	this.tab = opt.tab ? self.parent.bg.tabs_mgr.factory(opt.tab) : null;
 	
 	self.parent.editors.push(self);
 	
@@ -72,7 +77,7 @@ function Editor (opt) {
 
 			if (self.script.includedAt(new URL(tabInfo.url))) {
 			
-				self.tab = new JSLTab(tabInfo, self.parent.bg.content_mgr.forceMainFramesForTab);
+				self.tab = self.parent.bg.tabs_mgr.factory(tabInfo);
 				self.fg.scope.enableRun();
 			
 			} else {

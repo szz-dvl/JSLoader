@@ -56,7 +56,7 @@ function DataMgr (opt) {
 							next(new Error("Bad " + self.key + ": " + item_name));
 						else {
 							
-							item.push(item);
+							items.push(item);
 							next();
 						}
 						
@@ -67,7 +67,7 @@ function DataMgr (opt) {
 				if (err)
 					console.error(err);
 				else
-					self.bg.database_mgr["push" + self.key](items);
+					self.bg.database_mgr["push" + self.key + "s"](items);
 			});
 	};
 
@@ -114,6 +114,12 @@ function DataMgr (opt) {
 						
 					});
 			});
+	}
+
+	this.exists = function (name) {
+
+		return self[self.key.toLowerCase() + "s"].includes(name);
+		
 	}
 
 }

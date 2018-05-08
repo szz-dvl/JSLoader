@@ -151,18 +151,6 @@ function PA (bg, info) {
 
 						}
 					},
-
-					'rules': {
-
-						templateUrl: 'rules.html',
-						controller: function ($scope) {
-
-							/* Not implemented yet. */
-							
-							$scope.rules_active = false;
-			
-						}
-					},
 					
 					'group_mgr': {
 
@@ -262,7 +250,7 @@ function PA (bg, info) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			page.getPASite()
+			page.getPASite() /* To provider! */
 				.then(
 					info => {
 						

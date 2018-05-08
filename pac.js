@@ -48,74 +48,93 @@ function PAC () {
 	
 	this.listener = function (message) {
 
-		if (!message.temp) {
+		if (!message.proxy) {
+
+			/* No proxy, remove any ocurrence of the host */
+
+			self.filtered.remove(
+				self.filtered.findIndex(
+					registered => {
+						return registered.host == message.host;
+					}
+				)
+			);
+
+		} else {
+
+			/* Add or update host entry */
 			
 			let reg = self.filtered.findIndex(
 				registered => {
 					return registered.host == message.host;
 				}
-			);
-		
-			if (reg >= 0) {
+			)
 				
-				if (message.proxy) 
+			if (reg >= 0) {
+
+				if (self.filtered[reg].proxy == message.proxy) {
+					
+					self.filtered[reg].times += message.times; 
+					
+				} else {
+
 					self.filtered[reg].proxy = message.proxy;
-				else
-					self.filtered.remove(reg);
+					self.filtered[reg].times = message.times;
+				}
+				
+			} else {
+				
+				self.filtered.push(message);	
+			}
 			
-			} else if (message.proxy) 
-				self.filtered.push(message);
-		} else
-			self.filtered.push(message);
+		}
 		
 		// browser.runtime.sendMessage(`Proxy listener: ${message.host} > ` + JSON.stringify(self.filtered));
 		
 		return Promise.resolve(self.filtered.length);
 	};
-	
+
+	/* One proxy per host only. */
 	this.FindProxyForURL = function (url, host) {
 		
-		let proxys = self.filtered.filter(
+		let record = self.filtered.findIndex(
 			
 			registered => {
+				
 				return registered.host == host && registered.temp;
 			}
 			
-		).map(elem => { return elem.proxy }).slice(0);
+		);
 		
-		if (!proxys.length) {
+		if (record < 0) {
 			
-			proxys = self.filtered.filter(
+			record = self.filtered.findIndex(
 				
 				registered => {
+
 					return self.isSubDomain(host, registered.host);
+					
 				}
 				
-			).map(elem => { return elem.proxy });
-
-		} else {
-
-			let idx = self.filtered.findIndex(
-				registered => {
-					return registered.host == host && registered.temp;
-				}
-			)
-
-			while (idx >= 0) {
-
-				self.filtered.remove(idx);
-				
-				idx = self.filtered.findIndex(
-					registered => {
-						return registered.host == host && registered.temp;
-					}
-				)
-			}
+			);
 		}
 		
-		browser.runtime.sendMessage(`Proxy for ${host} > ` + (proxys ? JSON.stringify(proxys) : "DIRECT"));
+		if (record < 0) {
+
+			return "DIRECT";
+			
+		} else {
+
+			let proxys = [self.filtered[record].proxy];
+			
+			if (! --self.filtered[record].times)
+				self.filtered.remove(record);
+
+			return proxys;
+			
+		}
 		
-		return proxys.length ? proxys : "DIRECT";
+		//browser.runtime.sendMessage(`Proxy for ${host} > ` + (proxys ? JSON.stringify(proxys) : "DIRECT"));
 	};
 	
 	browser.runtime.onMessage.addListener(this.listener);

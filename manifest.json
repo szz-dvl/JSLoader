@@ -18,18 +18,18 @@
 			"utils/deps/async.min.js",
 			"utils/deps/underscore-min.js",
 			"utils/jsloader-utils.js",
+			"bg/database_mgr.js",
+			"bg/option_mgr.js",
+			"bg/proxy_mgr.js",
 			"bg/data_model.js",
 			"bg/persistence.js",
 			"bg/editor_mgr.js",
 			"bg/_data_mgr.js",
 			"bg/domain_mgr.js",
-			"bg/option_mgr.js",
 			"bg/group_mgr.js",
 			"bg/notify_mgr.js",
-			"bg/rules_mgr.js",
 			"bg/tabs_mgr.js",
 			"bg/content_mgr.js",
-			"bg/database_mgr.js",
 			"bg/background.js"
 		]
 	},
@@ -92,12 +92,6 @@
 			},
 			"description": "Create new group, ¿adds the current site? and binds a new script."
 		},
-		"listen-request-for-tab": {
-			"suggested_key": {
-				"linux": "Alt+Shift+3"
-			},
-			"description": "Listen and prints request for the current tab."
-		},
 		"open-option-page": {
 			"suggested_key": {
 				"linux": "Alt+Shift+O"
@@ -112,7 +106,7 @@
 		}
 	},
 
-	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; img-src 'self'",
+	"content_security_policy": "script-src * 'self' 'unsafe-eval'; object-src 'self'; img-src 'self'",
 	
 	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab", "webRequest", "webRequestBlocking", "proxy", "nativeMessaging" ]
 	

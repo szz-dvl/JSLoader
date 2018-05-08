@@ -3,7 +3,8 @@ function BG_mgr () {
 	let self = this;
 
 	this.app_events = new EventEmitter();
-	
+
+	this.database_mgr = new DBMgr(self);
 	this.option_mgr = new OptionMgr(self);
 	this.domain_mgr = new DomainMgr(self);
 	this.group_mgr = new GroupMgr(self);
@@ -11,8 +12,7 @@ function BG_mgr () {
 	this.editor_mgr = new EditorMgr(self);
 	this.notify_mgr = new NotificationMgr(self);
 	this.tabs_mgr = new TabsMgr(self);
-	this.rules_mgr = new RulesMgr(self);
-	this.database_mgr = new DBMgr(self);
+	this.proxy_mgr = new ProxyMgr(self);
 	
 	this.getPASite = function () {
 		
@@ -72,16 +72,6 @@ function BG_mgr () {
 					self.editor_mgr.openEditorInstanceForGroup(group);
 				});
 	};
-
-	this.listenRequestsForCurrentTab = function () {
-
-		browser.tabs.query({active: true, windowType: 'normal'})
-			.then(
-				tab_info => {
-					self.tabs_mgr.openListenerInstance(tab_info[0]);
-				}
-			);
-	}
 	
 	this.receiveCmd = function (command) {
 		
@@ -93,10 +83,6 @@ function BG_mgr () {
 				
 			case "new-group-new-script":
 				self.showUnattachedEditor(null);
-				break;
-				
-			case "listen-request-for-tab":
-				self.listenRequestsForCurrentTab();
 				break;
 				
 			case "open-option-page-devel":

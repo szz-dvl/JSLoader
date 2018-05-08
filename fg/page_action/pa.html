@@ -7,17 +7,15 @@
 	  
 	  <link rel="stylesheet" href="pa.css">
 	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
+	  <link rel="stylesheet" href="../styles/jsl.css">
 	  
 	  <script src="../deps/jquery.min.js"></script>
 	  <script src="../deps/angular.min.js"></script>
-	  <script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
 	  <script src="../deps/angular-ui-router.min.js"></script>
-	  <script src="../deps/highlightjs/highlight.min.js"></script>
-	  <script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	  <script src="../partials/partials.js"></script>
-	  <script src="../../utils/jsloader-utils.js"></script>
-	  <script src="../../utils/deps/async.min.js"></script>
 
+	  <script src="../../utils/jsloader-utils.js"></script>
+	  <!-- <script src="../../utils/deps/async.min.js"></script> -->
 	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
 	  
   </head>
@@ -29,11 +27,11 @@
 	  </div>
 	  
 	  <div class="panel-section">
-		  <div class="panel-section-header" style="display: inline-block; width: 100%;">
+		  <div style="width: 100%;">
 			  
-			  <dd-title val="'scripts_active'" text="'Included scripts'"></dd-title>
+			  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin-top: 15px;"></dd-title>
 			  
-			  <div ng-show="scripts_active">
+			  <div ng-show="scripts_active" style="margin-left: 15px;">
 			  
 				  <div ng-if="info.site[0].scripts.length">
 					  <div ui-view="site"></div>
@@ -47,8 +45,8 @@
 					  <div ui-view="groups"></div>
 				  </div>
 				  
-				  <div class="bottom-bucket" style="padding-left: 33%;margin-top: 30px;"> <!-- !!! center properly. -->
-					  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()" style="margin-left: 30px;z-index:999;"> Add Script </button>
+				  <div class="bottom-bucket" style="text-align: center; margin: 0;">
+					  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>
 				  </div>
 			  
 			  </div>
@@ -57,9 +55,9 @@
 	  </div>
 
 	  <div ui-view="group_mgr"></div>
-	  <div ui-view="rules"></div>
 	  
-	  <script src="../deps/json/json-formatter.js"></script>
+	  <!-- <div ui-view="rules"></div> -->
+
 	  <script src="pa.js"></script>
 	  
   </body>

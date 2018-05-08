@@ -2,9 +2,9 @@
 	<div>
 		<dd-title val="'appdata_active'" text="'Storage'"></dd-title>
 		
-		<div ng-show="appdata_active">
+		<div ng-show="appdata_active" style="width: 100%;">
 
-			<table style="display: table" ng-if="domains.length || groups.length">
+			<table style="display: table;width: 100%;" ng-if="domains.length || groups.length">
 				<thead>
 					<th></th>
 					<th style="text-align: center;"> Name </th>
@@ -37,7 +37,8 @@
 									ng-click="removeItem(domain.name, 'domain')"
 									style="z-index:999;"> Remove
 								</button>
-								<button ng-if="data_origin.writeable" class="browser-style"
+								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
+									class="browser-style"
 									ng-click="pushItem(domain.name, 'domain')"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>
@@ -65,7 +66,8 @@
 									ng-click="removeItem(group.name, 'group')"
 									style="z-index:999;"> Remove
 								</button>
-								<button ng-if="data_origin.writeable" class="browser-style"
+								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
+									class="browser-style"
 									ng-click="pushItem(group.name, 'group')"
 									style="z-index:999;"> Push to DB <!-- writting permissions -->
 								</button>
@@ -91,7 +93,7 @@
 					style="z-index:999;"> Export Data
 				</button>
 				<button class="browser-style"
-					ng-if="data_origin.writeable && (domains.length + groups.length > 1)"
+					ng-if="data_origin.writeable && (domains.length + groups.length > 1) && !data_origin.reconnecting"
 					ng-disable="data-origin.reconnecting"
 					ng-click="pushItem()"
 					style="z-index:999;"> Push all to DB

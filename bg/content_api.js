@@ -1,27 +1,3 @@
-let forbidden = [
-
-	"Accept-Charset",
-	"Accept-Encoding",
-    "Access-Control-Request-Headers",
-    "Access-Control-Request-Method",
-    "Connection",
-    "Content-Length",
-    "Cookie",
-    "Cookie2",
-    "Date",
-    "DNT",
-    "Expect",
-    "Host",
-    "Keep-Alive",
-    "Origin",
-    "Referer",
-    "TE",
-    "Trailer",
-    "Transfer-Encoding",
-    "Upgrade",
-    "Via"
-]
-
 function HttpRequest (opt, cs) {
 
 	let self = this;
@@ -43,36 +19,12 @@ function HttpRequest (opt, cs) {
 			if (self.proxy) {
 
 				deps.push(cs.__getMessageResponse("set-proxy",
-												  { host: self.url.hostname, proxy: self.proxy }));
+												  { host: self.url.hostname, proxy: self.proxy, times: 1 }));
 
 			}
 			
-			if (self.headers.length) {
-
-				let is_forbidden = self.headers.find(
-					header => {
-						return header.name.match(/^Proxy-|Sec-/) || forbidden.includes(header.name);
-					}
-				);
-
-				if (is_forbidden) {
-
-					deps.push(cs.__getMessageResponse("set-rule-req",
-													  {
-														  headers: self.headers,
-														  criteria: [
-															  
-															  { key: "url", value: self.url.href, comp: "=" },
-															  { key: "method", value: self.method, comp: "=" }
-															  
-														  ]
-													  }
-													  
-													 ));
-				} else
-					self.headers.forEach(header => { self.rq.setRequestHeader(header.name, header.value) });
-
-			}
+			if (self.headers.length)
+				self.headers.forEach(header => { self.rq.setRequestHeader(header.name, header.value) });
 			
 			Promise.all(deps)
 				.then(responses => {
@@ -152,7 +104,7 @@ function CSUtils (parent) {
 		}, self.cs);
 	};
 
-	/* @proxy: Either a string, giving a name for a proxy known to JSL, or an object describing a proxy (host, port, type) */
+	/* @proxy: An object describing a proxy (host, port, type) */
 	this.proxyHttpRequest = function (url, proxy) {
 
 		return new HttpRequest({
@@ -237,12 +189,24 @@ function CSApi () {
 	};
 
 	/* 
+	   @hostname: host to proxy request.
+	   @proxy: Proxy object {host, port, type}, if null the host will be "DIRECTED"
+	   @times: # of requests to the give hostname that will be routed through this proxy (Negative number to indicate "forever") 
+	   
+	 */
+
+	this.JSLProxyHost = function (hostname, proxy, times) {
+
+		return self.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times });
+		
+	};
+
+	/* 
 	   @params: Either an string representing a valid URL or an options object for browser.downloads.download as described at: 
 	   
 	   https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/downloads/download
 	   
-	   @proxy: Either a string giving a name for a known proxy to JSL or a proxy object. If specified the requested proxy 
-	   will be used for downloading the file, analogously, two promises will be joined and returned.
+	   @proxy: A proxy object. If specified the requested proxy will be used for downloading the file.
 	 
 	 */
 	
@@ -255,7 +219,7 @@ function CSApi () {
 		if (proxy) {
 			promises.push(self.__getMessageResponse("set-proxy",
 				
-				{ host: url.hostname, proxy: proxy }
+				{ host: url.hostname, proxy: proxy, times: 1 }
 				
 			));
 		}

@@ -3,9 +3,10 @@
 <html>
   <head>
 	
-	  <meta charset="utf-8">
+	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self';">
 	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
 	  <link rel="stylesheet" href="editor.css"/>
+	  <link rel="stylesheet" href="../styles/jsl.css"/>
 
 	  <script src="../deps/jquery.min.js"></script>
 	  <script src="../deps/angular.min.js"></script>
@@ -13,19 +14,18 @@
 	  <script src="../deps/shortcut.js"></script>
 	  <script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 	  <script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
-
-	  <script src="../deps/angucomplete-alt/angucomplete-alt.js"></script>
-	  <script src="../deps/highlightjs/highlight.min.js"></script>
-	  <script src="../deps/angular-highlightjs-searchtext/build/release/angular-highlightjs-searchtext.min.js"></script>
 	  <script src="../partials/partials.js"></script>
 	
 	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
 	  
   </head>
   
-  <body spellcheck=false ng-controller="editorController as editor" ng-click="buttonToggle($event)" ng-cloak>
+  <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle($event)" ng-cloak>
+
+	  <div id="dropdown-header">
+		  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
+	  </div>
 	  
-	  <bdi id="dropdown-header" ng-click="dropdownClick($event)">{{dd_text}}</bdi>
 	  <div id="editor-header" class="panel-section panel-section-header">
 		  <div class="text-section-header"> <script-name script="script" onlyval="true"></script-name> || 
 			  
@@ -42,9 +42,7 @@
 		  <pre id="code_area"> {{script.code}} </pre>
 		  
 	  </div>
-	  
-	<!-- <div id="code_container" class="panel-section"></div> -->
-	  
+	    
 	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()">
 		  
 		  <button ng-repeat="button in buttons.arr"
@@ -57,11 +55,8 @@
 			  {{button.text}}
 			  
 		  </button>
-	  
 	  </div>
 	  
-	  <script src="../deps/json/json-formatter.js"></script>
-	<!-- <script src="../../utils/deps/require.js"></script> -->
 	  <script src="editor.js"></script>
 	  
   </body>

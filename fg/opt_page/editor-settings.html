@@ -5,13 +5,13 @@
 		
 		<div style="margin-top: 25px;" ng-show="editor_active">
 
-			<table style="display:table">
+			<table style="display:table; width: 100%">
 				<thead>
 					<th ng-repeat="opt in opts track by opt.id"></th>
 				</thead>
 				<tbody style="display: table-row-group;">
 					<tr>
-						<td ng-repeat="opt in opts track by opt.id" ng-style="$index ? {} : {'width': '15%'}">
+						<td ng-repeat="opt in opts track by opt.id" ng-style="$index ? {} : {'width': '15%'}" class="browser-style">
 							
 							<label for="{{opt.id}}" class="browser-style" style="margin-left: 25px;width: 100;display: inline-block">
 								
@@ -23,7 +23,7 @@
 									ng-if="'select' != opt.type"
 									type="{{opt.type}}"
 									ng-model="opt.value"
-									ng-change="opt.change(opt)">
+									ng-change="opt.change(opt)"/>
 								
 								<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
 								

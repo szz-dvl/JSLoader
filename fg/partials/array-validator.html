@@ -1,8 +1,0 @@
-<div class="autocomplete">
-  <input class="browser-style" type="text" ng-model="text" ng-change="typing()"></input> 
-  <ul ng-show="active" class="autocomplete-list">
-	<li ng-repeat="candidate in candidates" ng-class="{selected: candidate.selected}">
-	  {{ candidate.data }}
-	</li>
-  </ul>
-</div>

@@ -5,10 +5,8 @@
   - Extend subdomain functionalities (*: before & after)
   
 - Big fails:
-  - Something is registering rules!
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
-  - startsWith =====> "/" !!!
   - PA ====> show matching site when group includes scripts??
     
 - To be tested:
@@ -20,7 +18,8 @@
   - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ?
   - Proxys ===> test new PAC completely.
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
-  
+  - startsWith =====> "/" !!!
+	
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
   		  * Permissions controlled by user ==> how?

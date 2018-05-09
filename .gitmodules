@@ -1,3 +1,6 @@
 [submodule "utils/deps/EventEmitter"]
 	path = utils/deps/EventEmitter
 	url = https://github.com/Olical/EventEmitter.git
+[submodule "fg/deps/ace"]
+	path = fg/deps/ace
+	url = https://github.com/ajaxorg/ace-builds.git

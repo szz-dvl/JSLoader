@@ -24,7 +24,7 @@ function OptionMgr (bg) {
 		
 		new_options => {
 			
-			Options.call(self, new_options);
+			Options.call(self, new_options || {});
 			
 			self.bg.app_events.emit('options-ready');
 		}

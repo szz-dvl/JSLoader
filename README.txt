@@ -3,7 +3,9 @@
 
   - Pending from refactor:
 		* Modify db connector replace_one ==> update_one.
-		
+
+  - Extensions seems to be sharing storage key names!!
+  
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.

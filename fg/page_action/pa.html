@@ -32,25 +32,31 @@
 			  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin-top: 15px;"></dd-title>
 			  
 			  <div ng-show="scripts_active" style="margin-left: 15px;">
-			  
-				  <div ng-if="info.site[0].scripts.length">
-					  <div ui-view="site"></div>
+
+				  <div ng-if="user_info">
+
+					  <div ng-if="info.site[0].scripts.length">
+						  <div ui-view="site"></div>
+					  </div>
+				  
+					  <div ng-if="info.subdomains.length">
+						  <div ui-view="subdomains"></div>
+					  </div>
+				  
+					  <div ng-if="info.groups.length">
+						  <div ui-view="groups"></div>
+					  </div>
+					  
 				  </div>
 				  
-				  <div ng-if="info.subdomains.length">
-					  <div ui-view="subdomains"></div>
-				  </div>
-				  
-				  <div ng-if="info.groups.length">
-					  <div ui-view="groups"></div>
-				  </div>
+				  <no-info ng-if="!user_info"></no-info>
 				  
 				  <div class="bottom-bucket" style="text-align: center; margin: 0;">
 					  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>
 				  </div>
 			  
 			  </div>
-
+			  
 		  </div>
 	  </div>
 

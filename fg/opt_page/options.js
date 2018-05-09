@@ -365,7 +365,7 @@ function OP (bg) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-
+			
 			if (!page.option_mgr.events)
 				page.option_mgr.events = new EventEmitter();
 			

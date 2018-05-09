@@ -1,49 +1,39 @@
 - In-progress:
-  - Virtual Resources. 
-
-  - Pending from refactor:
-		* Modify db connector replace_one ==> update_one.
-
+  - Virtual Resources.
+  
   - Extensions seems to be sharing storage key names!!
+  - Extend subdomain functionalities (*: before & after)
   
 - Big fails:
   - Something is registering rules!
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
-  - Feature to duplicate scripts may be worthy (in jupiter) .. ¬¬'.
   - startsWith =====> "/" !!!
   - PA ====> show matching site when group includes scripts??
-  
-- Unavailable?
-  - Use console editor (devtools/sourceeditor/editor) in foreground pages ? 
-  - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
-  
+    
 - To be tested:
-  - Rules service from conetent script.
-  - Rules gral.
-  - Import/Export features.
-  - Data origin ====> support for MongoDB only.
-  - Group OwnerOf =====> Redesigned matching pattern.
-  - DB Managing ===> Unitary inserts / updates.
-  - Import Button / Disable Everywhere button text. .... ¬¬'
-  - Existing tabs are recreated when opening URLs from listener.
-  - POSTS request do not show data on tab listener. ====> Rules preference when several policies are applied in one rule or several rules match against a req. 
+  - Import/Export features. **
+  - Data origin ====> support for MongoDB only. **
+  - DB Managing ===> Unitary inserts / updates. ** (Modify db connector replace_one ==> update_one.)
+  - Group OwnerOf =====> Redesigned matching pattern. *
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
-  - Logs not registered when errored scripts are opened, notifications won't show. ===> Moved to BlueBird Promises in content script side.
-  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ? [ ¡¡ Alert: images won't load properly at page action !! ]
-  - Modified connection strings are not persisted ===> Strange behavior sometimes.
+  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ?
   - Proxys ===> test new PAC completely.
-  - Editor ===> minor testing, style floatting buttons.
+  - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   
 - Caveats: /* !!! */
-  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ]
+  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
   		  * Permissions controlled by user ==> how?
 		  * Limit third party domains for each site ==> how?
 		  * Possible conflicts between scripts ?? ... =S ...
 
   - Virtual resources: Allow user to store resources to be used from scripts.
   		  * createObjectURL + web_accessible_resources
-		  
+- Issues:
+  - Computed "src" attributes won't display in extension pages (Any workarround)
+  - Blank windows. Resize needed to render.
+  - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
+  
 - Finally:
   - Style everything up!
   		  * Inform user of unpersisted data on views.
@@ -55,5 +45,3 @@
   - Initial examples for each info recipient.
   - Prevent context menu on extension windows ??? 
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
- 
-  - Must dead scripts be garbage collected?? =S... (Option to run several scripts in one URL in standalone mode, without sharing namespace)

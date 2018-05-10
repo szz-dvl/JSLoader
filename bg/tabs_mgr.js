@@ -76,11 +76,10 @@ function TabsMgr (bg) {
 					.then(
 						tab_info => {
 							
-							resolve(new URL(tab_info[0].url).sort());
+							resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
 
 						}, reject);
-			}
-		);
+			});
 	};
 
 	this.openOrCreateTab = function (url) {

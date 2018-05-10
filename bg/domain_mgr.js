@@ -7,13 +7,13 @@ function DomainMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	this.domains = []; /* Index */
+	this.disabled_domains = [];
 	
 	this.storage.__getDomains(
 		new_domains => {
 			
-			if (new_domains)
-				self.domains = new_domains;
-			
+			this.domains = new_domains.info;
+			this.disabled_domains = new_domains.disabled;
 		}
 	);
 	
@@ -36,6 +36,23 @@ function DomainMgr (bg) {
 		);
 	};
 
+	/* To arrow funcs: */
+	this.__isDisabled = hostname => {
+
+		return this.disabled_domains.includes(hostname);
+		
+	};
+	
+	this.toggleDisableFor = domain_name => {
+
+		if (this.disabled_domains.includes(domain_name))
+			this.disabled_domains.remove(this.disabled_domains.indexOf(domain_name));
+		else
+			this.disabled_domains.push(domain_name);
+		
+		this.storage.setDisabledDomains(self.disabled_domains);
+	};
+	
 	this.__getRepresentedBy = function (hostname) {
 
 		return new Promise (
@@ -126,56 +143,64 @@ function DomainMgr (bg) {
 						let scripts = [];
 						let sites = [];
 						let site = null;
-						
-						if (domain) {
-							
-							/* Domain & Site scripts */
-							scripts.push.apply(scripts,
-								domain.scripts);
-							
-							groups.push.apply(groups,
-								domain.groups);
-							
-							let path = "/";
-							for (let endpoint of url.pathname.split("/").slice(1)) {
+						let domain_disabled = false;
 
-								path += endpoint;
-								site = domain.haveSite(path);
+						if (!self.__isDisabled(url.hostname)) {
+
+							if (domain) {
+																
+								/* Domain & Site scripts */
+								scripts.push.apply(scripts,
+									domain.scripts);
 								
-								if (site)
-									sites.push(site);
-
-								path += "/";	
-							}
-							
-							if (sites.length) {
-
-								for (site of sites) {
-
-									scripts.push.apply(scripts,
-										site.scripts);
+								groups.push.apply(groups,
+									domain.groups);
+								
+								let path = "/";
+								for (let endpoint of url.pathname.split("/").slice(1)) {
 									
-									groups.push.apply(groups,
-										site.groups);
+									path += endpoint;
+									site = domain.haveSite(path);
+									
+									if (site)
+										sites.push(site);
+
+									path += "/";	
+								}
+								
+								if (sites.length) {
+
+									for (site of sites) {
+
+										scripts.push.apply(scripts,
+											site.scripts);
+										
+										groups.push.apply(groups,
+											site.groups);
+									}
 								}
 							}
-						}
+							
+							/* Group & Subdomain scripts */
+							self.__getAggregatedScripts(groups.unique(), url.hostname)
+								.then(group_scripts => {
+									
+									scripts.push.apply(scripts,
+										group_scripts.filter(
+											script => {
+												return !script.disabledAt(url.name()); 
+											}
+										)
+									);
+									
+									resolve(scripts);
+									
+								}, reject);
 
-						/* Group & Subdomain scripts */
-						self.__getAggregatedScripts(groups.unique(), url.hostname)
-							.then(group_scripts => {
-								
-								scripts.push.apply(scripts,
-									group_scripts.filter(
-										script => {
-											return !script.disabledAt(url.name()); 
-										}
-									)
-								);
-								
-								resolve(scripts);
-								
-							}, reject);
+						} else {
+
+							resolve([]);	
+						}
 						
 					}, url.hostname);
 			});
@@ -196,10 +221,15 @@ function DomainMgr (bg) {
 							
 							site: [], 
 							subdomains: [],
-							groups: []
+							groups: [],
+							disabled: self.__isDisabled(url.hostname),
+							exists: false
+							
 						};		
 						
 						if (domain) {
+
+							editInfo.exists = true;
 							
 							if (domain.scripts.length)
 								editInfo.site.push({ name: "/", scripts: domain.scripts });

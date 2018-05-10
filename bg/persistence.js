@@ -41,12 +41,15 @@ function Storage () {
 	/* Domains: */
 	this.__getDomains = function (cb) {
 		
-		self.__get(arr => {
+		self.__get(info => {
 
-			cb(arr || []);
+			self.__get(disabled => {
+				
+				cb( { info: info || [], disabled: disabled || [] } );
 
+			}, 'disabled-domains');
+			
 		}, 'domains');
-
 	};
 
 	this.__setDomains = function (val) {
@@ -126,6 +129,12 @@ function Storage () {
 		}
 	};
 
+	this.setDisabledDomains = function (array) {
+		
+		return self.__set('disabled-domains', array);
+		
+	};
+	
 	/* Options: */
 	this.getOptions = function (cb) {
 		

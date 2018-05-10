@@ -1,17 +1,19 @@
 - In-progress:
-  - PA: Add disable button for domain.
+  - Watchers for opt page (database, eventual new data)
+  - Move everything in data_model && friends to arrow functions, (keep "this" reference for all the object).
   - Virtual Resources.
   - Extensions seems to be sharing storage key names!!
-  - Extend subdomain functionalities (*: before & after)
+  - Extend subdomain functionalities (*: before & after [Regex to validate])
   - Ace errors not being shown on gutter line, detected by editor however.
   - Scripts will run even when shown tab is not included in the script matching set if triggered from shortcut.
-  - Watchers for opt page (database, eventual new data)
+  
   
 - Big fails:
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
   - PA ====> show matching site when group includes scripts??
-    
+  - Remove group relations when removing domains!
+  
 - To be tested:
   - Import/Export features. **
   - Data origin ====> support for MongoDB only. **

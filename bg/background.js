@@ -18,28 +18,22 @@ function BG_mgr () {
 		
 		return new Promise (
 			(resolve, reject) => {
-
-				browser.tabs.query({currentWindow: true, active: true})
-					.then(tab_info => {
-						
-						self.tabs_mgr.getCurrentURL()
-							.then(url => {
-								
-								self.domain_mgr.getEditInfoForUrl(url)
-									.then(
-										nfo => {
-
-											nfo.url = url.href;
-											nfo.tabId = tab_info[0].id;
-											resolve(nfo);
-											
-										}, reject);
-								
-							});
-					});
-
-			});
 				
+				self.tabs_mgr.getCurrentURL()
+					.then(tabnfo => {
+						
+						self.domain_mgr.getEditInfoForUrl(tabnfo.url)
+							.then(
+								nfo => {
+									
+									nfo.url = tabnfo.url.href;
+									nfo.tabId = tabnfo.tab;
+									
+									resolve(nfo);
+									
+								}, reject);
+					});
+			});	
 	};
 	
 	this.showEditorForCurrentTab = function () {

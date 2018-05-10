@@ -457,47 +457,47 @@ function CSMgr (bg) {
 							
 							switch (args.action) {
 
-							case "get-info":
-								{
+								case "get-info":
+									{
+										
+										self.alive.push(new CS(port));
+										port.postMessage({action: "info", message: self.defs });
+										
+									}
 									
-									self.alive.push(new CS(port));
-									port.postMessage({action: "info", message: self.defs });
-
-								}
-								
-								break;
-								
-							case "get-jobs":
-								{
-
-									let url = new URL(args.message.url).sort();
+									break;
 									
-									self.bg.domain_mgr.getScriptsForUrl(url)
-										.then(
-											scripts => {
-												
-												port.postMessage({action: "run",
-													response: "update-history",
-													message: (scripts || [])
-														.filter(
-															script => {
-																
-																return !script.disabled;
-																
-															}
-														)
-														.map(
-															script => {
-																
-																return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
-																
-															}
-														)
-												});
-												
-											}
-										);
-								}
+								case "get-jobs":
+									{
+										
+										let url = new URL(args.message.url).sort();
+										
+										self.bg.domain_mgr.getScriptsForUrl(url)
+											.then(
+												scripts => {
+													
+													if (scripts.length) {
+														
+														port.postMessage({action: "run",
+															response: "update-history",
+															message: scripts.filter(
+																script => {
+																	
+																	return !script.disabled;
+																	
+																}
+															).map(
+																script => {
+																	
+																	return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+																	
+																}
+															)
+														});
+													}
+												}
+											);
+									}
 									
 									break;
 								case "update-history":
@@ -523,7 +523,7 @@ function CSMgr (bg) {
 								case "notify":
 									self.bg.notify_mgr.user(args.message.title, args.message.body);
 									break;
-								
+									
 								case "event":
 									{
 										self.alive.map(
@@ -564,7 +564,7 @@ function CSMgr (bg) {
 					
 					port.onDisconnect.addListener(
 						port => {
-
+							
 							/* Check for error */
 							self.alive.remove(
 								self.alive.findIndex(

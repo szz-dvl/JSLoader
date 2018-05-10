@@ -56,14 +56,29 @@ function PA (bg, info) {
 	this.app.controller('siteController', function ($scope, $timeout, $state, $stateParams) {
 		
 		$scope.page = self;
-		$scope.page.list_mgr = $scope;
 		$scope.info = self.info;
-		$scope.hostname = new URL($scope.info.url).hostname;
-		$scope.groups = $scope.page.bg.group_mgr.groups;
 		
+		$scope.page.list_mgr = $scope;
+		$scope.hostname = new URL(self.info.url).hostname;
+		$scope.groups = self.bg.group_mgr.groups;
+		$scope.disabled = self.info.disabled;
 		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
-		
 		$scope.scrips_active = self.pa_state.script_list;
+
+		$scope.disableSite = () => {
+
+			$scope.disabled = !$scope.disabled;
+			self.bg.domain_mgr.toggleDisableFor($scope.hostname);
+			
+			$scope.onSizeChange();
+		}
+
+		$scope.removeSite = () => {
+
+			/* Are U sure? */
+			self.bg.domain_mgr.removeItem($scope.hostname)
+				.then($scope.updateData, console.error);
+		}
 		
 		$scope.updateData = function () {
 
@@ -74,7 +89,7 @@ function PA (bg, info) {
 						.then(
 							info => {
 								
-								$scope.page.info = $scope.info = info;
+								$scope.info = self.info = info;
 								$scope.user_info = (info.site.length + info.subdomains.length + info.groups.length) != 0;
 
 								self.removeObsolete(info);
@@ -114,7 +129,7 @@ function PA (bg, info) {
 						450
 						
 					);
-
+					
 					if (height == 450)
 						$("#pa-content").css("overflow-y", "scroll");
 					else
@@ -372,7 +387,7 @@ function PA (bg, info) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
-			page.getPASite() /* To provider! */
+			page.getPASite()
 				.then(
 					info => {
 						

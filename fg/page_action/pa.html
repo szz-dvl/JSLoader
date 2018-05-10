@@ -22,22 +22,26 @@
   
   <body ng-controller="siteController" spellcheck="false" ng-cloak>
 	  
-	  <div id="pa-header" class="panel-section panel-section-header">
-		  <div class="text-section-header">JSLoader at {{ hostname }}</div>
+	  <div id="pa-header" class="panel-section panel-section-header" style="display: inline-block">
+
+		  <div class="text-section-header" style="width:80%; display: inline-block">JSLoader at {{ hostname }} </div>
+		  <button style="float: right;margin-left: 10px" class="browser-style" ng-click="disableSite()"> {{ disabled ? "Enable" : "Disable" }} </button>
+		  <button ng-if="info.exists" style="float: right;" class="browser-style" ng-click="removeSite()"> Remove </button>
+		  
 	  </div>
 
-	  <div id="pa-content">
+	  <div id="pa-content" ng-show="!disabled">
 		  
 		  <div class="panel-section">
 			  <div id="scripts-content" style="width: 100%;text-align: center;">
 				  
 				  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin: 15px;"></dd-title>
 				  
-				  <div ng-show="scripts_active">
+				  <div ng-if="scripts_active">
 
 					  <div ng-if="user_info" style="margin-left: 15px;">
 
-						  <div ng-if="info.site[0].scripts.length">
+						  <div ng-if="info.site.length">
 							  <div ui-view="site"></div>
 						  </div>
 						  

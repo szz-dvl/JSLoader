@@ -20,49 +20,51 @@
 	  
   </head>
   
-  <body ng-controller="siteController" ui-sref="pa-site" spellcheck="false" ng-cloak>
+  <body ng-controller="siteController" spellcheck="false" ng-cloak>
 	  
-	  <div class="panel-section panel-section-header">
+	  <div id="pa-header" class="panel-section panel-section-header">
 		  <div class="text-section-header">JSLoader at {{ hostname }}</div>
 	  </div>
-	  
-	  <div class="panel-section">
-		  <div style="width: 100%;">
-			  
-			  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin-top: 15px;"></dd-title>
-			  
-			  <div ng-show="scripts_active" style="margin-left: 15px;">
 
-				  <div ng-if="user_info">
+	  <div id="pa-content">
+		  
+		  <div class="panel-section">
+			  <div id="scripts-content" style="width: 100%;text-align: center;">
+				  
+				  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin: 15px;"></dd-title>
+				  
+				  <div ng-show="scripts_active">
 
-					  <div ng-if="info.site[0].scripts.length">
-						  <div ui-view="site"></div>
+					  <div ng-if="user_info" style="margin-left: 15px;">
+
+						  <div ng-if="info.site[0].scripts.length">
+							  <div ui-view="site"></div>
+						  </div>
+						  
+						  <div ng-if="info.subdomains.length">
+							  <div ui-view="subdomains"></div>
+						  </div>
+						  
+						  <div ng-if="info.groups.length">
+							  <div ui-view="groups"></div>
+						  </div>
+						  
 					  </div>
-				  
-					  <div ng-if="info.subdomains.length">
-						  <div ui-view="subdomains"></div>
-					  </div>
-				  
-					  <div ng-if="info.groups.length">
-						  <div ui-view="groups"></div>
+					  
+					  <no-info ng-if="!user_info"></no-info>
+					  
+					  <div class="bottom-bucket" style="text-align: center; margin: 0">
+						  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>
 					  </div>
 					  
 				  </div>
 				  
-				  <no-info ng-if="!user_info"></no-info>
-				  
-				  <div class="bottom-bucket" style="text-align: center; margin: 0;">
-					  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>
-				  </div>
-			  
 			  </div>
-			  
 		  </div>
-	  </div>
 
-	  <div ui-view="group_mgr"></div>
-	  
-	  <!-- <div ui-view="rules"></div> -->
+		  <div ui-view="group_mgr"></div>
+		  
+	  </div>
 
 	  <script src="pa.js"></script>
 	  

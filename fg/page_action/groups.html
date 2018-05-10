@@ -1,12 +1,12 @@
 <div class="panel-section">
 
-	<div style="width: 100%;">
+	<div style="width: 100%;" id="groups-content">
 		
-		<dd-title val="'groups_active'" text="'Groups'"></dd-title>
+		<dd-title val="'groups_active'" text="'Groups'" style="margin: 15px;"></dd-title>
 		
 		<div style="display: inline-block; width: 100%; margin-top: 30px;" ng-show="groups_active" ng-if="groups.length">
 			
-			<form style="margin-top: 20px;margin-bottom: 70px;" ng-submit="addSite()" ng-show="groups.length">
+			<form style="margin-bottom: 20px;margin-right: 20px;margin-left: 25px" ng-submit="addSite()" ng-show="groups.length">
 				
 				<label class="input" style="min-width: 60%; padding-left: 10px;">
 					
@@ -14,7 +14,7 @@
 					
 				</label>
 				
-				<div style="float: right; padding-right: 70px;">
+				<div style="float: right;">
 					
 					<label class="input">
 						

@@ -1,17 +1,12 @@
 html, body {
 	
-	width: 850px !important;
-	height: 450px !important;
-	/* overflow: visible !important; */
-	overflow-x: hidden !important;
+	width: 800px;
+	overflow: hidden !important;
 }
 
-#content {
-	width: 100%;
-	height: 100%;
-	display: block !important;
-	/* text-align: centre; */
-	/* position: fixed !important; */
+#pa-content {
+
+	overflow-x: hidden;
 }
 
 

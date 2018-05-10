@@ -1,6 +1,6 @@
 - In-progress:
+  - PA preserve view state between data reloads (stateParams).
   - Virtual Resources.
-  
   - Extensions seems to be sharing storage key names!!
   - Extend subdomain functionalities (*: before & after)
   

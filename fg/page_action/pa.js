@@ -56,16 +56,46 @@ function PA (bg, info) {
 							}
 						);
 				});
-		}	
+		}
+		
+		$scope.onSizeChange = function () {
+
+			if ($scope.sizeID)
+				$timeout.cancel($scope.sizeID);
+
+			$scope.sizeID = $timeout(
+				() => {
+
+					let height = Math.min(
+						
+						($("#scripts-content").outerHeight() + $("#groups-content").outerHeight() + $("#pa-header").outerHeight()),
+						450
+						
+					);
+
+					if (height == 450)
+						$("#pa-content").css("overflow-y", "scroll");
+					else
+						$("#pa-content").css("overflow-y", "hidden");
+					
+					$("body").css("height", height + "px");
+					
+				}, 20);
+		}
+
+		$scope.$watch(() => { return $scope.scripts_active }, $scope.onSizeChange);
+		
 	});
 
-	this.listController = function (key) {
+	this.listController = function (key, scope) {
 		
 		return self.info[key].map(
 			item => {
 
 				/* Preserve state between reloads, @stateParams */
 				item.visible = false;
+
+				scope.$watch(() => { return item.visible }, scope.onSizeChange);
 				
 				return item;
 			}
@@ -117,7 +147,8 @@ function PA (bg, info) {
 							}
 							
 							$scope.key = "resource";
-							$scope.data = self.listController("site");
+							$scope.data = self.listController("site", $scope);
+							
 						}
 					},
 					
@@ -132,7 +163,7 @@ function PA (bg, info) {
 							}
 							
 							$scope.key = "group";
-							$scope.data = self.listController('groups');
+							$scope.data = self.listController('groups', $scope);
 							
 						}
 					},
@@ -147,7 +178,7 @@ function PA (bg, info) {
 							}
 							
 							$scope.key = "subdomain";
-							$scope.data = self.listController("subdomains");
+							$scope.data = self.listController("subdomains", $scope);
 
 						}
 					},
@@ -167,6 +198,8 @@ function PA (bg, info) {
 							$scope.action;
 							
 							$scope.groups_active = false;
+
+							$scope.$watch(() => { return $scope.groups_active }, $scope.onSizeChange);
 							
 							$scope.setAction = function () {
 								

@@ -1,10 +1,11 @@
 - In-progress:
-  - PA preserve view state between data reloads (stateParams).
+  - PA: Add disable button for domain.
   - Virtual Resources.
   - Extensions seems to be sharing storage key names!!
   - Extend subdomain functionalities (*: before & after)
   - Ace errors not being shown on gutter line, detected by editor however.
   - Scripts will run even when shown tab is not included in the script matching set if triggered from shortcut.
+  - Watchers for opt page (database, eventual new data)
   
 - Big fails:
   - Cascade removes fails at some point.

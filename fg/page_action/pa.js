@@ -9,6 +9,48 @@ function PA (bg, info) {
 	this.tabId = info.tabId;
 	this.url = new URL(this.info.url).name();
 
+	this.pa_state = {
+
+		script_list: false,
+		group_mgr: false,
+		current_group: self.bg.group_mgr.groups[0],
+		lists: {
+			
+			groups: info.groups.map(group => { return { name: group.name, state: false }; }),
+			site: info.site.map(resource => { return { name: resource.name, state: false }; }),
+			subdomains: info.subdomains.map(subdomain => { return { name: subdomain.name, state: false }; })
+		}
+	};
+
+	this.removeObsolete = function (info) {
+		
+		for (let key of Object.keys(self.pa_state.lists)) {
+			
+			for (let state of self.pa_state.lists[key]) {
+			
+				let found_item = info[key]
+					.find(
+						item => {
+							
+							return item.name == state.name;
+							
+						}
+					);
+
+				if (!found_item) {
+
+					self.pa_state.lists[key].remove(
+						self.pa_state.lists[key].findIndex(
+							old_state => {
+								return old_state.name == state.name;
+							}
+						)
+					);
+				}
+			}
+		}
+	};
+	
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
 	this.app.controller('siteController', function ($scope, $timeout, $state, $stateParams) {
@@ -17,12 +59,13 @@ function PA (bg, info) {
 		$scope.page.list_mgr = $scope;
 		$scope.info = self.info;
 		$scope.hostname = new URL($scope.info.url).hostname;
+		$scope.groups = $scope.page.bg.group_mgr.groups;
 		
 		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		
-		$scope.scrips_active = false;
+		$scope.scrips_active = self.pa_state.script_list;
 		
-		$scope.updateData = function (currentGroup) {
+		$scope.updateData = function () {
 
 			return new Promise(
 				(resolve, reject) => {
@@ -33,13 +76,9 @@ function PA (bg, info) {
 								
 								$scope.page.info = $scope.info = info;
 								$scope.user_info = (info.site.length + info.subdomains.length + info.groups.length) != 0;
-								
-								$state.transitionTo($state.current, {"#": currentGroup || null}, { 
-									
-									reload: true, inherit: false, notify: false 
-									
-								});
-								
+
+								self.removeObsolete(info);
+
 								browser.pageAction.setIcon(
 									{
 										path: {
@@ -52,9 +91,12 @@ function PA (bg, info) {
 									}
 								);
 								
-								resolve();
-							}
-						);
+								$state.transitionTo($state.current, { "state": self.pa_state }, { 
+									
+									reload: true, inherit: false, notify: false 
+									
+								}).then(resolve, reject);
+							});
 				});
 		}
 		
@@ -81,21 +123,54 @@ function PA (bg, info) {
 					$("body").css("height", height + "px");
 					
 				}, 20);
+
+			return $scope.sizeID;
 		}
 
-		$scope.$watch(() => { return $scope.scripts_active }, $scope.onSizeChange);
+		$scope.$watch(() => { return $scope.scripts_active },
+			nval => {
+
+				$scope.onSizeChange();
+				self.pa_state.script_list = nval;
+				
+			}
+		);
 		
 	});
 
-	this.listController = function (key, scope) {
+	this.listController = function (key, scope, state) {
 		
 		return self.info[key].map(
 			item => {
+				
+				let gotState = state.lists[key].find(
+					item_state => {
+						
+						return item_state.name == item.name; 
+					}
+				 );
+				
+				item.visible = gotState ? gotState.state : false;
 
-				/* Preserve state between reloads, @stateParams */
-				item.visible = false;
+				if (!gotState)
+					self.pa_state.lists[key].push({ name: item.name, state: false });
+				
+				scope.$watch(() => { return item.visible },
+					nval => {
 
-				scope.$watch(() => { return item.visible }, scope.onSizeChange);
+						scope.onSizeChange();
+						
+						let idx = self.pa_state.lists[key].findIndex(
+							item_state => {
+								
+								return item_state.name == item.name;
+								
+							}
+						);
+						
+						self.pa_state.lists[key][idx].state = nval;
+					}
+				);
 				
 				return item;
 			}
@@ -134,20 +209,22 @@ function PA (bg, info) {
 		$stateProvider => {
 			
 			$stateProvider.state('pa-site', {
-
+				params: {
+					state: null
+				},
 				views: {
 					
 					'site': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile) {
+						controller: function ($scope, $compile, $stateParams) {
 
 							$scope.reloadScript = function (scr) {
 								self.reload(scr, $compile, $scope);
 							}
 							
 							$scope.key = "resource";
-							$scope.data = self.listController("site", $scope);
+							$scope.data = self.listController("site", $scope, $stateParams.state);
 							
 						}
 					},
@@ -155,7 +232,7 @@ function PA (bg, info) {
 					'groups': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile) {
+						controller: function ($scope, $compile, $stateParams) {
 
 							
 							$scope.reloadScript = function (scr) {
@@ -163,7 +240,7 @@ function PA (bg, info) {
 							}
 							
 							$scope.key = "group";
-							$scope.data = self.listController('groups', $scope);
+							$scope.data = self.listController('groups', $scope, $stateParams.state);
 							
 						}
 					},
@@ -171,14 +248,14 @@ function PA (bg, info) {
 					'subdomains': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile) {
+						controller: function ($scope, $compile, $stateParams) {
 
 							$scope.reloadScript = function (scr) {
 								self.reload(scr, $compile, $scope);
 							}
 							
 							$scope.key = "subdomain";
-							$scope.data = self.listController("subdomains", $scope);
+							$scope.data = self.listController("subdomains", $scope, $stateParams.state);
 
 						}
 					},
@@ -186,20 +263,36 @@ function PA (bg, info) {
 					'group_mgr': {
 
 						templateUrl: 'groups.html',
-						controller: function ($scope, $timeout, $stateParams) {
+						controller: function ($scope, $timeout, $stateParams, $location, $anchorScroll) {
 							
-							$scope.groups = $scope.page.bg.group_mgr.groups;
-							
-							$scope.current = $stateParams["#"] ? $stateParams["#"] : $scope.groups[0];
+							$scope.current = $stateParams.state.current_group;
+							$scope.groups_active = $stateParams.state.group_mgr;
 							
 							$scope.url = $scope.page.url;
-							
 							$scope.events = new EventEmitter();
+							
 							$scope.action;
 							
-							$scope.groups_active = false;
+							$scope.$watch(() => { return $scope.groups_active },
+								nval => {
 
-							$scope.$watch(() => { return $scope.groups_active }, $scope.onSizeChange);
+									$scope.onSizeChange()
+										.then(
+											() => {
+
+												if (nval) {
+
+													$location.hash('button-bottom');
+													$anchorScroll();
+													
+												}
+											}
+										);
+									
+									self.pa_state.group_mgr = nval;
+									
+								}
+							);
 							
 							$scope.setAction = function () {
 								
@@ -221,7 +314,7 @@ function PA (bg, info) {
 							$scope.selectChange = function () {
 
 								/* Not working, to be observed. */
-								$scope.current = $("#group_select").val().split(":")[1];
+								self.pa_state.current_group = $scope.current = $("#group_select").val().split(":")[1];
 								
 								$scope.setAction();
 							};
@@ -229,10 +322,9 @@ function PA (bg, info) {
 							$scope.events
 								.on('validation_start',
 									pending => {
-										
-										console.log("Validation start: " + pending);
-										
-										$("#submit_btn").attr("disabled", true);
+
+										$scope.validation_in_progress = true;
+										$scope.$digest();
 										
 									})
 								
@@ -240,11 +332,8 @@ function PA (bg, info) {
 									validated => {
 										
 										$scope.url = validated;
+										$scope.validation_in_progress = false;
 										$scope.setAction();
-
-										console.log("Validated url: " + validated);
-										
-										$("#submit_btn").removeAttr("disabled");
 										
 									});
 							
@@ -254,7 +343,7 @@ function PA (bg, info) {
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
-								promise.then(() => { $scope.page.list_mgr.updateData($scope.current) });			
+								promise.then($scope.page.list_mgr.updateData);			
 							};
 							
 							$timeout(
@@ -270,7 +359,7 @@ function PA (bg, info) {
 			});
 		});
 	
-	this.app.run($state => { $state.go('pa-site') });
+	this.app.run($state => { $state.go('pa-site', { state: self.pa_state }) });
 	
 	angular.element(document).ready(
 		() => {

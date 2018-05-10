@@ -40,7 +40,7 @@
 								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
 									class="browser-style"
 									ng-click="pushItem(domain.name, 'domain')"
-									style="z-index:999;"> Push to DB <!-- writting permissions -->
+									style="z-index:999;"> Push to DB 
 								</button>
 								
 							</div>
@@ -69,7 +69,7 @@
 								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
 									class="browser-style"
 									ng-click="pushItem(group.name, 'group')"
-									style="z-index:999;"> Push to DB <!-- writting permissions -->
+									style="z-index:999;"> Push to DB 
 								</button>
 								
 							</div>
@@ -77,7 +77,7 @@
 					</tr>
 				</tbody>
 			</table>
-			<no-info ng-if="!domains.length && !groups.length"></no-info>
+			<no-info ng-if="!domains.length && !groups.length" style="padding-top: 6%;"></no-info>
 			<div style="text-align: center;margin-top: 25px;">
 				<label for="import_data"
 					<bdi> Import Data </bdi>

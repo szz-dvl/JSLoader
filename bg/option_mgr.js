@@ -63,13 +63,6 @@ function OptionMgr (bg) {
 		
 	};
 	
-	this.openPage = function() {
-		
-		self.events = new EventEmitter();
-		browser.runtime.openOptionsPage();
-		
-	};
-
 	this.editUserDefs = function () {
 		
 		self.storage.getUserDefs(

@@ -4,9 +4,9 @@
 		
 		<dd-title val="'groups_active'" text="'Groups'" style="margin: 15px;"></dd-title>
 		
-		<div style="display: inline-block; width: 100%; margin-top: 30px;" ng-show="groups_active" ng-if="groups.length">
+		<div style="display: inline-block; width: 100%; margin-top: 30px;" ng-show="groups_active">
 			
-			<form style="margin-bottom: 20px;margin-right: 20px;margin-left: 25px" ng-submit="addSite()" ng-show="groups.length">
+			<form style="margin-bottom: 20px;margin-right: 20px;margin-left: 25px" ng-submit="addSite()" ng-if="groups.length">
 				
 				<label class="input" style="min-width: 60%; padding-left: 10px;">
 					
@@ -23,13 +23,16 @@
 						
 					</label>
 					
-					<button class="browser-style" ng-click="addSite()"> {{action}} Site </button>
+					<button ng-disabled="validation_in_progress" class="browser-style" ng-click="addSite()"> {{action}} Site </button>
 				</div>
 			</form>	
 
-			<div class="bottom-bucket" style="text-align: center; margin: 0;">
+			<no-info ng-if="!user_info" text="'No Groups'" ng-if="!groups.length"></no-info>
+			
+			<div id="button-bottom" class="bottom-bucket" style="text-align: center; margin: 0;">
 				<button class="browser-style" ng-click="page.bg.showUnattachedEditor(null)"> Create Group </button>
 			</div>
 		</div>
+
 	</div>
 </div>

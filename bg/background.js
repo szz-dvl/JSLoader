@@ -87,7 +87,7 @@ function BG_mgr () {
 				
 			case "open-option-page-devel":
 			case "open-option-page":
-				self.option_mgr.openPage();
+				browser.runtime.openOptionsPage();
 				break;
 				
 			default:

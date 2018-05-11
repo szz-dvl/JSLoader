@@ -256,7 +256,7 @@ function OP (bg) {
 											$scope.data_origin.connected = self.bg.database_mgr.connected;
 											$scope.data_origin.writeable = self.bg.database_mgr.writeable;
 											$scope.data_origin.readable  = self.bg.database_mgr.readable;
-
+											
 										}
 										
 										$rootScope.$digest();

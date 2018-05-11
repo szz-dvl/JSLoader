@@ -321,23 +321,22 @@ function EditorFG (id, bg) {
 		$scope.page.events
 			.on('validation_start',
 				pending => {
-						
-					if (!$scope.buttons.disabled) {
-						
+
+					if (!$scope.buttons.disabled)	
 						$scope.disableButtons();
-						$scope.$digest();
-						
-					}
-						
+						//$scope.$digest();
+								
 				})
 			
 			.on('validation_ready',
-				validated => {
+				(validated, state) => {
 
-					$scope.url = validated;
 					
+					console.log("Validation for " + validated +  (state ? " succesfull." : " failed."));
+					
+					$scope.url = validated;
 					$scope.enableButtons();
-					$scope.$digest();
+					//$scope.$digest();
 					
 				});
 

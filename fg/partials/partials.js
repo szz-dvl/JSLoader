@@ -323,164 +323,83 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('siteValidator',
-			   () => {
+			   ($timeout) => {
 				   
 				   return {
 					   
 					   restrict: 'E',
-					   
+					   replace: true,
 					   scope: {
 						   
  						   url: "=url",
-						   ev: "=ev"
+						   events: "=?ev"
 						   
 					   },
 
-					   transclude: true,
+					   //transclude: true,
 
-					   template: '<bdi style="display: inline-flex; flex-shrink: 0;" contenteditable="true"> {{url}} </bdi>',
-					   
-					   link: function($scope, element) {
-						   
-						   element.on('input', $scope.validateSite);
-						   
-						   element.keypress(ev => { return ev.which != 13; });
-						   element.click(ev => { return false; });
-						   
-						   /* !!! Ctrl-C - Ctrl-V */
-					   },
-					   
+					   template: '<input class="browser-style" type="text" ng-model="url" ng-change="validateSite()"/>',
+					    
 					   controller: function ($scope) {
 
-						   try {
-
-							   $scope.backup = new URL('http://' + $scope.url).sort();
-
-						   } catch (e) {
-
-							   $scope.backup = $scope.url;
-						   }
+						   $scope.backup = $scope.url;
 						   
-						   $scope.isSubDomain = function (orig, modified) {
+						   $scope.validateSite = function () {
+							 
+							   if ($scope.events)
+								   $scope.events.emit("validation_start", $scope.url);
 							   
-							   if (orig.endsWith("/"))
-								   orig = orig.slice(0, -1);
+							   if ($scope.changeID)
+								   $timeout.cancel($scope.changeID);
 							   
-							   if (modified.endsWith("/"))
-								   modified = modified.slice(0, -1);
-							   
-							   var mod_arr = modified.split(".");
-							   var orig_arr = orig.split(".");
-							   
-							   var cursor_mod = mod_arr.length - 1;
-							   var cursor_orig = orig_arr.length - 1;
-							   
-							   while ( (mod_arr[cursor_mod] != "*") &&
-									   (mod_arr[cursor_mod] == orig_arr[cursor_orig])
-									 ) {
-								   
-								   cursor_mod --;
-								   cursor_orig --;	
-							   }
-							   
-							   return mod_arr[cursor_mod] == "*";
-						   };
+							   $scope.changeID = $timeout(
+								   () => {
 
-						   $scope.isSubSet = function (orig, modified) {
-							   
-							   if (orig.endsWith("/"))
-								   orig = orig.slice(0, -1);
+									   let ok = false;
+									   let hostname = $scope.url.split("/")[0].trim();
+									   let pathname = $scope.url.split("/").slice(1).join("/").trim();
 
-							   if (modified.endsWith("/"))
-								   modified = modified.slice(0, -1);
-							   
-							   var mod_arr = modified.split(".");
-							   var orig_arr = orig.split(".");
-							   
-							   var cursor_mod = mod_arr.length - 1;
-							   var cursor_orig = orig_arr.length - 1;
-							   
-							   while ((mod_arr[cursor_mod] == orig_arr[cursor_orig])) {
+									   /* Won't match "*" (must it?), Will match "*.NAME.NAME2.NAME3.{...}.NAMEN.*" */
+									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9]+|(\*)?)$/).exec(hostname);
+									   let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(pathname);
 
-								   cursor_mod --;
-								   cursor_orig --;	
-							   }
-							   
-							   return mod_arr[cursor_mod] == "*" || orig_arr[cursor_orig] == "*";
-						   };
-						   
-						   $scope.validateSite = function (ev) {
-							   
-							   $scope.url = $(ev.target).text().trim();
-							   
-							   if ($scope.ev)
-								   $scope.ev.emitEvent("validation_start", [$scope.url]);
-							   
-							   if($scope.changeID)
-								   clearTimeout($scope.changeID);
-							   
-							   $scope.changeID = setTimeout(
-								   ev => {
+									   let newhost = regexh ? regexh[0] : null;
+									   let newpath = regexp ? regexp[0] : null;
+
 									   
-									   try {
+									   if (newhost && (newpath || newpath == "")) {
 										   
-										   var temp = new URL("http://" + $scope.url);
-
-										   try {
+										   /* Reject "*.NAME.NAME2.NAME3.{...}.NAMEN.*" (must it?)*/
+										   if ((newhost[0] == newhost.slice(-1)) && (newhost[0] == "*"))
+											   $scope.url = $scope.backup;
+										   else  {
 											   
-											   if (temp.hostname != $scope.backup.hostname)
-												   $scope.url = $scope.backup.name();	
-											   else
-												   $scope.backup = temp;
-
-										   } catch (err) {
-											   
-											   /* String backup */
-											   
-											   if ($scope.isSubDomain(temp.hostname, $scope.backup))
-												   $scope.backup = temp; 
-											   else
-												   $scope.url = $scope.backup;
-											   
+											   $scope.url = $scope.backup = newhost + "/" + newpath;
+											   ok = true;
 										   }
 										   
-									   } catch (e) {
-
-										   if (e instanceof TypeError) {
-											   
-											   if (!$scope.url.startsWith("*.")) 
-												   $scope.url = $scope.backup.name();
-											   else {
-												   
-												   if ($scope.isSubDomain($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) {
-													   
-													   $scope.url = $scope.url.split("/")[0]; /* "All subdomains" shortcut ... */
-													   $scope.backup = $scope.url;
-													   
-												   } else {
-													   
-													   if ($scope.isSubSet($scope.backup.hostname || $scope.backup, $scope.url.split("/")[0])) 
-														   $scope.backup = $scope.url;
-													   else 
-														   $scope.url = typeof($scope.backup) == "string" ? $scope.backup : $scope.backup.name();
-												   }
-											   }
-										   }
-									   }	  
-
+									   } else {
+										   
+										   $scope.url = $scope.backup;
+										   
+									   }
+									   
 									   if ($scope.url.slice(-1) == "/")
 										   $scope.url = $scope.url.slice(0, -1);
-										   
-									   $(ev.target).text($scope.url);
+   
+									   return ok;
+									   
+								   }, 3000);
 
-									   if ($scope.ev)
-										   $scope.ev.emitEvent("validation_ready", [$scope.url]);
+							   $scope.changeID.then(
+								   state => {
 									   
-									   $scope.$digest();
+									   if ($scope.events)
+										   $scope.events.emit("validation_ready", $scope.url, state);
 									   
-								   }, 800, ev);
+								   }, ok => {}
+							   );
 						   };
-						   
 					   }
 				   }
 			   })

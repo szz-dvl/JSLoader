@@ -13,9 +13,7 @@ angular.module('jslPartials', [])
 				template: '<div class="noInfoContainer"> {{ text || "No Data" }} </div>'
 			}
 		})
-
 	
-
 	.directive('dropDown',
 		() => {
 			
@@ -258,65 +256,58 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('groupValidator',
-			   () => {
+			   ($timeout) => {
 				   
 				   return {
 					   
 					   restrict: 'E',
-					   
+					   replace: true,
 					   scope: {
 						   
  						   group: "=group",
-						   ev: "=ev"
+						   events: "=?ev"
 						   
 					   },
-
-					   transclude: true,
-
-					   template: '<bdi style="display: inline-flex; flex-shrink: 0;" contenteditable="true"> {{group}} </bdi>',
 					   
-					   link: function($scope, element) {
+					   template: '<input class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
 					   
-						   
-						   element.on('input', $scope.validateGroup);
-						   
-						   element.keypress(ev => { return ev.which != 13; });
-						   element.click(ev => { return false; });
-						   
-						   /* !!! Ctrl-C - Ctrl-V */
-					   },
-
 					   controller: function ($scope) {
 
 						   $scope.backup = $scope.group;
 						   
-						   $scope.validateGroup = function (ev) {
-	   
-							   $scope.group = $(ev.target).text().trim();
+						   $scope.validateGroup = function () {
 							   
 							   if ($scope.ev)
-								   $scope.ev.emitEvent("validation_start", [$scope.group]);
+								   $scope.ev.emit("validation_start", $scope.group);
 							   
 							   if($scope.changeID)
-								   clearTimeout($scope.changeID);
+								   $timeout.cancel($scope.changeID);
 							   
-							   $scope.changeID = setTimeout(
-								   ev => {
-
-									   /* Discard only dots [.] */
-									   if ($scope.group.match(/^[a-z0-9]+$/i))
+							   $scope.changeID = $timeout(
+								   () => {
+									   
+									   let ok = true;
+									   
+									   if ($scope.group.includes("."))
+										   $scope.group = $scope.backup;	   
+									   else {
+										   
+										   ok = false;
 										   $scope.backup = $scope.group;
-									   else
-										   $scope.group = $scope.backup;
+									   }
 									   
-									   $(ev.target).text($scope.group);
+									   return ok;
+									   
+								   }, 3000);
 
-									   if ($scope.ev)
-										   $scope.ev.emitEvent("validation_ready", [$scope.group]);
+							   $scope.changeID.then(
+								   state => {
 									   
-									   $scope.$digest();
+									   if ($scope.events)
+										   $scope.events.emit("validation_ready", $scope.group, state);
 									   
-								   }, 800, ev);
+								   }, ok => {}
+							   )
 						   }
 					   }
 				   }
@@ -335,8 +326,6 @@ angular.module('jslPartials', [])
 						   events: "=?ev"
 						   
 					   },
-
-					   //transclude: true,
 
 					   template: '<input class="browser-style" type="text" ng-model="url" ng-change="validateSite()"/>',
 					    
@@ -368,15 +357,9 @@ angular.module('jslPartials', [])
 
 									   
 									   if (newhost && (newpath || newpath == "")) {
-										   
-										   /* Reject "*.NAME.NAME2.NAME3.{...}.NAMEN.*" (must it?)*/
-										   if ((newhost[0] == newhost.slice(-1)) && (newhost[0] == "*"))
-											   $scope.url = $scope.backup;
-										   else  {
-											   
-											   $scope.url = $scope.backup = newhost + "/" + newpath;
-											   ok = true;
-										   }
+										   	   
+										   $scope.url = $scope.backup = newhost + "/" + newpath;
+										   ok = true;
 										   
 									   } else {
 										   

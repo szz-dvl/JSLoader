@@ -20,9 +20,9 @@ function DomainMgr (bg) {
 		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
 		
 		return string.match(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/);
-
+		
 	};
-
+	
 	this.__getSubdomains = () => {
 		
 		return this.domains.filter(
@@ -55,35 +55,50 @@ function DomainMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				let subdomains = [];
+				let domains = [];
+				let names = [];
 				
-				/* SubDomain scripts */
 				var split = this.__isIPAddr(hostname) ? [] : hostname.split(".");
-				var last;
+				let aux = split.slice(1);
 				
-				async.eachSeries(split.slice(1).reverse(),
+				while (aux.length) {
+					
+					names.push("*." + aux.join("."));
+					aux = aux.slice(1);
+				}
+				
+				aux = split.slice(0, -1);
+				
+				while (last.length) {
+					
+					names.push(aux.join(".") + ".*");
+					
+					if (aux.slice(1).length) 
+						aux.push("*." + aux.slice(1).join(".") + ".*");
+					
+					aux = aux.slice(0, -1);
+				}
+				
+				async.eachSeries(names,
 					(actual, cb) => {
-						
-						let subdomain_name = last ? actual + "." + last : actual;
-						last = actual;
 						
 						this.storage.getDomain(
 							subdomain => {
 								
 								if (subdomain) 
-									subdomains.push(subdomain);
+									domains.push(subdomain);
 								
 								cb();
 								
-							}, "*." + subdomain_name
+							}, actual
 						);
 					},
 					err => {
 						
 						if (err)
 							reject(err);
-						else
-							resolve(subdomains);
+						else 
+							resolve(domains);
 						
 					});
 			});

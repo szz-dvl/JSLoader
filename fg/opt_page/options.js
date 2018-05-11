@@ -18,7 +18,7 @@ function OP (bg) {
 			readable: self.bg.database_mgr.readable,
 			string: self.bg.option_mgr.data_origin
 		}
-
+		
 		
 	});
 	
@@ -119,23 +119,50 @@ function OP (bg) {
 					'app-data': {
 						
 						templateUrl: 'app-data.html',
-						controller: function ($scope, $compile, $rootScope, $state, dataStorage) {
+						controller: function ($scope, $compile, $rootScope, $state, $interval, $timeout,  dataStorage) {
 
 							$scope.appdata_active = true;
 							
 							$scope.domains = dataStorage.domains;
 							$scope.groups = dataStorage.groups;
+							
+							$scope.__updateService = () => {
 
-							self.updateData = $scope.__updateData = () => {
+								$scope.dataID = $interval($scope.__updateData, 3500, 0, true, true);
+								
+							}
+							
+							self.updateData = $scope.__updateData = (service) => {
+
+								if (!service)
+									$interval.cancel($scope.dataID);
 								
 								self.bg.option_mgr.getDataInfo()
 									.then(data => {
 										
-										$scope.domains = data.domains;
-										$scope.groups = data.groups;
+										let changes = false;
 										
-										$scope.$digest();
+										if (!_.isEqual($scope.domains, data.domains)) {
+											
+											$scope.domains = data.domains;
+											changes = true;
+
+										}
 										
+										if (!_.isEqual($scope.groups, data.groups)) {
+											
+											$scope.groups = data.groups;
+											changes = true;
+										}
+
+										if (!service) {
+											
+											if (changes)
+												$scope.$digest();											
+											
+											$scope.__updateService();
+
+										} 
 									});
 							}
 							
@@ -148,7 +175,7 @@ function OP (bg) {
 							$scope.removeItem = (name, type) => {
 								
 								self.bg[type + "_mgr"].removeItem(name)
-									.then($scope.__updateData);
+									.then(() => { $scope.__updateData(); });
 
 								self.query_results.length = 0;
 							}
@@ -200,6 +227,8 @@ function OP (bg) {
 								self.bg.option_mgr.editUserDefs();
 
 							}
+
+							$timeout($scope.__updateService);
 						}
 					},
 					
@@ -211,6 +240,29 @@ function OP (bg) {
 							$scope.appdb_active = false;
 							$scope.in_progress = false;
 							$scope.db_query = "";
+
+							$scope.$watch(
+								() => {
+									return self.bg.database_mgr.available;
+								},
+								(nval, oval) => {
+
+									if (nval != oval) {
+										
+										$scope.data_origin.available = nval;
+
+										if ($scope.data_origin.available) {
+											
+											$scope.data_origin.connected = self.bg.database_mgr.connected;
+											$scope.data_origin.writeable = self.bg.database_mgr.writeable;
+											$scope.data_origin.readable  = self.bg.database_mgr.readable;
+
+										}
+										
+										$rootScope.$digest();
+									}	
+								}
+							);
 							
 							self.query_results = $scope.query_results = [];
 							
@@ -289,7 +341,7 @@ function OP (bg) {
 											
 											$scope.data_origin.string = string;
 											self.bg.option_mgr.persistDBString(string);
-
+											
 										}
 									
 										$scope.data_origin.reconnecting = false;

@@ -1,9 +1,6 @@
 - In-progress:
-  - Watchers for opt page (database, eventual new data)
-  - Virtual Resources.
   - Extend subdomain functionalities (*: before & after [Regex to validate])
-  - Ace errors not being shown on gutter line, detected by editor however.
-  - Scripts will run even when shown tab is not included in the script matching set if triggered from shortcut.
+  - Virtual Resources.
   
 - Big fails:
   - Cascade removes fails at some point.
@@ -12,7 +9,9 @@
   - Remove group relations when removing domains!
   - Extensions seems to be sharing storage key names!!
   - Scripts toggle btn fails first time after being hidden by parent list when opened ...
-  
+  - Ace errors not being shown on gutter line, detected by editor however.
+  - Scripts will run even when shown tab is not included in the script matching set if triggered from shortcut.
+	
 - To be tested:
   - Import/Export features. **
   - Data origin ====> support for MongoDB only. **

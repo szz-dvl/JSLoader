@@ -192,7 +192,7 @@ function OptionMgr (bg) {
 							.then(next, next);
 						
 					}, err => {
-
+						
 						if (err)
 							reject(err);
 						else 

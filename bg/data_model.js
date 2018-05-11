@@ -5,7 +5,6 @@ function Script (opt) {
 	this.parent = opt.parent || null;
 	this.name = opt.name || this.uuid.split("-").pop(); 
 	this.disabled = opt.disabled || false;
-	this.elems = [];
 	
 	this.getUrl = () => {
 		
@@ -21,9 +20,6 @@ function Script (opt) {
 	};
 
 	this.remove = () => {
-
-		if (this.elems.length)
-			this.elems = [];
 		
 		return this.parent 
 			? this.parent.removeScript(this.uuid)
@@ -262,9 +258,6 @@ function Site (opt) {
 	};
 	
 	this.remove = () => {
-		
-		if (this.elems.length)
-			this.elems = [];
 		
 		return this.parent.removeSite(this.url);	
 	};

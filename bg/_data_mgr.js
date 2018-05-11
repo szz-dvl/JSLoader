@@ -9,7 +9,10 @@ function DataMgr (opt) {
 				this.storage["get" + this.key](
 					item => {
 						
-						resolve(item.remove());
+						if (item)
+							resolve(item.remove());
+						else
+							reject(new Error("Attempting to remove unexisting " + this.key.toLowerCase()  + ": \"" + item_name + "\""));
 						
 					}, item_name);
 			});
@@ -21,8 +24,11 @@ function DataMgr (opt) {
 			resolve => {
 				this.storage["get" + this.key](
 					item => {
-						
-						resolve(item);
+
+						if (item)
+							resolve(item);
+						else
+							reject(new Error("Attempting to fetch unexisting " + this.key.toLowerCase() + ": \"" + item_name + "\""));
 						
 					}, item_name);
 			});

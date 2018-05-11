@@ -1,7 +1,5 @@
 function DomainMgr (bg) {
 
-	let self = this;
-
 	DataMgr.call(this, { key: "Domain" });
 	
 	this.bg = bg;
@@ -17,7 +15,7 @@ function DomainMgr (bg) {
 		}
 	);
 	
-	this.__isIPAddr = function (string) {
+	this.__isIPAddr = (string) => {
 		
 		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
 		
@@ -25,9 +23,9 @@ function DomainMgr (bg) {
 
 	};
 
-	this.__getSubdomains = function () {
+	this.__getSubdomains = () => {
 		
-		return self.domains.filter(
+		return this.domains.filter(
 			domain_name => {
 				
 				return domain_name.startsWith("*.");
@@ -36,14 +34,13 @@ function DomainMgr (bg) {
 		);
 	};
 
-	/* To arrow funcs: */
-	this.__isDisabled = hostname => {
+	this.__isDisabled = (hostname) => {
 
 		return this.disabled_domains.includes(hostname);
 		
 	};
 	
-	this.toggleDisableFor = domain_name => {
+	this.toggleDisableFor = (domain_name) => {
 
 		if (this.disabled_domains.includes(domain_name))
 			this.disabled_domains.remove(this.disabled_domains.indexOf(domain_name));
@@ -53,7 +50,7 @@ function DomainMgr (bg) {
 		this.storage.setDisabledDomains(self.disabled_domains);
 	};
 	
-	this.__getRepresentedBy = function (hostname) {
+	this.__getRepresentedBy = (hostname) => {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -61,7 +58,7 @@ function DomainMgr (bg) {
 				let subdomains = [];
 				
 				/* SubDomain scripts */
-				var split = self.__isIPAddr(hostname) ? [] : hostname.split(".");
+				var split = this.__isIPAddr(hostname) ? [] : hostname.split(".");
 				var last;
 				
 				async.eachSeries(split.slice(1).reverse(),
@@ -92,14 +89,14 @@ function DomainMgr (bg) {
 			});
 	};
 	
-	this.__getAggregatedScripts = function (groups, hostname) {
+	this.__getAggregatedScripts = (groups, hostname) => {
 
 		return new Promise (
 			(resolve, reject) => {
 				
 				let scripts = [];
 				
-				self.__getRepresentedBy(hostname)
+				this.__getRepresentedBy(hostname)
 					.then(
 						subdomains => {
 							
@@ -113,7 +110,7 @@ function DomainMgr (bg) {
 								
 							}
 							
-							self.bg.group_mgr.getGroupScripts(groups)
+							this.bg.group_mgr.getGroupScripts(groups)
 								.then(
 									group_scripts => {
 										
@@ -131,12 +128,12 @@ function DomainMgr (bg) {
 		);
 	};
 	
-	this.getScriptsForUrl = function (url) {
+	this.getScriptsForUrl = (url) => {
 	
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.storage.getDomain(
+				this.storage.getDomain(
 					domain => {
 						
 						let groups = [];
@@ -145,7 +142,7 @@ function DomainMgr (bg) {
 						let site = null;
 						let domain_disabled = false;
 
-						if (!self.__isDisabled(url.hostname)) {
+						if (!this.__isDisabled(url.hostname)) {
 
 							if (domain) {
 																
@@ -182,7 +179,7 @@ function DomainMgr (bg) {
 							}
 							
 							/* Group & Subdomain scripts */
-							self.__getAggregatedScripts(groups.unique(), url.hostname)
+							this.__getAggregatedScripts(groups.unique(), url.hostname)
 								.then(group_scripts => {
 									
 									scripts.push.apply(scripts,
@@ -206,12 +203,14 @@ function DomainMgr (bg) {
 			});
 	};
 
-	this.getEditInfoForUrl = function (url) {
+	this.getEditInfoForUrl = (url) => {
 
+		let self = this;
+		
 		return new Promise (
 			(resolve, reject) => {
 
-				self.storage.getDomain(
+				this.storage.getDomain(
 					domain => {
 
 						let site = null;
@@ -262,7 +261,7 @@ function DomainMgr (bg) {
 							}
 						}
 						
-						self.__getRepresentedBy(url.hostname)
+						this.__getRepresentedBy(url.hostname)
 							.then(
 								subdomains => {
 									
@@ -278,7 +277,7 @@ function DomainMgr (bg) {
 									
 									groups = groups.unique();
 									
-									self.bg.group_mgr.getGroupScripts(groups).then(
+									this.bg.group_mgr.getGroupScripts(groups).then(
 										group_scripts => {
 											
 											for (let group of groups) {
@@ -305,15 +304,15 @@ function DomainMgr (bg) {
 			});
 	};		
 
-	this.importData = function (items) {
+	this.importData = (items) => {
 
 		return new Promise(
 			(resolve, reject) => {
-
+				
 				async.eachSeries(items,
 					(item, next) => {
 						
-						self.storage.getOrCreateDomain(
+						this.storage.getOrCreateDomain(
 							domain => {
 								
 								domain.mergeInfo(item);								
@@ -321,7 +320,7 @@ function DomainMgr (bg) {
 								/* !!! */
 								for (let group_name of domain.groups) {
 									
-									self.storage.getGroup(
+									this.storage.getGroup(
 										group => {
 											
 											if (group) {
@@ -341,7 +340,7 @@ function DomainMgr (bg) {
 								for (let site of domain.sites) {
 									for (let group_name of site.groups) {
 										
-										self.storage.getGroup(
+										this.storage.getGroup(
 											group => {
 												
 												if (group) {
@@ -373,7 +372,7 @@ function DomainMgr (bg) {
 			});
 	};
 	
-	this.__updateParentFor = function (script, url) {
+	this.__updateParentFor = (script, url) => {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -400,7 +399,7 @@ function DomainMgr (bg) {
 								
 							}
 							
-							self.storage.getOrCreateDomain(
+							this.storage.getOrCreateDomain(
 								domain => {
 									
 									resolve(domain.getOrCreateSite(pathname).upsertScript(script));
@@ -413,7 +412,7 @@ function DomainMgr (bg) {
 	};
 
 	/* Validated "url" strings must come here. */
-	this.updateParentFor = function (script, url) {
+	this.updateParentFor = (script, url) => {
 		
 		try {
 			
@@ -422,26 +421,26 @@ function DomainMgr (bg) {
 			if (script.parent && my_url.match(script.getUrl())) 
 				return Promise.resolve(script);
 			else
-				return self.__updateParentFor(script, url);
+				return this.__updateParentFor(script, url);
 			
 		} catch (e) {
 			
 			if (e instanceof TypeError) {
 				
 				if (script.parent && script.parent.isSubdomain())
-					return script.parent.name == url ? Promise.resolve(script) : self.__updateParentFor(script, url); 
+					return script.parent.name == url ? Promise.resolve(script) : this.__updateParentFor(script, url); 
 				else 
-					return self.__updateParentFor(script, url);
+					return this.__updateParentFor(script, url);
 			}
 		}
 	};	
 	
-	this.haveInfoForUrl = function (url) {
+	this.haveInfoForUrl = (url) => {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.storage.getDomain(
+				this.storage.getDomain(
 					domain => {
 						
 						let groups = [];
@@ -494,7 +493,7 @@ function DomainMgr (bg) {
 										domain.groups);	
 								}									
 								
-								self.__getRepresentedBy(url.hostname)
+								this.__getRepresentedBy(url.hostname)
 									.then(
 										subdomains => {
 											
@@ -514,7 +513,7 @@ function DomainMgr (bg) {
 												resolve (true);
 											else {
 
-												self.bg.group_mgr.getGroupScripts(groups.unique())
+												this.bg.group_mgr.getGroupScripts(groups.unique())
 													.then(
 														group_scripts => {
 															
@@ -534,7 +533,7 @@ function DomainMgr (bg) {
 			});
 	};
 	
-	this.storeNewDomains = function (changes, area) {
+	this.storeNewDomains = (changes, area) => {
 		
 		if (area != "local")
 	 		return;
@@ -542,7 +541,7 @@ function DomainMgr (bg) {
 		for (key of Object.keys(changes)) {
 			
 			if (key == "domains") 
-				self.domains = changes.domains.newValue || [];			
+				this.domains = changes.domains.newValue || [];			
 		}
 	};
 	

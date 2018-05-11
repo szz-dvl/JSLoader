@@ -88,7 +88,7 @@ function OP (bg) {
 								"xcode"
 							];
 
-							$scope.onOptChange = function (opt) {
+							$scope.onOptChange = (opt) => {
 
 								self.bg.option_mgr.persistEditorOpt(opt);
 								
@@ -126,7 +126,7 @@ function OP (bg) {
 							$scope.domains = dataStorage.domains;
 							$scope.groups = dataStorage.groups;
 
-							self.updateData = $scope.__updateData = function () {
+							self.updateData = $scope.__updateData = () => {
 								
 								self.bg.option_mgr.getDataInfo()
 									.then(data => {
@@ -139,13 +139,13 @@ function OP (bg) {
 									});
 							}
 							
-							$scope.goToDomain = function (name) {
+							$scope.goToDomain = (name) => {
 								
 								self.bg.tabs_mgr.openOrCreateTab('https://' + name);
 								
 							}
 							
-							$scope.removeItem = function (name, type) {
+							$scope.removeItem = (name, type) => {
 								
 								self.bg[type + "_mgr"].removeItem(name)
 									.then($scope.__updateData);
@@ -153,7 +153,7 @@ function OP (bg) {
 								self.query_results.length = 0;
 							}
 
-							$scope.pushItem = function (name, type) {
+							$scope.pushItem = (name, type) => {
 								
 								if (name) 
 									self.bg[type + "_mgr"].pushToDB([name]);
@@ -170,7 +170,7 @@ function OP (bg) {
 							}
 
 							/* Any way to get the input element as a parameter here? */
-							$scope.importData = function () {
+							$scope.importData = () => {
 								
 								let reader = new FileReader();
 								
@@ -184,18 +184,18 @@ function OP (bg) {
 								reader.readAsText($("#import_data")[0].files[0]);
 							}
 
-							$scope.exportData = function () {
-								
+							$scope.exportData = () => {
+							
 								self.bg.option_mgr.exportApp();
 							}
 
-							$scope.clearStoredData = function () {
+							$scope.clearStoredData = () => {
 								
 								browser.storage.local.clear()
 									.then($scope.__updateData);
 							}
 							
-							$scope.editUserDefs = function () {
+							$scope.editUserDefs = () => {
 
 								self.bg.option_mgr.editUserDefs();
 
@@ -214,7 +214,7 @@ function OP (bg) {
 							
 							self.query_results = $scope.query_results = [];
 							
-							$scope.dbQuery = function () {
+							$scope.dbQuery = () => {
 								
 								if ($scope.queryID)
 									$timeout.cancel($scope.queryID);
@@ -228,7 +228,7 @@ function OP (bg) {
 								
 							}
 							
-							$scope.updateFromDB = function (record) {
+							$scope.updateFromDB = (record) => {
 
 								let data = [];
 								
@@ -248,7 +248,7 @@ function OP (bg) {
 								}
 							}
 
-							$scope.validateConnection = function (el) {
+							$scope.validateConnection = (el) => {
 								
 								/* Won't check options and database properly */
 								let str = $scope.data_origin.string;
@@ -374,7 +374,7 @@ browser.runtime.getBackgroundPage()
 				page.option_mgr.events = null;
 				
 			}
-			
-			OP.call(this, page);				
+
+			new OP(page);				
 		}
 	);

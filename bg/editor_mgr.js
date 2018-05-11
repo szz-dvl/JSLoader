@@ -26,7 +26,7 @@ function EditorWdw (opt) {
 					 
 					 */
 
-					var updateInfo = {
+					let updateInfo = {
 						width: wdw.width,
 						height: wdw.height + 1, // 1 pixel more than original size...
 					};
@@ -44,8 +44,6 @@ function EditorWdw (opt) {
 }
 
 function Editor (opt) {
-
-	let self = this;
 	
 	this.parent = opt.parent;
 	this.script = opt.script;
@@ -56,106 +54,107 @@ function Editor (opt) {
 		col: opt.col || 0
 	};
 	
-	this.id = this.parent.__getEID();
+	this.id = this.parent.__getEID.next().value;
 	this.mode = opt.mode; /* true: New script, false: Editing.*/
 	
-	this.tab = opt.tab ? self.parent.bg.tabs_mgr.factory(opt.tab) : null;
+	this.tab = opt.tab ? this.parent.bg.tabs_mgr.factory(opt.tab) : null;
 	
-	self.parent.editors.push(self);
+	this.parent.editors.push(this);
 	
-	this.runInTab = function () {
+	this.runInTab = () => {
 		
-		if (self.tab) 
-			return self.tab.run([self.script]);	
+		if (this.tab) 
+			return this.tab.run([this.script]);	
 		else
 			return Promise.reject();			
 	};
 	
-	this.newTab = function (tabInfo) {
+	this.newTab = (tabInfo) => {
 
-		if (self.fg) {
+		if (this.fg) {
 
-			if (self.script.includedAt(new URL(tabInfo.url))) {
+			if (this.script.includedAt(new URL(tabInfo.url))) {
 			
-				self.tab = self.parent.bg.tabs_mgr.factory(tabInfo);
-				self.fg.scope.enableRun();
+				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+				this.fg.scope.enableRun();
 			
 			} else {
 			
-				self.fg.scope.disableRun();
+				this.fg.scope.disableRun();
 			}
 		}
 	}
 	
-	this.editorClose = function () {
+	this.editorClose = () => {
 		
-		self.parent.editors.remove(
-			self.parent.editors.findIndex(
+		this.parent.editors.remove(
+			this.parent.editors.findIndex(
 				editor => {
 					
-					return editor.id == self.id;
+					return editor.id == this.id;
 					
 				}
 			)
 		);	
 	};
 	
-	this.setWdw = function (wdw) {
+	this.setWdw = (wdw) => {
 		
-		self.wdw.child = wdw;
-		self.wdw.child.onbeforeunload = self.editorClose;
+		this.wdw.child = wdw;
+		this.wdw.child.onbeforeunload = this.editorClose;
 		
 	};
 }
 
 function EditorMgr (bg) {
 
-	var self = this;
+	let self = this;
 	
 	this.bg = bg;
-	this.eids = 0;
 	this.editors = []; //Alive instances
 	
-	this.__getEID = function () {
+	this.__getEID = function* () {
 		
-		return self.eids ++;
+		let index = 0;
 		
-	};
+		while(true)
+			yield index++;
+		
+	}();
 	
-	this.openEditorInstanceForTab = function (tab) {
+	this.openEditorInstanceForTab = (tab) => {
 		
-
-		/* Focus editor if existent! */
 		
 		return new Promise(
 			(resolve, reject) => {
 				
 				let url = new URL(tab.url).sort();
-
+				
 				self.bg.domain_mgr.getOrCreateItem(url.hostname, false)
 					.then(
 						domain => {
-
-							/* Set the alleged parent for the script, DO NOT upsert the script into its bucket until persist happens. */
+							
 							let parent = domain.getOrCreateSite(url.pathname);
 							
-							new EditorWdw({ parent: self,
-											script: new Script({parent: parent}),
-											tab: tab,
-											mode: true }).then(resolve, reject);
-							
-						}
-					);
+							new EditorWdw({
+
+								parent: self,
+								script: new Script({parent: parent}),
+								tab: tab,
+								mode: true
+
+							}).then(resolve, reject);
+						});
 			}
 		)
 	};
 
-	this.openEditorInstanceForScript = function (script, line, col) {
+	this.openEditorInstanceForScript = (script, line, col) => {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				var alive = self.getOwnerOf(script);
+				var alive = this.getOwnerOf(script);
 				
 				if (alive)
 					resolve(alive);
@@ -167,7 +166,7 @@ function EditorMgr (bg) {
 						
 							let endpoint = script.getUrl() || script.getParentName();
 							
-							self.bg.tabs_mgr.getTabsForURL(endpoint)
+							this.bg.tabs_mgr.getTabsForURL(endpoint)
 								.then(
 									tabs => {
 										
@@ -212,18 +211,21 @@ function EditorMgr (bg) {
 		)
 	};
 
-	this.openEditorInstanceForGroup = function (group) {
+	this.openEditorInstanceForGroup = (group) => {
 		
-		new EditorWdw({ parent: self,
-						script: new Script({ parent: group }),
-						tab: null,
-						mode: true });
+		new EditorWdw({
 
+			parent: self,
+			script: new Script({ parent: group }),
+			tab: null,
+			mode: true
+			
+		});
 	};
 
-	this.getOwnerOf = function (script) {
+	this.getOwnerOf = (script) => {
 
-		return self.editors.find(
+		return this.editors.find(
 			editor => {
 				
 				return editor.script.uuid == script.uuid;
@@ -232,9 +234,9 @@ function EditorMgr (bg) {
 		) || null;
 	};
 	
-	this.getEditorById = function (eid) {
+	this.getEditorById = (eid) => {
 		
-		return self.editors.find(
+		return this.editors.find(
 			editor => {
 				
 				return editor.id == eid;
@@ -242,7 +244,7 @@ function EditorMgr (bg) {
 			}) || null;
 	};
 
-	this.broadcastEditors = function (message) {
+	this.broadcastEditors = (message) => {
 		
 		try {
 			

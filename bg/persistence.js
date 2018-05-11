@@ -1,18 +1,11 @@
-//browser.storage.local.clear();
-
 function Storage () {
 
-	/* To do: cacth error */
-	var self = this;
 	
-	this.__get = function (cb, key) {
+	this.__get = (cb, key) => {
 				
 		browser.storage.local.get(key)
 			.then(
 				values => {
-					
-					// console.log("Getting: " + key);
-					// console.log(values[key]);
 
 					cb(values[key]);
 			
@@ -20,7 +13,7 @@ function Storage () {
 			);	
 	};
 
-	this.__set = function (key, val) {
+	this.__set = (key, val) => {
 
 		console.log("Persisting: " + key);
 		console.log(val);
@@ -31,59 +24,65 @@ function Storage () {
 		return browser.storage.local.set(obj);
 	};
 
-	this.__remove = function (key) {
-
+	this.__remove = (key) => {
+		
 		console.log("Removing: " + key);
 		
 		return browser.storage.local.remove(key);
 	};
 
 	/* Domains: */
-	this.__getDomains = function (cb) {
+	this.__getDomains = (cb, simple) => {
 		
-		self.__get(info => {
+		this.__get(info => {
 
-			self.__get(disabled => {
+			if (simple)
+				cb(info || []);
+			else {
+
+				this.__get(disabled => {
 				
-				cb( { info: info || [], disabled: disabled || [] } );
-
-			}, 'disabled-domains');
+					cb( { info: info || [], disabled: disabled || [] } );
+					
+				}, 'disabled-domains');
+				
+			}
 			
 		}, 'domains');
 	};
 
-	this.__setDomains = function (val) {
+	this.__setDomains = (val) => {
 		
-		return self.__set('domains', val);
+		return this.__set('domains', val);
 	};
 
-	this.upsertDomain = function (val) {
+	this.upsertDomain = (val) => {
 
-		self.__getDomains(
+		this.__getDomains(
 			arr => {
 
 				if (!arr.includes(val.name)) {
 
 					arr.push(val.name);
-					self.__setDomains(arr);
+					this.__setDomains(arr);
 					
 				}
 
-			}); 
+			}, true); 
 		
 		if (val.name.startsWith("*."))
-			return self.__upsertSubDomain(val.name.slice(2), val);
+			return this.__upsertSubDomain(val.name.slice(2), val);
 		else
-			return self.__set('domain-' + val.name, val);
+			return this.__set('domain-' + val.name, val);
 	};
 	
-	this.getDomain = function (cb, name) {
+	this.getDomain = (cb, name) => {
 
 		if (name.startsWith("*."))
-			return self.__getSubDomain(cb, name.slice(2));
+			return this.__getSubDomain(cb, name.slice(2));
 		else {
 
-			self.__get(
+			this.__get(
 				domain => {
 				
 					cb(domain ? new Domain(domain) : null);
@@ -92,87 +91,88 @@ function Storage () {
 		}
 	};
 
-	this.removeDomain = function (name) {
+	this.removeDomain = (name) => {
 
-		self.__getDomains(
+		this.__getDomains(
 			arr => {
 
 				if (arr.includes(name)) {
 
 					arr.remove(arr.indexOf(name));
-					self.__setDomains(arr);
+					this.__setDomains(arr);
 					
 				}
 
-			});
+			}, true);
 		
 		if (name.startsWith("*."))
-			return self.__removeSubDomain(name.slice(2));
+			return this.__removeSubDomain(name.slice(2));
 		else
-			return self.__remove('domain-' + name);
+			return this.__remove('domain-' + name);
 	};
 
-	this.getOrCreateDomain = function (cb, name) {
+	this.getOrCreateDomain = (cb, name) => {
 		
 		if (name.startsWith("*."))
-			return self.__getOrCreateSubDomain(cb, name.slice(2));
+			return this.__getOrCreateSubDomain(cb, name.slice(2));
 		else {
 
-			self.getDomain(function (domain) {
+			this.getDomain(
+				domain => {
 				
-				if (domain)
-					cb(domain);
-				else 
-					cb(new Domain({name: name}));
-				
-			}, name);
+					if (domain)
+						cb(domain);
+					else 
+						cb(new Domain({name: name}));
+					
+				}, name);
 		}
 	};
 
-	this.setDisabledDomains = function (array) {
+	this.setDisabledDomains = (array) => {
 		
-		return self.__set('disabled-domains', array);
+		return this.__set('disabled-domains', array);
 		
 	};
 	
 	/* Options: */
-	this.getOptions = function (cb) {
+	this.getOptions = (cb) => {
 		
-		self.__get(cb, 'options');
-		
-	};
-	
-	this.setOptions = function (val) {
-		
-		return self.__set('options', val);
+		this.__get(cb, 'options');
 		
 	};
 	
-	this.removeOptions = function () {
+	this.setOptions = (val) => {
+		
+		return this.__set('options', val);
+		
+	};
+	
+	this.removeOptions = () => {
 		
 		return browser.storage.local.remove('options');
 
 	};
 
 	/* Groups: */
-	this.__getGroups = function (cb) {
+	this.__getGroups = (cb) => {
 		
-		self.__get(arr => {
+		this.__get(
+			arr => {
 			
-			cb(arr || []);
+				cb(arr || []);
 
-		}, 'groups');
-		
+			}, 'groups');	
 	};
 
-	this.__setGroups = function (val) {
+	this.__setGroups = (val) => {
 		
-		return self.__set('groups', val);
+		return this.__set('groups', val);
 	};
 	
-	this.getGroup = function (cb, name) {
+	this.getGroup = (cb, name) => {
 		
-		self.__get(
+		this.__get(
 			group => {
 				
 				cb(group ? new Group(group) : null);
@@ -181,44 +181,44 @@ function Storage () {
 		
 	};
 	
-	this.upsertGroup = function (val) {
+	this.upsertGroup = (val) => {
 		
-		self.__getGroups(
+		this.__getGroups(
 			groups => {
 				
 				if (!groups.includes(val.name)) {
 
 					groups.push(val.name);
-					self.__setGroups(groups);
+					this.__setGroups(groups);
 					
 				}
 			}
 		);
 		
-		return self.__set('group-' + val.name, val);
+		return this.__set('group-' + val.name, val);
 		
 	};
 	
-	this.removeGroup = function (name) {
+	this.removeGroup = (name) => {
 
-		self.__getGroups(
+		this.__getGroups(
 			groups => {
 				
 				if (groups.includes(name)) {
 					
 					groups.remove(groups.indexOf(name));
-					self.__setGroups(groups);	
+					this.__setGroups(groups);	
 					
 				}
 			}
 		);
 		
-		return self.__remove('group-' + name);
+		return this.__remove('group-' + name);
 	};
 
-	this.getOrCreateGroup = function (cb, name) { 
+	this.getOrCreateGroup = (cb, name) => { 
 		
-		self.getGroup(
+		this.getGroup(
 			group => {
 			
 				if (group)
@@ -230,9 +230,9 @@ function Storage () {
 	}
 
 	/* Subdomains: */
-	this.__getSubDomain = function (cb, keyname) {
+	this.__getSubDomain = (cb, keyname) => {
 		
-		self.__get(
+		this.__get(
 			subdomain => {
 
 				cb(subdomain ? new Domain(subdomain) : null);
@@ -241,20 +241,20 @@ function Storage () {
 		
 	};
 	
-	this.__upsertSubDomain = function (keyname, val) {
+	this.__upsertSubDomain = (keyname, val) => {
 		
-		return self.__set('subdomains-' + keyname, val);
+		return this.__set('subdomains-' + keyname, val);
 		
 	};
 	
-	this.__removeSubDomain = function (keyname) {
+	this.__removeSubDomain = (keyname) => {
 		
-		return self.__remove('subdomains-' + keyname);
+		return this.__remove('subdomains-' + keyname);
 	};
 
-	this.__getOrCreateSubDomain = function (cb, keyname) { 
+	this.__getOrCreateSubDomain = (cb, keyname) => { 
 		
-		self.__getSubDomain(
+		this.__getSubDomain(
 			subdomain => {
 			
 				if (subdomain)
@@ -266,34 +266,34 @@ function Storage () {
 	};
 
 	/* Globals: */
-	this.getGlobals = function (cb) {
+	this.getGlobals = (cb) => {
 		
-		self.__get(cb, 'globals');		
+		this.__get(cb, 'globals');		
 		
 	};
 	
-	this.setGlobals = function (globals) {
+	this.setGlobals = (globals) => {
 
-		return self.__set('globals', globals);
+		return this.__set('globals', globals);
 		
 	};
 	
-	this.removeGlobals = function () {
+	this.removeGlobals = () => {
 		
-		return self.__remove('globals');
+		return this.__remove('globals');
 		
 	};
 
 	/* User definitions: */
-	this.getUserDefs = function (cb) {
+	this.getUserDefs = (cb) => {
 		
-		self.__get(defs => { cb(defs || "") }, 'userdefs');
+		this.__get(defs => { cb(defs || "") }, 'userdefs');
 		
 	}
 
-	this.setUserDefs = function (literal) {
+	this.setUserDefs = (literal) => {
 
-		return self.__set('userdefs', literal);
+		return this.__set('userdefs', literal);
 		
 	}
 }

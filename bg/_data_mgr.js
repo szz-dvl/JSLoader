@@ -1,13 +1,12 @@
 function DataMgr (opt) {
 
-	let self = this;
 	this.key = opt.key || "Generic";
 	
-	this.removeItem = function (item_name) {
+	this.removeItem = (item_name) => {
 
 		return new Promise(
 			resolve => {
-				self.storage["get" + self.key](
+				this.storage["get" + this.key](
 					item => {
 						
 						resolve(item.remove());
@@ -16,11 +15,11 @@ function DataMgr (opt) {
 			});
 	}
 
-	this.getItem = function (item_name) {
+	this.getItem = (item_name) => {
 
 		return new Promise(
 			resolve => {
-				self.storage["get" + self.key](
+				this.storage["get" + this.key](
 					item => {
 						
 						resolve(item);
@@ -29,11 +28,11 @@ function DataMgr (opt) {
 			});
 	}
 
-	this.getOrCreateItem = function (item_name) {
+	this.getOrCreateItem = (item_name) => {
 
 		return new Promise(
 			resolve => {
-				self.storage["getOrCreate" + self.key](
+				this.storage["getOrCreate" + this.key](
 					item => {
 						
 						resolve(item);
@@ -42,18 +41,18 @@ function DataMgr (opt) {
 			});
 	}
 
-	this.pushToDB = function (names) {
+	this.pushToDB = (names) => {
 
 		let items = [];
 		
 		async.each(names,
 			(items_name, next) => {
 				
-				self.storage["get" + self.key](
+				this.storage["get" + this.key](
 					item => {
 						
 						if (!item)
-							next(new Error("Bad " + self.key + ": " + item_name));
+							next(new Error("Bad " + this.key + ": " + item_name));
 						else {
 							
 							items.push(item);
@@ -67,21 +66,21 @@ function DataMgr (opt) {
 				if (err)
 					console.error(err);
 				else
-					self.bg.database_mgr["push" + self.key + "s"](items);
+					this.bg.database_mgr["push" + this.key + "s"](items);
 			});
 	};
 
-	this.exportData = function (inline) {
+	this.exportData = (inline) => {
 
 		return new Promise(
 			(resolve, reject) => {
 
 				let text = ["["];
 				
-				async.each(self[self.key.toLowerCase() + "s"],
+				async.each(this[this.key.toLowerCase() + "s"],
 					(item_name, next) => {
 						
-						self.storage["get" + self.key](
+						this.storage["get" + this.key](
 							item => {
 
 								if (item) {
@@ -109,16 +108,16 @@ function DataMgr (opt) {
 							if (inline)
 								resolve(text);
 							else
-								resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, self.key.toLowerCase() + "s.json", {type: "application/json"}) ) }));
+								resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, this.key.toLowerCase() + "s.json", {type: "application/json"}) ) }));
 						}
 						
 					});
 			});
 	}
 
-	this.exists = function (name) {
+	this.exists = (name) => {
 
-		return self[self.key.toLowerCase() + "s"].includes(name);
+		return this[this.key.toLowerCase() + "s"].includes(name);
 		
 	}
 

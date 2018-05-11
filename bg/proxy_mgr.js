@@ -1,6 +1,6 @@
 function ProxyMgr (bg) {
 
-	this.updatePAC = function (hostname, proxy, times) {
+	this.updatePAC = (hostname, proxy, times) => {
 
 		if (times < 1)
 
@@ -23,7 +23,7 @@ function ProxyMgr (bg) {
 					} 
 
 					if (!error) {
-
+						
 						browser.runtime.sendMessage(
 							
 							{ host: hostname, proxy: proxy_obj, times: times },

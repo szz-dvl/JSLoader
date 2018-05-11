@@ -13,38 +13,36 @@ function HttpRequest (opt, cs) {
 	
 	return new Promise (
 		(resolve, reject) => {
-
-			let deps = [];
 			
-			if (self.proxy) {
-
-				deps.push(cs.__getMessageResponse("set-proxy",
-												  { host: self.url.hostname, proxy: self.proxy, times: 1 }));
-
-			}
+			let promise = this.proxy
+						? cs.__getMessageResponse("set-proxy",
+							{ host: self.url.hostname, proxy: self.proxy, times: 1 })
+				
+				: Promise.resolve();  
 			
-			if (self.headers.length)
-				self.headers.forEach(header => { self.rq.setRequestHeader(header.name, header.value) });
 			
-			Promise.all(deps)
-				.then(responses => {
+			if (this.headers.length)
+				this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
+			
+			promise.then(
+				responses => {
+				
+					this.rq.open(this.method, this.url.href);
 					
-					self.rq.open(self.method, self.url.href);
-					
-					self.rq.onreadystatechange = function () {
+					this.rq.onreadystatechange = () => {
 						
-						if (self.rq.readyState >= self.enoughState)
-							resolve (self.rq);
+						if (this.rq.readyState >= this.enoughState)
+							resolve (this.rq);
 						
 					}
 					
-					self.rq.onerror = function () {
+					this.rq.onerror = () => {
 						
-						reject (self.rq);
+						reject (this.rq);
 						
 					}
 					
-					self.rq.send(self.data);
+					this.rq.send(this.data);
 					
 				});
 		});
@@ -52,37 +50,35 @@ function HttpRequest (opt, cs) {
 
 function CSUtils (parent) {
 
-	var self = this;
-
 	this.cs = parent;
 	this.events = new EventEmitter ();
 	
 	this.video = ["webm", "mp4", "ogg", "mkv"];
 	
-	this.isNativeVideoExtension = function (ext) {
+	this.isNativeVideoExtension = (ext) => {
 
-		return self.video.includes(ext);
+		return this.video.includes(ext);
 
 	};
 
-	this.getNamedInputValue = function (name) {
+	this.getNamedInputValue = (name) => {
     
 		return $("input[name=" + name + "]").attr("value");
     
 	};
 	
-	this.sendHttpRequest = function (url) {
+	this.sendHttpRequest = (url) => {
 		
 		return new HttpRequest({
 
 			url: url,
 			method: "GET"
 
-		}, self.cs);
+		}, this.cs);
 	};
 
 	/* Caller must care about aborting the request if needed. */
-	this.earlyHttpRequest = function (url) {
+	this.earlyHttpRequest = (url) => {
 
 		return new HttpRequest({
 
@@ -90,10 +86,10 @@ function CSUtils (parent) {
 			method: "GET",
 			early: true
 
-		}, self.cs);
+		}, this.cs);
 	};
 
-	this.postHttpRequest = function (url, data) {
+	this.postHttpRequest = (url, data) => {
 
 		return new HttpRequest({
 
@@ -101,11 +97,11 @@ function CSUtils (parent) {
 			method: "POST",
 			data: data
 
-		}, self.cs);
+		}, this.cs);
 	};
 
 	/* @proxy: An object describing a proxy (host, port, type) */
-	this.proxyHttpRequest = function (url, proxy) {
+	this.proxyHttpRequest = (url, proxy) => {
 
 		return new HttpRequest({
 
@@ -113,10 +109,10 @@ function CSUtils (parent) {
 			method: "GET",
 			proxy: proxy
 
-		}, self.cs);
+		}, this.cs);
 	};
 
-	this.modifiedHttpRequest = function (url, headers) {
+	this.modifiedHttpRequest = (url, headers) => {
 
 		return new HttpRequest({
 			
@@ -124,26 +120,24 @@ function CSUtils (parent) {
 			method: "GET",
 			headers: headers
 
-		}, self.cs);
+		}, this.cs);
 	};
 
-	this.complexHttpRequest = function (opt) {
+	this.complexHttpRequest = (opt) => {
 
-		return new HttpRequest(opt, self.cs);
+		return new HttpRequest(opt, this.cs);
 	};
 }
 
 function CSApi () {
 
-	var self = this;
-	
 	this.JSLUtils = new CSUtils(this);
 
-	this.__getMessageResponse = function (action, message) {
+	this.__getMessageResponse = (action, message) => {
 		
 		let event_id = UUID.generate().split("-").pop();
 
-		self.port.postMessage({action: action, message: message, tag: event_id});
+		this.port.postMessage({action: action, message: message, tag: event_id});
 		
 		return new Promise (
 			(resolve, reject) => {		
@@ -151,12 +145,12 @@ function CSApi () {
 				let myID = setTimeout(
 					() => {
 
-						self.JSLUtils.events.off(event_id);
+						this.JSLUtils.events.off(event_id);
 						reject({status: false, content: "Timed-out."});
 						
 					}, 5000);
 				
-				self.JSLUtils.events
+				this.JSLUtils.events
 					.once(event_id,
 						  response => {
 							  
@@ -169,22 +163,22 @@ function CSApi () {
 		);
 	}
 	
-	this.JSLAddSiteToGroup = function (site_name, group_name) {
+	this.JSLAddSiteToGroup = (site_name, group_name) => {
 
-		return self.__getMessageResponse ("site-to-group", {site: site_name, group: group_name});
+		return this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name});
 		
 	};
 
 	/* May return "undefined" values on unexistent keys */
-	this.JSLGetGlobal = function (key) {
+	this.JSLGetGlobal = (key) => {
 
-		return self.__getMessageResponse ("get-global", {key: key});
+		return this.__getMessageResponse ("get-global", {key: key});
 		
 	};
 
-	this.JSLSetGlobal = function (key, val) {
+	this.JSLSetGlobal = (key, val) => {
 
-		return self.__getMessageResponse ("set-global", {key: key, value: val});
+		return this.__getMessageResponse ("set-global", {key: key, value: val});
 		
 	};
 
@@ -195,9 +189,9 @@ function CSApi () {
 	   
 	 */
 
-	this.JSLProxyHost = function (hostname, proxy, times) {
+	this.JSLProxyHost = (hostname, proxy, times) => {
 
-		return self.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times });
+		return this.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times });
 		
 	};
 
@@ -210,38 +204,38 @@ function CSApi () {
 	 
 	 */
 	
-	this.JSLDownload = function (params, proxy) {
+	this.JSLDownload = (params, proxy) => {
 
 		let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
 		
 		let promises = [];
 
 		if (proxy) {
-			promises.push(self.__getMessageResponse("set-proxy",
+			promises.push(this.__getMessageResponse("set-proxy",
 				
 				{ host: url.hostname, proxy: proxy, times: 1 }
 				
 			));
 		}
 
-		promises.push(self.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
+		promises.push(this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
 		
 		return Promise.all(promises);
 	};
 	
-	this.JSLNotifyUser = function (title, message) {
-
-		self.port.postMessage({action: "notify", message: {title: title, body: message}});
+	this.JSLNotifyUser = (title, message) => {
+		
+		this.port.postMessage({action: "notify", message: {title: title, body: message}});
 		
 	};
 
-	this.JSLEventNeighbours = function (name, args) {
+	this.JSLEventNeighbours = (name, args) => {
 		
-		self.port.postMessage({action: "event", message: {name: name, args: args}});
+		this.port.postMessage({action: "event", message: {name: name, args: args}});
 		
 	};
 	
-	self.port.onMessage.addListener(
+	this.port.onMessage.addListener(
 
 		response => {
 			
@@ -250,12 +244,12 @@ function CSApi () {
 				/* Event Neighbours */
 			case "content-script-ev":
 				
-				self.JSLUtils.events.emit(response.message.name, response.message.args);
+				this.JSLUtils.events.emit(response.message.name, response.message.args);
 
 				break;
 
 			case "response":
-				self.JSLUtils.events.emit(response.tag, response.message);
+				this.JSLUtils.events.emit(response.tag, response.message);
 
 				break;
 				

@@ -1,7 +1,5 @@
 function GroupMgr (bg) {
 
-	let self = this;
-
 	DataMgr.call(this, { key: "Group" });
 	
 	this.bg = bg;
@@ -14,11 +12,11 @@ function GroupMgr (bg) {
 		new_groups => {
 			
 			if (new_groups)
-				self.groups = new_groups;
+				this.groups = new_groups;
 		}
 	);
 	
-	this.getGroupScripts = function (groups) {
+	this.getGroupScripts = (groups) => {
 
 		return new Promise (
 			(resolve, reject) => {
@@ -28,7 +26,7 @@ function GroupMgr (bg) {
 				async.eachSeries(groups,
 					(group_name, next) => {
 						
-						self.storage.getGroup(
+						this.storage.getGroup(
 							group => {
 								
 								if (group) {
@@ -55,12 +53,12 @@ function GroupMgr (bg) {
 			});
 	};
 	
-	this.__siteOps = function (group_name, url, func) {
+	this.__siteOps = (group_name, url, func) => {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.storage.getGroup(
+				this.storage.getGroup(
 					group => {
 						
 						if (! group)
@@ -83,7 +81,7 @@ function GroupMgr (bg) {
 							}
 							
 
-							self.storage.getOrCreateDomain(
+							this.storage.getOrCreateDomain(
 								domain => {
 									
 									let site = func == "append" ? domain.getOrCreateSite(pathname) : domain.haveSite(pathname);
@@ -110,19 +108,19 @@ function GroupMgr (bg) {
 			});
 	};
 
-	this.addSiteTo = function (group_name, url) {
+	this.addSiteTo = (group_name, url) => {
 
-		return self.__siteOps(group_name, url, "append");
+		return this.__siteOps(group_name, url, "append");
 		
 	}
 
-	this.removeSiteFrom = function (group_name, url) {
+	this.removeSiteFrom = (group_name, url) => {
 		
-		return self.__siteOps(group_name, url, "remove");
+		return this.__siteOps(group_name, url, "remove");
 		
 	}
 	
-	this.updateParentFor = function (script, name) {
+	this.updateParentFor = (script, name) => {
 		
 		if (script.parent.name != name) {
 	
@@ -133,7 +131,7 @@ function GroupMgr (bg) {
 						.then(
 							() => {
 
-								self.storage.getOrCreateGroup(
+								this.storage.getOrCreateGroup(
 									group => {
 									
 										resolve(group.upsertScript(script));
@@ -151,7 +149,7 @@ function GroupMgr (bg) {
 		}
 	}
 
-	this.importData = function (items) {
+	this.importData = (items) => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -159,7 +157,7 @@ function GroupMgr (bg) {
 				async.eachSeries(items,
 					(item, next) => {
 						
-						self.storage.getOrCreateGroup(
+						this.storage.getOrCreateGroup(
 							group => {
 
 								group.mergeInfo(item);
@@ -169,7 +167,7 @@ function GroupMgr (bg) {
 										
 										let url = new URL("http://" + site_name);
 										
-										self.storage.getOrCreateDomain(
+										this.storage.getOrCreateDomain(
 											domain => {
 												
 												let site = domain.haveSite(url.pathname);
@@ -207,17 +205,17 @@ function GroupMgr (bg) {
 			});
 	}
 	
-	this.exportGroups = function (inline) {
+	this.exportGroups = (inline) => {
 
 		return new Promise(
 			(resolve, reject) => {
 				
 				let text = ["["];
 				
-				async.each(self.groups,
+				async.each(this.groups,
 					(group_name, next) => {
 						
-						self.storage.getGroup(
+						this.storage.getGroup(
 							group => {
 								
 								if (group) {
@@ -252,7 +250,7 @@ function GroupMgr (bg) {
 			});
 	}
 		
-	this.storeNewGroups = function (changes, area) {
+	this.storeNewGroups = (changes, area) => {
 		
 		if (area != "local")
 	 		return;
@@ -260,7 +258,7 @@ function GroupMgr (bg) {
 		for (key of Object.keys(changes)) {
 			
 			if (key == "groups") 	
-				self.groups = changes.groups.newValue || [];
+				this.groups = changes.groups.newValue || [];
 		}
 	};
 	

@@ -1,6 +1,6 @@
 function PA (bg, info) {
 	
-	var self = this;
+	let self = this;
 	
 	this.bg = bg;
 	this.info = info;
@@ -13,7 +13,7 @@ function PA (bg, info) {
 
 		script_list: false,
 		group_mgr: false,
-		current_group: self.bg.group_mgr.groups[0],
+		current_group: bg.group_mgr.groups[0],
 		lists: {
 			
 			groups: info.groups.map(group => { return { name: group.name, state: false }; }),
@@ -22,11 +22,11 @@ function PA (bg, info) {
 		}
 	};
 
-	this.removeObsolete = function (info) {
+	this.removeObsolete = (info) => {
 		
-		for (let key of Object.keys(self.pa_state.lists)) {
+		for (let key of Object.keys(this.pa_state.lists)) {
 			
-			for (let state of self.pa_state.lists[key]) {
+			for (let state of this.pa_state.lists[key]) {
 			
 				let found_item = info[key]
 					.find(
@@ -39,8 +39,8 @@ function PA (bg, info) {
 
 				if (!found_item) {
 
-					self.pa_state.lists[key].remove(
-						self.pa_state.lists[key].findIndex(
+					this.pa_state.lists[key].remove(
+						this.pa_state.lists[key].findIndex(
 							old_state => {
 								return old_state.name == state.name;
 							}
@@ -80,7 +80,7 @@ function PA (bg, info) {
 				.then($scope.updateData, console.error);
 		}
 		
-		$scope.updateData = function () {
+		$scope.updateData = () => {
 
 			return new Promise(
 				(resolve, reject) => {
@@ -115,7 +115,7 @@ function PA (bg, info) {
 				});
 		}
 		
-		$scope.onSizeChange = function () {
+		$scope.onSizeChange = () => {
 
 			if ($scope.sizeID)
 				$timeout.cancel($scope.sizeID);
@@ -153,9 +153,14 @@ function PA (bg, info) {
 		
 	});
 
-	this.listController = function (key, scope, state) {
+	this.listController = (key, scope, state) => {
+
 		
-		return self.info[key].map(
+		/* To be observed
+		   console.log("listController for " + key);
+		   console.log(this.info[key]); */
+		
+		return this.info[key].map(
 			item => {
 				
 				let gotState = state.lists[key].find(
@@ -171,19 +176,22 @@ function PA (bg, info) {
 					self.pa_state.lists[key].push({ name: item.name, state: false });
 				
 				scope.$watch(() => { return item.visible },
-					nval => {
+					(nval, oval) => {
 
-						scope.onSizeChange();
+						if (nval != oval) {
+							
+							scope.onSizeChange();
 						
-						let idx = self.pa_state.lists[key].findIndex(
-							item_state => {
+							let idx = self.pa_state.lists[key].findIndex(
+								item_state => {
+									
+									return item_state.name == item.name;
 								
-								return item_state.name == item.name;
-								
-							}
-						);
+								}
+							);
 						
-						self.pa_state.lists[key][idx].state = nval;
+							self.pa_state.lists[key][idx].state = nval;
+						}
 					}
 				);
 				
@@ -192,21 +200,21 @@ function PA (bg, info) {
 		);
 	};
 	
-	this.remove = function (script) {
+	this.remove = (script) => {
 		
-		script.remove().then(self.list_mgr.updateData());
+		script.remove().then(this.list_mgr.updateData());
 	};
 	
-	this.reload = function (script, compile, scope) {
+	this.reload = (script, compile, scope) => {
 		
-		self.bg.content_mgr.reloadScriptAt(script, self.tabId)
+		this.bg.content_mgr.reloadScriptAt(script, this.tabId)
 			.then(results => {
 				
 				if (!results[0].status) {
 					
 					let error = results[0].errors[0];
 					
-					self.bg.notify_mgr.error(error.type + ": " + error.message);
+					this.bg.notify_mgr.error(error.type + ": " + error.message);
 					
 				}
 				
@@ -214,7 +222,7 @@ function PA (bg, info) {
 				err => {
 					
 					$("#status-" + script.uuid)
-						.replaceWith(compile('<script-status id="status-' + script.uuid + '" status="' + self.bg.content_mgr.getStatus(script.uuid, self.tabId) + '"></script-status>')(scope));
+						.replaceWith(compile('<script-status id="status-' + script.uuid + '" status="' + this.bg.content_mgr.getStatus(script.uuid, this.tabId) + '"></script-status>')(scope));
 					
 				}
 			);
@@ -234,7 +242,7 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams) {
 
-							$scope.reloadScript = function (scr) {
+							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
@@ -250,7 +258,7 @@ function PA (bg, info) {
 						controller: function ($scope, $compile, $stateParams) {
 
 							
-							$scope.reloadScript = function (scr) {
+							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
@@ -265,7 +273,7 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams) {
 
-							$scope.reloadScript = function (scr) {
+							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
@@ -309,12 +317,12 @@ function PA (bg, info) {
 								}
 							);
 							
-							$scope.setAction = function () {
+							$scope.setAction = () => {
 								
 								$scope.page.bg.group_mgr.getItem($scope.current)
 									.then(
 										group => {
-
+											
 											/* ¿¿ isMySite vs ownerOf ??*/
 											if (group.isMySite($scope.url))
 												$scope.action = "Remove";
@@ -326,7 +334,7 @@ function PA (bg, info) {
 									)
 							};
 							
-							$scope.selectChange = function () {
+							$scope.selectChange = () => {
 
 								/* Not working, to be observed. */
 								self.pa_state.current_group = $scope.current = $("#group_select").val().split(":")[1];
@@ -352,7 +360,7 @@ function PA (bg, info) {
 										
 									});
 							
-							$scope.addSite = function () {
+							$scope.addSite = () => {
 								
 								let promise = $scope.action == "Add" ?
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
@@ -390,8 +398,8 @@ browser.runtime.getBackgroundPage()
 			page.getPASite()
 				.then(
 					info => {
-						
-						PA.call(this, page, info);
+
+						new PA(page, info);
 						
 					}
 				);						

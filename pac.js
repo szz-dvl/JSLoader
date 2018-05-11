@@ -11,12 +11,10 @@ Array.prototype.remove = function(from, to) {
 };
 
 function PAC () { 
-
-	let self = this;
 	
 	this.filtered = [];
 
-	this.isSubDomain = function (orig, modified) {
+	this.isSubDomain = (orig, modified) => {
 
 		if (orig == modified || modified == '*')
 			return true;
@@ -46,14 +44,14 @@ function PAC () {
 		return mod_arr[cursor_mod] == "*";
 	};
 	
-	this.listener = function (message) {
+	this.listener = (message) => {
 
 		if (!message.proxy) {
 
 			/* No proxy, remove any ocurrence of the host */
 
-			self.filtered.remove(
-				self.filtered.findIndex(
+			this.filtered.remove(
+				this.filtered.findIndex(
 					registered => {
 						return registered.host == message.host;
 					}
@@ -64,7 +62,7 @@ function PAC () {
 
 			/* Add or update host entry */
 			
-			let reg = self.filtered.findIndex(
+			let reg = this.filtered.findIndex(
 				registered => {
 					return registered.host == message.host;
 				}
@@ -72,32 +70,32 @@ function PAC () {
 				
 			if (reg >= 0) {
 
-				if (self.filtered[reg].proxy == message.proxy) {
+				if (this.filtered[reg].proxy == message.proxy) {
 					
-					self.filtered[reg].times += message.times; 
+					this.filtered[reg].times += message.times; 
 					
 				} else {
 
-					self.filtered[reg].proxy = message.proxy;
-					self.filtered[reg].times = message.times;
+					this.filtered[reg].proxy = message.proxy;
+					this.filtered[reg].times = message.times;
 				}
 				
 			} else {
 				
-				self.filtered.push(message);	
+				this.filtered.push(message);	
 			}
 			
 		}
 		
-		// browser.runtime.sendMessage(`Proxy listener: ${message.host} > ` + JSON.stringify(self.filtered));
+		// browser.runtime.sendMessage(`Proxy listener: ${message.host} > ` + JSON.stringify(this.filtered));
 		
-		return Promise.resolve(self.filtered.length);
+		return Promise.resolve(this.filtered.length);
 	};
 
 	/* One proxy per host only. */
-	this.FindProxyForURL = function (url, host) {
+	this.FindProxyForURL = (url, host) => {
 		
-		let record = self.filtered.findIndex(
+		let record = this.filtered.findIndex(
 			
 			registered => {
 				
@@ -108,11 +106,11 @@ function PAC () {
 		
 		if (record < 0) {
 			
-			record = self.filtered.findIndex(
+			record = this.filtered.findIndex(
 				
 				registered => {
 
-					return self.isSubDomain(host, registered.host);
+					return this.isSubDomain(host, registered.host);
 					
 				}
 				
@@ -125,10 +123,10 @@ function PAC () {
 			
 		} else {
 
-			let proxys = [self.filtered[record].proxy];
+			let proxys = [this.filtered[record].proxy];
 			
-			if (! --self.filtered[record].times)
-				self.filtered.remove(record);
+			if (! --this.filtered[record].times)
+				this.filtered.remove(record);
 
 			return proxys;
 			

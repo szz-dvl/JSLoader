@@ -44,9 +44,19 @@ angular.module('jslPartials', [])
 				},
 				
 				controller: function ($scope) {
-
+					
 					$scope.mostra = $scope.obj ? $scope.item.visible : $scope.$parent[$scope.shown];
 
+					/* 
+					   Strange on PA:
+
+					   console.log("dropDown " + ($scope.mostra ? "true" : "false"));
+					   console.log("dropDownObj " + ($scope.obj ? "true" : "false"));
+					   console.log("dropDownItm ");
+					   console.log($scope.item); 
+					 
+					 */
+					
 					$scope.$watch(
 						
 						function () {

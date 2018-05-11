@@ -1,14 +1,13 @@
 function ContentScript() {
-
-	let self = this;
+	
 	Promise = P;
 	
 	this.id = UUID.generate();
 	
-	this.run = function (script) {
+	this.run = (script) => {
 		
 		try {
-
+			
 			(new Function(script.code)());
 			
 			return void 0;
@@ -33,7 +32,7 @@ function ContentScript() {
 		}
 	};
 
-	this.runAll = function (scripts, response) {
+	this.runAll = (scripts, response) => {
 
 		let errors = [];
 
@@ -71,7 +70,7 @@ function ContentScript() {
 					}
 				);
 				
-				let error = self.run(script);
+				let error = this.run(script);
 
 				if (error) {
 					
@@ -103,9 +102,9 @@ function ContentScript() {
 		);
 	};
 
-	this.port = browser.runtime.connect({name:"CS_" + self.id});
+	this.port = browser.runtime.connect({name:"CS_" + this.id});
 
-	CSApi.call(self);
+	CSApi.call(this);
 	
 	this.port.onMessage.addListener(
 		args => {
@@ -114,7 +113,7 @@ function ContentScript() {
 				
 			case "run":
 
-					self.runAll(args.message, args.response);
+					this.runAll(args.message, args.response);
 									
 				break;
 					
@@ -122,7 +121,7 @@ function ContentScript() {
 
 				try {
 
-					new Function(args.message).call(self);
+					new Function(args.message).call(this);
 					
 				} catch (e) {
 
@@ -152,7 +151,7 @@ function ContentScript() {
 				}
 
 				this.port.postMessage({action: "get-jobs", message: { url: window.location.toString() }});
-				
+					
 			default:
 				break;
 				
@@ -160,7 +159,7 @@ function ContentScript() {
 		}
 	);
 	
-	this.port.postMessage({action: "get-info", message: {id: self.id}});
+	this.port.postMessage({action: "get-info", message: {id: this.id}});
 }
 
 ContentScript.call(this);

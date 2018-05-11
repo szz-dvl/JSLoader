@@ -1,28 +1,26 @@
 function BG_mgr () {
-	
-	let self = this;
 
 	this.app_events = new EventEmitter();
 
-	this.database_mgr = new DBMgr(self);
-	this.option_mgr = new OptionMgr(self);
-	this.domain_mgr = new DomainMgr(self);
-	this.group_mgr = new GroupMgr(self);
-	this.content_mgr = new CSMgr(self);
-	this.editor_mgr = new EditorMgr(self);
-	this.notify_mgr = new NotificationMgr(self);
-	this.tabs_mgr = new TabsMgr(self);
-	this.proxy_mgr = new ProxyMgr(self);
+	this.database_mgr = new DBMgr(this);
+	this.option_mgr = new OptionMgr(this);
+	this.domain_mgr = new DomainMgr(this);
+	this.group_mgr = new GroupMgr(this);
+	this.content_mgr = new CSMgr(this);
+	this.editor_mgr = new EditorMgr(this);
+	this.notify_mgr = new NotificationMgr(this);
+	this.tabs_mgr = new TabsMgr(this);
+	this.proxy_mgr = new ProxyMgr(this);
 	
-	this.getPASite = function () {
+	this.getPASite = () => {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				self.tabs_mgr.getCurrentURL()
+				this.tabs_mgr.getCurrentURL()
 					.then(tabnfo => {
 						
-						self.domain_mgr.getEditInfoForUrl(tabnfo.url)
+						this.domain_mgr.getEditInfoForUrl(tabnfo.url)
 							.then(
 								nfo => {
 									
@@ -36,21 +34,21 @@ function BG_mgr () {
 			});	
 	};
 	
-	this.showEditorForCurrentTab = function () {
+	this.showEditorForCurrentTab = () => {
 		
 		browser.tabs.query({currentWindow: true, active: true})
 			.then(tab_info => {
 				
-				self.content_mgr.forceMainFramesForTab(tab_info[0].id)
+				this.content_mgr.forceMainFramesForTab(tab_info[0].id)
 					.then(
 						() => {
 							
-							self.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+							this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
 							
 						},
 						() => {
 							
-							self.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
+							this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
 							
 						}
 					);
@@ -58,25 +56,25 @@ function BG_mgr () {
 			}, console.error);
 	};
 
-	this.showUnattachedEditor = function (group_name) {
+	this.showUnattachedEditor = (group_name) => {
 		
-		self.group_mgr.getOrCreateItem(group_name, false)
+		this.group_mgr.getOrCreateItem(group_name, false)
 			.then(
 				group => {
-					self.editor_mgr.openEditorInstanceForGroup(group);
+					this.editor_mgr.openEditorInstanceForGroup(group);
 				});
 	};
 	
-	this.receiveCmd = function (command) {
+	this.receiveCmd = (command) => {
 		
 		switch(command) {
 			
 			case "add-script-for-tab":
-				self.showEditorForCurrentTab();
+				this.showEditorForCurrentTab();
 				break;
 				
 			case "new-group-new-script":
-				self.showUnattachedEditor(null);
+				this.showUnattachedEditor(null);
 				break;
 				
 			case "open-option-page-devel":

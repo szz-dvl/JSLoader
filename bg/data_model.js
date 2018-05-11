@@ -1,7 +1,5 @@
 function Script (opt) {
 	
-	var self = this;
-	
 	this.uuid = opt.uuid || UUID.generate();
 	this.code = opt.code || "/* JS code (jQuery, async and underscore available) ...*/\n";
 	this.parent = opt.parent || null;
@@ -9,120 +7,114 @@ function Script (opt) {
 	this.disabled = opt.disabled || false;
 	this.elems = [];
 	
-	this.getUrl = function () {
+	this.getUrl = () => {
 		
-		if (self.parent && !self.parent.isGroup()) {
+		if (this.parent && !this.parent.isGroup()) {
 			
-			if (self.parent.isSubdomain())
+			if (this.parent.isSubdomain())
 				return null;
 			else
-				return new URL('http://' + self.parent.parent.name + self.parent.url);
+				return new URL('http://' + this.parent.parent.name + this.parent.url);
 			
 		} else
 			return null; /* !!! */
 	};
 
-	this.remove = function () {
+	this.remove = () => {
 
-		if (self.elems.length)
-			self.elems = [];
+		if (this.elems.length)
+			this.elems = [];
 		
-		return self.parent 
-			? self.parent.removeScript(self.uuid)
+		return this.parent 
+			? this.parent.removeScript(this.uuid)
 			: Promise.resolve();
 	};
 	
-	this.__schedulePersistAt = function (to) {
-
-		if (self.persistTID)
-			clearTimeout(self.persistTID);
-
-		self.persistTID = setTimeout(
-			() => {
-				
-				self.persist();
-				
-			}, to);
-	}
-
-	this.disabledAt = function (url_name) {
+	this.__schedulePersistAt = (to) => {
 		
-		if (self.parent.isGroup()) {
+		if (this.persistTID)
+			clearTimeout(this.persistTID);
 
-			return url_name ?
-				   self.parent.isDisabled(self.uuid, url_name) :
-				   self.parent.disabledEverywhere(self.uuid);
-		} else
-			return self.disabled;
+		this.persistTID = setTimeout(this.persist, to);
 	};
 
-	this.toggleDisableFor = function (url_name) {
+	this.disabledAt = (url_name) => {
+		
+		if (this.parent.isGroup()) {
 
-		if (self.parent.isGroup()) {
+			return url_name ?
+				   this.parent.isDisabled(this.uuid, url_name) :
+				   this.parent.disabledEverywhere(this.uuid);
+		} else
+			return this.disabled;
+	};
+
+	this.toggleDisableFor = (url_name) => {
+
+		if (this.parent.isGroup()) {
 
 			if (url_name)
-				self.parent.toggleDisableFor(self.uuid, url_name);
+				this.parent.toggleDisableFor(this.uuid, url_name);
 			else {
 				
-				if (self.parent.disabledEverywhere(self.uuid)) 
-					self.parent.enableEverywhere(self.uuid);
+				if (this.parent.disabledEverywhere(this.uuid)) 
+					this.parent.enableEverywhere(this.uuid);
 				else
-					self.parent.disableEverywhere(self.uuid);
+					this.parent.disableEverywhere(this.uuid);
 			}
 			
 		} else {
 			
-			self.disabled = !self.disabled;
+			this.disabled = !this.disabled;
 			
 		}
 		
-		self.__schedulePersistAt(500);
+		this.__schedulePersistAt(500);
 	};
 	
-	this.persist = function () {
+	this.persist = () => {
 
-		if (self.parent) {
+		if (this.parent) {
 			
-			if (!self.parent.haveScript(self.id))
-				self.parent.upsertScript(self);
+			if (!this.parent.haveScript(this.id))
+				this.parent.upsertScript(this);
 
-			return self.parent.persist();
+			return this.parent.persist();
 
 		} else 	
-			return global_storage.setUserDefs(self.code);
+			return global_storage.setUserDefs(this.code);
 		
 	};
 
-	this.includedAt = function (url) {
+	this.includedAt = (url) => {
 
-		return self.parent.includes(url);
+		return this.parent.includes(url);
 
 	};
 	
-	this.getParentName = function () {
+	this.getParentName = () => {
 
-		return self.parent ? (self.parent.isGroup() ? self.parent.name : self.parent.parent.name) : self.name;
+		return this.parent ? (this.parent.isGroup() ? this.parent.name : this.parent.parent.name) : this.name;
 		
 	};
 	
 	/* Stringify */
-	this.__getDBInfo = function () {
+	this.__getDBInfo = () => {
+
+		let me = this;
 		
 		return {
 			
-			uuid: self.uuid,
-			code: self.code,
-			name: self.name,
-			disabled: self.disabled
+			uuid: me.uuid,
+			code: me.code,
+			name: me.name,
+			disabled: me.disabled
 		}
 	};
 }
 
 function __Script_Bucket (scripts) {
 
-	var self = this;
-
-	this.elems = [];
 	this.scripts = [];
 	
 	if (scripts) {
@@ -134,27 +126,25 @@ function __Script_Bucket (scripts) {
 		}
 	} 
 	
-	this.removeScript = function (id) {
+	this.removeScript = (id) => {
 		
-		self.scripts.remove(
-			self.scripts.findIndex(
+		this.scripts.remove(
+			this.scripts.findIndex(
 				script => {
 					
 					return script.uuid == id;
 				}
 			)
 		);
-
-		//console.log("removeScript: " + (self.isEmpty() ? "removing " + self.name : "persisting " + self.name) );
 		
-		return self.isEmpty() ?
-			self.remove() :
-			self.persist();
+		//console.log("removeScript: " + (this.isEmpty() ? "removing " + this.name : "persisting " + this.name) );
+		
+		return this.isEmpty() ? this.remove() : this.persist();
 	}
 	
-	this.upsertScript = function (script) {
+	this.upsertScript = (script) => {
 		
-		var idx = self.scripts.findIndex(
+		let idx = this.scripts.findIndex(
 			exe => {
 				return script.uuid == exe.uuid;
 			}
@@ -162,41 +152,41 @@ function __Script_Bucket (scripts) {
 		
 		if (idx >= 0) {
 			
-			self.scripts[idx].name = script.name;
-			self.scripts[idx].code = script.code;
-			self.scripts[idx].disabled = script.disabled;
+			this.scripts[idx].name = script.name;
+			this.scripts[idx].code = script.code;
+			this.scripts[idx].disabled = script.disabled;
 			
 		} else { 	
 			
-			script.parent = self;
+			script.parent = this;
 			
 			if (script instanceof Script)
-				self.scripts.push(script);
+				this.scripts.push(script);
 			else
-				self.scripts.push(new Script(script));
+				this.scripts.push(new Script(script));
 		}
 		
 		return script;	
 	};
 
-	this.haveData = function () {
-
-		return self.scripts.length > 0;
-
+	this.haveData = () => {
+		
+		return this.scripts.length > 0;
+		
 	};
 	
-	this.haveScript = function (id) {
+	this.haveScript = (id) => {
 
-		return self.scripts.filter(
+		return this.scripts.find(
 			script => {
 				
 				return script.uuid == id;
 				
 			}
-		)[0] || false;
+		) || false;
     };
 
-	this.factory = function () {
+	this.factory = () => {
 
 		return new Script({parent: self});
 	};
@@ -205,8 +195,6 @@ function __Script_Bucket (scripts) {
 
 function Site (opt) {
 	
-	var self = this;
-	
 	this.url = opt.url || null;
 	this.parent = opt.parent || null;
 	
@@ -214,88 +202,88 @@ function Site (opt) {
 	
 	this.groups = opt.groups || [];
 	
-	this.isDomain = function() {
+	this.isDomain = () => {
 		
-		return self.url == "/";
-		
-	};
-	
-	this.isSubdomain = function () {
-		
-		return self.parent.name.startsWith("*."); /* All subdomains shortcut. */
+		return this.url == "/";
 		
 	};
 	
-	this.isGroup = function() {
+	this.isSubdomain = () => {
+		
+		return this.parent.name.startsWith("*."); /* All subdomains shortcut. */
+		
+	};
+	
+	this.isGroup = () => {
 		
 		return false;
 		
 	};
 
-	this.siteName = function () {
+	this.siteName = () => {
 		
-		let name = self.parent.name + self.url;
+		let name = this.parent.name + this.url;
 		
 		return name.slice(-1) == "/" ? name.slice(0, -1) : name;
 		
 	};
 
-	this.includes = function (url) {
+	this.includes = (url) => {
 
-		return url.name().startsWith(self.siteName());
+		return url.name().startsWith(this.siteName());
 		
 	}
 	
-	this.isEmpty = function () {
+	this.isEmpty = () => {
 		
-		return !self.scripts.length && !self.groups.length; 
+		return !this.scripts.length && !this.groups.length; 
 		
 	};
 	
-	this.appendGroup = function (group) {
+	this.appendGroup = (group) => {
 		
-		if (!self.groups.includes(group.name))
-			self.groups.push(group.name);
+		if (!this.groups.includes(group.name))
+			this.groups.push(group.name);
 		
-		if (!group.sites.includes(self.siteName()))
-			group.sites.push(self.siteName());	
+		if (!group.sites.includes(this.siteName()))
+			group.sites.push(this.siteName());	
 	};
 
-	this.removeGroup = function (group) {
+	this.removeGroup = (group) => {
 		
-		self.groups.remove(self.groups.indexOf(group.name));
-		group.sites.remove(group.sites.indexOf(self.siteName()));
+		this.groups.remove(this.groups.indexOf(group.name));
+		group.sites.remove(group.sites.indexOf(this.siteName()));
 		
-		if (self.isEmpty())
-			self.remove();
+		if (this.isEmpty())
+			this.remove();
 		
 		if (group.isEmpty())
 			group.remove();
 	};
 	
-	this.remove = function () {
+	this.remove = () => {
 		
-		if (self.elems.length)
-			self.elems = [];
+		if (this.elems.length)
+			this.elems = [];
 		
-		return self.parent.removeSite(self.url);	
+		return this.parent.removeSite(this.url);	
 	};
 
-	this.persist = function () {
+	this.persist = () => {
 		
-		return self.parent.persist();
+		return this.parent.persist();
 		
 	};
 	
-	this.mergeInfo = function (imported) {
+	this.mergeInfo = (imported) => {
 		
 		for (script of imported.scripts)
-			self.upsertScript(script);
+			this.upsertScript(script);
 		
 		for (group_name of imported.groups) {
 			
-			if (!self.groups.includes(group_name))
-				self.groups.push(group_name);
+			if (!this.groups.includes(group_name))
+				this.groups.push(group_name);
 			
 			/* The other half to be done from manager */
 			
@@ -303,12 +291,15 @@ function Site (opt) {
 	}
 	
 	/* Stringify */
-	this.__getDBInfo = function () {
+	this.__getDBInfo = () => {
+
+		let me = this;
 		
 		return {
-			url: self.url,
-			groups: self.groups,
-			scripts: self.scripts.map(
+
+			url: me.url,
+			groups: me.groups,
+			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();
 				}
@@ -318,8 +309,6 @@ function Site (opt) {
 }
 
 function Domain (opt) {
-	
-	var self = this;
 	
 	if (!opt || !opt.name)
 		return null;
@@ -339,26 +328,26 @@ function Domain (opt) {
 
 	}
 	
-	this.isEmpty = function () {
+	this.isEmpty = () => {
 		
-		return !self.scripts.length && !self.sites.length && !self.groups.length;
+		return !this.scripts.length && !this.sites.length && !this.groups.length;
 		
 	};
 
-	this.getScriptCount = function () {
+	this.getScriptCount = () => {
 
-		let count = self.scripts.length;
+		let count = this.scripts.length;
 		
-		for (let site of self.sites)
+		for (let site of this.sites)
 			count += site.scripts.length;
 
 		return count;
 	};
 	
-	this.haveData = function () {
+	this.haveData = () => {
 		
-		return self.scripts.length ||
-			self.sites.find(
+		return this.scripts.length ||
+			this.sites.find(
 				site => {
 
 					return site.haveData();
@@ -368,120 +357,113 @@ function Domain (opt) {
 			) || false;
 	};
 	
-	this.persist = function () {
+	this.persist = () => {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.upsertDomain(self.__getDBInfo())
-					.then(
-						() => {
-							
-							resolve(self);
-							
-						}, reject
-					);
+				global_storage.upsertDomain(this.__getDBInfo())
+					.then(() => {
+						
+						resolve(this);
+						
+					}, reject);
 			}
 		);
 	};
 	
-	this.remove = function () {
+	this.remove = () => {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.removeDomain(self.name)
-					.then(
-						() => {
-							
-							resolve(self);
-										
-						}, reject);
+				global_storage.removeDomain(this.name)
+					.then(() => {
+						
+						resolve(this);
+						
+					}, reject);
 			}
 		);				
 	};	
 	
-	this.haveSites = function () {
+	this.haveSites = () => {
 		
-		return self.sites.length > 0;
+		return this.sites.length > 0;
 	};
 	
-	this.haveSite = function(pathname) {
+	this.haveSite = (pathname) => {
 
-		return (!pathname || pathname == "/")
-			? self
-			: self.sites.find(
-				site => {	
-					return site.url == pathname;
-				}) || false;
+		return (!pathname || pathname == "/") ? this : this.sites.find(site => {	
+			
+			return site.url == pathname;
+
+		}) || false;
 	};
 	
-	this.getOrCreateSite = function (pathname) {
+	this.getOrCreateSite = (pathname) => {
 		
 		if (!pathname || pathname == "/")
-			return self;
+			return this;
 		
-		var site = self.haveSite(pathname);
-		var n;
+		let site = this.haveSite(pathname);
 		
 		if (site)
 			return site;
 		
-		n = new Site ({url: pathname, parent: self});	
-		self.sites.push(n);
+		let nsite = new Site ({url: pathname, parent: this});	
+		this.sites.push(nsite);
 	
-		return n;
+		return nsite;
 	};
 	
-	this.haveScript = function (id) {
+	this.haveScript = (id) => {
 		
-		return self.scripts.filter(
+		return this.scripts.find(
 			script => {
 				
 				return script.uuid == id;
 				
 			}
-		)[0] ||
-			self.sites.map(
-				site => {
-					
-					return site.haveScript(id);
-					
-				}).filter(
-					script => {
-						
-						return script;
-						
-					}
-				)[0] ||
-			false;
+			
+		) || this.sites.map(
+			
+			site => {
+				
+				return site.haveScript(id);
+				
+			}).find(script => {
+				
+				return script;
+				
+			}) || false;
 	};
 	
-	this.removeSite = function (pathname) {
+	this.removeSite = (pathname) => {
 		
 		if (pathname == "/")
-			return self.remove();
+			return this.remove();
 		
-		self.sites.remove(
-			self.sites.findIndex(
+		this.sites.remove(
+			this.sites.findIndex(
 				site => {
 					return site.url == pathname;
 				}
 			)
 		);
 		
-		return self.isEmpty() ?
-			self.remove() :
-			self.persist();		
+		return this.isEmpty() ?
+			this.remove() :
+			this.persist();		
 	};
 
-	/* Used by subdomains */
-	this.ownerOf = function (domain_name) {
+	/* Used by subdomains to Regex */
+	this.ownerOf = (domain_name) => {
 
-		if (self.isSubdomain()) {
+		if (this.isSubdomain()) {
 			
 			var mod_arr = domain_name.split(".");
-			var orig_arr = self.name.split(".");
+			var orig_arr = this.name.split(".");
 		
 			var cursor_mod = mod_arr.length - 1;
 			var cursor_orig = orig_arr.length - 1;
@@ -503,35 +485,37 @@ function Domain (opt) {
 			return false;
 	};
 	
-	this.mergeInfo = function (imported) {
+	this.mergeInfo = (imported) => {
 
 		for (script of imported.scripts)
-			self.upsertScript(script);
+			this.upsertScript(script);
 
 		for (site of imported.sites) 	
-			self.getOrCreateSite(site.url).mergeInfo(site);
+			this.getOrCreateSite(site.url).mergeInfo(site);
 	};
 
-	this.getJSON = function () {
+	this.getJSON = () => {
 
-		return JSON.stringify(self.__getDBInfo());
+		return JSON.stringify(this.__getDBInfo());
 		
 	};
 	
-	this.__getDBInfo = function () {
+	this.__getDBInfo = () => {
+
+		let me = this;
 		
 		return {
 			
-			name: self.name,
-			groups: self.groups,
+			name: me.name,
+			groups: me.groups,
 			
-			sites: self.sites.map(
+			sites: me.sites.map(
 				site => {
 					return site.__getDBInfo();
 				}
 			),
 			
-			scripts: self.scripts.map(
+			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();
 				}
@@ -542,52 +526,50 @@ function Domain (opt) {
 
 function Group (opt) {
 
-	var self = this;
-
 	__Script_Bucket.call(this, opt.scripts || []);
 	
 	this.name = opt.name || UUID.generate().split("-").pop();
 	this.sites = opt.sites || [];
 	this.disabledAt = opt.disabledAt || [];
 	
-	this.isDomain = function() {
+	this.isDomain = () => {
 		
 		return false;
 		
 	};
 
-	this.isSubdomain = function() {
+	this.isSubdomain = () => {
 		
 		return false;
 		
 	};
 	
-	this.isGroup = function() {
+	this.isGroup = () => {
 		
 		return true;	
 	};
 
-	this.isEmpty = function () {
+	this.isEmpty = () => {
 		
-		return !self.sites.length && !self.scripts.length; 
+		return !this.sites.length && !this.scripts.length; 
 	};
 
-	this.getScriptCount = function () {
+	this.getScriptCount = () => {
 
-		return self.scripts.length;
+		return this.scripts.length;
 		
 	};
 	
-	this.persist = function () {
+	this.persist = () => {
 
 		return new Promise(
 			(resolve, reject) => {
 				
-				global_storage.upsertGroup(self.__getDBInfo())
+				global_storage.upsertGroup(this.__getDBInfo())
 					.then(
 						() => {
 							
-							resolve(self);
+							resolve(this);
 							
 						}, reject
 					);
@@ -595,43 +577,43 @@ function Group (opt) {
 		);
 	};
 
-	this.remove = function () {
+	this.remove = () => {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.removeGroup(self.name)
+				global_storage.removeGroup(this.name)
 					.then(
 						() => {
 							
-							resolve(self);
+							resolve(this);
 							
 						}, reject);
 			}
 		);
 	};
 
-	this.appendSite = function (site) {
+	this.appendSite = (site) => {
 		
-		if (!self.sites.includes(site.siteName()))
-			self.sites.push(site.siteName());
+		if (!this.sites.includes(site.siteName()))
+			this.sites.push(site.siteName());
 		
-		if (!site.groups.includes(self.name))
-			site.groups.push(self.name);
+		if (!site.groups.includes(this.name))
+			site.groups.push(this.name);
 	};
 
-	this.removeSite = function (site) {
+	this.removeSite = (site) => {
 		
-		self.sites.remove(self.sites.indexOf(site.siteName()));
-		site.groups.remove(site.groups.indexOf(self.name));
+		this.sites.remove(this.sites.indexOf(site.siteName()));
+		site.groups.remove(site.groups.indexOf(this.name));
 
 		let disabled = -1;
 		
 		do {
 			
-			self.disabledAt.remove(disabled);
+			this.disabledAt.remove(disabled);
 			
-			disabled = self.disabledAt.findIndex(
+			disabled = this.disabledAt.findIndex(
 				tuple => {
 					
 					return tuple.url.startsWith(site.siteName());
@@ -640,17 +622,17 @@ function Group (opt) {
 			
 		} while (disabled >= 0);
 		
-		if (self.isEmpty())
-			self.remove();
+		if (this.isEmpty())
+			this.remove();
 
 		if (site.isEmpty())
 			site.remove();
 		
 	};
 
-	this.includes = function (url) {
+	this.includes = (url) => {
 
-		return self.sites.find(
+		return this.sites.find(
 			site => {
 				return url.name().startsWith(site);
 			}
@@ -658,9 +640,9 @@ function Group (opt) {
 		) ? true : false;
 	};
 	
-	this.haveSite = function (site_name) {
-
-		return self.sites.find(
+	this.haveSite = (site_name) => {
+		
+		return this.sites.find(
 			site => {	
 
 				return site == site_name;
@@ -668,15 +650,15 @@ function Group (opt) {
 			}) || false;
 	};
 	
-	this.mergeInfo = function (imported) {
+	this.mergeInfo = (imported) => {
 
 		for (let script of imported.scripts)
-			self.upsertScript(script);
+			this.upsertScript(script);
 		
 		for (let site_name of imported.sites) {
 			
-			if (!self.sites.includes(site_name))
-				self.sites.push(site_name);
+			if (!this.sites.includes(site_name))
+				this.sites.push(site_name);
 			
 			/* 
 			   The other half of the relation to be 
@@ -687,13 +669,13 @@ function Group (opt) {
 
 		for (let tuple of imported.disabledAt) {
 
-			let script_mine = self.scripts.find(
+			let script_mine = this.scripts.find(
 				script => {
 					return script.uuid == tuple.id;
 				}
 			) ? true : false;
 
-			let site_mine = self.sites.find(
+			let site_mine = this.sites.find(
 				site => {
 					return site == tuple.url;
 				}
@@ -701,7 +683,7 @@ function Group (opt) {
 			
 			if (site_mine && script_mine) {
 				
-				let idx = self.disabledAt.findIndex(
+				let idx = this.disabledAt.findIndex(
 					stored => {
 						
 						return stored.id == tuple.id && tuple.url == stored.url;	
@@ -709,28 +691,28 @@ function Group (opt) {
 				);
 				
 				if (idx < 0)
-					self.disabledAt.push({id: tuple.id, url: tuple.url});
+					this.disabledAt.push({id: tuple.id, url: tuple.url});
 			}
 		}
 	};
 	
-	this.isDisabled = function (uuid, url_name) {
+	this.isDisabled = (uuid, url_name) => {
 		
-		return self.disabledAt.find(
+		return this.disabledAt.find(
 			tuple => {
 				return (tuple.id == uuid && url_name.startsWith(tuple.url));
 			}
 		) ? true : false;
 	}
 
-	this.toggleDisableFor = function (uuid, url_name) {
+	this.toggleDisableFor = (uuid, url_name) => {
 		
 		let idx = -1;
 		let disabled = false;
 		
 		do {
 
-			idx = self.disabledAt.findIndex(
+			idx = this.disabledAt.findIndex(
 				tuple => {
 					
 					return tuple.id == uuid && url_name.startsWith(tuple.url);
@@ -740,31 +722,31 @@ function Group (opt) {
 			
 			if (idx >= 0) {
 
-				self.disabledAt.remove(idx);
+				this.disabledAt.remove(idx);
 				disabled = true;
 				
 			} else if (!disabled)
-				self.disabledAt.push({id: uuid, url: url_name});
+				this.disabledAt.push({id: uuid, url: url_name});
 			
 		} while (idx >= 0);
 	}
 
-	this.disabledEverywhere = function (uuid) {
+	this.disabledEverywhere = (uuid) => {
 		
-		return self.sites.length && self.disabledAt.filter(
+		return this.sites.length && this.disabledAt.filter(
 			tuple => {
 				
 				return tuple.id == uuid;
 			}
 			
-		).length >= self.sites.length;
+		).length >= this.sites.length;
 	};
 	
-	this.disableEverywhere = function (uuid) {
+	this.disableEverywhere = (uuid) => {
 		
-		for (let site of self.sites) {
+		for (let site of this.sites) {
 			
-			let idx = self.disabledAt.findIndex(
+			let idx = this.disabledAt.findIndex(
 				tuple => {
 				
 					return tuple.id == uuid && tuple.url == site;
@@ -774,19 +756,19 @@ function Group (opt) {
 			);
 		
 			if (idx < 0)
-				self.disabledAt.push({id: uuid, url: site});
+				this.disabledAt.push({id: uuid, url: site});
 		}
 	}
 
-	this.enableEverywhere = function (uuid) {
+	this.enableEverywhere = (uuid) => {
 
 		let idx = -1;
 		
-		for (let site of self.sites) {
+		for (let site of this.sites) {
 
 			do {
 				
-				let idx = self.disabledAt.findIndex(
+				let idx = this.disabledAt.findIndex(
 					tuple => {
 						
 						return tuple.id == uuid && tuple.url.startsWith(site);
@@ -796,16 +778,16 @@ function Group (opt) {
 				);
 		
 				if (idx >= 0)
-					self.disabledAt.remove(idx);
+					this.disabledAt.remove(idx);
 				
 			} while (idx >= 0);
 		}
 	}
 
 	/* ??? */
-	this.ownerOf = function (site_name) {
+	this.ownerOf = (site_name) => {
 		
-		return self.sites.find(
+		return this.sites.find(
 			site => {
 				
 				if (site.startsWith("*."))
@@ -817,9 +799,9 @@ function Group (opt) {
 		) ? true : false;
 	}
 	
-	this.isMySite = function (site_name) {
+	this.isMySite = (site_name) => {
 		
-		return self.sites.find(
+		return this.sites.find(
 			site => {
 				
 				return site == site_name;
@@ -827,23 +809,25 @@ function Group (opt) {
 			
 		) ? true : false;
 	}
-
+	
 	/* -- ??? -- */
 	
-	this.getJSON = function () {
+	this.getJSON = () => {
 
-		return JSON.stringify(self.__getDBInfo());
+		return JSON.stringify(this.__getDBInfo());
 		
 	};
 	
 	this.__getDBInfo = function () {
+
+		let me = this;
 		
 		return {
 			
-			name: self.name,
-			sites: self.sites,
-			disabledAt: self.disabledAt,
-			scripts: self.scripts.map(
+			name: me.name,
+			sites: me.sites,
+			disabledAt: me.disabledAt,
+			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();
 				}

@@ -1,8 +1,5 @@
-/* To data model ? */
 function JSLTab (tabInfo, feeding) {
 
-	let self = this;
-	
 	Object.assign(this, tabInfo);
 	
 	this.url = new URL(this.url).sort();
@@ -16,7 +13,7 @@ function JSLTab (tabInfo, feeding) {
 				
 				let pr = [];
 
-				self.feeding(self.id)
+				this.feeding(this.id)
 					.then(
 						frames => {
 							
@@ -32,17 +29,15 @@ function JSLTab (tabInfo, feeding) {
 }
 
 function TabsMgr (bg) {
-
-	let self = this;
-
+	
 	this.bg = bg;
 	
-	this.updateURLForTab = function (tabId, url) {
+	this.updateURLForTab = (tabId, url) => {
 
 		return browser.tabs.update (tabId, {url: url.href});
 	};
 	
-	this.getTabsForURL = function (url) {
+	this.getTabsForURL = (url) => {
 		
 		return new Promise(
 			(resolve,reject) => {
@@ -67,7 +62,7 @@ function TabsMgr (bg) {
 		)
 	};
 	
-	this.getCurrentURL = function () {
+	this.getCurrentURL = () => {
 		
 		return new Promise (
 			(resolve, reject) => {
@@ -82,12 +77,12 @@ function TabsMgr (bg) {
 			});
 	};
 
-	this.openOrCreateTab = function (url) {
+	this.openOrCreateTab = (url) => {
 		
 		return new Promise (
 			(resolve, reject) => {
 						
-				self.getTabsForURL(url)
+				this.getTabsForURL(url)
 					.then(
 						tabs => {
 							let tab = tabs[0];
@@ -110,7 +105,7 @@ function TabsMgr (bg) {
 			});
 	};
 	
-	this.showPA = function (tabId, changeInfo, tabInfo) {
+	this.showPA = (tabId, changeInfo, tabInfo) => {
 		
 		browser.tabs.get(tabId.tabId || tabId)
 			.then(
@@ -120,7 +115,7 @@ function TabsMgr (bg) {
 					
 					if (url.protocol != "moz-extension:") {
 						
-						self.bg.domain_mgr.haveInfoForUrl(url)
+						this.bg.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
 									
@@ -149,7 +144,7 @@ function TabsMgr (bg) {
 				});
 	};
 
-	this.updateWdws = function (tabId, changeInfo) {
+	this.updateWdws = (tabId, changeInfo) => {
 
 		browser.tabs.get(tabId.tabId || tabId)
 			.then(
@@ -161,7 +156,7 @@ function TabsMgr (bg) {
 						
 						if (url.protocol != "moz-extension:") {
 							
-							for (let editor of self.bg.editor_mgr.editors) 
+							for (let editor of this.bg.editor_mgr.editors) 
 								editor.newTab(tabInfo);
 							
 						}
@@ -170,9 +165,9 @@ function TabsMgr (bg) {
 				});
 	};
 
-	this.factory = function (tabInfo) {
+	this.factory = (tabInfo) => {
 
-		return new JSLTab(tabInfo, self.bg.content_mgr.forceMainFramesForTab)
+		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
 			
 	}
 	

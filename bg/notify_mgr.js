@@ -1,10 +1,8 @@
 function NotificationMgr (bg) {
-
-	let self = this;
-
+	
 	this.bg = bg;
 	
-	this.error = function (message) {
+	this.error = (message) => {
 
 		let id = UUID.generate().split("-").pop();
 		
@@ -19,7 +17,7 @@ function NotificationMgr (bg) {
 		return id;
 	}
 
-	this.info = function (message) {
+	this.info = (message) => {
 
 		let id = UUID.generate().split("-").pop();
 		
@@ -34,7 +32,7 @@ function NotificationMgr (bg) {
 		return id;
 	}
 	
-	this.user = function (title, message) {
+	this.user = (title, message) => {
 
 		let id = UUID.generate().split("-").pop();
 		

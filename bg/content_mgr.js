@@ -1,24 +1,22 @@
 function CS (port) {
 
-	var self = this;
-	
 	this.port = port;
 	this.name = port.name;
 	this.frame = port.sender || null;
 	this.id = port.name.split("_")[1];
 	this.history = [];
 	
-	this.run = function (scripts) {
+	this.run = (scripts) => {
 		
 		return new Promise(
 			resolve => {
 				
-				let my_listener = function (args) {
+				let my_listener = (args) => {
 					
 					if (args.action == "post-results") {
 						
-						args.frame = Object.assign({}, self.frame);
-
+						args.frame = Object.assign({}, this.frame);
+						
 						function status (script_id) {
 							
 							return args.errors.find(error => { return error.id == script_id }) ? false : true;
@@ -26,17 +24,17 @@ function CS (port) {
 						};
 									
 						for(let script of args.run)
-							self.updateHistory(script, status(script));
+							this.updateHistory(script, status(script));
 						
 						resolve(args);
 						
-						self.port.onMessage.removeListener(my_listener);	
+						this.port.onMessage.removeListener(my_listener);	
 					}
 				};
 				
-				self.port.onMessage.addListener(my_listener);
+				this.port.onMessage.addListener(my_listener);
 				
-				self.port.postMessage({
+				this.port.postMessage({
 					action: "run",
 					response: "post-results",
 					message: scripts.map(
@@ -51,9 +49,9 @@ function CS (port) {
 		);
 	};
 
-	this.updateHistory = function (script_id, status) {
+	this.updateHistory = (script_id, status) => {
 
-		let idx = self.history.findIndex(
+		let idx = this.history.findIndex(
 			record => {
 
 				return record.id == script_id;
@@ -62,14 +60,14 @@ function CS (port) {
 		);
 
 		if (idx < 0)
-			self.history.push({id: script_id, status: status});
+			this.history.push({id: script_id, status: status});
 		else
-			self.history[idx].status = status;
+			this.history[idx].status = status;
 	}
 
-	this.historyStatus = function (script_id) {
+	this.historyStatus = (script_id) => {
 		
-		let record = self.history.find(
+		let record = this.history.find(
 			record => {
 
 				return record.id == script_id;
@@ -94,46 +92,46 @@ function CSMgr (bg) {
 		
 		globals => {
 
-			self.globals = globals || {};
+			this.globals = globals || {};
 			
 		});
 	
 	this.storage.getUserDefs(
 		defs => {
 				
-			self.defs = defs;
+			this.defs = defs;
 			
 		});
 	
-	this.setUserDefs = function (literal) {
+	this.setUserDefs = (literal) => {
 		
-		self.defs = literal;
+		this.defs = literal;
 		return this.storage.setUserDefs(literal);
 		
 	};
 	
-	this.haveGlobal = function (key) {
+	this.haveGlobal = (key) => {
 		
-		return typeof(self.globals[key]) !== 'undefined';
+		return typeof(this.globals[key]) !== 'undefined';
 		
 	};
-
-	this.__postTaggedResponse = function (port, tag, message) {
+	
+	this.__postTaggedResponse = (port, tag, message) => {
 		
 		port.postMessage({action: "response", message: message, tag: tag});
 		
 	};
 
-	this.addDomainToGroup = function (port, domain_name, group_name) {
+	this.addDomainToGroup = (port, domain_name, group_name) => {
 		
 		/* if (domain_name[domain_name.length - 1] != "/")
 		   domain_name += "/"; */
 			
-			return self.bg.group_mgr.addSiteTo(group_name, domain_name);
+			return this.bg.group_mgr.addSiteTo(group_name, domain_name);
 	};
 
 	
-	this.addSiteToGroup = function (port, tag, site_name, group_name) {
+	this.addSiteToGroup = (port, tag, site_name, group_name) => {
 		
 		var url;
 		
@@ -152,11 +150,11 @@ function CSMgr (bg) {
 			   site_name += "/";
 			   } */
 			
-			self.bg.group_mgr.addSiteTo(group_name, site_name)
+			this.bg.group_mgr.addSiteTo(group_name, site_name)
 				.then(
 					() => {
 						
-						self.__postTaggedResponse(port, tag,
+						this.__postTaggedResponse(port, tag,
 												  {
 													  status: true,
 													  content: {
@@ -170,7 +168,7 @@ function CSMgr (bg) {
 			
 		} catch (e) {
 
-			self.__postTaggedResponse(port, tag,
+			this.__postTaggedResponse(port, tag,
 									  {
 										  status: false,
 										  content: {
@@ -183,9 +181,9 @@ function CSMgr (bg) {
 		}
 	};
 
-	this.getFrameForPort = function (port) {
+	this.getFrameForPort = (port) => {
 		
-		return self.alive.find(
+		return this.alive.find(
 			cs => {
 				
 				return cs.id == port.name.split("_")[1];
@@ -194,9 +192,9 @@ function CSMgr (bg) {
 		);
 	};
 	
-	this.getFramesForTab = function (tabId) {
+	this.getFramesForTab = (tabId) => {
 		
-		return self.alive.filter(
+		return this.alive.filter(
 			cs => {
 				
 				return cs.frame.tab.id == tabId;
@@ -206,9 +204,9 @@ function CSMgr (bg) {
 		
 	};
 
-	this.getMainFramesForTab = function (tabId) {
+	this.getMainFramesForTab = (tabId) => {
 		
-		return self.getFramesForTab(tabId).filter(
+		return this.getFramesForTab(tabId).filter(
 			
 			cs => {
 				
@@ -218,7 +216,7 @@ function CSMgr (bg) {
 		);	
 	};
 
-	this.__waitForFrames = function (tabId, reload) {
+	this.__waitForFrames = (tabId, reload) => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -234,7 +232,7 @@ function CSMgr (bg) {
 						let myID = setInterval(
 							() => {
 								
-								let frames = self.getFramesForTab(tabId);
+								let frames = this.getFramesForTab(tabId);
 								
 								if (frames.length) {
 									
@@ -258,23 +256,23 @@ function CSMgr (bg) {
 			});
 	};
 
-	this.__forceMainFramesForTab = function (tabId, reload) {
+	this.__forceMainFramesForTab = (tabId, reload) => {
 
 		return new Promise (
 			(resolve, reject) => {
 
-				let frames = self.getMainFramesForTab(tabId);
+				let frames = this.getMainFramesForTab(tabId);
 				
 				if (frames.length)
 					resolve(frames);
 
 				else {
 					
-					self.__waitForFrames(tabId, reload)
+					this.__waitForFrames(tabId, reload)
 						.then(
 							frames => {
 							
-								resolve(self.getMainFramesForTab(tabId));
+								resolve(this.getMainFramesForTab(tabId));
 							
 							}, reject
 						);
@@ -283,23 +281,23 @@ function CSMgr (bg) {
 			});
 	};
 
-	this.forceMainFramesForTab = function (tabId) {
+	this.forceMainFramesForTab = (tabId) => {
 
-		return self.__forceMainFramesForTab(tabId, true);
-
-	};
-
-	this.waitMainFramesForTab = function (tabId) {
-
-		return self.__forceMainFramesForTab(tabId, false);
+		return this.__forceMainFramesForTab(tabId, true);
 
 	};
 
-	this.getStatus = function (script_id, tabId) {
+	this.waitMainFramesForTab = (tabId) => {
+
+		return this.__forceMainFramesForTab(tabId, false);
+
+	};
+
+	this.getStatus = (script_id, tabId) => {
 
 		let retval = 0;
 		
-		for (let frame of self.getMainFramesForTab(tabId)) {
+		for (let frame of this.getMainFramesForTab(tabId)) {
 			
 			let status = frame.historyStatus(script_id);
 			
@@ -313,45 +311,47 @@ function CSMgr (bg) {
 		return retval;
 	};
 
-	this.framesFor = function (tabId) {
+	this.framesFor = (tabId) => {
 
-		return self.getMainFramesForTab(tabId).length;
+		return this.getMainFramesForTab(tabId).length;
 
 	};
 
-	this.reloadScriptAt = function (script, tabId) {
+	this.reloadScriptAt = (script, tabId) => {
 
 		let promises = [];
 		
-		for (let frame of self.getMainFramesForTab(tabId)) 
+		for (let frame of this.getMainFramesForTab(tabId)) 
 			promises.push(frame.run([script]));
 
 		return Promise.all(promises);
 		
 	};
 
-	this.contentGetGlobal = function (port, tag, key) {
+	this.contentGetGlobal = (port, tag, key) => {
+
+		let globals = this.globals;
 		
-		self.__postTaggedResponse(port, tag,
-			{status: self.globals[key] ? true : false,
+		this.__postTaggedResponse(port, tag,
+			{status: globals[key] ? true : false,
 				content: {
 					key: key,
-					value: self.globals[key]
+					value: globals[key]
 				}
 			});
 	};
+	
+	this.contentSetGlobal = (port, tag, key, value) => {
 
-	this.contentSetGlobal = function (port, tag, key, value) {
-
-		let created = !self.haveGlobal(key);
+		let created = !this.haveGlobal(key);
 		
-		self.globals[key] = value;
+		this.globals[key] = value;
 		
-		this.storage.setGlobals(self.globals)
+		this.storage.setGlobals(this.globals)
 			.then(
 				() => {
 					
-					self.__postTaggedResponse(port, tag,
+					this.__postTaggedResponse(port, tag,
 						{
 							status: true,
 							content: {
@@ -364,7 +364,7 @@ function CSMgr (bg) {
 				},
 				() => {
 					
-					self.__postTaggedResponse(port, tag,
+					this.__postTaggedResponse(port, tag,
 						{
 							status: false,
 							content: {
@@ -377,14 +377,14 @@ function CSMgr (bg) {
 				});
 	};
 	
-	this.contentSetProxy = function (port, tag, host, proxy, times) {
+	this.contentSetProxy = (port, tag, host, proxy, times) => {
 		
-		self.bg.proxy_mgr.updatePAC(host, proxy, times)
+		this.bg.proxy_mgr.updatePAC(host, proxy, times)
 			.then(
 				length => {
 					
-					self.__postTaggedResponse(port, tag,
-								  
+					this.__postTaggedResponse(port, tag,
+						
 						{
 							status: length >= 0,
 							content: {
@@ -397,7 +397,7 @@ function CSMgr (bg) {
 					
 				}, err => {
 
-					self.__postTaggedResponse(port, tag,
+					this.__postTaggedResponse(port, tag,
 						
 						{ status: false,
 							
@@ -410,16 +410,16 @@ function CSMgr (bg) {
 					
 				});
 	};
+	
+	this.contentDownload = (port, tag, options) => {
 		
-	this.contentDownload = function (port, tag, options) {
-
 		
 		browser.downloads.download(typeof(options) == 'string' ? {url: options} : options)
 			.then(
 				
 				id => {
 					
-					self.__postTaggedResponse(port, tag,
+					this.__postTaggedResponse(port, tag,
 						
 						{ status: true,
 							
@@ -432,10 +432,10 @@ function CSMgr (bg) {
 				},
 				err => {
 					
-					self.__postTaggedResponse(port, tag,
-			
+					this.__postTaggedResponse(port, tag,
+						
 						{ status: false,
-				
+							
 							content: {
 								
 								err: err.message
@@ -460,8 +460,10 @@ function CSMgr (bg) {
 								case "get-info":
 									{
 										
-										self.alive.push(new CS(port));
-										port.postMessage({action: "info", message: self.defs });
+										this.alive.push(new CS(port));
+										let defs = this.defs;
+										
+										port.postMessage({action: "info", message: defs });
 										
 									}
 									
@@ -472,7 +474,7 @@ function CSMgr (bg) {
 										
 										let url = new URL(args.message.url).sort();
 										
-										self.bg.domain_mgr.getScriptsForUrl(url)
+										this.bg.domain_mgr.getScriptsForUrl(url)
 											.then(
 												scripts => {
 													
@@ -503,7 +505,7 @@ function CSMgr (bg) {
 								case "update-history":
 									
 									if (!args.status && args.run[0] == 'UserDefs') 
-										self.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
+										this.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
 									
 									function status (script_id) {
 										
@@ -512,21 +514,21 @@ function CSMgr (bg) {
 									};
 									
 									for(let script of args.run)
-										self.getFrameForPort(port).updateHistory(script, status(script));
+										this.getFrameForPort(port).updateHistory(script, status(script));
 									
 									break;
 									
 								case "site-to-group":
-									self.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
+									this.addSiteToGroup(port, args.tag, args.message.site, args.message.group);
 									break;
 									
 								case "notify":
-									self.bg.notify_mgr.user(args.message.title, args.message.body);
+									this.bg.notify_mgr.user(args.message.title, args.message.body);
 									break;
 									
 								case "event":
 									{
-										self.alive.map(
+										this.alive.map(
 											cs => {
 												
 												try {
@@ -541,19 +543,19 @@ function CSMgr (bg) {
 									break;
 									
 								case "get-global":
-									self.contentGetGlobal(port, args.tag, args.message.key);
+									this.contentGetGlobal(port, args.tag, args.message.key);
 									break;
 									
 								case "set-global":
-									self.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
+									this.contentSetGlobal(port, args.tag, args.message.key, args.message.value);
 									break;
 									
 								case "set-proxy":
-									self.contentSetProxy(port, args.tag, args.message.host, args.message.proxy, args.message.times);
+									this.contentSetProxy(port, args.tag, args.message.host, args.message.proxy, args.message.times);
 									break;
 									
 								case "download-file":
-									self.contentDownload(port, args.tag, args.message.args);
+									this.contentDownload(port, args.tag, args.message.args);
 									break;
 									
 								default:
@@ -566,8 +568,8 @@ function CSMgr (bg) {
 						port => {
 							
 							/* Check for error */
-							self.alive.remove(
-								self.alive.findIndex(
+							this.alive.remove(
+								this.alive.findIndex(
 									dead => {
 										
 										return dead.name == port.name;
@@ -580,7 +582,7 @@ function CSMgr (bg) {
 				}
 			});
 
-	this.storeNewDefs = function (changes, area) {
+	this.storeNewDefs = (changes, area) => {
 		
 		if (area != "local")
 	 		return;
@@ -588,7 +590,7 @@ function CSMgr (bg) {
 		for (key of Object.keys(changes)) {
 			
 			if (key == "userdefs") 
-				self.defs = changes.userdefs.newValue || "";			
+				this.defs = changes.userdefs.newValue || "";			
 		}
 	};
 	

@@ -13,8 +13,6 @@ function Options (opt) {
 }
 
 function OptionMgr (bg) {
-
-	var self = this;
 	
 	this.bg = bg;
 	this.storage = global_storage;
@@ -24,51 +22,51 @@ function OptionMgr (bg) {
 		
 		new_options => {
 			
-			Options.call(self, new_options || {});
+			Options.call(this, new_options || {});
 			
-			self.bg.app_events.emit('options-ready');
+			this.bg.app_events.emit('options-ready');
 		}
 	);
 
-	this.__schedulePersistAt = function (to) {
+	this.__schedulePersistAt = (to) => {
 		
-		if (self.persistID)
-			clearTimeout(self.persistID);
+		if (this.persistID)
+			clearTimeout(this.persistID);
 		
-		self.persistID = setTimeout(
+		this.persistID = setTimeout(
 			() => {
 				
-				self.storage
+				this.storage
 					.setOptions({ editor: self.editor, data_origin: self.data_origin })
 					.then(
-						() => {			
-							/* !!! */
-							self.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
+						() => {
+							
+							this.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
 						}
 					);
 			}, to
 		);	
 	};
 	
-	this.persistEditorOpt = function (opt) {
+	this.persistEditorOpt = (opt) => {
 		
-		self.editor[opt.id] = opt.value;
-		self.__schedulePersistAt(350);
+		this.editor[opt.id] = opt.value;
+		this.__schedulePersistAt(350);
 	};
 
-	this.persistDBString = function (string) {
+	this.persistDBString = (string) => {
 		
-		self.data_origin = string;
-		self.__schedulePersistAt(350);
+		this.data_origin = string;
+		this.__schedulePersistAt(350);
 		
 	};
 	
-	this.editUserDefs = function () {
+	this.editUserDefs = () => {
 		
-		self.storage.getUserDefs(
+		this.storage.getUserDefs(
 			defs => {
 				
-				self.bg.editor_mgr.openEditorInstanceForScript(
+				this.bg.editor_mgr.openEditorInstanceForScript(
 					new Script (
 						{
 							name: "UserDefs",
@@ -81,7 +79,7 @@ function OptionMgr (bg) {
 			});
 	};
 	
-	this.getDataInfo = function () {
+	this.getDataInfo = () => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -89,10 +87,10 @@ function OptionMgr (bg) {
 				let domains = [];
 				let groups = [];
 				
-				async.each(self.bg.domain_mgr.domains,
+				async.each(this.bg.domain_mgr.domains,
 					(domain_name, next) => {
 						
-						self.storage.getDomain(
+						this.storage.getDomain(
 							domain => {
 
 								if (domain) {
@@ -117,10 +115,10 @@ function OptionMgr (bg) {
 							reject(err);
 						else {
 
-							async.each(self.bg.group_mgr.groups,
+							async.each(this.bg.group_mgr.groups,
 								(group_name, next) => {
 									
-									self.storage.getGroup(
+									this.storage.getGroup(
 										group => {
 
 											if (group)
@@ -148,7 +146,7 @@ function OptionMgr (bg) {
 		);
 	};
 	
-	this.exportApp = function () {
+	this.exportApp = () => {
 
 		let text = ["{"];
 		
@@ -182,7 +180,7 @@ function OptionMgr (bg) {
 		);
 	}
 	
-	this.importApp = function (imported) {
+	this.importApp = (imported) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -190,7 +188,7 @@ function OptionMgr (bg) {
 				async.eachSeries(["domain", "group"],
 					(name, next) => {
 						
-						self.bg[name + "_mgr"].importData(imported[name + "s"])
+						this.bg[name + "_mgr"].importData(imported[name + "s"])
 							.then(next, next);
 						
 					}, err => {

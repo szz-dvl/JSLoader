@@ -1,7 +1,5 @@
 function DBMgr (bg) {
-	
-	let self = this;
-	
+		
 	this.bg = bg;
 	this.available = false;
 	this.connected = false;
@@ -14,52 +12,52 @@ function DBMgr (bg) {
 	this.bg.app_events.on('options-ready',
 		() => {
 			
-			self.port.postMessage('{ "tag": "connect", "content": "' + self.bg.option_mgr.data_origin + '" }');
+			this.port.postMessage('{ "tag": "connect", "content": "' + this.bg.option_mgr.data_origin + '" }');
 			
-			self.port.onMessage.addListener(
+			this.port.onMessage.addListener(
 				response => {
 
 					let obj = JSON.parse(response);					
-					self.reconnecting = false;
+					this.reconnecting = false;
 					
 					switch (obj.tag) {
 						
 						case "alive":
-							self.available = true;
-							self.connected = true;
-							self.writeable = obj.writeable;
-							self.readable = obj.readable;
+							this.available = true;
+							this.connected = true;
+							this.writeable = obj.writeable;
+							this.readable = obj.readable;
 
-							if (self.bg.option_mgr.events)
-								self.bg.option_mgr.events.emit("db_change", obj.string);
+							if (this.bg.option_mgr.events)
+								this.bg.option_mgr.events.emit("db_change", obj.string);
 
 							break;;
 						case "bad-params":
-							self.available = true;
-							self.connected = false;
-							self.writeable = false;
-							self.readable = false;
+							this.available = true;
+							this.connected = false;
+							this.writeable = false;
+							this.readable = false;
 
-							if (self.bg.option_mgr.events)
-								self.bg.option_mgr.events.emit("db_change", obj.string);
+							if (this.bg.option_mgr.events)
+								this.bg.option_mgr.events.emit("db_change", obj.string);
 							
 							console.error("DB connection failed: " + obj.content + " for " + obj.string);
 							break;;
 						case "groups":
 						case "domains":
 							
-							self.bg[obj.tag.slice(0, -1) + "_mgr"].importData(obj.content)
+							this.bg[obj.tag.slice(0, -1) + "_mgr"].importData(obj.content)
 								.then(() => {
 									
-									if (self.bg.option_mgr.events)
-										self.bg.option_mgr.events.emit("db_newdata");
+									if (this.bg.option_mgr.events)
+										this.bg.option_mgr.events.emit("db_newdata");
 								});
 							
 							break;;
 						case "query":
-							if (self.bg.option_mgr.events) {
+							if (this.bg.option_mgr.events) {
 								
-								self.bg.option_mgr.events.emit("db_query", obj.content.map(
+								this.bg.option_mgr.events.emit("db_query", obj.content.map(
 									record => {
 
 										/* try - catch */
@@ -78,21 +76,21 @@ function DBMgr (bg) {
 				}
 			);
 			
-			self.pushDomains = function (domains) {
+			this.pushDomains = (domains) => {
 
-				if (!self.reconnecting) {
+				if (!this.reconnecting) {
 
 					if (domains && domains.length > 0) {
 
-						self.port.postMessage('{ "tag": "domains_push", "content": [' + domains.map(domain => { return domain.getJSON(); }).join(",") + '] }' );
+						this.port.postMessage('{ "tag": "domains_push", "content": [' + domains.map(domain => { return domain.getJSON(); }).join(",") + '] }' );
 
 					} else {
 						
-						self.bg.domain_mgr.exportScripts(true)
+						this.bg.domain_mgr.exportScripts(true)
 							.then(
 								text => {
 									
-									self.port.postMessage('{ "tag": "domains_push", "content":' + text.join("") + '}' );
+									this.port.postMessage('{ "tag": "domains_push", "content":' + text.join("") + '}' );
 									
 								}
 							);
@@ -100,38 +98,38 @@ function DBMgr (bg) {
 					
 				} else {
 					
-					self.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 
 				}
 			}
 			
-			self.getDomains = function (names) {
+			this.getDomains = (names) => {
 
-				if (!self.reconnecting) {
+				if (!this.reconnecting) {
 					
-					self.port.postMessage('{ "tag": "domains_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
+					this.port.postMessage('{ "tag": "domains_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
 					
 				} else {
 					
-					self.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 				}
 			}
 			
-			self.pushGroups = function (groups) {
+			this.pushGroups = (groups) => {
 
-				if (!self.reconnecting) {
+				if (!this.reconnecting) {
 
 					if (groups && groups.length > 0) {
 						
-						self.port.postMessage('{ "tag": "groups_push", "content": [' + groups.map(group => { return group.getJSON(); }).join(",") + '] }' );
+						this.port.postMessage('{ "tag": "groups_push", "content": [' + groups.map(group => { return group.getJSON(); }).join(",") + '] }' );
 						
 					} else {
 						
-						self.bg.group_mgr.exportGroups(true)
+						this.bg.group_mgr.exportGroups(true)
 							.then(
 								text => {
 									
-									self.port.postMessage('{ "tag": "groups_push", "content":' + text.join("") + '}' );
+									this.port.postMessage('{ "tag": "groups_push", "content":' + text.join("") + '}' );
 									
 								}
 							);
@@ -139,44 +137,44 @@ function DBMgr (bg) {
 
 				} else {
 					
-					self.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 
 				}
 				
 			}
 			
-			self.getGroups = function (names) {
+			this.getGroups = (names) => {
 
-				if (!self.reconnecting) {
+				if (!this.reconnecting) {
 
-					self.port.postMessage('{ "tag": "groups_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
+					this.port.postMessage('{ "tag": "groups_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
 
 				} else {
 					
-					self.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 					
 				}
 			}
 
-			self.reconnect = function (connectionString) {
+			this.reconnect = (connectionString) => {
 
-				self.available = false;
-				self.connected = false;
-				self.writeable = false;
-				self.readable = false;
+				this.available = false;
+				this.connected = false;
+				this.writeable = false;
+				this.readable = false;
 				
-				self.reconnecting = true;
+				this.reconnecting = true;
 				
-				self.port.postMessage('{ "tag": "connect", "content": "' + connectionString + '" }');
+				this.port.postMessage('{ "tag": "connect", "content": "' + connectionString + '" }');
 				
 			}
 
-			self.queryDB = function (query) {
+			this.queryDB = (query) => {
 
-				if (!self.reconnecting) 
-					self.port.postMessage('{ "tag": "query_for", "content": "' + query + '" }');
+				if (!this.reconnecting) 
+					this.port.postMessage('{ "tag": "query_for", "content": "' + query + '" }');
 				else
-					self.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 			}
 			
 		});

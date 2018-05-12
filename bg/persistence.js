@@ -70,23 +70,43 @@ function Storage () {
 
 			}, true); 
 		
-		if (val.name.startsWith("*."))
+		if (val.name.startsWith("*.") && !val.name.endsWith(".*"))
+			
 			return this.__upsertSubDomain(val.name.slice(2), val);
+		
+		else if (val.name.endsWith(".*") && !val.name.startsWith("*."))
+			
+			return this.__upsertSuperDomain(val.name.slice(0, -2), val);
+		
+		else if (val.name.endsWith(".*") && val.name.startsWith("*."))
+			
+			return this.__upsertDomainSet(val.name.slice(2).slice(0, -2), val);
+		
 		else
 			return this.__set('domain-' + val.name, val);
 	};
 	
 	this.getDomain = (cb, name) => {
-
-		if (name.startsWith("*."))
+		
+		if (name.startsWith("*.") && !name.endsWith(".*"))
+			
 			return this.__getSubDomain(cb, name.slice(2));
-		else {
 
+		else if(!name.startsWith("*.") && name.endsWith(".*"))
+			
+			return this.__getSuperDomain(cb, name.slice(0, -2));
+
+		else if(name.startsWith("*.") && name.endsWith(".*"))
+			
+			return this.__getDomainSet(cb, name.slice(2).slice(0, -2));
+		
+		else {
+			
 			this.__get(
 				domain => {
-				
+					
 					cb(domain ? new Domain(domain) : null);
-				
+					
 				}, 'domain-' + name);
 		}
 	};
@@ -105,16 +125,24 @@ function Storage () {
 
 			}, true);
 		
-		if (name.startsWith("*."))
+		if (name.startsWith("*.") && !name.endsWith(".*"))
 			return this.__removeSubDomain(name.slice(2));
+		else if (name.endsWith(".*") && !name.startsWith("*."))
+			return this.__removeSuperDomain(name.slice(0, -2));
+		else if (name.endsWith(".*") && name.startsWith("*."))
+			return this.__removeDomainSet(name.slice(2).slice(0, -2));
 		else
 			return this.__remove('domain-' + name);
 	};
 
 	this.getOrCreateDomain = (cb, name) => {
-		
-		if (name.startsWith("*."))
+
+		if (name.startsWith("*.") && !name.endsWith(".*"))
 			return this.__getOrCreateSubDomain(cb, name.slice(2));
+		else if(!name.startsWith("*.") && name.endsWith(".*"))
+			return this.__getOrCreateSuperDomain(cb, name.slice(0, -2));
+		else if(name.startsWith("*.") && name.endsWith(".*"))
+			return this.__getOrCreateDomainSet(cb, name.slice(2).slice(0, -2));
 		else {
 
 			this.getDomain(
@@ -237,19 +265,19 @@ function Storage () {
 
 				cb(subdomain ? new Domain(subdomain) : null);
 				
-			}, 'subdomains-' + keyname);
+			}, 'subdomain-' + keyname);
 		
 	};
 	
 	this.__upsertSubDomain = (keyname, val) => {
 		
-		return this.__set('subdomains-' + keyname, val);
+		return this.__set('subdomain-' + keyname, val);
 		
 	};
 	
 	this.__removeSubDomain = (keyname) => {
 		
-		return this.__remove('subdomains-' + keyname);
+		return this.__remove('subdomain-' + keyname);
 	};
 
 	this.__getOrCreateSubDomain = (cb, keyname) => { 
@@ -261,6 +289,78 @@ function Storage () {
 					cb(subdomain);
 				else 
 					cb(new Domain({name: "*." + keyname}));
+				
+			}, keyname);
+	};
+
+	/* Domain Groups */
+	this.__getDomainSet = (cb, keyname) => {
+		
+		this.__get(
+			domainset => {
+
+				cb(domainset ? new Domain(domainset) : null);
+				
+			}, 'domainset-' + keyname);
+		
+	};
+	
+	this.__upsertDomainSet = (keyname, val) => {
+		
+		return this.__set('domainset-' + keyname, val);
+		
+	};
+	
+	this.__removeDomainSet = (keyname) => {
+		
+		return this.__remove('domainset-' + keyname);
+	};
+
+	this.__getOrCreateDomainSet = (cb, keyname) => { 
+		
+		this.__getDomainSet(
+			domainset => {
+				
+				if (domainset)
+					cb(domainset);
+				else 
+					cb(new Domain({name: "*." + keyname + ".*"}));
+				
+			}, keyname);
+	};
+	
+	/* Superdomains */
+	this.__getSuperDomain = (cb, keyname) => {
+		
+		this.__get(
+			superdomain => {
+
+				cb(superdomain ? new Domain(superdomain) : null);
+				
+			}, 'superdomain-' + keyname);
+		
+	};
+	
+	this.__upsertSuperDomain = (keyname, val) => {
+		
+		return this.__set('superdomain-' + keyname, val);
+		
+	};
+	
+	this.__removeSuperDomain = (keyname) => {
+		
+		return this.__remove('superdomain-' + keyname);
+	};
+	
+	this.__getOrCreateSuperDomain = (cb, keyname) => { 
+		
+		this.__getSuperDomain(
+			subdomain => {
+				
+				if (subdomain)
+					cb(subdomain);
+				else 
+					cb(new Domain({name: keyname + ".*"}));
 				
 			}, keyname);
 	};

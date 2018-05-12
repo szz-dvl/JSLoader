@@ -4,14 +4,13 @@ function EditorWdw (opt) {
 		(resolve, reject) => {
 
 			let editor = new Editor(opt);
-			let wc = editor.script.getUrl() ? editor.script.getUrl().name().length : editor.script.getParentName().length;
 			
 			browser.windows.create({
 				
 				type: "popup",
 				state: "normal",
 				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: Math.min(Math.max(1024, (200 + (wc * 10))), screen.width), 
+				width: Math.min(1024, screen.width), 
 				height: 420 
 				
 			}).then (

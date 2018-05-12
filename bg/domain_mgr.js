@@ -51,7 +51,7 @@ function DomainMgr (bg) {
 	};
 	
 	this.__getRepresentedBy = (hostname) => {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -69,14 +69,18 @@ function DomainMgr (bg) {
 				
 				aux = split.slice(0, -1);
 				
-				while (last.length) {
+				while (aux.length) {
 					
-					names.push(aux.join(".") + ".*");
-					
-					if (aux.slice(1).length) 
-						aux.push("*." + aux.slice(1).join(".") + ".*");
-					
+					names.push(aux.join(".") + ".*");	
 					aux = aux.slice(0, -1);
+				}
+
+				aux = split.slice(1).slice(0, -1);
+				
+				while (aux.length) {
+					
+					names.push("*." + aux.join(".") + ".*");	
+					aux = aux.slice(1).slice(0, -1);
 				}
 				
 				async.eachSeries(names,
@@ -99,13 +103,50 @@ function DomainMgr (bg) {
 							reject(err);
 						else 
 							resolve(domains);
-						
 					});
 			});
 	};
-	
-	this.__getAggregatedScripts = (groups, hostname) => {
 
+	this.__getSitesInfoFor = (domain, pathname) => {
+		
+		let sites = [];
+		let res = { scripts: [], groups: domain.groups };
+
+		if (domain.scripts.length)
+			res.scripts.push({ name: "/", scripts: domain.scripts });
+		
+		if (pathname) {
+			
+			let path = "/";
+			
+			for (let endpoint of pathname.split("/").slice(1)) {
+			
+				path += endpoint;
+				site = domain.haveSite(path);
+			
+				if (site && site.url != "/")
+					sites.push(site);
+			
+				path += "/";	
+			}
+			
+			if (sites.length) {
+				
+				for (site of sites) {
+				
+					res.scripts.push({ site: site.url,  scripts: site.scripts });
+					
+					res.groups.push.apply(res.groups,
+						site.groups);
+				}
+			}
+		}
+		
+		return res;
+	};
+	
+	this.__getAggregatedScripts = (groups, hostname, pathname) => {
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -117,12 +158,13 @@ function DomainMgr (bg) {
 							
 							for (let subdomain of subdomains) {
 								
+								let info = __getSitesInfoFor(subdomain, pathname);
+								
 								scripts.push.apply(scripts,
-									subdomain.scripts);
+									info.scripts.map(script_info => { return script_info.scripts }).join());
 								
 								groups.push.apply(groups,
-									subdomain.groups);
-								
+									info.groups);
 							}
 							
 							this.bg.group_mgr.getGroupScripts(groups)
@@ -144,7 +186,7 @@ function DomainMgr (bg) {
 	};
 	
 	this.getScriptsForUrl = (url) => {
-	
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -158,43 +200,22 @@ function DomainMgr (bg) {
 						let domain_disabled = false;
 
 						if (!this.__isDisabled(url.hostname)) {
-
+							
 							if (domain) {
-																
+								
+								let sites = this.__getSitesInfoFor(domain, url.pathname);
+		
 								/* Domain & Site scripts */
+								
 								scripts.push.apply(scripts,
-									domain.scripts);
+									sites.scripts.map(scripts_info => { return scripts_info.scripts }).join());
 								
 								groups.push.apply(groups,
-									domain.groups);
-								
-								let path = "/";
-								for (let endpoint of url.pathname.split("/").slice(1)) {
-									
-									path += endpoint;
-									site = domain.haveSite(path);
-									
-									if (site)
-										sites.push(site);
-
-									path += "/";	
-								}
-								
-								if (sites.length) {
-
-									for (site of sites) {
-
-										scripts.push.apply(scripts,
-											site.scripts);
-										
-										groups.push.apply(groups,
-											site.groups);
-									}
-								}
+									sites.groups);	
 							}
 							
 							/* Group & Subdomain scripts */
-							this.__getAggregatedScripts(groups.unique(), url.hostname)
+							this.__getAggregatedScripts(groups.unique(), url.hostname, url.pathname)
 								.then(group_scripts => {
 									
 									scripts.push.apply(scripts,
@@ -208,26 +229,27 @@ function DomainMgr (bg) {
 									resolve(scripts);
 									
 								}, reject);
-
+							
 						} else {
-
+							
 							resolve([]);	
+							
 						}
 						
 					}, url.hostname);
 			});
 	};
 
-	this.getEditInfoForUrl = (url) => {
-
+	this.getEditInfoForUrl = (url) =>  {
+		
 		let self = this;
 		
 		return new Promise (
 			(resolve, reject) => {
-
+				
 				this.storage.getDomain(
 					domain => {
-
+						
 						let site = null;
 						let sites = [];
 						let groups = [];
@@ -242,52 +264,43 @@ function DomainMgr (bg) {
 						};		
 						
 						if (domain) {
-
+							
 							editInfo.exists = true;
 							
-							if (domain.scripts.length)
-								editInfo.site.push({ name: "/", scripts: domain.scripts });
+							let info = this.__getSitesInfoFor(domain, url.pathname);
+
+							editInfo.site.push.apply(editInfo.site,
+								info.scripts);
 							
 							groups.push.apply(groups,
-								domain.groups);
-
-							let path = "/";
-							for (let endpoint of url.pathname.split("/").slice(1)) {
-								
-								path += endpoint;
-								site = domain.haveSite(path);
-								
-								if (site && site.url != "/")
-									sites.push(site);
-
-								path += "/";	
-							}
+								info.groups); 
+							
 						}
-						
-						if (sites.length) {
 
-							for (site of sites) {
-								
-								if (site.scripts.length)
-									editInfo.site.push({ name: site.url, scripts: site.scripts });
-								
-								groups.push.apply(groups,
-									site.groups);
-							}
-						}
-						
 						this.__getRepresentedBy(url.hostname)
 							.then(
 								subdomains => {
 									
 									for (let subdomain of subdomains) {
 										
-										if (subdomain.scripts.length)
-											editInfo.subdomains.push({ name: subdomain.name, scripts: subdomain.scripts });
+										info = this.__getSitesInfoFor(subdomain, url.pathname);
+										
+										editInfo.subdomains.push.apply(editInfo.subdomains,
+											info.scripts.map(
+												script_info => {
+													
+													return {
+														
+														name: subdomain.name + script_info.name,
+														scripts: script_info.scripts
+														
+													};
+												}
+											)
+										);
 										
 										groups.push.apply(groups,
-											subdomain.groups);
-										
+											info.groups);	
 									}
 									
 									groups = groups.unique();
@@ -296,12 +309,13 @@ function DomainMgr (bg) {
 										group_scripts => {
 											
 											for (let group of groups) {
-
+												
 												let filtered = group_scripts
 													.filter(
 														script => {
 															return group == script.parent.name;
-														});
+														}
+													);
 												
 												if (filtered.length)
 													editInfo.groups.push({ name: group, scripts: filtered });
@@ -315,12 +329,12 @@ function DomainMgr (bg) {
 								}, reject
 							);
 						
-					}, url.hostname);	
+					}, url.hostname);
 			});
-	};		
-
+	};
+	
 	this.importData = (items) => {
-
+		
 		return new Promise(
 			(resolve, reject) => {
 				
@@ -363,21 +377,20 @@ function DomainMgr (bg) {
 													group.appendSite(site);
 													group.persist();
 													
-												} else {
-
-													site.groups.remove(site.groups.indexOf(group_name));
-												}
+												} else 
+												   site.groups.remove(site.groups.indexOf(group_name));
+												
 												
 											}, group_name);
 									}
 								}
-
+								
 								domain.persist().then(persisted => { next() }, next);
 								
 							}, item.name);
 						
 					}, err => {
-
+						
 						if (err)
 							reject(err);
 						else
@@ -388,7 +401,7 @@ function DomainMgr (bg) {
 	};
 	
 	this.__updateParentFor = (script, url) => {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -469,35 +482,19 @@ function DomainMgr (bg) {
 							let sites = [];
 							let site = null;
 
-							if (domain) {
-								
-								let path = "/";
-								
-								for (let endpoint of url.pathname.split("/").slice(1)) {
-
-									path += endpoint;	
-									site = domain.haveSite(path);
-
-									/* !!! */
-									if (site && site.url != "/") {
-
-										if (site.haveData())
-											sites.push(site);
-										
-										groups.push.apply(groups,
-											site.groups);
-									}
-									
-									path += "/";	
-								}
-							}
+							if (domain) 
+								sites = this.__getSitesInfoFor(domain, url.pathname);	
 							
 							if (sites.length) {
 
 								for (let site of sites) {
 
-									if (url.pathname.slice(1).startsWith(site.url.slice(1))) 
-										resolve(true);	
+									if (site.scripts.length) {
+										
+										resolve(true);
+										break;
+										
+									}
 								}
 								
 							} else {
@@ -505,7 +502,7 @@ function DomainMgr (bg) {
 								if (domain) {
 									
 									groups.push.apply(groups,
-										domain.groups);	
+										sites.groups);	
 								}									
 								
 								this.__getRepresentedBy(url.hostname)
@@ -513,21 +510,27 @@ function DomainMgr (bg) {
 										subdomains => {
 											
 											let scripts = [];
+											let resolved = false;
 											
 											for (let subdomain of subdomains) {
 												
-												scripts.push.apply(scripts,
-													subdomain.scripts);
+												let endpoint = this.__getSitesInfoFor(subdomain, url.pathname);
+												
+												if (endpoint.scripts.length) {
+													
+													resolve(true);
+													resolved = true;
+													
+													break;
+													
+												}
 												
 												groups.push.apply(groups,
-													subdomain.groups);
-												
+													endpoint.groups);
 											}
 											
-											if (scripts.length)
-												resolve (true);
-											else {
-
+											if (!resolved) {
+											
 												this.bg.group_mgr.getGroupScripts(groups.unique())
 													.then(
 														group_scripts => {
@@ -544,7 +547,6 @@ function DomainMgr (bg) {
 						}
 						
 					}, url.hostname);
-				
 			});
 	};
 	

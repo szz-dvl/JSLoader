@@ -198,59 +198,43 @@ angular.module('jslPartials', [])
 	})
 	
 	.directive('scriptName',
-			   () => {
+			   ($timeout) => {
 				   
 				   return {
 					   
 					   restrict: 'E',
-					   
+					   replace: true,
 					   scope: {
 						   script: "=script",
 						   onlyval: '=?'
 					   },
 					   
-					   template: '<bdi contenteditable="true"> {{script.name}} </bdi>',
-					   
-					   link: function($scope, element, attr) {
-						   
-						   element.on('input', function(ev) {
+					   template: '<input type="text" class="browser-style" ng-model="temp" ng-change="validateScriptName()"/>',
+
+					   controller: function ($scope) {
+
+						   $scope.temp = $scope.script.name;
+
+						   $scope.validateScriptName = () => {
 							   
 							   if ($scope.tID)
-								   clearTimeout($scope.tID);
+								   $timeout.cancel($scope.tID);
 							   
-							   $scope.tID = setTimeout(
-								   ev => {
-
-									   let name = $(ev.target).text().trim();
+							   $scope.tID = $timeout(
+								   () => {
 									   
-									   if (name.match(/^[a-z0-9]+$/i)) {
-
-										   $scope.script.name = name;
-
+									   if ($scope.temp.includes(".")) 
+										   $scope.temp = $scope.script.name;
+									   else {
+										   
+										   $scope.script.name = $scope.temp;
+										   
 										   if (!$scope.onlyval)
 											   $scope.script.persist();
-										   
-									   } else 
-										   $(ev.target).text($scope.script.name);
+									   }
 									   
-								   }, 1000, ev
-							   );
-						   });
-						   
-						   element.keypress(ev => { return ev.which != 13; });
-						   
-						   element.on('click', ev => {
-						   	   
-							   if (ev.pageX > element.width()) {
-								    
-								   if (element.hasClass("shown"))
-									   element.removeClass("shown");
-								   else
-									   element.addClass("shown");
-								   
-							   } else 
-								   ev.stopImmediatePropagation();							      
-						   });
+								   }, 1000);
+						   }
 					   }
 				   }
 			   })
@@ -269,13 +253,13 @@ angular.module('jslPartials', [])
 						   
 					   },
 					   
-					   template: '<input class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
+					   template: '<input type="text" class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
 					   
 					   controller: function ($scope) {
 
 						   $scope.backup = $scope.group;
 						   
-						   $scope.validateGroup = function () {
+						   $scope.validateGroup = () => {
 							   
 							   if ($scope.ev)
 								   $scope.ev.emit("validation_start", $scope.group);
@@ -327,13 +311,13 @@ angular.module('jslPartials', [])
 						   
 					   },
 
-					   template: '<input class="browser-style" type="text" ng-model="url" ng-change="validateSite()"/>',
+					   template: '<input type="text" class="browser-style" type="text" ng-model="url" ng-change="validateSite()"/>',
 					    
 					   controller: function ($scope) {
 
 						   $scope.backup = $scope.url;
 						   
-						   $scope.validateSite = function () {
+						   $scope.validateSite = () => {
 							 
 							   if ($scope.events)
 								   $scope.events.emit("validation_start", $scope.url);
@@ -349,7 +333,7 @@ angular.module('jslPartials', [])
 									   let pathname = $scope.url.split("/").slice(1).join("/").trim();
 
 									   /* Won't match "*" (must it?), Will match "*.NAME.NAME2.NAME3.{...}.NAMEN.*" */
-									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9]+|(\*)?)$/).exec(hostname);
+									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*)?)$/).exec(hostname);
 									   let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(pathname);
 
 									   let newhost = regexh ? regexh[0] : null;

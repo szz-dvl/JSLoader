@@ -205,7 +205,8 @@ function EditorFG (id, bg) {
 									this.scope.$digest();
 									
 									if (this.editor.tab) {
-										
+
+										/* Not true if changing script parent! */
 										browser.pageAction.setIcon(
 											{
 												path: {

@@ -317,7 +317,7 @@ function PA (bg, info) {
 								}
 							);
 							
-							$scope.setAction = () => {
+							$scope.setAction = (inprog) => {
 								
 								$scope.page.bg.group_mgr.getItem($scope.current)
 									.then(
@@ -328,8 +328,9 @@ function PA (bg, info) {
 												$scope.action = "Remove";
 											else
 												$scope.action = "Add";
-											
-											$scope.$digest();
+
+											if (!inprog)
+												$scope.$digest();
 										}
 									)
 							};
@@ -347,7 +348,6 @@ function PA (bg, info) {
 									pending => {
 
 										$scope.validation_in_progress = true;
-										$scope.$digest();
 										
 									})
 								
@@ -356,7 +356,7 @@ function PA (bg, info) {
 										
 										$scope.url = validated;
 										$scope.validation_in_progress = false;
-										$scope.setAction();
+										$scope.setAction(true);
 										
 									});
 							

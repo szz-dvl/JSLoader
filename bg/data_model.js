@@ -10,7 +10,7 @@ function Script (opt) {
 		
 		if (this.parent && !this.parent.isGroup()) {
 			
-			if (this.parent.isSubdomain())
+			if (this.parent.parent.isSubdomain())
 				return null;
 			else
 				return new URL('http://' + this.parent.parent.name + this.parent.url);
@@ -90,7 +90,7 @@ function Script (opt) {
 	
 	this.getParentName = () => {
 
-		return this.parent ? (this.parent.isGroup() ? this.parent.name : this.parent.parent.name) : this.name;
+		return this.parent ? (this.parent.isGroup() || this.parent.isSubdomain() ? this.parent.name : this.parent.parent.name + this.parent.name) : this.name;
 		
 	};
 	
@@ -206,7 +206,7 @@ function Site (opt) {
 	
 	this.isSubdomain = () => {
 		
-		return this.parent.name.startsWith("*."); /* All subdomains shortcut. */
+		return this.parent.name.startsWith("*.") || this.parent.name.endsWith(".*"); /* All subdomains shortcut. */
 		
 	};
 	

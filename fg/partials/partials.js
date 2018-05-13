@@ -239,6 +239,83 @@ angular.module('jslPartials', [])
 				   }
 			   })
 
+	.directive('areUSure',
+			   ($interval) => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   replace: true,
+					   scope: {
+						   action: "&",
+						   text: '=',
+						   padding: '=?'
+					   },
+					   
+					   template: '<button class="browser-style" ng-click="clickCheck()"> {{text}} </button>',
+					   
+					   link: function($scope, element, attrs){
+						   
+						   $scope.el = element;
+						   $scope.padding = 'padding' in attrs ? $scope.padding : 15;
+					   },
+					   
+					   controller: function ($scope) {
+						   
+						   $scope.waiting = false;
+						   $scope.backup = $scope.text;
+						   
+						   $scope.__handleDone = () => {
+							   
+							   $scope.waiting = false;
+							   $scope.text = $scope.backup;
+							   $scope.el.css({
+								   
+								   'background' : '',
+								   'padding-right' : '',
+								   'padding-left' : ''
+								   
+							   });
+							   
+						   };
+						   
+						   $scope.clickCheck = () => {
+
+							   if ($scope.waiting) {
+
+								   $interval.cancel($scope.wID);
+								   $scope.action();
+								   
+							   } else {
+								   
+								   $scope.times = 100;
+								   $scope.text = "Sure?";
+								   
+								   $scope.el.css({
+									   
+									   'padding-right' : $scope.padding  + 'px',
+									   'padding-left' : $scope.padding  + 'px'
+									   
+								   }); 
+								   
+								   $scope.wID = $interval(
+									   () => {
+
+										   $scope.times --;
+										   $scope.el.css({ 'background' : 'linear-gradient\(90deg, #ebebeb ' + (100 - $scope.times) + '%, #fbfbfb 0%\)' });
+										   
+									   }, 50, 100
+								   );
+
+								   $scope.wID.then($scope.__handleDone, $scope.__handleDone);
+							   }
+							   
+							   $scope.waiting = !$scope.waiting;
+						   }   
+					   }
+				   }
+			   })
+
 	.directive('groupValidator',
 			   ($timeout) => {
 				   

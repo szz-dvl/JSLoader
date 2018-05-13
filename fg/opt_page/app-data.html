@@ -30,17 +30,15 @@
 							<div style="text-align: center;">
 								
 								<button class="browser-style"
-									ng-click="goToDomain(domain.name)"
-									style="z-index:999;"> Go
+									ng-click="goToDomain(domain.name)"> Go
 								</button>
-								<button class="browser-style"
-									ng-click="removeItem(domain.name, 'domain')"
-									style="z-index:999;"> Remove
-								</button>
+								<are-u-sure
+									text="'Remove'"
+									action="removeItem(domain.name, 'domain')">
+								</are-u-sure>
 								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
 									class="browser-style"
-									ng-click="pushItem(domain.name, 'domain')"
-									style="z-index:999;"> Push to DB 
+									ng-click="pushItem(domain.name, 'domain')"> Push to DB 
 								</button>
 								
 							</div>
@@ -61,17 +59,14 @@
 						</td>
 						<td style="text-align: center;">
 							<div style="text-align: center;">
-								
-								<button class="browser-style"
-									ng-click="removeItem(group.name, 'group')"
-									style="z-index:999;"> Remove
-								</button>
+								<are-u-sure
+									text="'Remove'"
+									action="removeItem(group.name, 'group')">
+								</are-u-sure>
 								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
 									class="browser-style"
-									ng-click="pushItem(group.name, 'group')"
-									style="z-index:999;"> Push to DB 
+									ng-click="pushItem(group.name, 'group')"> Push to DB 
 								</button>
-								
 							</div>
 						</td>
 					</tr>
@@ -89,23 +84,21 @@
 				</label>
 				<button class="browser-style"
 					ng-if="domains.length || groups.length"
-					ng-click="exportData()"
-					style="z-index:999;"> Export Data
+					ng-click="exportData()"> Export Data
 				</button>
 				<button class="browser-style"
 					ng-if="data_origin.writeable && (domains.length + groups.length > 1) && !data_origin.reconnecting"
 					ng-disable="data-origin.reconnecting"
-					ng-click="pushItem()"
-					style="z-index:999;"> Push all to DB
+					ng-click="pushItem()"> Push all to DB
 				</button>
-				<button class="browser-style"
+				<are-u-sure
 					ng-if="domains.length || groups.length"
-					ng-click="clearStoredData()"
-					style="z-index:999;"> Clear Storage
-				</button>
+					text="'Clear Storage'"
+					padding="35"
+					action="clearStoredData()">
+				</are-u-sure>
 				<button class="browser-style"
-					ng-click="editUserDefs()"
-					style="z-index:999;"> Edit User Defs
+					ng-click="editUserDefs()"> Edit User Defs
 				</button>
 			</div>
 			

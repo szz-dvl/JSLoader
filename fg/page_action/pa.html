@@ -26,8 +26,7 @@
 
 		  <div class="text-section-header" style="width:80%; display: inline-block">JSLoader at {{ hostname }} </div>
 		  <button style="float: right;margin-left: 10px" class="browser-style" ng-click="disableSite()"> {{ disabled ? "Enable" : "Disable" }} </button>
-		  <button ng-if="info.exists" style="float: right;" class="browser-style" ng-click="removeSite()"> Remove </button>
-		  
+		  <are-u-sure ng-if="info.exists" style="float: right;" text="'Remove'" action="removeSite()"> </are-u-sure>
 	  </div>
 
 	  <div id="pa-content" ng-show="!disabled">

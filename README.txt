@@ -1,8 +1,9 @@
 - In-progress:
-  - Are U sure buttons.
+  - Big fails.
   - Virtual Resources.
   
 - Big fails:
+  - haveInfoForUrl ===> fails sometimes.
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
   - PA ====> show matching site when group includes scripts??

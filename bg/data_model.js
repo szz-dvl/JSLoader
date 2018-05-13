@@ -90,7 +90,7 @@ function Script (opt) {
 	
 	this.getParentName = () => {
 		
-		return this.parent ? (this.parent == this.parent.parent ? this.parent.name : this.parent.parent.name + this.parent.url) : this.name;
+		return this.parent ? this.parent.isGroup() ? this.parent.name : (this.parent == this.parent.parent ? this.parent.name : this.parent.parent.name + this.parent.url) : this.name;
 		
 	};
 	

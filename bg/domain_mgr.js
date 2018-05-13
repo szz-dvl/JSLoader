@@ -12,7 +12,8 @@ function DomainMgr (bg) {
 			
 			this.domains = new_domains.info;
 			this.disabled_domains = new_domains.disabled;
-		}
+
+		}, false
 	);
 	
 	this.__isIPAddr = (string) => {
@@ -47,7 +48,7 @@ function DomainMgr (bg) {
 		else
 			this.disabled_domains.push(domain_name);
 		
-		this.storage.setDisabledDomains(self.disabled_domains);
+		this.storage.setDisabledDomains(this.disabled_domains);
 	};
 	
 	this.__getRepresentedBy = (hostname) => {

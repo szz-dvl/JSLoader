@@ -206,7 +206,7 @@ function Site (opt) {
 	
 	this.isSubdomain = () => {
 		
-		return this.parent.name.startsWith("*.") || this.parent.name.endsWith(".*"); /* All subdomains shortcut. */
+		return this.url == "/" && (this.name.startsWith("*.") || this.name.endsWith(".*")); /* All subdomains shortcut. */
 		
 	};
 	
@@ -226,8 +226,26 @@ function Site (opt) {
 
 	this.includes = (url) => {
 
-		return url.name().startsWith(this.siteName());
-		
+		if (this.parent.isSubdomain()) {
+
+			if (this.parent.name.startsWith("*.")) {
+
+				let parent_group = this.parent.name.slice(2);
+				
+				return url.hostname.endsWith(parent_group) && url.pathname.startsWith(this.url);
+				
+			} else {
+
+				let parent_group = this.parent.name.slice(0, -2);
+
+				return url.hostname.startsWith(parent_group) && url.pathname.startsWith(this.url);
+			}
+			
+		} else {
+			
+			return url.name().startsWith(this.siteName());
+			
+		}
 	}
 	
 	this.isEmpty = () => {
@@ -449,34 +467,6 @@ function Domain (opt) {
 			this.remove() :
 			this.persist();		
 	};
-
-	/* Used by subdomains to Regex */
-	this.ownerOf = (domain_name) => {
-
-		if (this.isSubdomain()) {
-			
-			var mod_arr = domain_name.split(".");
-			var orig_arr = this.name.split(".");
-		
-			var cursor_mod = mod_arr.length - 1;
-			var cursor_orig = orig_arr.length - 1;
-			
-			while ( (orig_arr[cursor_orig] != "*") &&
-					(mod_arr[cursor_mod] == orig_arr[cursor_orig])
-				  ) {
-			
-				cursor_mod --;
-				cursor_orig --;
-				
-				if (cursor_mod < 0)
-					break;
-			}
-			
-			return orig_arr[cursor_orig] == "*";
-
-		} else
-			return false;
-	};
 	
 	this.mergeInfo = (imported) => {
 
@@ -621,13 +611,33 @@ function Group (opt) {
 		if (site.isEmpty())
 			site.remove();
 		
-	};
+	}; 
 
 	this.includes = (url) => {
 
 		return this.sites.find(
 			site => {
-				return url.name().startsWith(site);
+
+				let split = site.split("/");
+				let site_path = split.slice(1).join();
+				
+				if (split[0].startsWith("*.")) {
+					
+					let site_group = split[0].slice(2);
+					
+					return url.hostname.endsWith(site_group) && url.pathname.startsWith(site_path);
+					
+				} else if (split[0].endsWith(".*")) {
+
+					let site_group = split[0].slice(0, -2);
+					
+					return url.hostname.startsWith(site_group) && url.pathname.startsWith(site_path);
+					
+				} else {
+					
+					return url.name().startsWith(site);
+					
+				}
 			}
 			
 		) ? true : false;
@@ -692,9 +702,13 @@ function Group (opt) {
 	this.isDisabled = (uuid, url_name) => {
 		
 		return this.disabledAt.find(
+			
 			tuple => {
+
 				return (tuple.id == uuid && url_name.startsWith(tuple.url));
+				
 			}
+			
 		) ? true : false;
 	}
 
@@ -778,19 +792,6 @@ function Group (opt) {
 	}
 
 	/* ??? */
-	this.ownerOf = (site_name) => {
-		
-		return this.sites.find(
-			site => {
-				
-				if (site.startsWith("*."))
-					return new Domain ({name: site}).ownerOf(site_name.split("/")[0]);
-				else
-					return site_name.startsWith(site);
-			}
-			
-		) ? true : false;
-	}
 	
 	this.isMySite = (site_name) => {
 		

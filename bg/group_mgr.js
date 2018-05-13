@@ -98,7 +98,7 @@ function GroupMgr (bg) {
 											pr.push(group.persist());
  									}
 									
-									Promise.all(pr).then(resolve); /* Feedback when created ? */
+									Promise.all(pr).then(resolve, reject); /* Feedback when created ? */
 									
 								}, hostname
 							);

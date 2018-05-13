@@ -206,22 +206,25 @@ function EditorFG (id, bg) {
 									
 									if (this.editor.tab) {
 
-										/* Not true if changing script parent! */
-										browser.pageAction.setIcon(
-											{
-												path: {
-													
-													16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
-													32: browser.extension.getURL("fg/icons/red-diskette-32.png")
+										if (script.includedAt(this.editor.tab.url)) {
+											
+											browser.pageAction.setIcon(
+												{
+													path: {
 														
-												},
-												
-												tabId: self.editor.tab.id
-											}
-										);
+														16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
+														32: browser.extension.getURL("fg/icons/red-diskette-32.png")
+															
+													},
+													
+													tabId: self.editor.tab.id
+												}
+											);
+										}
 									}
 								}
 							)
+
 					}, err => { console.error(err); }
 				);
 				

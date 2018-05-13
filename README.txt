@@ -1,5 +1,4 @@
 - In-progress:
-  - Extend subdomain functionalities ====> disabledAt, includedAt !!!
   - Are U sure buttons.
   - Virtual Resources.
   

@@ -121,65 +121,53 @@ function CSMgr (bg) {
 		port.postMessage({action: "response", message: message, tag: tag});
 		
 	};
-
-	this.addDomainToGroup = (port, domain_name, group_name) => {
-		
-		/* if (domain_name[domain_name.length - 1] != "/")
-		   domain_name += "/"; */
-			
-			return this.bg.group_mgr.addSiteTo(group_name, domain_name);
-	};
-
 	
 	this.addSiteToGroup = (port, tag, site_name, group_name) => {
 		
 		var url;
 		
-		try {
-			
-			if (site_name.includes("://"))
-				url = site_name.split("://")[1];
-			else
-				url = site_name;
+		if (site_name.includes("://"))
+			url = site_name.split("://").slice(1).join();
+		else
+			url = site_name;
 
-			/* if (url[0] != "*") {
-			   
-			   let aux = new URL("http://" + url); 
+		let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(url.split("/")[0]);
+		let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(url.split("/").slice(1).join("/"));
 
-			   if (aux.pathname == "/" && site_name[site_name.length - 1] != "/")
-			   site_name += "/";
-			   } */
+		let newhost = regexh ? regexh[0] : null;
+		let newpath = regexp ? regexp[0] : null;
+		
+		if (newhost && (newpath || newpath == "")) {
 			
-			this.bg.group_mgr.addSiteTo(group_name, site_name)
+			this.bg.group_mgr.addSiteTo(group_name, url)
 				.then(
 					() => {
 						
 						this.__postTaggedResponse(port, tag,
-												  {
-													  status: true,
-													  content: {
-														  site: site_name,
-														  group: group_name
-													  }
-												  });
+							{
+								status: true,
+								content: {
+									site: site_name,
+									group: group_name
+								}
+							});
 						
 					}
 				)
-			
-		} catch (e) {
+				
+		} else {
 
 			this.__postTaggedResponse(port, tag,
-									  {
-										  status: false,
-										  content: {
-											  err: e.message,
-											  site: site_name,
-											  group: group_name
-										  }
-									  });
-
+				{
+					status: false,
+					content: {
+						err: "URL not understood.",
+						site: site_name,
+						group: group_name
+					}
+				});
 		}
-	};
+	}
 
 	this.getFrameForPort = (port) => {
 		

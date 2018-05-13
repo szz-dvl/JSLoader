@@ -323,7 +323,7 @@ function PA (bg, info) {
 									.then(
 										group => {
 											
-											/* ¿¿ isMySite vs ownerOf ??*/
+											/* ¿¿ isMySite vs includes ??*/
 											if (group.isMySite($scope.url))
 												$scope.action = "Remove";
 											else

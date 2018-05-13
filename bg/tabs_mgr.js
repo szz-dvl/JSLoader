@@ -46,7 +46,7 @@ function TabsMgr (bg) {
 				
 				if (typeof(url) == "string") {
 					
-					if (url.startsWith("*.") || !url.includes("://")) /* !!! */
+					if (url.includes("*.") || !url.includes("://")) /* !!! */
 						url_name = url;
 					else
 						url_name = new URL(url).name();

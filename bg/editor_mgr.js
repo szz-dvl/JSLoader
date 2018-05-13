@@ -162,7 +162,7 @@ function EditorMgr (bg) {
 					if (script.parent) {
 						
 						if (!script.parent.isGroup()) {
-						
+							
 							let endpoint = script.getUrl() || script.getParentName();
 							
 							this.bg.tabs_mgr.getTabsForURL(endpoint)
@@ -201,7 +201,7 @@ function EditorMgr (bg) {
 						
 					} else {
 
-						/* Globals or User definitions */
+						/*  User definitions */
 						new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
 							.then(resolve, reject);
 					}

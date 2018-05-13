@@ -134,7 +134,7 @@ function DomainMgr (bg) {
 				
 				for (site of sites) {
 				
-					res.scripts.push({ site: site.url,  scripts: site.scripts });
+					res.scripts.push({ name: site.url,  scripts: site.scripts });
 					
 					res.groups.push.apply(res.groups,
 						site.groups);
@@ -158,10 +158,10 @@ function DomainMgr (bg) {
 							
 							for (let subdomain of subdomains) {
 								
-								let info = __getSitesInfoFor(subdomain, pathname);
+								let info = this.__getSitesInfoFor(subdomain, pathname);			
 								
 								scripts.push.apply(scripts,
-									info.scripts.map(script_info => { return script_info.scripts }).join());
+									info.scripts.reduce((val, nval) => { return val.scripts.concat(nval.scripts); }, {scripts: []}));
 								
 								groups.push.apply(groups,
 									info.groups);
@@ -208,7 +208,7 @@ function DomainMgr (bg) {
 								/* Domain & Site scripts */
 								
 								scripts.push.apply(scripts,
-									sites.scripts.map(scripts_info => { return scripts_info.scripts }).join());
+									sites.scripts.reduce((val, nval) => { return val.scripts.concat(nval.scripts); }, {scripts: []}));
 								
 								groups.push.apply(groups,
 									sites.groups);	
@@ -221,7 +221,9 @@ function DomainMgr (bg) {
 									scripts.push.apply(scripts,
 										group_scripts.filter(
 											script => {
+
 												return !script.disabledAt(url.name()); 
+
 											}
 										)
 									);
@@ -422,8 +424,8 @@ function DomainMgr (bg) {
 								
 								/* All subdomains shortcut. */
 								
-								hostname = url; 
-								pathname = null;
+								hostname = url.split("/")[0]; 
+								pathname = "/" + url.split("/").slice(1).join("/");
 								
 							}
 							
@@ -455,8 +457,8 @@ function DomainMgr (bg) {
 			
 			if (e instanceof TypeError) {
 				
-				if (script.parent && script.parent.isSubdomain())
-					return script.parent.name == url ? Promise.resolve(script) : this.__updateParentFor(script, url); 
+				if (script.parent && script.parent.parent.isSubdomain())
+					return script.getParentName() == url ? Promise.resolve(script) : this.__updateParentFor(script, url); 
 				else 
 					return this.__updateParentFor(script, url);
 			}

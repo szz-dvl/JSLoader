@@ -1,5 +1,5 @@
 - In-progress:
-  - Extend subdomain functionalities (*: before & after [Regex to validate])
+  - Extend subdomain functionalities ====> disabledAt, includedAt !!!
   - Are U sure buttons.
   - Virtual Resources.
   

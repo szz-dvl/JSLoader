@@ -52,21 +52,7 @@ function CSUtils (parent) {
 
 	this.cs = parent;
 	this.events = new EventEmitter ();
-	
-	this.video = ["webm", "mp4", "ogg", "mkv"];
-	
-	this.isNativeVideoExtension = (ext) => {
-
-		return this.video.includes(ext);
-
-	};
-
-	this.getNamedInputValue = (name) => {
-    
-		return $("input[name=" + name + "]").attr("value");
-    
-	};
-	
+		
 	this.sendHttpRequest = (url) => {
 		
 		return new HttpRequest({

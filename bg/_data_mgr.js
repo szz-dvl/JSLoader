@@ -92,7 +92,7 @@ function DataMgr (opt) {
 								if (item) {
 
 									text.push(item.getJSON());
-									text.push(",");
+									text.push(",\n");
 
 								}
 								

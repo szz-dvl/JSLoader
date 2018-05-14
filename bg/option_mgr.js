@@ -17,6 +17,15 @@ function OptionMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	this.events = null;
+
+	this.default_defs = "\n/* Those are example definitions, won't be persisted or loaded \n until you decide so. */\n" + 
+		'\nthis.video = ["webm", "mp4", "ogg", "mkv"];\n\n' +
+		'this.isNativeVideoExtension = (ext) => {\n' + 
+		'\treturn this.video.includes(ext);\n' +
+		'};\n\n' +
+		'this.getNamedInputValue = (name) => {\n' +
+		'\treturn $("input[name=" + name + "]").attr("value");\n' +
+		'};';
 	
 	this.storage.getOptions(
 		
@@ -75,7 +84,7 @@ function OptionMgr (bg) {
 							name: "UserDefs",
 							id:"UserDefs",
 							parent: null,
-							code: defs
+							code: defs || this.default_defs 
 						}
 					)
 				);
@@ -158,12 +167,12 @@ function OptionMgr (bg) {
 			(name, next) => {
 
 				text.push("\"" + name + "s\": ");
-				self.bg[name + "_mgr"].exportData(true)
+				this.bg[name + "_mgr"].exportData(true)
 					.then(
 						data => {
 							
 							text.push.apply(text, data);
-							text.push(",");
+							text.push(",\n");
 							next();
 						}
 					);

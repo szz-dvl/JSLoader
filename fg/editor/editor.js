@@ -328,7 +328,6 @@ function EditorFG (id, bg) {
 
 					if (!$scope.buttons.disabled)	
 						$scope.disableButtons();
-						//$scope.$digest();
 								
 				})
 			
@@ -340,7 +339,6 @@ function EditorFG (id, bg) {
 					
 					$scope.url = validated;
 					$scope.enableButtons();
-					//$scope.$digest();
 					
 				});
 
@@ -410,7 +408,17 @@ function EditorFG (id, bg) {
 				self.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
+			
+			if (!self.editor.tab) {
 				
+				browser.tabs.query({ active: true, windowType: "normal" })
+					.then(tabs => {
+						
+						self.editor.newTab(tabs[0]);
+						
+					}, null);
+			}
+			
 		});
 	});
 

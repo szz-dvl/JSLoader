@@ -45,17 +45,26 @@ function TabsMgr (bg) {
 				var url_name;
 				
 				if (typeof(url) == "string") {
+
+					if (url.includes("://"))
+						url = url.split("://").pop();
 					
-					if (url.includes("*.") || !url.includes("://")) /* !!! */
+					if (url.includes("*.")) /* !!! */
 						url_name = url;
-					else
+					else if (url.includes(".*")) {
+						
+						if (url.split("/").length > 1)
+							url_name = "*/" + url.split("/").slice(1).join("/");
+						else
+							url_name = url;
+					} else
 						url_name = new URL(url).name();
 					
 				} else
 					url_name = url.name();
 
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
-
+				
 				browser.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] })
 					.then(resolve, reject);
 			}

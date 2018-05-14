@@ -78,7 +78,7 @@ function Script (opt) {
 			return this.parent.persist();
 
 		} else 	
-			return global_storage.setUserDefs(this.code);
+			return global_storage.setUserDefs(this.code || " ");
 		
 	};
 
@@ -227,17 +227,30 @@ function Site (opt) {
 	this.includes = (url) => {
 
 		if (this.parent.isSubdomain()) {
+			
+			if (this.parent.name.startsWith("*.") && this.parent.name.endsWith(".*")) {
 
-			if (this.parent.name.startsWith("*.")) {
+				let parent_group = this.parent.name.slice(2).slice(0, -2);
+				let aux = url.hostname.split(".");
+				
+				do {
+					
+					aux = aux.slice(1).slice(0, -1);
+					
+				} while (aux.length && aux.join(".") != parent_group);
+
+				return aux.length ? url.pathname.startsWith(this.url) : false;
+				
+			} else if (this.parent.name.startsWith("*.")) {
 
 				let parent_group = this.parent.name.slice(2);
 				
 				return url.hostname.endsWith(parent_group) && url.pathname.startsWith(this.url);
 				
-			} else {
+			} else if (this.parent.name.endsWith(".*")) {
 
 				let parent_group = this.parent.name.slice(0, -2);
-
+						
 				return url.hostname.startsWith(parent_group) && url.pathname.startsWith(this.url);
 			}
 			
@@ -620,8 +633,21 @@ function Group (opt) {
 
 				let split = site.split("/");
 				let site_path = split.slice(1).join();
-				
-				if (split[0].startsWith("*.")) {
+
+				if (split[0].startsWith("*.") && split[0].endsWith(".*")) {
+
+					let site_group = split[0].slice(2).slice(0, -2);
+					let aux = url.hostname.split(".");
+						
+					do {
+							
+						aux = aux.slice(1).slice(0, -1);
+						
+					} while (aux.length && aux.join(".") != site_group);
+						
+					return aux.length ? url.pathname.startsWith(site_path) : false;
+
+				} else if (split[0].startsWith("*.")) {
 					
 					let site_group = split[0].slice(2);
 					

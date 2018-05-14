@@ -65,7 +65,7 @@ function Editor (opt) {
 		if (this.tab) 
 			return this.tab.run([this.script]);	
 		else
-			return Promise.reject();			
+			return Promise.reject();
 	};
 	
 	this.newTab = (tabInfo) => {
@@ -73,12 +73,12 @@ function Editor (opt) {
 		if (this.fg) {
 
 			if (this.script.includedAt(new URL(tabInfo.url))) {
-			
+
 				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
 				this.fg.scope.enableRun();
 			
 			} else {
-			
+				
 				this.fg.scope.disableRun();
 			}
 		}

@@ -1,15 +1,15 @@
 - In-progress:
   - Big fails.
+  - Remove "Go" button for domains with wildcards in opt page list.
   - Virtual Resources.
   
 - Big fails:
-  - Cascade removes fails at some point.
-  - Opened windows after browser crash ==> to be recovered.
   - Remove group relations when removing domains!
-  - Extensions seems to be sharing storage key names!!
   - Scripts toggle btn fails first time after being hidden by parent list when opened ...
   - Ace errors not being shown on gutter line, detected by editor however.
   - Scripts will run even when shown tab is not included in the script matching set if triggered from shortcut.
+  - Opened windows after browser crash ==> to be recovered.
+  - Extensions seems to be sharing storage key names!!
 	
 - To be tested:
   - Import/Export features. **
@@ -21,7 +21,8 @@
   - Proxys ===> test new PAC completely.
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   - startsWith =====> "/" !!!
-	
+  - Cascade removes ====> seems to be working as expected after refactor (updateParent probably ...) to be observed!;
+  
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
   		  * Permissions controlled by user ==> how?

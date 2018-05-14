@@ -35,6 +35,8 @@ function OptionMgr (bg) {
 		
 		this.persistID = setTimeout(
 			() => {
+
+				let self = this;
 				
 				this.storage
 					.setOptions({ editor: self.editor, data_origin: self.data_origin })
@@ -42,6 +44,7 @@ function OptionMgr (bg) {
 						() => {
 							
 							this.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
+							
 						}
 					);
 			}, to

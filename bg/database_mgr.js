@@ -1,5 +1,5 @@
 function DBMgr (bg) {
-		
+	
 	this.bg = bg;
 	this.available = false;
 	this.connected = false;
@@ -8,7 +8,7 @@ function DBMgr (bg) {
 	this.readable = false;
 	
 	this.port = browser.runtime.connectNative("db_connector");
-
+	
 	this.bg.app_events.on('options-ready',
 		() => {
 			
@@ -16,33 +16,38 @@ function DBMgr (bg) {
 			
 			this.port.onMessage.addListener(
 				response => {
-
+					
 					let obj = JSON.parse(response);					
 					this.reconnecting = false;
 					
 					switch (obj.tag) {
 						
 						case "alive":
+
 							this.available = true;
 							this.connected = true;
 							this.writeable = obj.writeable;
 							this.readable = obj.readable;
-
-							if (this.bg.option_mgr.events)
+							
+							if (this.bg.option_mgr.events)						
 								this.bg.option_mgr.events.emit("db_change", obj.string);
-
+							
 							break;;
+
 						case "bad-params":
+
 							this.available = true;
 							this.connected = false;
 							this.writeable = false;
 							this.readable = false;
-
-							if (this.bg.option_mgr.events)
+							
+							if (this.bg.option_mgr.events) 	
 								this.bg.option_mgr.events.emit("db_change", obj.string);
 							
 							console.error("DB connection failed: " + obj.content + " for " + obj.string);
+							
 							break;;
+
 						case "groups":
 						case "domains":
 							
@@ -54,7 +59,9 @@ function DBMgr (bg) {
 								});
 							
 							break;;
+
 						case "query":
+							
 							if (this.bg.option_mgr.events) {
 								
 								this.bg.option_mgr.events.emit("db_query", obj.content.map(
@@ -68,7 +75,21 @@ function DBMgr (bg) {
 								);
 							}
 							
-							break;
+							break;;
+
+						case "error":
+
+							this.available = true;
+							this.connected = false;
+							this.writeable = false;
+							this.readable = false;
+							
+							if (this.bg.option_mgr.events) 
+								this.bg.option_mgr.events.emit("db_error", obj.content);
+
+							console.error("DB error: " + obj.content);
+							
+							break;;
 							
 						default:
 							console.error("DB manager: Unknown tag.\n" + JSON.stringify(obj));
@@ -157,8 +178,8 @@ function DBMgr (bg) {
 			}
 
 			this.reconnect = (connectionString) => {
-
-				this.available = false;
+				
+				//this.available = false;
 				this.connected = false;
 				this.writeable = false;
 				this.readable = false;

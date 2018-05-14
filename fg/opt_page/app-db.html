@@ -70,7 +70,7 @@
 							<td style="width: 10%;"></td>
 							<td style="width: 10%;"></td>
 						</tr>
-						<tr ng-repeat="record in query_results track by record.name">
+						<tr ng-repeat="record in query_results track by record.name" ng-show="data_origin.connected">
 							<td style="width: 20%;"></td>
 							<td style="width: 60%;">
 								

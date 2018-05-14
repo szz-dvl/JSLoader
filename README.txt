@@ -6,7 +6,6 @@
   - haveInfoForUrl ===> fails sometimes.
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
-  - PA ====> show matching site when group includes scripts??
   - Remove group relations when removing domains!
   - Extensions seems to be sharing storage key names!!
   - Scripts toggle btn fails first time after being hidden by parent list when opened ...

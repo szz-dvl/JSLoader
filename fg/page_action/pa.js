@@ -298,7 +298,7 @@ function PA (bg, info) {
 							
 							$scope.$watch(() => { return $scope.groups_active },
 								nval => {
-
+									
 									$scope.onSizeChange()
 										.then(
 											() => {

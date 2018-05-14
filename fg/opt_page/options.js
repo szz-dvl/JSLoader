@@ -6,7 +6,7 @@ function OP (bg) {
 
 	this.app = angular.module('optionsPageApp', ['jslPartials', 'ui.router']);
 	
-	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams) {
+	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams, $rootScope, $interval) {
 		
 		$scope.page = self;
 		$scope.data_origin = {
@@ -18,8 +18,30 @@ function OP (bg) {
 			readable: self.bg.database_mgr.readable,
 			string: self.bg.option_mgr.data_origin
 		}
-		
-		
+
+		if (!$scope.data_origin.available) {
+			
+			$scope.dbID = $interval(
+				() => {
+					
+					if (self.bg.database_mgr.available) {
+						
+						$scope.data_origin.available = true;
+						$scope.data_origin.connected = self.bg.database_mgr.connected;
+						$scope.data_origin.writeable = self.bg.database_mgr.writeable;
+						$scope.data_origin.readable  = self.bg.database_mgr.readable;
+						
+						$interval.cancel($scope.dbID);
+					}
+					
+				}, 5000, 0, false);
+			
+			$scope.dbID.then(null, () => {
+				
+				$rootScope.$digest();
+				
+			});
+		}
 	});
 	
 	this.app.config(
@@ -240,29 +262,6 @@ function OP (bg) {
 							$scope.appdb_active = false;
 							$scope.in_progress = false;
 							$scope.db_query = "";
-
-							$scope.$watch(
-								() => {
-									return self.bg.database_mgr.available;
-								},
-								(nval, oval) => {
-
-									if (nval != oval) {
-										
-										$scope.data_origin.available = nval;
-
-										if ($scope.data_origin.available) {
-											
-											$scope.data_origin.connected = self.bg.database_mgr.connected;
-											$scope.data_origin.writeable = self.bg.database_mgr.writeable;
-											$scope.data_origin.readable  = self.bg.database_mgr.readable;
-											
-										}
-										
-										$rootScope.$digest();
-									}	
-								}
-							);
 							
 							self.query_results = $scope.query_results = [];
 							
@@ -331,11 +330,11 @@ function OP (bg) {
 							self.bg.option_mgr.events
 								.on('db_change',
 									string => {
-									
-										$scope.data_origin.available = $scope.page.bg.database_mgr.available;
-										$scope.data_origin.connected = $scope.page.bg.database_mgr.connected;
-										$scope.data_origin.writeable = $scope.page.bg.database_mgr.writeable;
-										$scope.data_origin.readable  = $scope.page.bg.database_mgr.readable;
+										
+										$scope.data_origin.available = self.bg.database_mgr.available;
+										$scope.data_origin.connected = self.bg.database_mgr.connected;
+										$scope.data_origin.writeable = self.bg.database_mgr.writeable;
+										$scope.data_origin.readable  = self.bg.database_mgr.readable;
 										
 										if ($scope.data_origin.connected) {
 											
@@ -343,10 +342,10 @@ function OP (bg) {
 											self.bg.option_mgr.persistDBString(string);
 											
 										}
-									
+										
 										$scope.data_origin.reconnecting = false;
 										$scope.in_progress = false;
-
+										
 										$scope.query_results.length = 0;
 										
 										$rootScope.$digest();
@@ -356,21 +355,25 @@ function OP (bg) {
 									results => {
 										
 										$scope.query_results.length = 0;
-										$scope.query_results.push.apply(
-											$scope.query_results, results.map(
-												instance => {
+										
+										if ($scope.data_origin.connected) {
+											
+											$scope.query_results.push.apply(
+												$scope.query_results, results.map(
+													instance => {
 													
-													return {
-
-														name: instance.name,
-														type: instance.isGroup() ? "Group" : "Domain",
-														scripts: instance.getScriptCount(),
-														sites: instance.sites.length,
-														exists: self.bg[instance.isGroup() ? "group_mgr" : "domain_mgr"].exists(instance.name)
-													};
-												}
-											)
-										);
+														return {
+														
+															name: instance.name,
+															type: instance.isGroup() ? "Group" : "Domain",
+															scripts: instance.getScriptCount(),
+															sites: instance.sites.length,
+															exists: self.bg[instance.isGroup() ? "group_mgr" : "domain_mgr"].exists(instance.name)
+														};
+													}
+												)
+											);
+										}
 										
 										$scope.$digest();
 									}
@@ -379,6 +382,19 @@ function OP (bg) {
 									() => {
 										
 										$timeout(self.updateData, 350);
+										
+									}
+								)
+								.on('db_error',
+									error => {
+										
+										$scope.data_origin.available = self.bg.database_mgr.available;
+										$scope.data_origin.connected = self.bg.database_mgr.connected;
+										$scope.data_origin.writeable = self.bg.database_mgr.writeable;
+										$scope.data_origin.readable  = self.bg.database_mgr.readable;
+
+										self.bg.notify_mgr.error("DB Error: " + error);
+										$rootScope.$digest();
 										
 									}
 								)
@@ -418,15 +434,14 @@ browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			
-			if (!page.option_mgr.events)
-				page.option_mgr.events = new EventEmitter();
+			page.option_mgr.events = new EventEmitter();
 			
 			window.onbeforeunload = function () {
 				
 				page.option_mgr.events = null;
 				
 			}
-
+			
 			new OP(page);				
 		}
 	);

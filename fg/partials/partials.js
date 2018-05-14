@@ -238,7 +238,7 @@ angular.module('jslPartials', [])
 					   }
 				   }
 			   })
-
+	
 	.directive('areUSure',
 			   ($interval) => {
 				   
@@ -326,14 +326,14 @@ angular.module('jslPartials', [])
 					   scope: {
 						   
  						   group: "=group",
-						   events: "=?ev"
-						   
+						   events: "=?ev",
+						   time: "=?"
 					   },
 					   
 					   template: '<input type="text" class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
 					   
 					   controller: function ($scope) {
-
+						   
 						   $scope.backup = $scope.group;
 						   
 						   $scope.validateGroup = () => {
@@ -384,12 +384,18 @@ angular.module('jslPartials', [])
 					   scope: {
 						   
  						   url: "=url",
-						   events: "=?ev"
-						   
+						   events: "=?ev",
+						   time: "=?"
 					   },
 
 					   template: '<input type="text" class="browser-style" type="text" ng-model="url" ng-change="validateSite()"/>',
-					    
+					   
+					   link: function($scope, element, attrs){
+						   
+						   $scope.time = 'time' in attrs ? $scope.time : 3000;
+						   
+					   },
+					   
 					   controller: function ($scope) {
 
 						   $scope.backup = $scope.url;
@@ -404,21 +410,20 @@ angular.module('jslPartials', [])
 							   
 							   $scope.changeID = $timeout(
 								   () => {
-
+									   
 									   let ok = false;
 									   let hostname = $scope.url.split("/")[0].trim();
 									   let pathname = $scope.url.split("/").slice(1).join("/").trim();
-
+									   
 									   /* Won't match "*" (must it?), Will match "*.NAME.NAME2.NAME3.{...}.NAMEN.*" */
 									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(hostname);
 									   let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(pathname);
-
+									   
 									   let newhost = regexh ? regexh[0] : null;
 									   let newpath = regexp ? regexp[0] : null;
-
 									   
 									   if (newhost && (newpath || newpath == "")) {
-										   	   
+										   
 										   $scope.url = $scope.backup = newhost + "/" + newpath;
 										   ok = true;
 										   
@@ -430,10 +435,10 @@ angular.module('jslPartials', [])
 									   
 									   if ($scope.url.slice(-1) == "/")
 										   $scope.url = $scope.url.slice(0, -1);
-   
+									   
 									   return ok;
 									   
-								   }, 3000);
+								   }, $scope.time);
 
 							   $scope.changeID.then(
 								   state => {

@@ -222,8 +222,11 @@ function PA (bg, info) {
 				err => {
 					
 					$("#status-" + script.uuid)
-						.replaceWith(compile('<script-status id="status-' + script.uuid + '" status="' + this.bg.content_mgr.getStatus(script.uuid, this.tabId) + '"></script-status>')(scope));
-					
+						.replaceWith(compile('<script-status id="status-' 
+							+ script.uuid 
+							+ '" status="' 
+							+ this.bg.content_mgr.getStatus(script.uuid, this.tabId) 
+								+ '"></script-status>')(scope));		
 				}
 			);
 	};
@@ -302,9 +305,9 @@ function PA (bg, info) {
 									$scope.onSizeChange()
 										.then(
 											() => {
-
+												
 												if (nval) {
-
+													
 													$location.hash('button-bottom');
 													$anchorScroll();
 													
@@ -313,11 +316,10 @@ function PA (bg, info) {
 										);
 									
 									self.pa_state.group_mgr = nval;
-									
 								}
 							);
 							
-							$scope.setAction = (inprog) => {
+							$scope.setAction = () => {
 								
 								$scope.page.bg.group_mgr.getItem($scope.current)
 									.then(
@@ -329,16 +331,12 @@ function PA (bg, info) {
 											else
 												$scope.action = "Add";
 
-											if (!inprog)
-												$scope.$digest();
+											$scope.$digest();
 										}
 									)
 							};
 							
 							$scope.selectChange = () => {
-
-								/* Not working, to be observed. */
-								self.pa_state.current_group = $scope.current = $("#group_select").val().split(":")[1];
 								
 								$scope.setAction();
 							};
@@ -346,7 +344,7 @@ function PA (bg, info) {
 							$scope.events
 								.on('validation_start',
 									pending => {
-
+										
 										$scope.validation_in_progress = true;
 										
 									})
@@ -356,7 +354,7 @@ function PA (bg, info) {
 										
 										$scope.url = validated;
 										$scope.validation_in_progress = false;
-										$scope.setAction(true);
+										$scope.setAction();
 										
 									});
 							

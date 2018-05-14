@@ -29,7 +29,7 @@
 						<td>
 							<div style="text-align: center;">
 								
-								<button class="browser-style"
+								<button ng-if="!domain.isSubdomain()" class="browser-style"
 									ng-click="goToDomain(domain.name)"> Go
 								</button>
 								<are-u-sure

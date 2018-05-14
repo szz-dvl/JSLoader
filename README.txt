@@ -3,7 +3,6 @@
   - Virtual Resources.
   
 - Big fails:
-  - haveInfoForUrl ===> fails sometimes.
   - Cascade removes fails at some point.
   - Opened windows after browser crash ==> to be recovered.
   - Remove group relations when removing domains!

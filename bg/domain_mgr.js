@@ -134,11 +134,12 @@ function DomainMgr (bg) {
 			if (sites.length) {
 				
 				for (site of sites) {
-				
-					res.scripts.push({ name: site.url,  scripts: site.scripts });
-					
-					res.groups.push.apply(res.groups,
-						site.groups);
+
+					if (site.scripts.length)
+						res.scripts.push({ name: site.url,  scripts: site.scripts });
+
+					if (site.groups.length)
+						res.groups.push.apply(res.groups, site.groups);
 				}
 			}
 		}
@@ -477,31 +478,19 @@ function DomainMgr (bg) {
 						let groups = [];
 						
 						if (domain && domain.scripts.length)
-
+							
 							resolve(true);
 
 						else {
 
-							let sites = [];
-							let site = null;
-
-							if (domain) 
-								sites = this.__getSitesInfoFor(domain, url.pathname);	
+							let sites = domain ? this.__getSitesInfoFor(domain, url.pathname) : { scripts: [], groups: [] };
 							
-							if (sites.length) {
+							if (sites.scripts.length) {
 
-								for (let site of sites) {
-
-									if (site.scripts.length) {
-										
-										resolve(true);
-										break;
-										
-									}
-								}
+								resolve(true);
 								
 							} else {
-
+								
 								if (domain) {
 									
 									groups.push.apply(groups,
@@ -512,7 +501,6 @@ function DomainMgr (bg) {
 									.then(
 										subdomains => {
 											
-											let scripts = [];
 											let resolved = false;
 											
 											for (let subdomain of subdomains) {

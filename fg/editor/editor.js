@@ -343,12 +343,9 @@ function EditorFG (id, bg) {
 			.on('validation_ready',
 				(validated, state) => {
 					
-					$scope.url = validated;
-					
-					$("#site_validator")
-						.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
-						
+					$scope.url = validated;	
 					$scope.enableButtons();
+					
 				});
 
 		$scope.disableRun = () => {

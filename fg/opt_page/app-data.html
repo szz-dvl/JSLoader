@@ -29,13 +29,15 @@
 						<td>
 							<div style="text-align: center;">
 								
-								<button ng-if="!domain.isSubdomain()" class="browser-style"
+								<button ng-if="!domain.name.includes('*')" class="browser-style"
 									ng-click="goToDomain(domain.name)"> Go
 								</button>
+								
 								<are-u-sure
 									text="'Remove'"
 									action="removeItem(domain.name, 'domain')">
 								</are-u-sure>
+								
 								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
 									class="browser-style"
 									ng-click="pushItem(domain.name, 'domain')"> Push to DB 

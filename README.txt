@@ -1,6 +1,5 @@
 - In-progress:
   - Big fails.
-  - Remove "Go" button for domains with wildcards in opt page list.
   - Virtual Resources.
   
 - Big fails:

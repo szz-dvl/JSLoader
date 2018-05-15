@@ -29,7 +29,9 @@
 						<td>
 							<div style="text-align: center;">
 								
-								<button ng-if="!domain.name.includes('*')" class="browser-style"
+								<button
+									class="browser-style"
+									ng-if="!domain.name.includes('*')"
 									ng-click="goToDomain(domain.name)"> Go
 								</button>
 								

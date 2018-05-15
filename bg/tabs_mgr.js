@@ -41,28 +41,32 @@ function TabsMgr (bg) {
 		
 		return new Promise(
 			(resolve,reject) => {
-				
+
 				var url_name;
 				
 				if (typeof(url) == "string") {
-
-					if (url.includes("://"))
+					
+					if (url.includes("://")) 
 						url = url.split("://").pop();
 					
 					if (url.includes("*.")) /* !!! */
 						url_name = url;
 					else if (url.includes(".*")) {
 						
+						/* Try to identify tab by pathname ... =S */
 						if (url.split("/").length > 1)
 							url_name = "*/" + url.split("/").slice(1).join("/");
 						else
 							url_name = url;
-					} else
-						url_name = new URL(url).name();
+
+					} else {
+
+						url_name = url;
+					}
 					
 				} else
 					url_name = url.name();
-
+				
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				
 				browser.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] })
@@ -94,6 +98,7 @@ function TabsMgr (bg) {
 				this.getTabsForURL(url)
 					.then(
 						tabs => {
+							
 							let tab = tabs[0];
 							
 							if (tab) {
@@ -103,14 +108,17 @@ function TabsMgr (bg) {
 
 							} else {
 
+								let aux = url.includes("://") ? url : 'https://' + url;
+								
 								/* !!! */
 								browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
 									.then(wdws => {
-										browser.tabs.create({active: true, url: url, windowId: wdws[0].id})
+										browser.tabs.create({ active: true, url: aux, windowId: wdws[0].id })
 											.then(resolve, reject);
-									});
+									}, reject);
 							}
-						});
+							
+						}, reject);
 			});
 	};
 	
@@ -152,7 +160,13 @@ function TabsMgr (bg) {
 					
 				});
 	};
+	
+	this.factory = (tabInfo) => {
 
+		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
+			
+	};
+	
 	this.updateWdws = (tabId, changeInfo) => {
 
 		browser.tabs.get(tabId.tabId || tabId)
@@ -161,9 +175,9 @@ function TabsMgr (bg) {
 					
 					if (tabInfo.active) {
 						
-						var url = new URL(tabInfo.url).sort();
+						let url = new URL(tabInfo.url).sort();
 						
-						if (url.protocol != "moz-extension:") {
+						if (url.protocol != "moz-extension:" && url.hostname) {
 							
 							for (let editor of this.bg.editor_mgr.editors) 
 								editor.newTab(tabInfo);
@@ -174,11 +188,6 @@ function TabsMgr (bg) {
 				});
 	};
 
-	this.factory = (tabInfo) => {
-
-		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
-			
-	}
 	
 	browser.tabs.onUpdated.addListener(this.updateWdws);
 	browser.tabs.onActivated.addListener(this.updateWdws);

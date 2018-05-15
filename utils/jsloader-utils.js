@@ -72,7 +72,6 @@ URL.prototype.name = function() {
 		retval = retval.slice(0, -1);
 	
 	return retval;
-
 };
 
 URL.prototype.sort = function() {

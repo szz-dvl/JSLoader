@@ -191,22 +191,22 @@ function EditorFG (id, bg) {
 							  (this.editor.script.parent.isGroup()
 									  ? this.bg.group_mgr.updateParentFor(this.editor.script, this.scope.url)
 									  : this.bg.domain_mgr.updateParentFor(this.editor.script, this.scope.url)):
-							  Promise.resolve(this.editor.script);
+							  Promise.resolve();
 				
 				promise.then (
-					script => {
+					() => {
 						
-						script.code = this.editor.ace.getValue().toString().trim();
-						script.persist()
+						this.editor.script.code = this.editor.ace.getValue().toString().trim();
+						this.editor.script.persist()
 							.then(
+								
 								parent => {
 									
 									this.scope.enableButtons();
-									this.scope.$digest();
 									
 									if (this.editor.tab) {
 
-										if (script.includedAt(this.editor.tab.url)) {
+										if (this.editor.script.includedAt(this.editor.tab.url)) {
 											
 											browser.pageAction.setIcon(
 												{
@@ -220,8 +220,17 @@ function EditorFG (id, bg) {
 													tabId: self.editor.tab.id
 												}
 											);
+
+											this.scope.enableRun();
+											
+										} else {
+
+											this.scope.disableRun();
+										
 										}
 									}
+									
+									this.scope.$digest();
 								}
 							)
 
@@ -354,6 +363,12 @@ function EditorFG (id, bg) {
 			$scope.$digest();
 			
 		};
+
+		$scope.tabForUnpersisted = () => {
+
+			$scope.url = $scope.editor.tab.url.name();
+			$scope.enableRun();
+		};
 		
 		$scope.disableButtons = () => {
 			
@@ -388,9 +403,6 @@ function EditorFG (id, bg) {
 			self.resetAce();
 			
 			self.editor.ace.gotoLine($scope.editor.pos.line, $scope.editor.pos.col, true);
-			
-			// $scope.editor.ace.find($scope.script.code);
-			// $scope.editor.ace.focus();
 			
 			window.onresize = self.onResize;
 			$scope.editor.setWdw(window);

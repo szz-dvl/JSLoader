@@ -336,8 +336,9 @@ function PA (bg, info) {
 									)
 							};
 							
-							$scope.selectChange = () => {
+							$scope.selectChange = function (nval) {
 								
+								$scope.current = nval; //still not working.
 								$scope.setAction();
 							};
 							

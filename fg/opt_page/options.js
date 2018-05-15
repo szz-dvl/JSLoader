@@ -190,7 +190,13 @@ function OP (bg) {
 							
 							$scope.goToDomain = (name) => {
 								
-								self.bg.tabs_mgr.openOrCreateTab('https://' + name);
+								self.bg.tabs_mgr.openOrCreateTab('https://' + name)
+									.then(null, err => {
+
+										console.error("Rejected!");
+										console.error(err);
+
+									});
 								
 							}
 							

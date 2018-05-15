@@ -6,26 +6,17 @@
 		
 		<div style="display: inline-block; width: 100%; margin-top: 30px;" ng-show="groups_active">
 			
-			<form style="margin-bottom: 20px;margin-right: 20px;margin-left: 25px" ng-submit="addSite()" ng-if="groups.length">
+			<div style="margin-bottom: 20px;margin-right: 20px;margin-left: 25px" ng-if="groups.length">
 				
-				<label class="input" style="min-width: 60%; padding-left: 10px;">
+				<site-validator style="width:55%;" ev="events" url="url" time="1750"> </site-validator>
 					
-					<site-validator style="width:55%;" ev="events" url="url" time="1750"> </site-validator>
-					
-				</label>
-				
-				<div style="float: right;">
-					
-					<label class="input">
-						
-						<span> to </span>
-						<select id="group_select" class="browser-style" ng-model="current" ng-options="group for group in groups" ng-change="selectChange()"></select>
-						
-					</label>
-					
+				<div style="float: right;">	
+					to 
+					<select class="browser-style" ng-model="current" ng-options="group for group in groups track by group" ng-change="selectChange(current)"></select>
 					<button ng-disabled="validation_in_progress" class="browser-style" ng-click="addSite()"> {{action}} Site </button>
 				</div>
-			</form>	
+				
+			</div>	
 
 			<no-info text="'No Groups'" ng-if="!groups.length"></no-info>
 			

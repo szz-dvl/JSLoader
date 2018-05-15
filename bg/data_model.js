@@ -1,10 +1,11 @@
 function Script (opt) {
 	
 	this.uuid = opt.uuid || UUID.generate();
-	this.code = opt.code || "/* JS code (jQuery, async and underscore available) ...*/\n";
+	this.code = opt.code ? opt.code.trim() : "/* JS code (jQuery, async and underscore available) ...*/\n";
 	this.parent = opt.parent || null;
-	this.name = opt.name || this.uuid.split("-").pop(); 
+	this.name = opt.name || "script_name"; 
 	this.disabled = opt.disabled || false;
+	this.persisted = opt.code ? true : false;
 	
 	this.getUrl = () => {
 		
@@ -70,6 +71,9 @@ function Script (opt) {
 	
 	this.persist = () => {
 
+		if (!this.persisted)
+			this.persisted = true;
+		
 		if (this.parent) {
 			
 			if (!this.parent.haveScript(this.id))
@@ -77,9 +81,11 @@ function Script (opt) {
 
 			return this.parent.persist();
 
-		} else 	
+		} else {
+
 			return global_storage.setUserDefs(this.code || " ");
-		
+			
+		}
 	};
 
 	this.includedAt = (url) => {
@@ -102,7 +108,7 @@ function Script (opt) {
 		return {
 			
 			uuid: me.uuid,
-			code: me.code,
+			code: me.code || " ",
 			name: me.name,
 			disabled: me.disabled
 		}
@@ -111,6 +117,7 @@ function Script (opt) {
 
 function __Script_Bucket (scripts) {
 
+	/* To sets */
 	this.scripts = [];
 	
 	if (scripts) {
@@ -132,8 +139,6 @@ function __Script_Bucket (scripts) {
 				}
 			)
 		);
-		
-		//console.log("removeScript: " + (this.isEmpty() ? "removing " + this.name : "persisting " + this.name) );
 		
 		return this.isEmpty() ? this.remove() : this.persist();
 	}
@@ -602,7 +607,7 @@ function Group (opt) {
 		
 		this.sites.remove(this.sites.indexOf(site.siteName()));
 		site.groups.remove(site.groups.indexOf(this.name));
-
+		
 		let disabled = -1;
 		
 		do {
@@ -805,11 +810,10 @@ function Group (opt) {
 					tuple => {
 						
 						return tuple.id == uuid && tuple.url.startsWith(site);
-
+						
 					}
-					
 				);
-		
+				
 				if (idx >= 0)
 					this.disabledAt.remove(idx);
 				

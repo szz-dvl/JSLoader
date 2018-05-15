@@ -69,17 +69,26 @@ function Editor (opt) {
 	};
 	
 	this.newTab = (tabInfo) => {
-
+		
 		if (this.fg) {
-
-			if (this.script.includedAt(new URL(tabInfo.url))) {
-
-				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-				this.fg.scope.enableRun();
 			
+			if (this.script.persisted) {
+				
+				if (this.script.includedAt(new URL(tabInfo.url))) {
+
+					this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+					this.fg.scope.enableRun();
+			
+				} else {
+				
+					this.fg.scope.disableRun();
+				}
+
 			} else {
 				
-				this.fg.scope.disableRun();
+				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+				this.fg.scope.tabForUnpersisted();
+				
 			}
 		}
 	}

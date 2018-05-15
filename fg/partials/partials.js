@@ -331,6 +331,11 @@ angular.module('jslPartials', [])
 					   },
 					   
 					   template: '<input type="text" class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
+
+					   link: function($scope, element, attrs){
+						   
+						   $scope.time = 'padding' in attrs ? $scope.time : 3000;
+					   },
 					   
 					   controller: function ($scope) {
 						   
@@ -349,17 +354,19 @@ angular.module('jslPartials', [])
 									   
 									   let ok = true;
 									   
-									   if ($scope.group.includes("."))
-										   $scope.group = $scope.backup;	   
-									   else {
+									   if ($scope.group.includes(".")) {
 										   
+										   $scope.group = $scope.backup;
 										   ok = false;
+										   
+									   } else {
+										   
 										   $scope.backup = $scope.group;
 									   }
 									   
 									   return ok;
 									   
-								   }, 3000);
+								   }, $scope.time);
 
 							   $scope.changeID.then(
 								   state => {

@@ -76,11 +76,10 @@ function GroupMgr (bg) {
 								
 							} catch(e) {
 								
-								hostname = url;
-								pathname = null;
+								hostname = url.split("/")[0]; 
+								pathname = "/" + url.split("/").slice(1).join("/");
 							}
 							
-
 							this.storage.getOrCreateDomain(
 								domain => {
 									

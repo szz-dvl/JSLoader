@@ -264,7 +264,7 @@ angular.module('jslPartials', [])
 						   
 						   $scope.waiting = false;
 						   $scope.backup = $scope.text;
-						   
+	   
 						   $scope.__handleDone = () => {
 							   
 							   $scope.waiting = false;
@@ -390,7 +390,7 @@ angular.module('jslPartials', [])
 					   replace: true,
 					   scope: {
 						   
- 						   url: "=url",
+ 						   url: "=",
 						   events: "=?ev",
 						   time: "=?"
 					   },
@@ -404,7 +404,7 @@ angular.module('jslPartials', [])
 					   },
 					   
 					   controller: function ($scope) {
-
+						   
 						   $scope.backup = $scope.url;
 						   
 						   $scope.validateSite = () => {

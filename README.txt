@@ -14,7 +14,6 @@
   - DB Managing ===> Unitary inserts / updates. ** (Modify db connector replace_one ==> update_one.)
   - Group OwnerOf =====> Redesigned matching pattern. *
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
-  - Facility to detect if scripts properly run ====> ¿ API to load script from script on demand ?
   - Proxys ===> test new PAC completely.
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   - startsWith =====> "/" !!!

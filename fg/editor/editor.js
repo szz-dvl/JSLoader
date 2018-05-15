@@ -279,7 +279,7 @@ function EditorFG (id, bg) {
 	
 	this.app = angular.module('EditorApp', ['jslPartials']);
 	
-	this.app.controller('editorController', function ($scope, $timeout) {
+	this.app.controller('editorController', function ($scope, $timeout, $compile) {
 		
 		self.scope = $scope;
 		$scope.page = self;
@@ -337,18 +337,18 @@ function EditorFG (id, bg) {
 
 					if (!$scope.buttons.disabled)	
 						$scope.disableButtons();
-								
+					
 				})
 			
 			.on('validation_ready',
 				(validated, state) => {
-
-					
-					console.log("Validation for " + validated +  (state ? " succesfull." : " failed."));
 					
 					$scope.url = validated;
+
+					$("#site_validator")
+						.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope))
+						
 					$scope.enableButtons();
-					
 				});
 
 		$scope.disableRun = () => {
@@ -366,6 +366,7 @@ function EditorFG (id, bg) {
 
 		$scope.tabForUnpersisted = () => {
 
+			
 			$scope.url = $scope.editor.tab.url.name();
 			$scope.enableRun();
 		};

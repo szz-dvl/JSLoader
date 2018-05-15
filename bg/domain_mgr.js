@@ -37,7 +37,8 @@ function DomainMgr (bg) {
 
 	this.__isDisabled = (hostname) => {
 
-		return this.disabled_domains.includes(hostname);
+		
+		return hostname ? this.disabled_domains.includes(hostname) : true;
 		
 	};
 	
@@ -208,7 +209,8 @@ function DomainMgr (bg) {
 								let sites = this.__getSitesInfoFor(domain, url.pathname);
 		
 								/* Domain & Site scripts */
-								
+
+								/* val.scripts: undefined !!! */
 								scripts.push.apply(scripts,
 									sites.scripts.reduce((val, nval) => { return val.scripts.concat(nval.scripts); }, {scripts: []}));
 								

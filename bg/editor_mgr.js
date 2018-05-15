@@ -84,7 +84,7 @@ function Editor (opt) {
 					this.fg.scope.disableRun();
 				}
 
-			} else {
+			} else if (!this.script.parent.isGroup()){
 				
 				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
 				this.fg.scope.tabForUnpersisted();

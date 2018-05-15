@@ -90,11 +90,13 @@
 					ng-if="domains.length || groups.length"
 					ng-click="exportData()"> Export Data
 				</button>
-				<button class="browser-style"
-					ng-if="data_origin.writeable && (domains.length + groups.length > 1) && !data_origin.reconnecting"
+				<are-u-sure
+					ng-if="data_origin.writeable && (domains.length + groups.length > 1) && !data_origin.reconnecting" 
 					ng-disable="data-origin.reconnecting"
-					ng-click="pushItem()"> Push all to DB
-				</button>
+					text="'Push all to DB'"
+					padding="35"
+					action="pushItem()">
+				</are-u-sure>
 				<are-u-sure
 					ng-if="domains.length || groups.length"
 					text="'Clear Storage'"

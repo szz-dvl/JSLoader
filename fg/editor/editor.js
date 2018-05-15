@@ -344,9 +344,9 @@ function EditorFG (id, bg) {
 				(validated, state) => {
 					
 					$scope.url = validated;
-
+					
 					$("#site_validator")
-						.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope))
+						.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
 						
 					$scope.enableButtons();
 				});
@@ -368,6 +368,10 @@ function EditorFG (id, bg) {
 
 			
 			$scope.url = $scope.editor.tab.url.name();
+			
+			$("#site_validator")
+				.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
+				
 			$scope.enableRun();
 		};
 		

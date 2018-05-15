@@ -34,16 +34,6 @@
 		]
 	},
 
-	"browser_action": {
-		"browser_style": true,
-		"default_icon": {
-			"16": "fg/icons/Diskette_16.png",
-			"32": "fg/icons/Diskette_32.png"
-		},
-		
-		"default_popup": "fg/browser_action/ba.html"
-	},
-
 	"page_action": {
 		"browser_style": true,
 		"default_icon": {

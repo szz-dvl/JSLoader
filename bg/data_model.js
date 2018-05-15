@@ -89,7 +89,7 @@ function Script (opt) {
 	};
 
 	this.includedAt = (url) => {
-
+		
 		return this.parent.includes(url);
 
 	};
@@ -385,6 +385,19 @@ function Domain (opt) {
 				
 			) || false;
 	};
+
+	this.schedulePersistAt = (to) => {
+
+		if (this.pID)
+			clearTimeout(this.pID);
+		
+		this.pID = setTimeout(
+			() => {
+
+				this.persist();
+
+			}, to); 
+	};
 	
 	this.persist = () => {
 
@@ -483,7 +496,7 @@ function Domain (opt) {
 		
 		return this.isEmpty() ?
 			this.remove() :
-			this.persist();		
+			this.schedulePersistAt(350);		
 	};
 	
 	this.mergeInfo = (imported) => {

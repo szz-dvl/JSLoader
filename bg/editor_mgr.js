@@ -70,7 +70,7 @@ function Editor (opt) {
 	
 	this.newTab = (tabInfo) => {
 		
-		if (this.fg) {
+		if (this.fg && this.script.parent) {
 			
 			if (this.script.persisted) {
 				

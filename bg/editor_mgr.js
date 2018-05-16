@@ -54,7 +54,7 @@ function Editor (opt) {
 	};
 	
 	this.id = this.parent.__getEID.next().value;
-	this.mode = opt.mode; /* true: New script, false: Editing.*/
+	this.mode = opt.mode || "javascript";
 	
 	this.tab = opt.tab ? this.parent.bg.tabs_mgr.factory(opt.tab) : null;
 	
@@ -68,28 +68,36 @@ function Editor (opt) {
 			return Promise.reject();
 	};
 	
-	this.newTab = (tabInfo) => {
-		
-		if (this.fg && this.script.parent) {
-			
-			if (this.script.persisted) {
-				
-				if (this.script.includedAt(new URL(tabInfo.url))) {
+	this.newTab = (tabInfo, valid) => {
 
-					this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-					this.fg.scope.enableRun();
+		if (valid) {
 			
+			if (this.fg && this.script.parent) {
+				
+				if (this.script.persisted) {
+					
+					if (this.script.includedAt(new URL(tabInfo.url))) {
+
+						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+						this.fg.scope.enableRun();
+						
+					} else {
+						
+						this.fg.scope.disableRun();
+					}
+					
 				} else {
-				
-					this.fg.scope.disableRun();
+					
+					this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+					this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());
+					
 				}
-
-			} else if (!this.script.parent.isGroup()){
-				
-				this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-				this.fg.scope.tabForUnpersisted();
-				
 			}
+			
+		} else {
+			
+			if (this.fg)
+				this.fg.scope.disableRun();
 		}
 	}
 	
@@ -149,7 +157,7 @@ function EditorMgr (bg) {
 								parent: self,
 								script: new Script({parent: parent}),
 								tab: tab,
-								mode: true
+								mode: "javascript"
 
 							}).then(resolve, reject);
 						});
@@ -186,7 +194,7 @@ function EditorMgr (bg) {
 												.then(
 													tab => {
 														
-														new EditorWdw({parent: self, script: script, tab: tab, mode: false, line: line, col: col })
+														new EditorWdw({parent: self, script: script, tab: tab, mode: "javascript", line: line, col: col })
 															.then(resolve, reject);
 														
 													}
@@ -194,7 +202,7 @@ function EditorMgr (bg) {
 											
 										} else {
 											
-											new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
+											new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
 												.then(resolve, reject);
 										}
 										
@@ -203,7 +211,7 @@ function EditorMgr (bg) {
 							
 						} else {
 						
-							new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
+							new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
 								.then(resolve, reject);
 						
 						}
@@ -211,7 +219,7 @@ function EditorMgr (bg) {
 					} else {
 
 						/*  User definitions */
-						new EditorWdw({ parent: self, script: script, tab: null, mode: false, line: line, col: col })
+						new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
 							.then(resolve, reject);
 					}
 				}
@@ -226,7 +234,7 @@ function EditorMgr (bg) {
 			parent: self,
 			script: new Script({ parent: group }),
 			tab: null,
-			mode: true
+			mode: "javascript"
 			
 		});
 	};

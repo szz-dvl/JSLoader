@@ -27,7 +27,8 @@
   - Virtual resources: Allow user to store resources to be used from scripts.
   		  * createObjectURL + web_accessible_resources
 
-  - Editor Button to top bar?
+  - Editor Buttons to top bar?
+  - Add binded site to group in group creation?
   
 - Issues:
   - Computed "src" attributes won't display in extension pages (Any workarround)
@@ -38,13 +39,9 @@
   - Style everything up!
   		  * Inform user of unpersisted data on views.
 		  * (( paginate lists, filter for domains & groups lists )).
-		  * Buttons out line
+		  * Drop Down Buttons outline
 		  * Input + label (come & go ... =S)
 		  * etc, etc, etc ...
 		  
   - Initial examples for each info recipient.
-  - Prevent context menu on extension windows ??? 
-  - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
-
-
- -  ;)
+  - Prevent context menu on extension windows ???

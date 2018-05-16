@@ -177,10 +177,10 @@ function TabsMgr (bg) {
 						
 						let url = new URL(tabInfo.url).sort();
 						
-						if (url.protocol != "moz-extension:" && url.hostname) {
+						if (url.protocol != "moz-extension:") {
 							
 							for (let editor of this.bg.editor_mgr.editors) 
-								editor.newTab(tabInfo);
+								editor.newTab(tabInfo, url.hostname ? true : false);
 							
 						}
 					}

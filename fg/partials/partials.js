@@ -316,71 +316,167 @@ angular.module('jslPartials', [])
 				   }
 			   })
 
+	.directive('groupChooser',
+		() => {
+
+			return {
+				
+				restrict: 'E',
+				replace: true,
+				scope: {
+					
+ 					groups: "=groups",
+					validating: "=validating",
+					events: "=?ev"
+					
+				},
+
+				templateUrl: function (elem, attr) {
+					
+					return browser.extension.getURL("fg/partials/group-chooser.html");
+					
+				},
+
+				controller: function ($scope) {
+					
+					$scope.groups.push(".New group.");
+					$scope.current = $scope.groups[0];
+					$scope.adding = !$scope.groups.length;
+					$scope.disabled_btns = false;
+					
+					$scope.selectChange = (nval) => {
+						
+						if (nval == ".New group.") {
+							
+							$scope.adding = true;
+							
+							if ($scope.events)
+								$scope.events.emit("validation_start", $scope.current, true);
+							
+						} else {
+
+							$scope.current = nval;
+							
+							if ($scope.events)
+								$scope.events.emit("new_selection", $scope.current);
+						}
+					};
+					
+					$scope.addGroup = (validated) => {
+
+						$scope.groups.remove(
+							$scope.groups.indexOf(".New group.")
+						);
+
+						if (!$scope.groups.includes(validated))
+							$scope.groups.push(validated);
+						
+						$scope.groups.push(".New group.");
+						
+						$scope.current = validated;
+						
+						$scope.adding = false;
+
+						if ($scope.events)
+							$scope.events.emit("validation_ready", $scope.current, true);
+					};
+
+					$scope.cancelAdd = () => {
+						
+						$scope.adding = false;
+
+						if ($scope.events)
+							$scope.events.emit("validation_ready", $scope.current, false);
+					};
+
+					if ($scope.events) {
+						
+						$scope.events
+							.on('validation_start',
+								(pending, directive) => {
+
+									if (!directive)
+										$scope.disabled_btns = true;
+									
+								})
+							
+							.on('validation_finish',
+								(validated, state) => {
+									
+									$scope.disabled_btns = false;
+									$scope.validated = validated;
+									
+								});
+					}
+				}
+			}
+		})
+	
 	.directive('groupValidator',
-			   ($timeout) => {
+		($timeout) => {
 				   
-				   return {
-					   
-					   restrict: 'E',
-					   replace: true,
-					   scope: {
-						   
- 						   group: "=group",
-						   events: "=?ev",
-						   time: "=?"
-					   },
-					   
-					   template: '<input type="text" class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
+			return {
+				
+				restrict: 'E',
+				replace: true,
+				scope: {
+					
+ 					group: "=group",
+					events: "=?ev",
+					time: "=?"
+				},
+				
+				template: '<input type="text" class="browser-style" ng-model="group" ng-change="validateGroup()"/>',
 
-					   link: function($scope, element, attrs){
-						   
-						   $scope.time = 'padding' in attrs ? $scope.time : 3000;
-					   },
-					   
-					   controller: function ($scope) {
-						   
-						   $scope.backup = $scope.group;
-						   
-						   $scope.validateGroup = () => {
-							   
-							   if ($scope.ev)
-								   $scope.ev.emit("validation_start", $scope.group);
-							   
-							   if($scope.changeID)
-								   $timeout.cancel($scope.changeID);
-							   
-							   $scope.changeID = $timeout(
-								   () => {
-									   
-									   let ok = true;
-									   
-									   if ($scope.group.includes(".")) {
-										   
-										   $scope.group = $scope.backup;
-										   ok = false;
-										   
-									   } else {
-										   
-										   $scope.backup = $scope.group;
-									   }
-									   
-									   return ok;
-									   
-								   }, $scope.time);
-
-							   $scope.changeID.then(
-								   state => {
-									   
-									   if ($scope.events)
-										   $scope.events.emit("validation_ready", $scope.group, state);
-									   
-								   }, ok => {}
-							   )
-						   }
-					   }
-				   }
-			   })
-
+				link: function($scope, element, attrs){
+					
+					$scope.time = 'time' in attrs ? parseInt($scope.time) : 3000;
+				},
+				
+				controller: function ($scope) {
+					
+					$scope.backup = $scope.group;
+					
+					$scope.validateGroup = () => {
+						
+						if ($scope.events) 
+							$scope.events.emit("validation_start", $scope.group);
+						
+						if($scope.changeID)
+							$timeout.cancel($scope.changeID);
+						
+						$scope.changeID = $timeout(
+							() => {
+								
+								let ok = true;
+								
+								if ($scope.group.includes(".")) {
+									
+									$scope.group = $scope.backup;
+									ok = false;
+									
+								} else {
+									
+									$scope.backup = $scope.group;
+								}
+								
+								return ok;
+								
+							}, $scope.time);
+						
+						$scope.changeID.then(
+							state => {
+								
+								if ($scope.events)
+									$scope.events.emit("validation_finish", $scope.group, state);
+								
+							}, ok => {}
+						)
+					}
+				}
+			}
+		})
+	
 	.directive('siteValidator',
 			   ($timeout) => {
 				   

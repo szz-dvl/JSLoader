@@ -286,7 +286,8 @@ function EditorFG (id, bg) {
 		
 		$scope.editor = self.editor;
 		$scope.script = self.editor.script;
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.script.getParentName();
+		$scope.groups_copy = self.bg.group_mgr.groups.slice(0);
+		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
 		
 		$scope.editor_collapsed = false;
 		
@@ -304,13 +305,6 @@ function EditorFG (id, bg) {
 					self.collapseHeader();
 			}
 		);
-		
-		/* ¿¿ To wdw title ?? */
-		$scope.user_action = $scope.script.parent ?
-							 (!$scope.script.parent.isGroup() ?
-							  (self.editor.mode ? "Adding script for: " : "Editing script for: ") :
-							  (self.editor.mode ? "Adding script for group: " : "Editing script for group: ")):
-							 null;
 		
 		$scope.buttons = {
 			
@@ -346,6 +340,14 @@ function EditorFG (id, bg) {
 					$scope.url = validated;	
 					$scope.enableButtons();
 					
+				})
+			
+			.on('new_selection',
+				selected => {
+					
+					$scope.url = selected;	
+					$scope.enableButtons();
+					
 				});
 
 		$scope.disableRun = () => {
@@ -366,14 +368,16 @@ function EditorFG (id, bg) {
 			return $scope.buttons.arr[1].available;
 		}
 
-		$scope.tabForUnpersisted = () => {
+		$scope.tabForUnpersisted = (isgroup) => {
 
-			
-			$scope.url = $scope.editor.tab.url.name();
-			
-			$("#site_validator")
-				.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
+			if (!isgroup) {
 				
+				$scope.url = $scope.editor.tab.url.name();
+			
+				$("#site_validator")
+					.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
+			}
+			
 			$scope.enableRun();
 		};
 		
@@ -433,7 +437,7 @@ function EditorFG (id, bg) {
 				browser.tabs.query({ active: true, windowType: "normal" })
 					.then(tabs => {
 						
-						self.editor.newTab(tabs[0]);
+						self.editor.newTab(tabs[0], new URL(tabs[0].url).hostname ? true : false);
 						
 					}, null);
 			}

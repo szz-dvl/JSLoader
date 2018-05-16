@@ -37,7 +37,7 @@ function EditorWdw (opt) {
 							   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
 					 
 							 */
-
+							
 							let updateInfo = {
 								
 								width: wdw.width,
@@ -51,11 +51,12 @@ function EditorWdw (opt) {
 										
 										resolve(editor);								
 										
-									}
+									}, reject
 								);
 							
 						}, reject);
-				});
+					
+				}, reject);
 		});	
 }
 

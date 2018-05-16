@@ -436,8 +436,9 @@ function EditorFG (id, bg) {
 				
 				browser.tabs.query({ active: true, windowType: "normal" })
 					.then(tabs => {
-						
-						self.editor.newTab(tabs[0], new URL(tabs[0].url).hostname ? true : false);
+
+						let url = new URL(tabs[0].url).sort();
+						self.editor.newTab(tabs[0], (url.hostname && url.protocol != "moz-extension:") ? true : false);
 						
 					}, null);
 			}

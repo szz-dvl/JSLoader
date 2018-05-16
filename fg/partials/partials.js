@@ -341,7 +341,7 @@ angular.module('jslPartials', [])
 					
 					$scope.groups.push(".New group.");
 					$scope.current = $scope.groups[0];
-					$scope.adding = !$scope.groups.length;
+					$scope.adding = $scope.groups.length <= 1;
 					$scope.disabled_btns = false;
 					
 					$scope.selectChange = (nval) => {

@@ -3,43 +3,60 @@ function EditorWdw (opt) {
 	return new Promise (
 		(resolve, reject) => {
 
-			let editor = new Editor(opt);
-			
-			browser.windows.create({
-				
-				type: "popup",
-				state: "normal",
-				url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
-				width: Math.min(1024, screen.width), 
-				height: 420 
-				
-			}).then (
-				wdw => {
-					
-					editor.wdw = wdw;
+			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : browser.tabs.query({ active: true, windowType: "normal" });
 
-					/* 
-					   Workaround to avoid blank windows: 
-					   
-					   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
+			promise.then(
+				tabs => {
+
+					let editor = new Editor(opt);
+					
+					if (tabs) {
+						
+						let url = new URL(tabs[0].url).sort();
+
+						if (url.hostname && url.protocol != "moz-extension:")
+							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
+					}
+					
+					browser.windows.create({
+				
+						type: "popup",
+						state: "normal",
+						url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
+						width: Math.min(1024, screen.width), 
+						height: 420 
+						
+					}).then (
+						wdw => {
+							
+							editor.wdw = wdw;
+							
+							/* 
+							   Workaround to avoid blank windows: 
+							   
+							   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
 					 
-					 */
+							 */
 
-					let updateInfo = {
-						width: wdw.width,
-						height: wdw.height + 1, // 1 pixel more than original size...
-					};
-					
-					browser.windows.update (wdw.id, updateInfo)
-						.then(
-							newWdw => {
+							let updateInfo = {
 								
-								resolve(editor);								
-							}
-						);
-					
-				}, reject);
-		});
+								width: wdw.width,
+								height: wdw.height + 1, // 1 pixel more than original size...
+								
+							};
+							
+							browser.windows.update(wdw.id, updateInfo)
+								.then(
+									newWdw => {
+										
+										resolve(editor);								
+										
+									}
+								);
+							
+						}, reject);
+				});
+		});	
 }
 
 function Editor (opt) {
@@ -77,7 +94,7 @@ function Editor (opt) {
 				if (this.script.persisted) {
 					
 					if (this.script.includedAt(new URL(tabInfo.url))) {
-
+						
 						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
 						this.fg.scope.enableRun();
 						
@@ -96,7 +113,7 @@ function Editor (opt) {
 			
 		} else {
 			
-			if (this.fg)
+			if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
 				this.fg.scope.disableRun();
 		}
 	}
@@ -201,7 +218,7 @@ function EditorMgr (bg) {
 												);
 											
 										} else {
-											
+
 											new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
 												.then(resolve, reject);
 										}
@@ -230,7 +247,7 @@ function EditorMgr (bg) {
 	this.openEditorInstanceForGroup = (group) => {
 		
 		new EditorWdw({
-
+					
 			parent: self,
 			script: new Script({ parent: group }),
 			tab: null,
@@ -260,6 +277,16 @@ function EditorMgr (bg) {
 			}) || null;
 	};
 
+	this.isEditorWdw = (wid) => {
+
+		return this.editors.find(
+			editor => {
+				
+				return editor.wdw.id == wid;
+				
+			}) ? true : false;
+	};
+	
 	this.broadcastEditors = (message) => {
 		
 		try {

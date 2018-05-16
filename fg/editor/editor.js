@@ -369,13 +369,14 @@ function EditorFG (id, bg) {
 		}
 
 		$scope.tabForUnpersisted = (isgroup) => {
-
+			
 			if (!isgroup) {
 				
 				$scope.url = $scope.editor.tab.url.name();
 			
 				$("#site_validator")
 					.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
+				
 			}
 			
 			$scope.enableRun();
@@ -402,11 +403,11 @@ function EditorFG (id, bg) {
 		$timeout(() => {
 			
 			$scope.editor.ace = ace.edit("code_area");
-			$scope.editor.ace.session.setMode("ace/mode/javascript");
+			$scope.editor.ace.session.setMode("ace/mode/javascript"); /* editor.mode */
 			
 			$scope.editor.ace.getSession()
 				.on('change', () => {
-						
+					
 					if ($scope.buttons.shown)
 						self.toggleButtons();
 				});
@@ -430,17 +431,6 @@ function EditorFG (id, bg) {
 				self.editor_bucket.css("top", "50px");
 				self.editor_bucket.css("height", window.innerHeight - 50);
 				
-			}
-			
-			if (!self.editor.tab) {
-				
-				browser.tabs.query({ active: true, windowType: "normal" })
-					.then(tabs => {
-
-						let url = new URL(tabs[0].url).sort();
-						self.editor.newTab(tabs[0], (url.hostname && url.protocol != "moz-extension:") ? true : false);
-						
-					}, null);
 			}
 			
 		});

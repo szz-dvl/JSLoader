@@ -130,7 +130,7 @@ function EditorFG (id, bg) {
 	
 	this.runCurrent = () => {
 		
-		if (!this.scope.buttons.disabled) {
+		if (!this.scope.buttons.disabled && this.scope.canRun()) {
 			
 			this.scope.disableButtons();
 			
@@ -166,7 +166,7 @@ function EditorFG (id, bg) {
 						}
 					);
 				
-			} else {
+			} else if (this.scope.buttons.disabled) {
 				
 				this.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				this.editor.ace.gotoLine(error.row + 1, error.column, true);
@@ -360,6 +360,11 @@ function EditorFG (id, bg) {
 			$scope.$digest();
 			
 		};
+
+		$scope.canRun = () => {
+
+			return $scope.buttons.arr[1].available;
+		}
 
 		$scope.tabForUnpersisted = () => {
 

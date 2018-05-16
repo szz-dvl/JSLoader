@@ -47,4 +47,4 @@
   - Big refactor, Shortcuts + Page Action + Opt Page ===> Definitively remove browser action!
 
 
- -Olaf va de collons aixó!!! @ santi (szz)
+ -  ;)

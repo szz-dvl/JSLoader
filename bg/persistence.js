@@ -389,13 +389,70 @@ function Storage () {
 		
 		this.__get(defs => { cb(defs || "") }, 'userdefs');
 		
-	}
+	};
 
 	this.setUserDefs = (literal) => {
 
 		return this.__set('userdefs', literal);
 		
-	}
+	};
+
+	/* Resources: */
+	this.__getResources = (cb) => {
+		
+		this.__get(
+			arr => {
+				
+				cb(arr || []);
+				
+			}, 'resources');	
+	};
+
+	this.__setResources = (val) => {
+		
+		return this.__set('resources', val);
+	};
+	
+	this.getResource = (cb, name) => {
+		
+		this.__get(resource => { cb(new Resource(resource) || null) }, 'resource-' + name);
+		
+	};
+
+	this.setResource = (content) => {
+
+		this.__getResources(
+			resources => {
+				
+				if (!resources.includes(content.name)) {
+					
+					resources.push(content.name);
+					this.__setResources(resources);
+					
+				}
+			}
+		);
+		
+		return this.__set('resource-' + content.name, content);
+	};
+
+	this.removeResource = (name) => {
+		
+		this.__getResources(
+			resources => {
+				
+				if (resources.includes(name)) {
+					
+					resources.remove(resources.indexOf(name));
+					this.__setResources(resources);
+					
+				}
+			}
+		);
+		
+		return this.__remove('resource-' + name);
+		
+	};	
 }
 
 let global_storage = new Storage();

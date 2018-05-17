@@ -23,7 +23,7 @@
   <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle($event)" ng-cloak>
 
 	  <!-- ng-if fails here ¿¿?? -->
-	  <div ng-show="editor.script.parent" id="dropdown-header">
+	  <div ng-show="editor.script.parent && !editor.script.parent.isResource()" id="dropdown-header">
 		  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
 	  </div>
 	  

@@ -10,7 +10,7 @@
 - To be tested:
   - Import/Export features. **
   - Data origin ====> support for MongoDB only. **
-  - DB Managing ===> Unitary inserts / updates. ** (Modify db connector replace_one ==> update_one.)
+  - DB Managing ===> Unitary inserts / updates. ** (¿ Modify db connector replace_one ==> update_one ?)
   - Group OwnerOf =====> Redesigned matching pattern. *
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   - Proxys ===> test new PAC completely.

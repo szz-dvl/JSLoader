@@ -52,7 +52,8 @@ function OP (bg) {
 
 				resolve: {
 					dataStorage: () => { return self.bg.option_mgr.getDataInfo(); },
-					storageContent: () => { return browser.storage.local.get(); }
+					storageContent: () => { return browser.storage.local.get(); },
+					dataResources: () => { return self.bg.resource_mgr.getResourcesRelation(); }
 				},
 				
 				views: {
@@ -135,6 +136,147 @@ function OP (bg) {
 								{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select", change: $scope.onOptChange},
 								{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select", change: $scope.onOptChange}
 							];
+						}
+					},
+
+					'resources': {
+						
+						templateUrl: 'resources.html',
+						controller: function ($scope, $state, $timeout, dataResources) {
+							
+							$scope.resources_active = true;
+							$scope.resources = dataResources;
+							$scope.names_disabled = false;
+							
+							$scope.types = [
+								
+								"html",
+								"javascript",
+								"image",
+								"video"
+							];
+							
+							$scope.resourceFile = (resource) => {
+
+								resource.got_file = true;
+								
+							};
+
+							$scope.persistResource = (resource) => {
+								
+								self.bg.resource_mgr.storeResource(
+									
+									resource.name,
+									resource.type,
+									$("#import_data_" + resource.name)[0].files[0]
+									
+								);
+							};
+							
+							$scope.removeResource = (resource) => {
+								
+								self.bg.resource_mgr.removeResource(resource.name);
+							};
+							
+							$scope.addResource = () => {
+								
+								$scope.resources.push({ name: UUID.generate().split("-").pop(), type: "javascript", persisted: false });
+								
+							};
+
+							$scope.discardResource = (idx) => {
+								
+								$scope.resources.remove(idx);
+								
+							};
+
+							$scope.editResource = (resource) => {
+
+								self.bg.resource_mgr.editTextResource(resource);
+								
+							};
+
+							$scope.selectChange = (resource, type) => {
+								
+								resource.type = type;
+								
+							};
+							
+							$scope.toggleResource = (resource) => {
+								
+								$scope.isLoaded(resource) ?
+								self.bg.resource_mgr.unloadResource(resource.name) :
+								self.bg.resource_mgr.loadResource(resource.name);
+								
+							};
+
+							$scope.__findAppropiateNameFor = (repeated) => {
+
+								let cnt = 1;
+								let name = repeated;
+								let found = $scope.resources.find(
+									res => {
+
+										return res.name == name;
+										
+									}
+									
+								);
+
+								while (found) {
+
+									name += cnt.toString();
+									
+									found = $scope.resources.find(
+										res => {
+											
+											return res.name == name;
+											
+										}
+									);
+
+									cnt ++;
+									
+									if (found)
+										name = name.slice(0, -1);
+								}
+
+								return name;
+							};
+
+							
+							$scope.resourceNameValidation = (resource) => {
+								
+								if (resource.nameID)
+									$timeout.cancel(resource.nameID);
+								
+								resource.nameID = $timeout(
+									(resource) => {
+										
+										let exists = $scope.resources
+											.find(res => {
+												
+												return ((res.name == resource.name) && (res != resource)); /***/
+												
+											});
+
+										if (exists)
+											resource.name = $scope.__findAppropiateNameFor(resource.name);
+
+										resource.nameID = null;
+										$scope.names_disabled = false;
+										
+									}, 3500, true, resource
+								);
+								
+								$scope.names_disabled = true;
+							};
+							
+							$scope.isLoaded = (resource) => {
+								
+								return self.bg.resource_mgr.isLoaded(resource.name);
+								
+							};
 						}
 					},
 					

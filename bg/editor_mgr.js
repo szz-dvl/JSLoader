@@ -7,19 +7,19 @@ function EditorWdw (opt) {
 
 			promise.then(
 				tabs => {
-
+					
 					let editor = new Editor(opt);
 					
 					if (tabs) {
 						
 						let url = new URL(tabs[0].url).sort();
-
+						
 						if (url.hostname && url.protocol != "moz-extension:")
 							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
 					}
 					
 					browser.windows.create({
-				
+						
 						type: "popup",
 						state: "normal",
 						url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
@@ -88,34 +88,37 @@ function Editor (opt) {
 	
 	this.newTab = (tabInfo, valid) => {
 
-		if (valid) {
-			
-			if (this.fg && this.script.parent) {
+		if (!this.script.parent.isResource()) {
+
+			if (valid) {
 				
-				if (this.script.persisted) {
+				if (this.fg && this.script.parent) {
 					
-					if (this.script.includedAt(new URL(tabInfo.url))) {
+					if (this.script.persisted) {
 						
-						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-						this.fg.scope.enableRun();
+						if (this.script.includedAt(new URL(tabInfo.url))) {
+							
+							this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+							this.fg.scope.enableRun();
+							
+						} else {
+							
+							this.fg.scope.disableRun();
+						}
 						
 					} else {
 						
-						this.fg.scope.disableRun();
+						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+						this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());
+						
 					}
-					
-				} else {
-					
-					this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-					this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());
-					
 				}
+				
+			} else {
+				
+				if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
+					this.fg.scope.disableRun();
 			}
-			
-		} else {
-			
-			if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
-				this.fg.scope.disableRun();
 		}
 	}
 	
@@ -228,10 +231,10 @@ function EditorMgr (bg) {
 								);
 							
 						} else {
-						
+							
 							new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
 								.then(resolve, reject);
-						
+							
 						}
 						
 					} else {

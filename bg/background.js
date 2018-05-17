@@ -11,6 +11,7 @@ function BG_mgr () {
 	this.notify_mgr = new NotificationMgr(this);
 	this.tabs_mgr = new TabsMgr(this);
 	this.proxy_mgr = new ProxyMgr(this);
+	this.resource_mgr = new ResourceMgr(this);
 	
 	this.getPASite = () => {
 		

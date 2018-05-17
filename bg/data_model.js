@@ -76,7 +76,7 @@ function Script (opt) {
 		
 		if (this.parent) {
 			
-			if (!this.parent.haveScript(this.id))
+			if (!this.parent.isResource() && !this.parent.haveScript(this.id))
 				this.parent.upsertScript(this);
 
 			return this.parent.persist();
@@ -221,6 +221,12 @@ function Site (opt) {
 		
 	};
 
+	this.isResource = () => {
+		
+		return false;
+		
+	};
+	
 	this.siteName = () => {
 		
 		let name = this.parent.name + this.url;
@@ -563,6 +569,12 @@ function Group (opt) {
 		return true;	
 	};
 
+	this.isResource = () => {
+		
+		return false;
+		
+	};
+	
 	this.isEmpty = () => {
 		
 		return !this.sites.length && !this.scripts.length; 
@@ -855,7 +867,7 @@ function Group (opt) {
 		
 	};
 	
-	this.__getDBInfo = function () {
+	this.__getDBInfo = () => {
 
 		let me = this;
 		
@@ -871,4 +883,99 @@ function Group (opt) {
 			)
 		}
 	};	
+}
+
+
+function Resource (opt) {
+
+	if (!opt || !opt.name)
+		return null;
+	
+	this.name = opt.name;
+	this.file = opt.file || null;
+	this.type = opt.type || "application/octet-stream";
+	this.parent = this; /* Compat. */
+	
+	this.isGroup = () => {
+
+		return false;
+		
+	}
+
+	this.isDomain = () => {
+		
+		return false;
+		
+	};
+	
+	this.isSubdomain = () => {
+		
+		return false;
+		
+	};
+
+	this.isResource = () => {
+		
+		return true;
+		
+	};
+	
+	this.readTextContent = () => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				let reader = new FileReader();
+				
+				reader.onload = () => {
+					
+					resolve(reader.result);
+				}
+				
+				reader.onerror = () => {
+					
+					reject(reader.error);
+				}
+		
+				reader.readAsText(this.file);
+				
+			}
+		);
+	};
+
+	this.setTextContent = (text) => {
+
+		let me = this;
+		
+		this.file = new File([text], this.file ? this.file.name : this.name, {type: me.type});
+		
+	};
+	
+	this.persist = () => {
+		
+		return this.storage.setResource(
+			
+			this.__getDBInfo()
+				
+		);
+	};
+	
+	this.remove = () => {
+		
+		return this.storage.removeResource(this.name);
+		
+	};
+	
+	
+	this.__getDBInfo = () => {
+		
+		let me = this;
+		
+		return {
+			
+			name: me.name,
+			type: me.type,
+			file: me.file	
+		}
+	};
 }

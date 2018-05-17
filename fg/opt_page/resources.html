@@ -1,0 +1,105 @@
+<div>	
+	<div>
+		<dd-title val="'resources_active'" text="'Resources'"></dd-title>
+		
+		<div ng-show="resources_active" style="width: 100%;">
+			
+			<table style="display: table;width: 100%;margin-left: 75px;" ng-if="resources.length">
+				<thead>
+					<th style="text-align: center;"> Name </th>
+					<th style="text-align: center;"> Type </th>
+					<th style="text-align: center;"> File </th>
+					<th style="text-align: center;"> Actions </th>
+				</thead>
+				<tbody style="display: table-row-group;width: 100%">
+					<tr ng-repeat="resource in resources" style="width: 100%;">
+						<td style="text-align: center;" style="width: 30%;">
+							<input
+								ng-disabled="names_disabled && !resource.nameID"
+								style="width: 100%;"
+								class="browser-style"
+								id="resource_name_{{resource.name}}"
+								type="text"
+								ng-change="resourceNameValidation(resource)"
+								ng-model="resource.name"/>
+							
+						</td>
+						<td style="text-align: center;width: 10%;">
+
+							<select
+								class="browser-style"
+								ng-if="!resource.persisted"
+								ng-model="resource.type"
+								ng-options="type for type in types"
+								ng-change="selectChange(resource, resource.type)"></select>
+							
+							<bdi ng-if="resource.persisted"> {{ resource.type }} </bdi>
+							
+						</td>
+						
+						<td style="text-align: center;width: 30%;">
+							
+							<label style="float:right;" for="import_data_{{resource.name}}">
+								<bdi> {{ resource.persisted ? "Update" : "Import" }} Resource </bdi>
+								<input
+									class="browser-style"
+									id="import_data_{{resource.name}}"
+									ng-on-change="resourceFile(resource)"
+									type="file"/>
+							</label>	
+						</td>
+						
+						<td style="text-align: center;width: 30%;">
+							
+							<button
+								class="browser-style"
+								ng-if="['html', 'javascript'].includes(resource.type)"
+								ng-click="editResource(resource)">
+								Edit Resource
+							</button>
+							
+							<button
+								class="browser-style"
+								ng-if="!resource.persisted"
+								ng-click="discardResource($index)">
+								Discard
+							</button>
+
+							<button
+								class="browser-style"
+								ng-disabled="resource.nameID"
+								ng-if="!resource.persisted && resource.got_file"
+								ng-click="persistResource(resource)">
+								Persist
+							</button>
+							
+							<button
+								class="browser-style"
+								ng-if="resource.persisted"
+								ng-click="toggleResource(resource)">
+								{{ isLoaded(resource) ? "Unload" : "Load" }}
+							</button>
+							
+							<are-u-sure
+								ng-if="resource.persisted"
+								text="'Remove'"
+								action="removeResource(resource)">
+							</are-u-sure>
+
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
+			<no-info ng-if="!resources.length" style="padding-top: 6%;"></no-info>
+		
+			<div style="text-align: center;margin-top: 25px;">
+				
+				<button class="browser-style"
+					ng-click="addResource()"> Add resource
+				</button>
+				
+			</div>
+		</div>
+	</div>
+</div>

@@ -426,7 +426,7 @@ function EditorFG (id, bg) {
 			);
 			
 			
-			if ($scope.editor.script.parent) {
+			if ($scope.editor.script.parent && !$scope.editor.script.parent.isResource()) {
 				
 				self.editor_bucket.css("top", "50px");
 				self.editor_bucket.css("height", window.innerHeight - 50);

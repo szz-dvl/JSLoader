@@ -79,7 +79,7 @@ function Script (opt) {
 			if (!this.parent.isResource() && !this.parent.haveScript(this.id))
 				this.parent.upsertScript(this);
 
-			return this.parent.persist();
+			return this.parent.persist(this.code);
 
 		} else {
 
@@ -919,6 +919,12 @@ function Resource (opt) {
 		return true;
 		
 	};
+
+	this.includes = () => {
+
+		return false;
+		
+	};
 	
 	this.readTextContent = () => {
 		
@@ -951,12 +957,15 @@ function Resource (opt) {
 		
 	};
 	
-	this.persist = () => {
+	this.persist = (content) => {
+
+		/* event opt page? */
+		if (content)
+			this.setTextContent(content);
 		
 		return this.storage.setResource(
 			
-			this.__getDBInfo()
-				
+			this.__getDBInfo();	
 		);
 	};
 	

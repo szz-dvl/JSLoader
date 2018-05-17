@@ -135,7 +135,7 @@ function EditorFG (id, bg) {
 			this.scope.disableButtons();
 			
 			let error = this.getFirstError();
-
+			
 			if (!error) {
 				
 				this.editor.script.code = this.editor.ace.getValue().toString().trim();
@@ -190,7 +190,9 @@ function EditorFG (id, bg) {
 				let promise = this.editor.script.parent ?
 							  (this.editor.script.parent.isGroup()
 									  ? this.bg.group_mgr.updateParentFor(this.editor.script, this.scope.url)
-									  : this.bg.domain_mgr.updateParentFor(this.editor.script, this.scope.url)):
+									  : (!this.editor.script.parent.isResource() ?
+										 this.bg.domain_mgr.updateParentFor(this.editor.script, this.scope.url) :
+										 Promise.resolve())) :
 							  Promise.resolve();
 				
 				promise.then (
@@ -198,8 +200,7 @@ function EditorFG (id, bg) {
 						
 						this.editor.script.code = this.editor.ace.getValue().toString().trim();
 						this.editor.script.persist()
-							.then(
-								
+							.then(	
 								parent => {
 									
 									this.scope.enableButtons();

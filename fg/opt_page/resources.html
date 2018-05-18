@@ -3,7 +3,8 @@
 		<dd-title val="'resources_active'" text="'Resources'"></dd-title>
 		
 		<div ng-show="resources_active" style="width: 100%;">
-			
+
+			<div style="min-height: 30px;margin: 10px;text-align: center;width: 100%;margin-bottom: 20px;-moz-user-select: text;"> {{ info_text }} </div>
 			<table style="display: table;width: 100%;margin-left: 75px;" ng-if="resources.length">
 				<thead>
 					<th style="text-align: center;"> Name </th>
@@ -28,19 +29,19 @@
 
 							<select
 								class="browser-style"
-								ng-if="!resource.persisted"
+								ng-if="!resource.id"
 								ng-model="resource.type"
 								ng-options="type for type in types"
 								ng-change="selectChange(resource, resource.type)"></select>
 							
-							<bdi ng-if="resource.persisted"> {{ resource.type }} </bdi>
+							<bdi ng-if="resource.id"> {{ resource.type }} </bdi>
 							
 						</td>
 						
 						<td style="text-align: center;width: 30%;">
 							
 							<label style="float:right;" for="import_data_{{resource.name}}">
-								<bdi> {{ resource.persisted ? "Update" : "Import" }} Resource </bdi>
+								<bdi> {{ resource.id ? "Update" : "Import" }} Resource </bdi>
 								<input
 									class="browser-style"
 									id="import_data_{{resource.name}}"
@@ -53,14 +54,14 @@
 							
 							<button
 								class="browser-style"
-								ng-if="['html', 'javascript'].includes(resource.type)"
+								ng-if="resource.type.includes('html') || resource.type.includes('javascript') || resource.type.includes('css')"
 								ng-click="editResource(resource)">
 								Edit Resource
 							</button>
 							
 							<button
 								class="browser-style"
-								ng-if="!resource.persisted"
+								ng-if="!resource.id"
 								ng-click="discardResource($index)">
 								Discard
 							</button>
@@ -68,20 +69,20 @@
 							<button
 								class="browser-style"
 								ng-disabled="resource.nameID"
-								ng-if="!resource.persisted && resource.got_file"
+								ng-if="!resource.id && resource.got_file"
 								ng-click="persistResource(resource)">
 								Persist
 							</button>
 							
 							<button
 								class="browser-style"
-								ng-if="resource.persisted"
+								ng-if="resource.id"
 								ng-click="toggleResource(resource)">
 								{{ isLoaded(resource) ? "Unload" : "Load" }}
 							</button>
 							
 							<are-u-sure
-								ng-if="resource.persisted"
+								ng-if="resource.id"
 								text="'Remove'"
 								action="removeResource(resource)">
 							</are-u-sure>

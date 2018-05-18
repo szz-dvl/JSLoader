@@ -177,8 +177,7 @@ function EditorMgr (bg) {
 
 								parent: self,
 								script: new Script({parent: parent}),
-								tab: tab,
-								mode: "javascript"
+								tab: tab
 
 							}).then(resolve, reject);
 						});
@@ -191,7 +190,7 @@ function EditorMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				var alive = this.getOwnerOf(script);
+				let alive = this.getOwnerOf(script);
 				
 				if (alive)
 					resolve(alive);
@@ -199,7 +198,7 @@ function EditorMgr (bg) {
 
 					if (script.parent) {
 						
-						if (!script.parent.isGroup()) {
+						if (!script.parent.isGroup() && !script.parent.isResource()) {
 							
 							let endpoint = script.getUrl() || script.getParentName();
 							
@@ -215,15 +214,15 @@ function EditorMgr (bg) {
 												.then(
 													tab => {
 														
-														new EditorWdw({parent: self, script: script, tab: tab, mode: "javascript", line: line, col: col })
+														new EditorWdw({parent: self, script: script, tab: tab, line: line, col: col })
 															.then(resolve, reject);
 														
 													}
 												);
 											
 										} else {
-
-											new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
+											
+											new EditorWdw({ parent: self, script: script, tab: null, line: line, col: col })
 												.then(resolve, reject);
 										}
 										
@@ -231,16 +230,17 @@ function EditorMgr (bg) {
 								);
 							
 						} else {
+
+							let mode = script.parent.isResource() ? script.parent.type.split("/").pop() : "javascript";
 							
-							new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
+							new EditorWdw({ parent: self, script: script, tab: null, mode: mode, line: line, col: col })
 								.then(resolve, reject);
-							
 						}
 						
 					} else {
 
 						/*  User definitions */
-						new EditorWdw({ parent: self, script: script, tab: null, mode: "javascript", line: line, col: col })
+						new EditorWdw({ parent: self, script: script, tab: null, line: line, col: col })
 							.then(resolve, reject);
 					}
 				}
@@ -254,8 +254,7 @@ function EditorMgr (bg) {
 					
 			parent: self,
 			script: new Script({ parent: group }),
-			tab: null,
-			mode: "javascript"
+			tab: null
 			
 		});
 	};
@@ -287,6 +286,16 @@ function EditorMgr (bg) {
 			editor => {
 				
 				return editor.wdw.id == wid;
+				
+			}) ? true : false;
+	};
+
+	this.resourceEditing = (resource) => {
+		
+		return this.editors.find(
+			editor => {
+				
+				return editor.script.parent.name == resource.name;
 				
 			}) ? true : false;
 	};

@@ -892,6 +892,7 @@ function Resource (opt) {
 		return null;
 	
 	this.name = opt.name;
+	this.id = opt.id || UUID.generate();
 	this.file = opt.file || null;
 	this.type = opt.type || "application/octet-stream";
 	this.parent = this; /* Compat. */
@@ -957,15 +958,21 @@ function Resource (opt) {
 		
 	};
 	
+	
 	this.persist = (content) => {
 
-		/* event opt page? */
-		if (content)
-			this.setTextContent(content);
-		
-		return this.storage.setResource(
-			
-			this.__getDBInfo();	
+		return new Promise (
+			(resolve, reject) => {
+				
+				if (content)
+					this.setTextContent(content);
+				
+				global_storage.setResource(
+					
+					this.__getDBInfo()
+					
+				).then(storage => { resolve(this); });
+			}
 		);
 	};
 	
@@ -981,7 +988,8 @@ function Resource (opt) {
 		let me = this;
 		
 		return {
-			
+
+			id: me.id,
 			name: me.name,
 			type: me.type,
 			file: me.file	

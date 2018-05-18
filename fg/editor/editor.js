@@ -204,7 +204,10 @@ function EditorFG (id, bg) {
 								parent => {
 									
 									this.scope.enableButtons();
-									
+
+									if (parent.isResource() && self.bg.option_mgr.events) 
+										self.bg.option_mgr.events.emit("new-resource");
+										
 									if (this.editor.tab) {
 
 										if (this.editor.script.includedAt(this.editor.tab.url)) {
@@ -404,7 +407,7 @@ function EditorFG (id, bg) {
 		$timeout(() => {
 			
 			$scope.editor.ace = ace.edit("code_area");
-			$scope.editor.ace.session.setMode("ace/mode/javascript"); /* editor.mode */
+			$scope.editor.ace.session.setMode("ace/mode/" + $scope.editor.mode);
 			
 			$scope.editor.ace.getSession()
 				.on('change', () => {

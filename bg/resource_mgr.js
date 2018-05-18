@@ -15,18 +15,50 @@ function ResourceMgr (bg) {
 	
 	this.storeResource = (name, type, file) => {
 
-		console.log(file);
-		//return new Resource(opt).persist();
+		let opt = {
+
+			name: name,
+			file: file
+		};
+
+		switch (type) {
+			case "css":
+			case "javascript":
+			case "html":
+				{
+					opt.type = "text/" + type;
+				}
+				break;
+			case "image":
+				{
+					opt.type = "image/" + file.name.split(".").pop();
+				}
+				break;
+			case "video":
+				{
+					opt.type = "video/" + file.name.split(".").pop();
+				}
+				break;
+			case "audio":
+				{
+					opt.type = "audio/" + file.name.split(".").pop();
+				}
+				break;
+				
+			default:
+				break;
+		}
 		
+		return new Resource(opt).persist();
 	};
 	
-	this.removeResource = (name) => {
+	this.removeResource = (id) => {
 		
-		return this.storage.removeResource(name);
+		return this.storage.removeResource(id);
 
 	};
 	
-	this.loadResource = (name) => {
+	this.loadResource = (id) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -36,23 +68,23 @@ function ResourceMgr (bg) {
 						
 						let url = URL.createObjectURL ( resource.file );
 						
-						this.loaded.push({ name: resource.name, url: url });
+						this.loaded.push({ id: resource.id, url: url });
 						
 						resolve(url);
 						
-					}, name);
+					}, id);
 			}
 		)
 	};
 
-	this.unloadResource = (name) => {
+	this.unloadResource = (id) => {
 
 		var url;
 		
 		let idx = this.loaded.findIndex(
 			resource => {
 				
-				return resource.name == name;
+				return resource.id == id;
 				
 			}
 		);
@@ -66,7 +98,7 @@ function ResourceMgr (bg) {
 			
 		} else {
 			
-			console.warn("Attempting to unload unloaded resource: " + name);
+			console.warn("Attempting to unload unloaded resource: " + id);
 			url = null;
 			
 		}
@@ -74,15 +106,41 @@ function ResourceMgr (bg) {
 		return Promise.resolve(url);
 	};
 	
-	this.isLoaded = (name) => {
+	this.persistNameFor = (info) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.storage.getResource(
+					resource => {
+						
+						if (resource) {
+							
+							resource.name = info.name;
+							
+							resource.persist()
+								.then(resolve, reject);
+
+						} else {
+							
+							reject();
+							
+						}
+						
+					}, info.id);
+			}
+		)
+	};
+	
+	this.isLoaded = (id) => {
 		
 		return this.loaded.find(
 			resource => {
 				
-				return resource.name == name;
+				return resource.id == id;
 			}
 			
-		) ? true : false;	
+		) ? true : false;
 	};
 
 	this.getResourcesRelation = () => {
@@ -97,10 +155,10 @@ function ResourceMgr (bg) {
 						
 						this.storage.getResource(
 							resource => {
-
+								
 								if (resource)
-									relation.push({ name: resource.name, type: resource.type, persisted: true });
-
+									relation.push({ name: resource.name, type: resource.type, id: resource.id });
+								
 								next();
 								
 							}, resource_name);
@@ -117,19 +175,65 @@ function ResourceMgr (bg) {
 
 	this.editTextResource = (resource) => {
 
-		this.bg.editor_mgr.openEditorInstanceForScript(
-			new Script({
+		if (this.bg.editor_mgr.resourceEditing(resource))
+			return Promise.resolve();
 
-				parent: new Resource({
-
-					name: resource.name,
-					type: "application/javascript"
-					
-				}),
+		else {
+			
+			if (!resource.id) {
 				
-				code: " "
-			})
-		);
+				return this.bg.editor_mgr.openEditorInstanceForScript(
+					
+					new Script({
+						
+						parent: new Resource({
+							
+							name: resource.name,
+							type: "text/" + resource.type
+							
+						}),
+						
+						code: " "
+					})
+				);
+			
+			} else {
+				
+				return new Promise(
+					(resolve, reject) => {
+
+						this.storage.getResource(
+							resource => {
+								
+								if (resource) {
+
+									resource.readTextContent()
+										.then(
+											text => {
+												
+												resolve(
+													
+													this.bg.editor_mgr.openEditorInstanceForScript(
+											
+														new Script({
+											
+															parent: resource,
+															code: text
+														})
+													)	
+												);
+											});
+								} else {
+									
+									console.warn("Missing persisted resource.");
+									reject();
+								}
+								
+								
+							}, resource.id)
+					});
+			}
+		}
 	};
 	
 	this.storeNewResources = (changes, area) => {

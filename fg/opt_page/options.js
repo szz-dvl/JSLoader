@@ -143,18 +143,40 @@ function OP (bg) {
 						
 						templateUrl: 'resources.html',
 						controller: function ($scope, $state, $timeout, dataResources) {
-							
-							$scope.resources_active = true;
+
 							$scope.resources = dataResources;
+							$scope.resources_active = $scope.resources.length;
 							$scope.names_disabled = false;
+							$scope.info_text = "";
 							
 							$scope.types = [
 								
+								"css",
 								"html",
 								"javascript",
 								"image",
-								"video"
+								"video",
+								"audio"
 							];
+							
+							$scope.__updateData = (to) => {
+								
+								$timeout(
+									() => {
+									
+										self.bg.resource_mgr.getResourcesRelation()
+											.then(relation => {
+												
+												$scope.resources = relation;
+												$scope.$digest();
+												
+											});
+										
+									}, to ? 350 : 150);
+							};
+
+							self.bg.option_mgr.events
+								.on("new-resource", () => { $scope.__updateData(true); });
 							
 							$scope.resourceFile = (resource) => {
 
@@ -170,17 +192,18 @@ function OP (bg) {
 									resource.type,
 									$("#import_data_" + resource.name)[0].files[0]
 									
-								);
+								).then($scope.__updateData);
 							};
 							
 							$scope.removeResource = (resource) => {
 								
-								self.bg.resource_mgr.removeResource(resource.name);
+								self.bg.resource_mgr.removeResource(resource.id)
+									.then($scope.__updateData);
 							};
 							
 							$scope.addResource = () => {
 								
-								$scope.resources.push({ name: UUID.generate().split("-").pop(), type: "javascript", persisted: false });
+								$scope.resources.push({ name: UUID.generate().split("-").pop(), type: "javascript" });
 								
 							};
 
@@ -191,7 +214,7 @@ function OP (bg) {
 							};
 
 							$scope.editResource = (resource) => {
-
+								
 								self.bg.resource_mgr.editTextResource(resource);
 								
 							};
@@ -201,12 +224,23 @@ function OP (bg) {
 								resource.type = type;
 								
 							};
-							
+
+							/* Test */
 							$scope.toggleResource = (resource) => {
+
+								let state = $scope.isLoaded(resource);
 								
-								$scope.isLoaded(resource) ?
-								self.bg.resource_mgr.unloadResource(resource.name) :
-								self.bg.resource_mgr.loadResource(resource.name);
+								let promise = state ?
+											  self.bg.resource_mgr.unloadResource(resource.id) :
+											  self.bg.resource_mgr.loadResource(resource.id);
+
+								promise.then(
+									url => {
+
+										$scope.info_text = (state ? 'Unloaded' : 'Loaded') + ' resource "' + resource.name + '" at: ' + url;
+										
+									}
+								);
 								
 							};
 
@@ -265,6 +299,9 @@ function OP (bg) {
 
 										resource.nameID = null;
 										$scope.names_disabled = false;
+
+										if (resource.id)
+											self.bg.resource_mgr.persistNameFor(resource);
 										
 									}, 3500, true, resource
 								);
@@ -274,7 +311,7 @@ function OP (bg) {
 							
 							$scope.isLoaded = (resource) => {
 								
-								return self.bg.resource_mgr.isLoaded(resource.name);
+								return self.bg.resource_mgr.isLoaded(resource.id);
 								
 							};
 						}
@@ -284,11 +321,11 @@ function OP (bg) {
 						
 						templateUrl: 'app-data.html',
 						controller: function ($scope, $compile, $rootScope, $state, $interval, $timeout,  dataStorage) {
-
-							$scope.appdata_active = true;
 							
 							$scope.domains = dataStorage.domains;
 							$scope.groups = dataStorage.groups;
+
+							$scope.appdata_active = $scope.domains.length + $scope.groups.length > 0; 
 							
 							$scope.__updateService = () => {
 

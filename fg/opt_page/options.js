@@ -185,14 +185,26 @@ function OP (bg) {
 							};
 
 							$scope.persistResource = (resource) => {
+
+								let reader = new FileReader();
 								
-								self.bg.resource_mgr.storeResource(
+								reader.onload = function () {
 									
-									resource.name,
-									resource.type,
-									$("#import_data_" + resource.name)[0].files[0]
-									
-								).then($scope.__updateData);
+									self.bg.resource_mgr.storeResource(
+										
+										resource.name,
+										resource.type,
+										$("#import_data_" + resource.name)[0].files[0].name.split(".").pop(),
+										['css', 'html', 'javascript'].includes(resource.type) ? reader.result : reader.result.split(",").slice(1).join()
+										
+									).then($scope.__updateData);
+								}
+
+								if (['css', 'html', 'javascript'].includes(resource.type))
+									reader.readAsText($("#import_data_" + resource.name)[0].files[0]);
+								else
+									reader.readAsDataURL($("#import_data_" + resource.name)[0].files[0]);
+								
 							};
 							
 							$scope.removeResource = (resource) => {

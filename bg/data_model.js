@@ -928,36 +928,37 @@ function Resource (opt) {
 	};
 	
 	this.readTextContent = () => {
+
+		return this.file;
 		
-		return new Promise(
-			(resolve, reject) => {
-				
-				let reader = new FileReader();
-				
-				reader.onload = () => {
-					
-					resolve(reader.result);
-				}
-				
-				reader.onerror = () => {
-					
-					reject(reader.error);
-				}
-		
-				reader.readAsText(this.file);
-				
-			}
-		);
 	};
 
 	this.setTextContent = (text) => {
 
-		let me = this;
-		
-		this.file = new File([text], this.file ? this.file.name : this.name, {type: me.type});
+		this.file = text;
 		
 	};
-	
+
+	this.getAsBinary = () => {
+
+		if (this.type.includes('text')) {
+			
+			return new File([this.file], this.name, { type: this.type });
+			
+		} else {
+			
+			/* @ https://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript */
+			
+			let byteCharacters = atob(this.file);
+			
+			let byteNumbers = new Array(byteCharacters.length);
+			
+			for (let i = 0; i < byteCharacters.length; i++) 
+				byteNumbers[i] = byteCharacters.charCodeAt(i);
+			
+			return new Blob([new Uint8Array(byteNumbers)], { type: this.type });
+		}
+	};
 	
 	this.persist = (content) => {
 

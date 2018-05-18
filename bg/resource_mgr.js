@@ -13,7 +13,7 @@ function ResourceMgr (bg) {
 		},
 	);
 	
-	this.storeResource = (name, type, file) => {
+	this.storeResource = (name, type, ext, file) => {
 
 		let opt = {
 
@@ -31,17 +31,17 @@ function ResourceMgr (bg) {
 				break;
 			case "image":
 				{
-					opt.type = "image/" + file.name.split(".").pop();
+					opt.type = "image/" + ext;
 				}
 				break;
 			case "video":
 				{
-					opt.type = "video/" + file.name.split(".").pop();
+					opt.type = "video/" + ext;
 				}
 				break;
 			case "audio":
 				{
-					opt.type = "audio/" + file.name.split(".").pop();
+					opt.type = "audio/" + ext;
 				}
 				break;
 				
@@ -65,12 +65,20 @@ function ResourceMgr (bg) {
 				
 				this.storage.getResource(
 					resource => {
-						
-						let url = URL.createObjectURL ( resource.file );
-						
-						this.loaded.push({ id: resource.id, url: url });
-						
-						resolve(url);
+
+						if (resource) {
+		
+							let url = URL.createObjectURL ( resource.getAsBinary() );
+							
+							this.loaded.push({ id: resource.id, url: url });
+							
+							resolve(url);
+							
+						} else {
+							
+							console.warn("Missing resource: " + resource.id);
+							reject();
+						}
 						
 					}, id);
 			}

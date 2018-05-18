@@ -9,7 +9,7 @@ function Script (opt) {
 	
 	this.getUrl = () => {
 		
-		if (this.parent && !this.parent.isGroup()) {
+		if (this.parent && !this.parent.isGroup() && !this.parent.isResource()) {
 			
 			if (this.parent.parent.isSubdomain())
 				return null;

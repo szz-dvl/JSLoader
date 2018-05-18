@@ -52,3 +52,38 @@
 	/* padding-top: 10%; */
 	padding-bottom: 10%;
 }
+
+li.resource-dir {
+	list-style-type: none;
+	margin: 0 !important;
+}
+
+li.resource-item {
+	list-style-type: none;
+}
+
+div.resource-add {
+	display: inline-flex;
+	text-align: center;
+	width: 15px;
+	height: 15px;
+	border: 1px solid black;
+	align-items: center;
+	justify-content: center;
+	padding: 0 7px 0 5px;
+	background-color: #fbfbfb;
+}
+
+div.resource-add:hover {
+	background-color: #ebebeb;
+}
+
+div.resource-add::before {
+	content: ' ';
+}
+
+div.resource-add::after {
+	content: ' ';
+}
+
+

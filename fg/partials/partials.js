@@ -238,6 +238,251 @@ angular.module('jslPartials', [])
 					   }
 				   }
 			   })
+
+	.directive('resourceDirectory',
+			   ($timeout) => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   replace: true,
+					   scope: {
+						   items: "=",
+						   name: "=",
+						   parent: "=",
+						   mgr: "="
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+					
+						   return browser.extension.getURL("fg/partials/resource-dir.html");
+					
+					   },
+					   
+					   controller: function ($scope) {
+						   
+						   $scope.path = $scope.parent + $scope.name + "/";
+						   $scope.dir_shown = true;
+						   $scope.item_type = "directory";
+						   $scope.file_type = "text/javascript";
+						   $scope.adding = false;
+						   $scope.have_file = false;
+						   
+						   $scope.file_types = [
+
+							   "text/html",
+							   "text/javascript",
+							   "text/css",
+							   "image/*",
+							   "video/*",
+							   "audio/*"
+						   ];
+
+						   $scope.persistable = () => {
+
+							   return $scope.item_type == "directory" ? $scope.validated : $scope.validated && $scope.have_file;
+						   }
+						   
+						   $scope.addItem = () => {
+
+							   $scope.adding = true;
+
+						   }
+
+						   $scope.selectItemType = (nval) => {
+							   
+							   $scope.item_type = nval;
+							   
+						   }
+
+						   $scope.selectFileType = (nval) => {
+							   
+							   $scope.file_type = nval;
+							   
+						   }
+
+						   $scope.__findAppropiateNameFor = (repeated) => {
+							   
+							   let cnt = 1;
+							   let name = repeated;
+							   let found = $scope.items.find(
+								   res => {
+									   
+									   return res.name == name;
+									   
+								   }
+								   
+							   );
+							   
+							   while (found) {
+								   
+								   name += cnt.toString();
+								   
+								   found = $scope.items.find(
+									   res => {
+										   
+										   return res.name == name;
+											
+									   }
+								   );
+								   
+								   cnt ++;
+								   
+								   if (found)
+									   name = name.slice(0, -1);
+							   }
+							   
+							   return name;
+						   };
+						   
+						   $scope.resourceNameValidation = () => {
+
+							   $scope.validated = false;
+							   
+							   if ($scope.nameID)
+									$timeout.cancel($scope.nameID);
+								
+								$scope.nameID = $timeout(
+									() => {
+										
+										let exists = $scope.items
+											.find(res => {
+												
+												return res.name == $scope.new_name;
+												
+											});
+
+										if (exists)
+											$scope.new_name = $scope.__findAppropiateNameFor($scope.new_name);
+		
+										$scope.validated = $scope.new_name ? true : false;
+										
+									}, 3500, true
+								);
+						   }
+
+						   $scope.removeChild = (name) => {
+
+							   $scope.items.remove(
+								   $scope.items.findIndex(item => { return item.name == name }));
+							   
+						   }
+						   
+						   $scope.removeSelf = () => {
+
+							   $scope.$parent.removeChild($scope.name);
+
+						   }
+						   
+						   $scope.editTextResource = (resource) => {
+							   
+							   $scope.mgr.editTextResource(resource);
+
+						   }
+
+						   $scope.setHover = (val) => {
+
+							   if ($scope.hovID)
+								   $timeout.cancel($scope.hovID);
+							   
+							   if (val) 
+								   $scope.onadding = true;
+							   else 
+								   $scope.hovID = $timeout(() => { $scope.onadding = false; }, 750);
+													 
+						   }
+						   
+						   $scope.resourceFile = () => {
+							   
+							   $scope.have_file = true;
+
+						   }
+
+						   $scope.persistResource = () => {
+
+							   if ($scope.item_type == "directory") {
+								   
+								   $scope.items.push({
+								   
+									   name: $scope.new_name, 
+									   items: []
+									   
+								   });
+								   
+							   } else {
+
+								   /* Persist */
+								   $scope.items.push({
+									   
+									   name: $scope.new_name, 
+									   type: $scope.file_type
+									   
+								   });
+
+							   }
+							   
+							   $scope.have_file = false;
+							   $scope.adding = false;
+						   }
+
+						   $scope.cancelResource = () => {
+
+							   $scope.have_file = false;
+							   $scope.adding = false;
+						   }
+					   }
+					   
+				   }
+			   })
+
+	.directive('resourceItem',
+			   () => {
+				   
+				   return {
+					   
+					   restrict: 'E',
+					   replace: true,
+					   scope: {
+						   resource: "=",
+					   },
+					   
+					   templateUrl: function (elem, attr) {
+						   
+						   return browser.extension.getURL("fg/partials/resource-item.html");
+					
+					   },
+					   
+					   controller: function ($scope) {
+
+						   $scope.hover = false;
+						   $scope.editing = false;
+						   
+						   $scope.setHover = (val) => {
+							   
+							   if ($scope.hovID)
+								   $timeout.cancel($scope.hovID);
+							   
+							   if (val) 
+								   $scope.hover = true;
+							   else 
+								   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
+							   
+						   }
+
+						   $scope.removeSelf = () => {
+
+							   $scope.$parent.removeChild($scope.name);
+
+						   }
+
+						   $scope.editSelf = () => {
+
+							   $scope.editing = true;
+							   
+						   }
+					   }
+				   }
+			   })
 	
 	.directive('areUSure',
 			   ($interval) => {

@@ -1,0 +1,82 @@
+<label for="directory-{{name}}" style="display: inline;">
+	
+	<h4 style="margin:10px 0 0 0;"> {{name}} 
+		<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
+	</h4>
+	
+	<ul class="browser-style" id="directory-{{name}}" ng-show="dir_shown">
+		
+		<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
+
+			<resource-item resource="resource" ng-if="!resource.items"></resource-item>
+			<resource-directory ng-if="resource.items" items="resource.items" name="resource.name" parent="path" mgr="mgr"></resource-directory>
+			
+		</li>
+	</ul>
+
+	<div style="display: table-row-group;">
+		<div ng-show="dir_shown && !adding" class="resource-add" ng-click="addItem()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> + </div>
+		<div ng-show="dir_shown && !adding && onadding" class="resource-add" ng-click="removeSelf()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> - </div>
+	</div>
+	
+	<div ng-show="adding">
+		
+		<select
+			class="browser-style"
+			ng-model="item_type"
+			ng-options="type for type in ['directory', 'file']"
+			ng-change="selectItemType(item_type)"></select>
+		
+		<div style="display: inline;">
+			
+			<input
+				style="width: 10%;"
+				class="browser-style"
+				type="text"
+				ng-change="resourceNameValidation()"
+				ng-model="new_name"/>
+
+			<select
+				style="margin: 0 15px 0 15px"
+				ng-if="item_type == 'file'"
+				class="browser-style"
+				ng-model="file_type"
+				ng-options="type for type in file_types"
+				ng-change="selectFileType(file_type)"></select>
+
+			<button
+				style="margin: 0 15px 0 15px"
+				class="browser-style"
+				ng-if="item_type == 'file' && file_type.includes('text')"
+				ng-disabled="!validated"
+				ng-click="editTextResource({ name: new_name, type: file_type })">
+				Edit Resource
+			</button>
+
+			<label for="import_data" ng-if="item_type == 'file'" style="margin: 0 15px 0 15px">
+				<bdi> Import Resource </bdi>
+				<input
+					class="browser-style"
+					id="import_data"
+					ng-on-change="resourceFile()"
+					type="file"/>
+			</label>
+
+			<button
+				class="browser-style"
+				ng-disabled="!persistable()"
+				ng-click="persistResource()">
+				Persist
+			</button>
+
+			<button
+				class="browser-style"
+				ng-click="cancelResource()">
+				Cancel
+			</button>
+			
+		</div>
+		
+	</div>
+
+</label>

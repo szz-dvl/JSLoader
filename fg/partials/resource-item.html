@@ -1,0 +1,8 @@
+
+<div style="display: table-row-group;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);">
+	<bdi> {{ resource.name }} <i> ({{ resource.type }}) </i> </bdi>
+	<div ng-show="hover" class="resource-add" ng-click="removeSelf()"> - </div>
+	<div ng-show="hover" class="resource-add" style="border:0;" ng-click="editSelf()">
+		<img src="../icons/edit-16.png" width="16px" height="16px"/>
+	</div>
+</div>

@@ -138,7 +138,87 @@ function OP (bg) {
 							];
 						}
 					},
+					
+					'resources-alt': {
 
+
+						templateUrl: 'resources-alt.html',
+						controller: function ($scope, $state, $timeout) {
+
+							$scope.resources_active = true;
+							$scope.list = {
+
+								name: "/",
+								items: [
+									{
+										name: "icon.png",
+										type: "image/png"
+									},
+									{
+										name: "template.html",
+										type: "text/html"
+									},
+									{
+										name: "project",
+										items: [
+											
+											{
+												name: "script.js",
+												type: "text/javascript"
+											},
+											{
+												name: "angular.html",
+												type: "text/html"
+											},
+											{
+												name: "project-images",
+												items: [
+													
+													{
+														name: "foto1.png",
+														type: "image/png"
+													},
+													{
+														name: "foto2.png",
+														type: "image/png"
+													}
+												]
+											}
+										]
+									},
+									{
+										name: "project2",
+										items: [
+											
+											{
+												name: "script2.js",
+												type: "text/javascript"
+											},
+											{
+												name: "angular2.html",
+												type: "text/html"
+											},
+											{
+												name: "project2-images",
+												items: [
+													
+													{
+														name: "foto1.png",
+														type: "image/png"
+													},
+													{
+														name: "foto2.png",
+														type: "image/png"
+													}
+												]
+											}
+										]
+									}
+								]
+							};
+						}
+					},
+					
 					'resources': {
 						
 						templateUrl: 'resources.html',

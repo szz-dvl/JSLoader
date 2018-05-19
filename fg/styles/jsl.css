@@ -74,6 +74,12 @@ div.resource-add {
 	background-color: #fbfbfb;
 }
 
+div.resource-add > img {
+	
+    margin:auto;
+	padding-bottom: 1px;
+}
+
 div.resource-add:hover {
 	background-color: #ebebeb;
 }

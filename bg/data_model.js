@@ -885,6 +885,61 @@ function Group (opt) {
 	};	
 }
 
+function ResourceDir (opt) {
+
+	if (!opt || !opt.name)
+		return null;
+	
+	this.name = opt.name;
+	this.items = opt.items || [];
+	this.dir = true;
+	
+	this.persist = () => {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				global_storage.setResource(
+			
+					this.__getDBInfo()
+				
+				).then(storage => { resolve(this); }, reject);
+				
+			});
+	}
+
+	this.appendItem = (name) => {
+
+		let exists = this.items.includes(name);
+
+		if (!exists)
+			this.items.push(name);
+
+		return !exists;
+	}
+
+	this.removeItem = (name) => {
+
+		let exists = this.items.indexOf(name);
+
+		if (exists >= 0)
+			this.items.remove(exists);
+
+		return exists >= 0;
+	}
+	
+	this.__getDBInfo = () => {
+
+		let me = this;
+		
+		return {
+
+			name: me.name,
+			items: me.items,
+			dir: true
+		}
+	}
+}
 
 function Resource (opt) {
 
@@ -892,9 +947,11 @@ function Resource (opt) {
 		return null;
 	
 	this.name = opt.name;
-	this.id = opt.id || UUID.generate();
 	this.file = opt.file || null;
 	this.type = opt.type || "application/octet-stream";
+	this.size = opt.size || 0;
+	this.db = opt.db || null;
+	
 	this.parent = this; /* Compat. */
 	
 	this.isGroup = () => {
@@ -939,6 +996,17 @@ function Resource (opt) {
 		
 	};
 
+	this.getSizeString = () => {
+
+		let kb = (this.size / 1024);
+
+		if (kb <= 1024)
+			return kb + " KB";
+		else
+			return (kb / 1024) + " MB";
+		
+	};
+	
 	this.getAsBinary = () => {
 
 		if (this.type.includes('text')) {
@@ -961,36 +1029,110 @@ function Resource (opt) {
 	};
 	
 	this.persist = (content) => {
-
+		
 		return new Promise (
 			(resolve, reject) => {
-				
+
 				if (content)
 					this.setTextContent(content);
 				
-				global_storage.setResource(
+				if (this.db) {
 					
-					this.__getDBInfo()
+					if (this.db.connected) {
+						
+						global_storage.__getResources(
+							resources => {
+								
+								if (!resources.includes(name)) {
+									
+									resources.push(name);
+									global_storage.__setResources(resources)
+										.then(
+											() => {
+												
+												this.db.pushSync([this], "resources")
+													.then((arr) => { resolve(this) }, reject);
+												
+											}, reject);
+									
+								}
+							}
+						);
+						
+					} else {
+						
+						reject(new Error("File too big for storage, please connect a DB."));
+						
+					}
 					
-				).then(storage => { resolve(this); });
+				} else {
+					
+					global_storage.setResource(
+						
+						this.__getDBInfo()
+							
+					).then(storage => { resolve(this); });
+				}
 			}
 		);
 	};
 	
 	this.remove = () => {
-		
-		return this.storage.removeResource(this.name);
+
+		return new Promise ((resolve, reject) => {
+
+			if (this.db) {
+				
+				if (this.db.connected) {
+					
+					global_storage.__getResources(
+						resources => {
+							
+							if (resources.includes(name)) {
+								
+								resources.remove(resources.indexOf(name));
+								global_storage.__setResources(resources)
+									.then(
+										() => {
+											
+											this.db.removeResources([this.name])
+												.then(() => { resolve(this) }, reject);
+											
+										}, reject);
+								
+							}
+						}
+					);
+					
+				} else {
+					
+					reject(new Error("DB not available, resource " + this.name + " not removed."));
+					
+				}
+				
+			} else {
+				
+				global_storage.removeResource(this.name)
+					.then(() => { resolve(this) }, reject);
+				
+			}
+			
+		});
 		
 	};
-	
+
+	this.getJSON = () => {
+		
+		return JSON.stringify(this.__getDBInfo());
+		
+	};
 	
 	this.__getDBInfo = () => {
 		
 		let me = this;
 		
 		return {
-
-			id: me.id,
+			
 			name: me.name,
 			type: me.type,
 			file: me.file	

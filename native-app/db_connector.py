@@ -115,7 +115,7 @@ while True:
                     del domain['_id']
                     docs.append(domain)
                 
-                    sendMessage ( encodeMessage( '{ "tag": "domains", "content":' + json.dumps(docs) + ' }' ));
+                sendMessage ( encodeMessage( '{ "tag": "domains", "content":' + json.dumps(docs) + ' }' ));
                     
             except Exception as e:
                 sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
@@ -131,7 +131,7 @@ while True:
                     del group['_id']
                     docs.append(group)
 
-                    sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
+                sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
 
             except Exception as e:
                 sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
@@ -139,6 +139,8 @@ while True:
         elif tag == 'query_for':
 
             try:
+
+                #Missing resources.
                 
                 docs = [];
                 query = { "name": { "$regex": ".*" + re.escape(receivedMessage['content']) + ".*" }} if len(receivedMessage['content']) > 0 else None;
@@ -146,13 +148,58 @@ while True:
                 for group in db.groups.find(query):
                     del group['_id']
                     docs.append({'data': group, 'type': 'Group'})
-
+                    
                 for domain in db.domains.find(query):
                     del domain['_id']
                     docs.append({'data': domain, 'type': 'Domain'})
-                
+                    
                 sendMessage ( encodeMessage( '{ "tag": "query", "content":' + json.dumps(docs) + ' }' ));
 
             except Exception as e:
                 sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
-            
+
+
+        elif tag == 'push_sync':
+
+            try:
+                
+                for item in receivedMessage['content']:    
+                    db[receivedMessage['collection']].replace_one(
+                        { "name": item["name"] },
+                        item,
+                        upsert=True
+                    );
+                    
+                sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '" }'));
+
+            except Exception as e:
+                sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "error": "' + str(e) + '" }'));
+                
+        elif tag == 'get_sync':
+
+            try:
+                
+                docs = [];
+                query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
+        
+                for item in db[receivedMessage['collection']].find(query):
+                    del item['_id']
+                    docs.append(item)
+                    
+                sendMessage ( encodeMessage( '{ "tag": "' + receivedMessage['response'] + '", "content": ' + json.dumps(docs) + ' }' ));
+
+            except Exception as e:
+                sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "error": "' + str(e) + '" }'));
+                
+        elif tag == 'remove_resources':
+
+            try:
+                
+                query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
+
+                result = db.resources.delete_many(query);
+                    
+                sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "content": "' + str(result.deleted_count) + '" }'));
+
+            except Exception as e:
+                sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "error": "' + str(e) + '" }'));

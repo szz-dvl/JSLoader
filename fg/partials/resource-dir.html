@@ -1,8 +1,8 @@
 <label for="directory-{{name}}" style="display: inline;">
 	
-	<h4 style="margin:10px 0 0 0;"> {{name}} 
+	<strong style="margin:5px 0 5px 0;"> {{name}} 
 		<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
-	</h4>
+	</strong>
 	
 	<ul class="browser-style" id="directory-{{name}}" ng-show="dir_shown">
 		
@@ -53,11 +53,11 @@
 				Edit Resource
 			</button>
 
-			<label for="import_data" ng-if="item_type == 'file'" style="margin: 0 15px 0 15px">
+			<label for="import_data_new" ng-if="item_type == 'file'" style="margin: 0 15px 0 15px">
 				<bdi> Import Resource </bdi>
 				<input
 					class="browser-style"
-					id="import_data"
+					id="import_data_new"
 					ng-on-change="resourceFile()"
 					type="file"/>
 			</label>

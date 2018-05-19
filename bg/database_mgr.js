@@ -167,13 +167,182 @@ function DBMgr (bg) {
 			this.getGroups = (names) => {
 
 				if (!this.reconnecting) {
-
+					
 					this.port.postMessage('{ "tag": "groups_get", "content": ' + ((names && names.length) ? JSON.stringify(names) : "[]") + '}');
 
 				} else {
 					
 					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
 					
+				}
+			}
+			
+			this.pushSync = (items, collection) => {
+				
+				if (!this.reconnecting) {
+
+					return new Promise(
+						(resolve, reject) => {
+
+							var tID;
+							let tag = UUID.generate().split(".").pop();
+							
+							let handler = (response) => {
+								
+								if (response.tag == tag) {
+
+									clearTimeout(tID);
+									
+									if (response.error)
+										reject(new Error(response.error));
+									else
+										resolve(items);
+									
+									this.port.onMessage.removeListener(handler);
+
+								}
+							}
+							
+							this.port.onMessage.addListener(handler);
+							
+							this.port.postMessage('{ "tag": "push_sync", "response": "' 
+								+ tag 
+								+ '", "collection": "' 
+								+ collection 
+								+ '" "content": ['
+								+ items.map(item => { return item.getJSON(); }).join(",") + ']}');
+
+							tID = setTimeout(() => {
+									
+								reject(new Error("Transaction " + tag + " timed out."));
+								this.port.onMessage.removeListener(handler);
+								
+							}, 5000);
+							
+						}
+					);
+					
+				} else {
+					
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					
+					return Promise.reject(new Error("DB not available."))
+				}
+			}
+
+			this.getSync = (items, collection) => {
+				
+				if (!this.reconnecting) {
+
+					return new Promise(
+						(resolve, reject) => {
+
+							var tID;
+							let tag = UUID.generate().split(".").pop();
+							
+							let handler = (response) => {
+								
+								if (response.tag == tag) {
+
+									clearTimeout(tID);
+									
+									if (response.error)
+										reject(new Error(response.error));
+									else {
+
+										resolve(response.content.map(
+											record => {
+
+												/* try - catch */
+												
+												if (collection == "resources") {
+
+													let resource = new Resource(record);
+													resource.db = this;
+
+													return resource
+
+												} else {
+													
+													return (collection == "domains") ? new Domain(record) : new Group(record);
+												}
+											})
+										);
+									}
+									
+									this.port.onMessage.removeListener(handler);
+								}
+							}
+							
+							this.port.onMessage.addListener(handler);
+							
+							this.port.postMessage('{ "tag": "get_sync", "response": "' 
+								+ tag 
+								+ '", "collection": "' 
+								+ collection 
+								+ '" "content": '
+								+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
+							
+							tID = setTimeout(() => {
+								
+								reject(new Error("Transaction " + tag + " timed out."));
+								this.port.onMessage.removeListener(handler);
+								
+							}, 5000);
+						}
+					);
+					
+				} else {
+					
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					
+					return Promise.reject(new Error("DB not available."));
+					
+				}
+			}
+
+
+			this.removeResources = (resources) => {
+
+				if (!this.reconnecting) {
+
+					var tID;
+					let tag = UUID.generate().split(".").pop();
+					
+					let handler = (response) => {
+						
+						if (response.tag == tag) {
+							
+							clearTimeout(tID);
+							
+							if (response.error)
+								reject(new Error(response.error));
+							else 	
+								resolve(response.content);
+								
+							this.port.onMessage.removeListener(handler);
+						}						
+					}
+					
+					this.port.onMessage.addListener(handler);
+					
+					this.port.postMessage('{ "tag": "remove_resources", "response": "' 
+						+ tag 
+						+ '" "content": '
+						+ ((resources && resources.length) ? JSON.stringify(resources) : "[]") + ' }');
+					
+					tID = setTimeout(() => {
+						
+						reject(new Error("Transaction " + tag + " timed out."));
+						this.port.onMessage.removeListener(handler);
+						
+					}, 5000);
+					
+				} else {
+					
+					this.bg.notify_mgr.info("Reconnecting to DB, please wait a jiffy ...");
+					
+					return Promise.reject(new Error("DB not available."));
 				}
 			}
 

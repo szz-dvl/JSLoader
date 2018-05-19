@@ -9,90 +9,201 @@ function ResourceMgr (bg) {
 		new_resources => {
 			
 			this.resources = new_resources;
-			
-		},
-	);
-	
-	this.storeResource = (name, type, ext, file) => {
 
-		let opt = {
+			if (!this.resources.lenght) {
 
-			name: name,
-			file: file
-		};
-
-		switch (type) {
-			case "css":
-			case "javascript":
-			case "html":
-				{
-					opt.type = "text/" + type;
-				}
-				break;
-			case "image":
-				{
-					opt.type = "image/" + ext;
-				}
-				break;
-			case "video":
-				{
-					opt.type = "video/" + ext;
-				}
-				break;
-			case "audio":
-				{
-					opt.type = "audio/" + ext;
-				}
-				break;
-				
-			default:
-				break;
+				new ResourceDir({
+										
+					name: "/";
+					
+				}).persist();
+			}	
 		}
-		
-		return new Resource(opt).persist();
-	};
-	
-	this.removeResource = (id) => {
-		
-		return this.storage.removeResource(id);
+	);
 
-	};
-	
-	this.loadResource = (id) => {
-		
+	this.findResource = (name) => {
+
 		return new Promise(
 			(resolve, reject) => {
 				
 				this.storage.getResource(
 					resource => {
 
-						if (resource) {
+						if (resource) 
+							resolve(resource);
+						else {
+							
+							this.bg.database_mgr.getSync([name], 'resources')
+								.then(arr => {
+									
+									resolve(arr.length ? arr[0] : null);
+									
+								}, reject);
+							
+						}
+					
+					}, name);
+			}
+		);
+	};
+
+	this.solveHierarchyFor = (name) => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				let last = name.split("/").pop();
+				let path = name.split("/").reverse().slice(1);
+				path.push("/");
+				
+				async.eachSeries(path,
+					(actual, next) => {
+						
+						this.findResource(actual)
+							.then(resource_dir => {
+								
+								if (resource_dir) {
+									
+									if (resource_dir.appendItem(last)) {
+										
+										resource_dir.persist().then(next, next);
+										
+									} else {
+										
+										next(actual);
+										
+									}
+							
+								} else {
+									
+									let resource_dir = new ResourceDir({
+										
+										name: name.substring(0, name.indexOf(actual));
+										
+									});
+									
+									resource_dir.appendItem(last);
+									resource_dir.persist().then(
+										resource_dir => {
+											
+											next();
+											
+										}, next
+									);
+								}
+							})
+							
+					}, err => {
+						
+						if (err instanceof Error) 
+							reject(err);	
+						else	
+							resolve(err);
+					}
+				);
+			});
+	};
+	
+	this.storeResource = (name, type, file) => {
 		
+		return new Promise(
+			(resolve, reject) => {
+
+				let mgr = this;
+				
+				let reader = new FileReader();
+				
+				reader.onload = () => {
+					
+					new Resource ({
+						
+						name: name,
+						type: type.includes('text') ? type : type.slice(0, -1) + file.name.split(".").pop(),
+						file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
+						db: (file.size >= 5 * 1024 * 1024) ? mgr.bg.database_mgr : null,
+						size: file.size
+						
+					}).persist().then(resolve, reject);
+				}
+
+				this.solveHierarchyFor(name)
+					.then(
+						last_created => {
+							
+							if (type.includes('text'))
+								reader.readAsText(file);
+							else
+								reader.readAsDataURL(file);
+						}
+					);
+			}
+		);
+	};
+	
+	this.removeResource = (name) => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				let split = name.split("/");
+				
+				let leaf = split.pop();
+				let parent = split.join("/");
+				
+				this.findResource(parent)
+					.then(resource_dir => {
+
+						let promise = resource_dir.removeItem(leaf) ? resource_dir.persist() : Promise.resolve();
+
+						promise.then(
+							parent_dir => {
+								
+								this.findResource(name)
+									.then(resource => {
+
+										if (resource)
+											resource.remove().then(resolve, reject);
+										else
+											reject(new Error("Attempting to remove an unexisting resource: \"" + name + "\"."));
+										
+									});
+							});
+					});
+			});
+	};
+	
+	this.loadResource = (name) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.findResource(name)
+					.then(resource => {
+						
+						if (resource) {
+							
 							let url = URL.createObjectURL ( resource.getAsBinary() );
 							
-							this.loaded.push({ id: resource.id, url: url });
+							this.loaded.push({ name: resource.name, url: url });
 							
 							resolve(url);
 							
-						} else {
+						} else 	
+							reject(new Error("Attempting to load missing resource: " + resource.name));
 							
-							console.warn("Missing resource: " + resource.id);
-							reject();
-						}
-						
-					}, id);
+					}, reject);
 			}
 		)
 	};
 
-	this.unloadResource = (id) => {
+	this.unloadResource = (name) => {
 
-		var url;
+		let url = null;
 		
 		let idx = this.loaded.findIndex(
 			resource => {
 				
-				return resource.id == id;
+				return resource.name == name;
 				
 			}
 		);
@@ -100,95 +211,100 @@ function ResourceMgr (bg) {
 		if (idx >= 0) {
 
 			url = this.loaded[idx].url;
-			
-			URL.revokeObjectURL(this.loaded[idx].url);
+			URL.revokeObjectURL(url);
 			this.loaded.remove(idx);
 			
 		} else {
-			
-			console.warn("Attempting to unload unloaded resource: " + id);
-			url = null;
-			
-		}
 
+			return Promise.reject(new Error("Attempting to unload unloaded resource: " + name));
+
+		}
+		
 		return Promise.resolve(url);
 	};
 	
-	this.persistNameFor = (info) => {
+	this.renameResource = (oldn, newn) => {
 		
 		return new Promise(
 			(resolve, reject) => {
 				
-				this.storage.getResource(
-					resource => {
+				this.findResource(oldn)
+					.then(resource => {
 						
 						if (resource) {
 							
-							resource.name = info.name;
+							resource.name = newn;
 							
 							resource.persist()
 								.then(resolve, reject);
 
-						} else {
+						} else 	
+							reject(new Error("Attempting to rename unexisting resource: " + oldn));
 							
-							reject();
-							
-						}
-						
 					}, info.id);
 			}
 		)
 	};
-	
-	this.isLoaded = (id) => {
-		
-		return this.loaded.find(
-			resource => {
-				
-				return resource.id == id;
-			}
-			
-		) ? true : false;
-	};
 
-	this.getResourcesRelation = () => {
+	this.traverseVirtFS = (actual, count, result) => {
 		
 		return new Promise(
 			(resolve, reject) => {
+				
+				this.findResource(actual)
+					.then(
+						resource => {
+							
+							if (resource.dir) {
 
-				let relation = [];
-				
-				async.each(this.resources,
-					(resource_name, next) => {
-						
-						this.storage.getResource(
-							resource => {
+								async.each(resource.items,
+									(name, next) => {
+
+											this.findResource(resource.name + "/" + name)
+												.then(
+													resource => {
+
+														if (resource.dir) {
+
+															let new_dir = {
+
+																name: resource.name,
+																items: []
+															}
+															
+															result.push(new_dir);
+
+															resolve(this.traverseVirtFS(new_dir.name, new_dir.items));
+
+														} else {
+
+															result.push({ name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false });
+															
+														}
+														
+														next();
+														
+													});
+									}, err => {
+										
+										
+										
+									});
 								
-								if (resource)
-									relation.push({ name: resource.name, type: resource.type, id: resource.id });
-								
-								next();
-								
-							}, resource_name);
-				
-					}, err => {
-						
-						if (err)
-							reject(err);
-						else
-							resolve(relation);
-					});
-			});
+							} 
+						}
+					);
+			}
+		);			
 	};
 
 	this.editTextResource = (resource) => {
 
 		if (this.bg.editor_mgr.resourceEditing(resource))
 			return Promise.resolve();
-
 		else {
 			
-			if (!resource.id) {
+			if (!resource.size) {
 				
 				return this.bg.editor_mgr.openEditorInstanceForScript(
 					
@@ -197,7 +313,7 @@ function ResourceMgr (bg) {
 						parent: new Resource({
 							
 							name: resource.name,
-							type: "text/" + resource.type
+							type: resource.type
 							
 						}),
 						
@@ -209,36 +325,28 @@ function ResourceMgr (bg) {
 				
 				return new Promise(
 					(resolve, reject) => {
-
-						this.storage.getResource(
-							resource => {
+						
+						this.findResource(resource.name)
+							.then(item => {
 								
-								if (resource) {
-
-									resource.readTextContent()
-										.then(
-											text => {
-												
-												resolve(
-													
-													this.bg.editor_mgr.openEditorInstanceForScript(
-											
-														new Script({
-											
-															parent: resource,
-															code: text
-														})
-													)	
-												);
-											});
-								} else {
+								if (item) {
 									
-									console.warn("Missing persisted resource.");
-									reject();
-								}
+									resolve(
+										
+										this.bg.editor_mgr.openEditorInstanceForScript(
+											
+											new Script({
+												
+												parent: resource,
+												code: resource.file
+											})
+										)	
+									);
+									
+								} else 	
+									reject(new Error("Missing persisted resource: " + resource.name));
 								
-								
-							}, resource.id)
+							}, reject);
 					});
 			}
 		}

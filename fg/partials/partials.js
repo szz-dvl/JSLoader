@@ -363,6 +363,7 @@ angular.module('jslPartials', [])
 
 						   $scope.removeChild = (name) => {
 
+							   /* Persist */
 							   $scope.items.remove(
 								   $scope.items.findIndex(item => { return item.name == name }));
 							   
@@ -370,6 +371,7 @@ angular.module('jslPartials', [])
 						   
 						   $scope.removeSelf = () => {
 
+							   /* Persist */
 							   $scope.$parent.removeChild($scope.name);
 
 						   }
@@ -410,15 +412,19 @@ angular.module('jslPartials', [])
 								   });
 								   
 							   } else {
-
-								   /* Persist */
-								   $scope.items.push({
-									   
-									   name: $scope.new_name, 
-									   type: $scope.file_type
-									   
-								   });
-
+								   
+								   $scope.mgr.storeResource($scope.path + $scope.new_name, $scope.file_type, $("#import_data_new")[0].files[0])
+									   .then(resource => {
+										   
+										   /* Persist */
+										   $scope.items.push({
+											   
+											   name: $scope.new_name, 
+											   type: $scope.file_type
+											   
+										   });
+										   
+									   }, console.error);
 							   }
 							   
 							   $scope.have_file = false;
@@ -436,7 +442,7 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('resourceItem',
-			   () => {
+			   ($timeout) => {
 				   
 				   return {
 					   
@@ -456,8 +462,10 @@ angular.module('jslPartials', [])
 
 						   $scope.hover = false;
 						   $scope.editing = false;
+						   $scope.validated = true;
+						   $scope.path = $scope.parent + $scope.name;
 						   
-						   $scope.setHover = (val) => {
+						   $scope.setHover = (val, elem) => {
 							   
 							   if ($scope.hovID)
 								   $timeout.cancel($scope.hovID);
@@ -466,19 +474,80 @@ angular.module('jslPartials', [])
 								   $scope.hover = true;
 							   else 
 								   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
-							   
 						   }
-
+						   
 						   $scope.removeSelf = () => {
 
-							   $scope.$parent.removeChild($scope.name);
+							   /* Persist */
+							   $scope.$parent.removeChild($scope.resource.name);
+							   
+						   }
+						   
+						   $scope.editSelf = () => {
+							   
+							   $scope.backup = $scope.resource.name;
+							   $scope.editing = true;
+							   
+						   }
+
+						   $scope.viewSelf = () => {
+							   
+							   $scope.viewing = true;
+							   
+						   }
+
+						   $scope.resourceNameValidation = () => {
+							   
+							   $scope.validated = false;
+							   
+							   if ($scope.nameID)
+								   $timeout.cancel($scope.nameID);
+							   
+							   $scope.nameID = $timeout(
+								   () => {
+									   
+									   let exists = $scope.$parent.items
+										   .filter(res => {
+											   
+											   return res.name == $scope.resource.name;
+											   
+										   }).length;
+									   
+									   if (exists > 1)
+										   $scope.resource.name = $scope.$parent.__findAppropiateNameFor($scope.resource.name);
+									   
+									   $scope.validated = $scope.resource.name ? true : false;
+									   
+								   }, 3500, true
+							   );
+						   }
+						   
+						   $scope.resourceFile = () => {
+
+							   $scope.have_file = true;
+							   
+						   }
+						   
+						   $scope.editResource = () => {
+							   
+							   $scope.$parent.mgr.editTextResource($scope.resource);
 
 						   }
 
-						   $scope.editSelf = () => {
-
-							   $scope.editing = true;
+						   $scope.cancelEdit = () => {
 							   
+							   $scope.editing = false;
+							   $scope.resource.name = $scope.backup;
+							   $scope.backup = "";
+							   
+						   }
+
+						   $scope.persistEdit = () => {
+
+							   /* Persist */
+							   $scope.editing = false;
+							   $scope.backup = "";
+
 						   }
 					   }
 				   }

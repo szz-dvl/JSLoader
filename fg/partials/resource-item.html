@@ -1,8 +1,61 @@
-
 <div style="display: table-row-group;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);">
-	<bdi> {{ resource.name }} <i> ({{ resource.type }}) </i> </bdi>
-	<div ng-show="hover" class="resource-add" ng-click="removeSelf()"> - </div>
-	<div ng-show="hover" class="resource-add" style="border:0;" ng-click="editSelf()">
-		<img src="../icons/edit-16.png" width="16px" height="16px"/>
+	<bdi ng-show="!editing" style="vertical-align: super;padding-right: 15px;"> {{ resource.name }} <i> ({{ resource.type }}) </i>
+
+		<div style="margin-left: 15px;display: inline-flex;">
+			
+			<div ng-show="hover" class="resource-add" ng-click="removeSelf()" style="margin-right: 5px;"> - </div>
+			<div ng-show="hover" class="resource-add" ng-click="viewSelf()" style="margin-right: 5px;">
+				<img src="../icons/16-eye.png" width="16px" height="16px"/>
+			</div>
+			<div ng-show="hover" class="resource-add" style="border:0; margin-right: 5px;" ng-click="editSelf()">
+				<img src="../icons/edit-16.png" width="16px" height="16px"/>
+			</div>
+			<div ng-show="hover" class="resource-add" style="border:0; margin-right: 5px;" ng-click="pushSelf()">
+				<img src="../icons/16-db.png" width="16px" height="16px"/>
+			</div>
+			
+		</div>
+		
+	</bdi>
+
+	<div ng-show="editing">
+
+		<input
+			style="width: 25%;"
+			class="browser-style"
+			type="text"
+			ng-change="resourceNameValidation()"
+			ng-model="resource.name"/>
+		
+		<label for="import_data" style="margin: 0 15px 0 15px">
+			<bdi> Import Resource </bdi>
+			<input
+				class="browser-style"
+				id="import_data"
+				ng-on-change="resourceFile()"
+				type="file"/>
+		</label>
+		
+		<button
+			class="browser-style"
+			ng-disabled="!validated"
+			ng-if="resource.type.includes('text')"
+			ng-click="editResource()">
+			Edit Source
+		</button>
+
+		<button
+			class="browser-style"
+			ng-click="cancelEdit()">
+			Cancel
+		</button>
+
+		<button
+			ng-disabled="!validated && !have_file"
+			class="browser-style"
+			ng-click="persistEdit()">
+			Persist
+		</button>
+			
 	</div>
 </div>

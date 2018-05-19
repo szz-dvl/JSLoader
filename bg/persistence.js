@@ -413,9 +413,9 @@ function Storage () {
 		return this.__set('resources', val);
 	};
 	
-	this.getResource = (cb, id) => {
+	this.getResource = (cb, name) => {
 		
-		this.__get(resource => { cb(new Resource(resource) || null) }, 'resource-' + id);
+		this.__get(resource => { cb( resource ? (resource.dir ? new ResourceDir(resource) :  new Resource(resource)) : null ) }, 'resource-' + name);
 		
 	};
 
@@ -424,33 +424,33 @@ function Storage () {
 		this.__getResources(
 			resources => {
 				
-				if (!resources.includes(content.id)) {
+				if (!resources.includes(content.name)) {
 					
-					resources.push(content.id);
+					resources.push(content.name);
 					this.__setResources(resources);
 					
 				}
 			}
 		);
 		
-		return this.__set('resource-' + content.id, content);
+		return this.__set('resource-' + content.name, content);
 	};
-
-	this.removeResource = (id) => {
+	
+	this.removeResource = (name) => {
 		
 		this.__getResources(
 			resources => {
 				
-				if (resources.includes(id)) {
+				if (resources.includes(name)) {
 					
-					resources.remove(resources.indexOf(id));
+					resources.remove(resources.indexOf(name));
 					this.__setResources(resources);
 					
 				}
 			}
 		);
 		
-		return this.__remove('resource-' + id);
+		return this.__remove('resource-' + name);
 		
 	};	
 }

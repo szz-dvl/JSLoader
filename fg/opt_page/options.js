@@ -144,7 +144,7 @@ function OP (bg) {
 
 						templateUrl: 'resources-alt.html',
 						controller: function ($scope, $state, $timeout) {
-
+							
 							$scope.resources_active = true;
 							$scope.list = {
 

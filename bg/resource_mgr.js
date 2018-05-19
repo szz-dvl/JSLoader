@@ -14,7 +14,7 @@ function ResourceMgr (bg) {
 
 				new ResourceDir({
 										
-					name: "/";
+					name: "/"
 					
 				}).persist();
 			}	
@@ -78,7 +78,7 @@ function ResourceMgr (bg) {
 									
 									let resource_dir = new ResourceDir({
 										
-										name: name.substring(0, name.indexOf(actual));
+										name: name.substring(0, name.indexOf(actual))
 										
 									});
 									
@@ -120,7 +120,7 @@ function ResourceMgr (bg) {
 						name: name,
 						type: type.includes('text') ? type : type.slice(0, -1) + file.name.split(".").pop(),
 						file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
-						db: (file.size >= 5 * 1024 * 1024) ? mgr.bg.database_mgr : null,
+						db: (file.size >= 1 * 1024 * 1024) ? mgr.bg.database_mgr : null,
 						size: file.size
 						
 					}).persist().then(resolve, reject);
@@ -246,7 +246,7 @@ function ResourceMgr (bg) {
 		)
 	};
 
-	this.traverseVirtFS = (actual, count, result) => {
+	this.__traverseVirtFS = (actual, result, first) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -257,39 +257,71 @@ function ResourceMgr (bg) {
 							
 							if (resource.dir) {
 
-								async.each(resource.items,
+								let paths = 0;
+								
+								async.eachSeries(resource.items,
 									(name, next) => {
-
-											this.findResource(resource.name + "/" + name)
-												.then(
-													resource => {
-
-														if (resource.dir) {
-
-															let new_dir = {
-
-																name: resource.name,
-																items: []
-															}
-															
-															result.push(new_dir);
-
-															resolve(this.traverseVirtFS(new_dir.name, new_dir.items));
-
-														} else {
-
-															result.push({ name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false });
-															
-														}
+										
+										this.findResource(resource.name + "/" + name)
+											.then(
+												resource => {
+													
+													if (resource.dir) {
 														
-														next();
+														result[actual].items.push({
+															
+															name: resource.name,
+															items: []
+														});
+
+														paths ++;
 														
-													});
+														this.__traverseVirtFS(resource.name, result, false)
+															.then(resolve, next);
+														
+													} else {
+														
+														result[actual].items.push(resource);
+														
+													}
+														
+													next();
+														
+												});
+
 									}, err => {
-										
-										
-										
+
+										if (err)
+											reject(err);
+										else {
+											
+											if (first) {
+
+												this.currentTraverse = 0; /*?*/
+												
+												if (paths) {
+
+													this.currentTraverse = paths;
+													reject();
+													
+												} else
+													resolve(result);
+
+											} else {
+
+												if (! --this.currentTraverse)
+													resolve(result);
+												else
+													reject();
+											}
+										}
 									});
+								
+							} else {
+
+								/* Only if requested path is a leaf resource. */
+
+								resolve(resource);
 								
 							} 
 						}
@@ -298,6 +330,44 @@ function ResourceMgr (bg) {
 		);			
 	};
 
+	this.traverseVirtFS = (from) => {
+		
+		return this.__traverseVirtFS(from, { name: from, items: [] }, true);
+
+	}
+
+	this.projectOpPageDir = (obj) => {
+		
+		obj.items = obj.items.map(
+			resource => {
+				
+				return resource.dir ? this.projectOpPageDir(resource) : { name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false };
+
+			}
+		);
+
+		return obj;
+	};
+	
+	this.getVirtFS = () => {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.traverseVirtFS("/").then(
+					result => {
+					
+						if (result instanceof Resource)
+							resolve(result);
+						else 
+							resolve(this.projectOpPageDir(result));
+					}
+				);
+				
+			}
+		) 
+	}
+	
 	this.editTextResource = (resource) => {
 
 		if (this.bg.editor_mgr.resourceEditing(resource))

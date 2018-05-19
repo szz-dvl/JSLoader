@@ -1,6 +1,7 @@
 - In-progress:
   - Virtual Resources.
   - Add small menu in editor to configure settings quickly (bottom right corner).
+  - Solve hierarchy for source edited resources.
   
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

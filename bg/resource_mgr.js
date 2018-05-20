@@ -21,6 +21,13 @@ function ResourceMgr (bg) {
 		}
 	);
 
+	this.__getParentFor = (name) => {
+
+		let slice = name.slice(-1) == "/" ? -2 : -1;
+		return name.split("/").slice(0, slice).join("/") + "/";
+
+	};
+	
 	this.findResource = (name) => {
 
 		return new Promise(
@@ -64,8 +71,6 @@ function ResourceMgr (bg) {
 					path.push(split.join("/") + "/");
 					split.pop();
 				}
-
-				console.log(path);
 				
 				async.eachSeries(path,
 					(actual, next) => {
@@ -174,7 +179,7 @@ function ResourceMgr (bg) {
 										async.eachSeries(removed.items,
 											(resource_name, next) => {
 
-												/* No need to destroy relation, every underlying item will be removed. */
+												/* No need to destroy parent index, every underlying item will be removed. */
 												
 												this.__removeResource(resource_name)
 													.then(next, next);
@@ -195,7 +200,7 @@ function ResourceMgr (bg) {
 						} else {
 
 							console.error(new Error("Attempting to remove an unexisting resource: \"" + name + "\"."));
-							
+							reject();
 						}
 						
 					});
@@ -206,11 +211,8 @@ function ResourceMgr (bg) {
 
 		return new Promise(
 			(resolve, reject) => {
-
-				let slice = name.slice(-1) == "/" ? -2 : -1;
-				let parent = name.split("/").slice(0, slice).join("/") + "/";
 				
-				this.findResource(parent)
+				this.findResource(this.__getParentFor(name))
 					.then(resource_dir => {
 
 						/* Void directories may be persisted here, however views must take care of solving the hierarchy as necessary. */
@@ -294,21 +296,29 @@ function ResourceMgr (bg) {
 		
 		return new Promise(
 			(resolve, reject) => {
-				
-				this.findResource(oldn)
-					.then(resource => {
-						
-						if (resource) {
-							
-							resource.name = newn;
-							
-							resource.persist()
-								.then(resolve, reject);
 
-						} else 	
-							reject(new Error("Attempting to rename unexisting resource: " + oldn));
-							
-					}, info.id);
+				Promise.all([this.findResource(oldn), this.findResource(this.__getParentFor(oldn))])
+					.then(arr => {
+
+						let resource = arr[0];
+						let parent = arr[1];
+
+						resource.name = newn;
+						parent.items[
+
+							parent.items.findIndex(
+								name => {
+									
+									return name == oldn;
+								}
+							)
+								
+						] = newn;
+
+						Promise.all([parent.persist(), resource.persist()])
+							.then(resolve, reject);
+						
+					}, reject);
 			}
 		)
 	};
@@ -321,56 +331,84 @@ function ResourceMgr (bg) {
 				this.findResource(actual)
 					.then(
 						resource => {
-		
-							if (resource.dir) {
 
-								let propagate = false;
+							if (resource.dir) {
 								
-								if (bucket.name == result.name)
-									paths += resource.items.filter(name => { return name.slice(-1) == "/" }).length;
+								let dirs = resource.items.filter(name => { return name.slice(-1) == "/" });
+								let files = resource.items.filter(name => { return name.slice(-1) != "/" });
+
+								paths += dirs.length;
 								
-								async.eachSeries(resource.items,
+								async.eachSeries(files,
 									(name, next) => {
-										
+
 										this.findResource(name)
 											.then(
 												child_resource => {
-													
-													if (child_resource.dir) {
-														
-														let idx = bucket.items.push({
-															
-															name: child_resource.name,
-															items: []
-															
-														}) - 1;
 
-														propagate = true;
-
-														this.__traverseVirtFS(child_resource.name, bucket.items[idx], result, (bucket.name == result.name) ? -- paths : paths)
-															.then(resolve, next);
-														
-													} else {
+													if (child_resource) {
 														
 														bucket.items.push(child_resource);
-														next();
-													}
 														
-												});
+													} else {
 
+														console.warn("Missing resource: " + name);
+														
+													}
+
+													next();
+												}
+											);
+											
 									}, err => {
 
-										if (!propagate && !paths)
-											resolve(result);
-										else
-											reject();
+										if (!err) {			
+
+											async.eachSeries(dirs, (name, next) => {
+												
+												this.findResource(name)
+													.then(
+														child_resource => {
+															
+															if (child_resource) {
+																
+																let idx = bucket.items.push({
+																	
+																		name: child_resource.name,
+																	items: []
+																	
+																}) - 1;
+																
+																this.__traverseVirtFS(child_resource.name, bucket.items[idx], result, -- paths)
+																	.then(resolve, next);
+																
+															} else {
+																
+																console.warn("Missing resource: " + name);
+																next();
+															}
+															
+														});
+											}, err => {
+
+												if (!paths && !dirs.length)
+													resolve(result);
+												else
+													reject();
+											});
 											
-									});
+										} else {
+											
+											/* ?? */
+											reject();
+										}
+									}
+								);
 								
 							} else {
 								
-								/* Only if requested path is a leaf resource. */
-
+								/* Only if requested path is a file resource. */
+								
 								resolve(resource);
 								
 							} 
@@ -388,12 +426,12 @@ function ResourceMgr (bg) {
 
 	}
 
-	this.projectOpPageDir = (obj) => {
+	this.__projectOpPageDir = (obj) => {
 		
 		obj.items = obj.items.map(
 			resource => {
 				
-				return resource.items ? this.projectOpPageDir(resource) : { name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false };
+				return resource.items ? this.__projectOpPageDir(resource) : { name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false };
 
 			}
 		);
@@ -408,11 +446,13 @@ function ResourceMgr (bg) {
 				
 				this.traverseVirtFS("/").then(
 					result => {
+
+						console.log(result);
 						
 						if (result instanceof Resource)
 							resolve(result);
 						else 
-							resolve(this.projectOpPageDir(result));
+							resolve(this.__projectOpPageDir(result));
 					}
 				);
 				

@@ -334,30 +334,33 @@ angular.module('jslPartials', [])
 							   return name;
 						   };
 						   
-						   $scope.resourceNameValidation = () => {
+						   $scope.resourceNameValidation = (child) => {
 
 							   $scope.validated = false;
 							   
 							   if ($scope.nameID)
 									$timeout.cancel($scope.nameID);
 								
-								$scope.nameID = $timeout(
-									() => {
-										
-										let exists = $scope.items
-											.find(res => {
-												
-												return res.name == $scope.new_name;
-												
-											});
+							   $scope.nameID = $timeout(
+								   () => {
 
-										if (exists)
-											$scope.new_name = $scope.__findAppropiateNameFor($scope.new_name);
-		
-										$scope.validated = $scope.new_name ? true : false;
+									   let pathname = $scope.name + "/" + $scope.new_name;
+									   let exists = $scope.items
+										   .find(res => {
+											   
+											   return res.name == pathname;
+											   
+										   });
+									   
+									   if (exists)
+										   $scope.new_name = $scope.__findAppropiateNameFor(pathname);
 										
-									}, 3500, true
-								);
+									   $scope.validated = $scope.new_name ? true : false;
+
+									   
+										
+								   }, 3500, true
+							   );
 						   }
 						   
 						   $scope.removeChild = (name, persist) => {

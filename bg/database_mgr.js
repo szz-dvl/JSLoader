@@ -92,7 +92,8 @@ function DBMgr (bg) {
 							break;;
 							
 						default:
-							console.error("DB manager: Unknown tag.\n" + JSON.stringify(obj));
+							break;
+							//console.error("DB manager: Unknown tag.\n" + JSON.stringify(obj));
 					}
 				}
 			);
@@ -187,7 +188,9 @@ function DBMgr (bg) {
 							var tID;
 							let tag = UUID.generate().split(".").pop();
 							
-							let handler = (response) => {
+							let handler = (string) => {
+
+								let response = JSON.parse(string);
 								
 								if (response.tag == tag) {
 
@@ -209,7 +212,7 @@ function DBMgr (bg) {
 								+ tag 
 								+ '", "collection": "' 
 								+ collection 
-								+ '" "content": ['
+								+ '", "content": ['
 								+ items.map(item => { return item.getJSON(); }).join(",") + ']}');
 
 							tID = setTimeout(() => {
@@ -238,12 +241,14 @@ function DBMgr (bg) {
 						(resolve, reject) => {
 
 							var tID;
-							let tag = UUID.generate().split(".").pop();
+							let tag = UUID.generate().split("-").pop();
 							
-							let handler = (response) => {
+							let handler = (string) => {
+
+								let response = JSON.parse(string);
 								
 								if (response.tag == tag) {
-
+									
 									clearTimeout(tID);
 									
 									if (response.error)
@@ -280,7 +285,7 @@ function DBMgr (bg) {
 								+ tag 
 								+ '", "collection": "' 
 								+ collection 
-								+ '" "content": '
+								+ '", "content": '
 								+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
 							
 							tID = setTimeout(() => {
@@ -307,9 +312,11 @@ function DBMgr (bg) {
 				if (!this.reconnecting) {
 
 					var tID;
-					let tag = UUID.generate().split(".").pop();
+					let tag = UUID.generate().split("-").pop();
 					
-					let handler = (response) => {
+					let handler = (string) => {
+						
+						let response = JSON.parse(string);
 						
 						if (response.tag == tag) {
 							
@@ -328,7 +335,7 @@ function DBMgr (bg) {
 					
 					this.port.postMessage('{ "tag": "remove_resources", "response": "' 
 						+ tag 
-						+ '" "content": '
+						+ '", "content": '
 						+ ((resources && resources.length) ? JSON.stringify(resources) : "[]") + ' }');
 					
 					tID = setTimeout(() => {

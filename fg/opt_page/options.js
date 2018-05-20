@@ -150,6 +150,12 @@ function OP (bg) {
 							
 							$scope.resources_active = true;
 							$scope.list = dataAlt;
+
+							$scope.removeChild = (name, persist) => {
+								
+								console.log("Removing root!");
+								
+							}
 							
 						}
 					},

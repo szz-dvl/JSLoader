@@ -895,7 +895,7 @@ function ResourceDir (opt) {
 	this.dir = true;
 	
 	this.persist = () => {
-
+		
 		return new Promise(
 			(resolve, reject) => {
 				
@@ -906,6 +906,17 @@ function ResourceDir (opt) {
 				).then(storage => { resolve(this); }, reject);
 				
 			});
+	}
+
+	this.remove = () => {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				global_storage.removeResource(this.name)
+					.then(() => { resolve(this) }, reject);
+			}
+		);
 	}
 
 	this.appendItem = (name) => {

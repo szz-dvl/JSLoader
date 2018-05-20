@@ -249,7 +249,6 @@ angular.module('jslPartials', [])
 					   scope: {
 						   items: "=",
 						   name: "=",
-						   parent: "=",
 						   mgr: "="
 					   },
 					   
@@ -261,7 +260,7 @@ angular.module('jslPartials', [])
 					   
 					   controller: function ($scope) {
 						   
-						   $scope.path = $scope.parent + $scope.name + "/";
+						   //$scope.path = $scope.parent + $scope.name + "/";
 						   $scope.dir_shown = true;
 						   $scope.item_type = "directory";
 						   $scope.file_type = "text/javascript";
@@ -360,20 +359,25 @@ angular.module('jslPartials', [])
 									}, 3500, true
 								);
 						   }
-
-						   $scope.removeChild = (name) => {
-
-							   /* Persist */
-							   $scope.items.remove(
-								   $scope.items.findIndex(item => { return item.name == name }));
+						   
+						   $scope.removeChild = (name, persist) => {
 							   
+							   $scope.mgr.removeResource(name)
+								   .then(() => {
+									   
+									   $scope.items.remove(
+										   $scope.items.findIndex(item => { return item.name == name }));
+									   
+									   if (!$scope.items.length && $scope.name != "/") 	   
+										   $scope.removeSelf();
+									   
+								   });
 						   }
 						   
 						   $scope.removeSelf = () => {
 
-							   /* Persist */
 							   $scope.$parent.removeChild($scope.name);
-
+							   
 						   }
 						   
 						   $scope.editTextResource = (resource) => {
@@ -400,26 +404,33 @@ angular.module('jslPartials', [])
 
 						   }
 
-						   $scope.persistResource = () => {
+						   $scope.displayName = () => {
 
+							   return $scope.name == "/"
+												   ? $scope.name
+												   : $scope.name.split("/").slice(-2)[0];
+							   
+						   }
+						   
+						   $scope.persistResource = () => {
+							   
 							   if ($scope.item_type == "directory") {
 								   
 								   $scope.items.push({
 								   
-									   name: $scope.new_name, 
+									   name: $scope.name + $scope.new_name + "/", 
 									   items: []
 									   
 								   });
 								   
 							   } else {
 								   
-								   $scope.mgr.storeResource($scope.path + $scope.new_name, $scope.file_type, $("#import_data_new")[0].files[0])
+								   $scope.mgr.storeResource($scope.name + $scope.new_name, $scope.file_type, $("#import_data_new")[0].files[0])
 									   .then(resource => {
 										   
-										   /* Persist */
 										   $scope.items.push({
 											   
-											   name: $scope.new_name, 
+											   name: $scope.name + $scope.new_name, 
 											   type: $scope.file_type
 											   
 										   });
@@ -430,9 +441,9 @@ angular.module('jslPartials', [])
 							   $scope.have_file = false;
 							   $scope.adding = false;
 						   }
-
+						   
 						   $scope.cancelResource = () => {
-
+							   
 							   $scope.have_file = false;
 							   $scope.adding = false;
 						   }
@@ -463,7 +474,7 @@ angular.module('jslPartials', [])
 						   $scope.hover = false;
 						   $scope.editing = false;
 						   $scope.validated = true;
-						   $scope.path = $scope.parent + $scope.name;
+						   //$scope.path = $scope.parent + $scope.name;
 						   
 						   $scope.setHover = (val, elem) => {
 							   
@@ -477,9 +488,8 @@ angular.module('jslPartials', [])
 						   }
 						   
 						   $scope.removeSelf = () => {
-
-							   /* Persist */
-							   $scope.$parent.removeChild($scope.resource.name);
+							   
+							   $scope.$parent.removeChild($scope.resource.name, true);
 							   
 						   }
 						   
@@ -520,6 +530,12 @@ angular.module('jslPartials', [])
 									   
 								   }, 3500, true
 							   );
+						   }
+
+						   $scope.displayName = () => {
+							   
+							   return $scope.resource.name.split("/").pop();
+							   
 						   }
 						   
 						   $scope.resourceFile = () => {

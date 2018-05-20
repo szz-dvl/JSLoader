@@ -92,4 +92,6 @@ function BG_mgr () {
 
 BG_mgr.call(this);
 
+/* browser.storage.local.clear(); */
 browser.commands.onCommand.addListener(this.receiveCmd);
+

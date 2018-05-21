@@ -53,7 +53,7 @@ function OP (bg) {
 				resolve: {
 					dataStorage: () => { return self.bg.option_mgr.getDataInfo(); },
 					storageContent: () => { return browser.storage.local.get(); },
-					dataResources: () => { return self.bg.resource_mgr.getVirtFS(); }
+					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }
 				},
 				
 				views: {
@@ -146,8 +146,39 @@ function OP (bg) {
 						controller: function ($scope, $state, $timeout, dataResources) {
 		
 							$scope.resources_active = true;
+							$scope.data_ok = true;
 							$scope.list = dataResources;
-	
+							$scope.filter = "";
+
+							$scope.filterChange = () => {
+
+								if($scope.filterID)
+									$timeout.cancel($scope.filterID);
+
+								$scope.filterID = $timeout(
+									() => {
+
+										let query = $scope.filter ?
+													($scope.filter.slice(-1) == "/" ? $scope.filter : ($scope.filter.split("/").slice(0, -1).join("/") + "/"))
+											: "/";
+										
+										self.bg.resource_mgr.getVirtFS(query)
+											.then(new_root => {
+												
+												$scope.list = new_root;
+												$scope.filter = query;
+												$scope.data_ok = true;
+												
+											}, path => {
+
+												$scope.filter = query;
+												$scope.data_ok = false;
+
+											});
+										
+									}, 350) 
+
+							}
 						}
 					},
 					

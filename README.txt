@@ -7,8 +7,7 @@
 				   
 		    * Missing view resource
 			* Missing DB management
-			* Filter to move to "root" (top) any directory.
-			
+						
   - Group creation:
   		  * bugs in PA: scripts not shown after first close (after import ¿?)
 		  * Start in add mode.
@@ -32,7 +31,8 @@
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   - startsWith =====> "/" !!!
   - Cascade removes ====> Array.remove [destructive - index lost -] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
-  
+  - Virt Resources filter.
+			
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
   		  * Permissions controlled by user ==> how?

@@ -1,12 +1,26 @@
 <div>	
 	<div>
 		<dd-title val="'resources_active'" text="'Virtual Resources'"></dd-title>
+
+		<label ng-show="resources_active" for="input_filter" style="margin-left: 75px;">
+			<strong> Search directory: </strong>
+			<input
+				id="input_filter"
+				style="width: 65%; margin-bottom: 15px;margin-left: 15px;"
+				class="browser-style"
+				type="text"
+				ng-change="filterChange()"
+				ng-model="filter"/>
+		</label>
 		
-		<div ng-show="resources_active" style="width: 100%;margin-left: 75px;margin-bottom: 75px;min-height: 150px">
+		<div ng-show="resources_active && data_ok" style="width: 100%;margin-left: 75px;margin-bottom: 75px;min-height: 150px">
 			
-			<resource-directory name="list.name" items="list.items"  mgr="page.bg.resource_mgr"> </resource-directory>
+			<resource-directory ng-if="list.items" name="list.name" items="list.items"  mgr="page.bg.resource_mgr"> </resource-directory>
+			<resource-item ng-if="!list.items" resource="list"></resource-item>
 			
 		</div>
 
+		<no-info ng-if="resources_active && !data_ok" style="padding-top: 6%;" text="'Not found.'"></no-info>
+		
 	</div>
 </div>

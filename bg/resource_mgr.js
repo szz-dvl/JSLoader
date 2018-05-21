@@ -372,59 +372,69 @@ function ResourceMgr (bg) {
 					.then(
 						resource => {
 
-							if (resource.dir) {
+							if (resource) {
+								
+								if (resource.dir) {
 
-								async.eachSeries(resource.items,
-									(name, next) => {
-										
-										this.findResource(name)
-											.then(
-												child_resource => {
-													
-													if (child_resource) {
+									async.eachSeries(resource.items,
+										(name, next) => {
+											
+											this.findResource(name)
+												.then(
+													child_resource => {
+														
+														if (child_resource) {
 
-														if (child_resource.dir) {
-															
-															this.__traverseVirtFS(child_resource.name, {
+															if (child_resource.dir) {
 																
-																name: child_resource.name,
-																items: []
+																this.__traverseVirtFS(child_resource.name, {
+																	
+																	name: child_resource.name,
+																	items: []
+																	
+																}).then(partial => {
+																	
+																	bucket.items.push(partial);
+																	next();
+
+																}, next);
 																
-															}).then(partial => {
+															} else {
 																
-																bucket.items.push(partial);
+																bucket.items.push(child_resource);
 																next();
-
-															}, next);
+															}
 															
 														} else {
-														
-															bucket.items.push(child_resource);
+															
+															console.warn("Missing resource: " + name);
 															next();
 														}
 														
-													} else {
-														
-														console.warn("Missing resource: " + name);
-														next();
-													}
+													})
 												
-												})
-											
-									}, err => {
+										}, err => {
 
-										resolve(bucket);
-										
-									});
-								
-							
+											resolve(bucket);
+											
+										});
+									
+									
+								} else {
+									
+									/* Only if requested path is a file resource. */
+									
+									resolve(resource);
+									
+								}
+
 							} else {
+
+								/* Only if requested path don't exists. */
 								
-								/* Only if requested path is a file resource. */
+								resolve(null);
 								
-								resolve(resource);
-								
-							} 
+							}
 						}
 					);
 			}
@@ -449,18 +459,26 @@ function ResourceMgr (bg) {
 		return obj;
 	};
 	
-	this.getVirtFS = () => {
+	this.getVirtFS = (from) => {
 
 		return new Promise(
 			(resolve, reject) => {
 				
-				this.traverseVirtFS("/").then(
+				this.traverseVirtFS(from).then(
 					result => {
-						
-						if (result instanceof Resource)
-							resolve(result);
-						else 
-							resolve(this.__projectOpPageDir(result));
+
+						if (result) {
+
+							if (result instanceof Resource)
+								resolve({ name: result.name, type: result.type, size: result.getSizeString(), db: result.db ? true : false });
+							else 
+								resolve(this.__projectOpPageDir(result));
+
+						} else {
+
+							reject(from);
+							
+						}
 					}
 				);
 				

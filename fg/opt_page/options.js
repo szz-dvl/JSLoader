@@ -53,8 +53,7 @@ function OP (bg) {
 				resolve: {
 					dataStorage: () => { return self.bg.option_mgr.getDataInfo(); },
 					storageContent: () => { return browser.storage.local.get(); },
-					//dataResources: () => { return self.bg.resource_mgr.getResourcesRelation(); },
-					dataAlt: () => { return self.bg.resource_mgr.getVirtFS(); }
+					dataResources: () => { return self.bg.resource_mgr.getVirtFS(); }
 				},
 				
 				views: {
@@ -140,213 +139,15 @@ function OP (bg) {
 						}
 					},
 					
-					'resources-alt': {
-
-						
-						templateUrl: 'resources-alt.html',
-						controller: function ($scope, $state, $timeout, dataAlt) {
-
-							console.log(dataAlt);
-							
-							$scope.resources_active = true;
-							$scope.list = dataAlt;
-
-							$scope.removeChild = (name, persist) => {
-								
-								console.log("Removing root!");
-								
-							}
-							
-						}
-					},
-					
 					'resources': {
+
 						
 						templateUrl: 'resources.html',
 						controller: function ($scope, $state, $timeout, dataResources) {
-
-							$scope.resources = dataResources;
-							$scope.resources_active = $scope.resources.length;
-							$scope.names_disabled = false;
-							$scope.info_text = "";
-							
-							$scope.types = [
-								
-								"css",
-								"html",
-								"javascript",
-								"image",
-								"video",
-								"audio"
-							];
-							
-							$scope.__updateData = (to) => {
-								
-								$timeout(
-									() => {
-									
-										self.bg.resource_mgr.getResourcesRelation()
-											.then(relation => {
-												
-												$scope.resources = relation;
-												$scope.$digest();
-												
-											});
-										
-									}, to ? 350 : 150);
-							};
-
-							self.bg.option_mgr.events
-								.on("new-resource", () => { $scope.__updateData(true); });
-							
-							$scope.resourceFile = (resource) => {
-
-								resource.got_file = true;
-								
-							};
-
-							$scope.persistResource = (resource) => {
-
-								let reader = new FileReader();
-								
-								reader.onload = function () {
-									
-									self.bg.resource_mgr.storeResource(
-										
-										resource.name,
-										resource.type,
-										$("#import_data_" + resource.name)[0].files[0].name.split(".").pop(),
-										['css', 'html', 'javascript'].includes(resource.type) ? reader.result : reader.result.split(",").slice(1).join()
-										
-									).then($scope.__updateData);
-								}
-
-								if (['css', 'html', 'javascript'].includes(resource.type))
-									reader.readAsText($("#import_data_" + resource.name)[0].files[0]);
-								else
-									reader.readAsDataURL($("#import_data_" + resource.name)[0].files[0]);
-								
-							};
-							
-							$scope.removeResource = (resource) => {
-								
-								self.bg.resource_mgr.removeResource(resource.id)
-									.then($scope.__updateData);
-							};
-							
-							$scope.addResource = () => {
-								
-								$scope.resources.push({ name: UUID.generate().split("-").pop(), type: "javascript" });
-								
-							};
-
-							$scope.discardResource = (idx) => {
-								
-								$scope.resources.remove(idx);
-								
-							};
-
-							$scope.editResource = (resource) => {
-								
-								self.bg.resource_mgr.editTextResource(resource);
-								
-							};
-
-							$scope.selectChange = (resource, type) => {
-								
-								resource.type = type;
-								
-							};
-
-							/* Test */
-							$scope.toggleResource = (resource) => {
-
-								let state = $scope.isLoaded(resource);
-								
-								let promise = state ?
-											  self.bg.resource_mgr.unloadResource(resource.id) :
-											  self.bg.resource_mgr.loadResource(resource.id);
-
-								promise.then(
-									url => {
-
-										$scope.info_text = (state ? 'Unloaded' : 'Loaded') + ' resource "' + resource.name + '" at: ' + url;
-										
-									}
-								);
-								
-							};
-
-							$scope.__findAppropiateNameFor = (repeated) => {
-
-								let cnt = 1;
-								let name = repeated;
-								let found = $scope.resources.find(
-									res => {
-
-										return res.name == name;
-										
-									}
-									
-								);
-
-								while (found) {
-
-									name += cnt.toString();
-									
-									found = $scope.resources.find(
-										res => {
-											
-											return res.name == name;
-											
-										}
-									);
-
-									cnt ++;
-									
-									if (found)
-										name = name.slice(0, -1);
-								}
-
-								return name;
-							};
-
-							
-							$scope.resourceNameValidation = (resource) => {
-								
-								if (resource.nameID)
-									$timeout.cancel(resource.nameID);
-								
-								resource.nameID = $timeout(
-									(resource) => {
-										
-										let exists = $scope.resources
-											.find(res => {
-												
-												return ((res.name == resource.name) && (res != resource)); /***/
-												
-											});
-
-										if (exists)
-											resource.name = $scope.__findAppropiateNameFor(resource.name);
-
-										resource.nameID = null;
-										$scope.names_disabled = false;
-
-										if (resource.id)
-											self.bg.resource_mgr.persistNameFor(resource);
-										
-									}, 3500, true, resource
-								);
-								
-								$scope.names_disabled = true;
-							};
-							
-							$scope.isLoaded = (resource) => {
-								
-								return self.bg.resource_mgr.isLoaded(resource.id);
-								
-							};
+		
+							$scope.resources_active = true;
+							$scope.list = dataResources;
+	
 						}
 					},
 					

@@ -398,20 +398,6 @@ function Storage () {
 	};
 
 	/* Resources: */
-	this.__getResources = (cb) => {
-		
-		this.__get(
-			arr => {
-				
-				cb(arr || []);
-				
-			}, 'resources');	
-	};
-
-	this.__setResources = (val) => {
-		
-		return this.__set('resources', val);
-	};
 	
 	this.getResource = (cb, name) => {
 		
@@ -420,35 +406,11 @@ function Storage () {
 	};
 
 	this.setResource = (content) => {
-
-		this.__getResources(
-			resources => {
-				
-				if (!resources.includes(content.name)) {
-					
-					resources.push(content.name);
-					this.__setResources(resources);
-					
-				}
-			}
-		);
 		
 		return this.__set('resource-' + content.name, content);
 	};
 	
 	this.removeResource = (name) => {
-		
-		this.__getResources(
-			resources => {
-				
-				if (resources.includes(name)) {
-					
-					resources.remove(resources.indexOf(name));
-					this.__setResources(resources);
-					
-				}
-			}
-		);
 		
 		return this.__remove('resource-' + name);
 		

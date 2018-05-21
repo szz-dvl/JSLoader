@@ -1,11 +1,24 @@
 - In-progress:
-  - Virtual Resources.
+  - Virtual Resources:
+  			* Edit Source:
+			  	   * for new elements: not done yet (Solve hierarchy).
+				   * name validation for persisted (in editor)
+				   * events for directives??
+				   
+		    * Missing view resource
+			* Missing DB management
+			* Filter to move to "root" (top) any directory.
+			
+  - Group creation:
+  		  * bugs in PA: scripts not shown after first close (after import ¿?)
+		  * Start in add mode.
+		  
+  - Persist User Defs Bug.
   - Add small menu in editor to configure settings quickly (bottom right corner).
-  - Solve hierarchy for source edited resources.
   
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
-  - Ace errors not being shown on gutter line, detected by editor however.
+  - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too!)
   - Opened windows after browser crash ==> to be recovered.
   - Extensions seems to be sharing storage key names!!
 	

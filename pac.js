@@ -109,7 +109,7 @@ function PAC () {
 			record = this.filtered.findIndex(
 				
 				registered => {
-
+					
 					return this.isSubDomain(host, registered.host);
 					
 				}
@@ -118,11 +118,11 @@ function PAC () {
 		}
 		
 		if (record < 0) {
-
+			
 			return "DIRECT";
 			
 		} else {
-
+			
 			let proxys = [this.filtered[record].proxy];
 			
 			if (! --this.filtered[record].times)

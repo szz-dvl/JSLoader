@@ -33,47 +33,39 @@
 				style="width: 10%;"
 				class="browser-style"
 				type="text"
+				ng-show="item_type == 'directory'"
 				ng-change="resourceNameValidation()"
 				ng-model="new_name"/>
 
-			<select
-				style="margin: 0 15px 0 15px"
-				ng-if="item_type == 'file'"
-				class="browser-style"
-				ng-model="file_type"
-				ng-options="type for type in file_types"
-				ng-change="selectFileType(file_type)"></select>
-			
 			<button
-				style="margin: 0 15px 0 15px"
+				style="margin: 0 5px 0 5px"
 				class="browser-style"
-				ng-if="item_type == 'file' && file_type.includes('text')"
-				ng-disabled="!validated"
+				ng-if="item_type == 'file'"
 				ng-click="editTextResource({ name: new_name, type: file_type })">
 				Edit Resource
 			</button>
 
-			<label for="import_data_new" ng-if="item_type == 'file'" style="margin: 0 15px 0 15px">
-				<bdi> Import Resource </bdi>
-				<input
-					class="browser-style"
-					id="import_data_new"
-					ng-on-change="resourceFile()"
-					type="file"/>
-			</label>
+			<input-file
+				file="'file'"
+				style="margin: 0 5px 0 5px"
+				ng-if="item_type == 'file'"
+				ng-file-selected="resourceFile(file)"
+				text="'Import Resource'">
+			</input-file>
 
-			<button
-				class="browser-style"
-				ng-disabled="!persistable()"
-				ng-click="persistResource()">
-				Persist
-			</button>
 
-			<button
-				class="browser-style"
-				ng-click="cancelResource()">
-				Cancel
-			</button>
+			<img src="../icons/ko_tick.png"
+				width="22px"
+				height="22px"
+				ng-click="cancelResource()"
+				style="vertical-align: sub; margin-left: 15px;display: inline;"/>
+			
+			<img src="../icons/ok_tick.png"
+				width="20px"
+				height="20px"
+				ng-show="validated && item_type == 'directory'"
+				ng-click="newDir()"
+				style="vertical-align: sub; margin-left: 15px;display: inline;"/>
 			
 		</div>
 		

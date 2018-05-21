@@ -196,6 +196,106 @@ angular.module('jslPartials', [])
 			}
 		};
 	})
+
+	.directive('inputFile', function($interval) {
+		
+		return {
+			
+			restrict: "E",
+			replace: true,
+			transclude: true,
+			scope: {
+				file: "=",
+				text: "=?",
+				padding: "=?",
+				ngFileSelected: '&'
+				
+			},
+
+			template: '<div style="display: inline;">' +
+				'<input ng-show="false" type="file" ng-on-change="inptChange()" class="browser-style"/>' +
+				'<button class="browser-style" ng-click="inptClick()"> {{ text }} </button>' +
+				'</div>',
+
+			link: function ($scope, element, attrs) {
+				
+				$scope.input = element.find('input');
+				$scope.button = element.find('button');
+				$scope.text = 'text' in attrs ? $scope.text : 'Import File';
+				$scope.padding = 'padding' in attrs ? $scope.padding : 35;
+				$scope.backup = $scope.text;
+				
+			},
+			
+			controller: function ($scope) {
+				
+				$scope.waiting = false;
+				
+				$scope.inptChange = () => {
+	
+					$scope.__selectCheck();
+					
+				};
+				
+				$scope.inptClick = () => {
+
+					if ($scope.waiting)
+						$interval.cancel($scope.fID);
+					
+					$scope.input.click();
+					
+				};
+				
+				$scope.__handleDone = (state) => {
+					
+					$scope.waiting = false;
+					$scope.text = $scope.backup;
+					$scope.button.css({
+						
+						'background' : '',
+						'padding-right' : '',
+						'padding-left' : ''
+						
+					});
+				};
+
+				$scope.__resolved = () => {
+					
+					$scope.__handleDone();
+					
+					$scope.$parent[$scope.file] = $scope.input[0].files[0];
+					$scope.ngFileSelected();
+				};
+				
+				$scope.__selectCheck = () => {
+					
+					$scope.times = 100;
+					$scope.text = "Cancel";
+					
+					$scope.button.css({
+						
+						'padding-right' : $scope.padding  + 'px',
+						'padding-left' : $scope.padding  + 'px'
+						
+					}); 
+					
+					$scope.fID = $interval(
+						() => {
+							
+							$scope.times --;
+							$scope.button.css({ 'background' : 'linear-gradient\(90deg, #ebebeb ' + (100 - $scope.times) + '%, #fbfbfb 0%\)' });
+							
+						}, 50, 100
+					);
+					
+					$scope.fID.then($scope.__resolved, $scope.__handleDone);
+					
+					$scope.waiting = true;
+				}
+				
+			}
+		};
+	})
 	
 	.directive('scriptName',
 			   ($timeout) => {
@@ -259,33 +359,17 @@ angular.module('jslPartials', [])
 					   },
 					   
 					   controller: function ($scope) {
-						   
-						   //$scope.path = $scope.parent + $scope.name + "/";
+
 						   $scope.dir_shown = true;
 						   $scope.item_type = "directory";
-						   $scope.file_type = "text/javascript";
 						   $scope.adding = false;
-						   $scope.have_file = false;
-						   
-						   $scope.file_types = [
-
-							   "text/html",
-							   "text/javascript",
-							   "text/css",
-							   "image/*",
-							   "video/*",
-							   "audio/*"
-						   ];
-
-						   $scope.persistable = () => {
-
-							   return $scope.item_type == "directory" ? $scope.validated : $scope.validated && $scope.have_file;
-						   }
+						   $scope.file = null;
+						   $scope.new_name = "";
 						   
 						   $scope.addItem = () => {
-
+							   
 							   $scope.adding = true;
-
+							   
 						   }
 
 						   $scope.selectItemType = (nval) => {
@@ -294,16 +378,14 @@ angular.module('jslPartials', [])
 							   
 						   }
 
-						   $scope.selectFileType = (nval) => {
-							   
-							   $scope.file_type = nval;
-							   
-						   }
-
 						   $scope.__findAppropiateNameFor = (repeated) => {
 							   
 							   let cnt = 1;
 							   let name = repeated;
+							   let ext = repeated.split(".").pop();
+							   let orig = repeated;
+							   let is_dir = repeated.slice(-1) == "/";
+							   
 							   let found = $scope.items.find(
 								   res => {
 									   
@@ -315,53 +397,68 @@ angular.module('jslPartials', [])
 							   
 							   while (found) {
 								   
-								   name += cnt.toString();
+								   if (is_dir)
+									   name = name.slice(0, -1) + cnt.toString() + "/";
+								   else 
+									   name = name.split(".").slice(0, -1).join(".") + cnt.toString() + "." + ext;
 								   
 								   found = $scope.items.find(
 									   res => {
 										   
 										   return res.name == name;
-											
+										   
 									   }
 								   );
 								   
 								   cnt ++;
 								   
 								   if (found)
-									   name = name.slice(0, -1);
+									   name = orig;
 							   }
 							   
 							   return name;
 						   };
 						   
-						   $scope.resourceNameValidation = (child) => {
+						   $scope.__resourceNameValidation = (name) => {
 
-							   $scope.validated = false;
+							   let pathname = $scope.name + name;
+							   let valid = $scope.__findAppropiateNameFor(pathname);
 							   
+							   return name.slice(-1) == "/" ? valid.split("/").slice(-2)[0] : valid.split("/").pop();
+							   
+						   }
+
+						   $scope._resourceNameValidation = (child) => {
+
+							   let name = child || $scope.new_name + "/";
+
 							   if ($scope.nameID)
-									$timeout.cancel($scope.nameID);
-								
+								   $timeout.cancel($scope.nameID);
+							   
 							   $scope.nameID = $timeout(
 								   () => {
 
-									   let pathname = $scope.name + "/" + $scope.new_name;
-									   let exists = $scope.items
-										   .find(res => {
-											   
-											   return res.name == pathname;
-											   
-										   });
+									   return $scope.__resourceNameValidation(name);
 									   
-									   if (exists)
-										   $scope.new_name = $scope.__findAppropiateNameFor(pathname);
-										
-									   $scope.validated = $scope.new_name ? true : false;
-
-									   
-										
-								   }, 3500, true
+								   }, 2500, true
 							   );
+							   
+							   return $scope.nameID;
 						   }
+
+						   $scope.resourceNameValidation = () => {
+
+							   $scope.validated = false;
+							   
+							   $scope._resourceNameValidation().then(
+								   validated => {
+									   
+									   $scope.new_name = validated;
+									   $scope.validated = validated ? true : false;
+									   
+								   }, ok => {}); 
+							   
+						   };
 						   
 						   $scope.removeChild = (name, persist) => {
 							   
@@ -401,10 +498,35 @@ angular.module('jslPartials', [])
 													 
 						   }
 						   
-						   $scope.resourceFile = () => {
-							   
-							   $scope.have_file = true;
+						   $scope.resourceFile = (file) => {
 
+							   console.log(file);
+
+							   if (file.type) { // && file.size
+								   
+								   let validated = $scope.__resourceNameValidation(file.name, 'file');
+								   
+								   $scope.mgr.storeResource($scope.name + validated, file)
+									   .then(resource => {
+										   
+										   $scope.items.push({
+											   
+											   name: resource.name, 
+											   type: resource.type,
+											   db: resource.db ? true : false,
+											   size: resource.getSizeString()
+												   
+										   });
+										   
+										   $scope.adding = false;
+										   
+									   }, console.error);
+								   
+							   } else {
+								   
+								   $scope.mgr.bg.notify_mgr.error("Missing file extension.");
+								   
+							   };
 						   }
 
 						   $scope.displayName = () => {
@@ -415,39 +537,20 @@ angular.module('jslPartials', [])
 							   
 						   }
 						   
-						   $scope.persistResource = () => {
-							   
-							   if ($scope.item_type == "directory") {
+						   $scope.newDir = () => {
+							  	   
+							   $scope.items.push({
 								   
-								   $scope.items.push({
+								   name: $scope.name + $scope.new_name + "/", 
+								   items: []
 								   
-									   name: $scope.name + $scope.new_name + "/", 
-									   items: []
-									   
-								   });
-								   
-							   } else {
-								   
-								   $scope.mgr.storeResource($scope.name + $scope.new_name, $scope.file_type, $("#import_data_new")[0].files[0])
-									   .then(resource => {
-										   
-										   $scope.items.push({
-											   
-											   name: $scope.name + $scope.new_name, 
-											   type: $scope.file_type
-											   
-										   });
-										   
-									   }, console.error);
-							   }
-							   
-							   $scope.have_file = false;
+							   });
+ 
 							   $scope.adding = false;
 						   }
 						   
 						   $scope.cancelResource = () => {
 							   
-							   $scope.have_file = false;
 							   $scope.adding = false;
 						   }
 					   }
@@ -476,8 +579,9 @@ angular.module('jslPartials', [])
 
 						   $scope.hover = false;
 						   $scope.editing = false;
-						   $scope.validated = true;
-						   //$scope.path = $scope.parent + $scope.name;
+						   $scope.in_progress = false;
+						   $scope.ext = $scope.resource.name.split(".").pop();
+						   $scope.id = UUID.generate().split("-").pop();
 						   
 						   $scope.setHover = (val, elem) => {
 							   
@@ -493,12 +597,13 @@ angular.module('jslPartials', [])
 						   $scope.removeSelf = () => {
 							   
 							   $scope.$parent.removeChild($scope.resource.name, true);
+							   $scope.editing = false;
 							   
 						   }
 						   
 						   $scope.editSelf = () => {
 							   
-							   $scope.backup = $scope.resource.name;
+							   $scope.edit_name = $scope.displayName().split(".").slice(0, -1).join(".");
 							   $scope.editing = true;
 							   
 						   }
@@ -510,40 +615,28 @@ angular.module('jslPartials', [])
 						   }
 
 						   $scope.resourceNameValidation = () => {
+
+							   $scope.in_progress = true;
 							   
-							   $scope.validated = false;
-							   
-							   if ($scope.nameID)
-								   $timeout.cancel($scope.nameID);
-							   
-							   $scope.nameID = $timeout(
-								   () => {
+							   $scope.$parent._resourceNameValidation($scope.edit_name + "." + $scope.ext).then(
+								   validated => {
+
+									   $scope.edit_name = validated.split(".").slice(0, -1).join(".");
 									   
-									   let exists = $scope.$parent.items
-										   .filter(res => {
+									   $scope.$parent.mgr.renameResource($scope.resource.name, $scope.$parent.name + validated)
+										   .then(new_name => {
 											   
-											   return res.name == $scope.resource.name;
+											   $scope.resource.name = new_name;
+											   $scope.in_progress = false;
 											   
-										   }).length;
-									   
-									   if (exists > 1)
-										   $scope.resource.name = $scope.$parent.__findAppropiateNameFor($scope.resource.name);
-									   
-									   $scope.validated = $scope.resource.name ? true : false;
-									   
-								   }, 3500, true
-							   );
+										   }, console.error);
+									    
+								   }, ok => {});
 						   }
 
 						   $scope.displayName = () => {
 							   
 							   return $scope.resource.name.split("/").pop();
-							   
-						   }
-						   
-						   $scope.resourceFile = () => {
-
-							   $scope.have_file = true;
 							   
 						   }
 						   
@@ -556,17 +649,7 @@ angular.module('jslPartials', [])
 						   $scope.cancelEdit = () => {
 							   
 							   $scope.editing = false;
-							   $scope.resource.name = $scope.backup;
-							   $scope.backup = "";
 							   
-						   }
-
-						   $scope.persistEdit = () => {
-
-							   /* Persist */
-							   $scope.editing = false;
-							   $scope.backup = "";
-
 						   }
 					   }
 				   }

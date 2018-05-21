@@ -5,20 +5,19 @@ function ResourceMgr (bg) {
 	this.resources = []; /* Index */
 	this.loaded = [];
 	
-	this.storage.__getResources(
-		new_resources => {
+	this.storage.getResource(
+		root => {
 
-			if (new_resources.length)
-				this.resources = new_resources;
-			else {
-
+			if (!root) {
+				
 				new ResourceDir({
 					
 					name: "/"
 					
 				}).persist();
 			}	
-		}
+			
+		}, "/"
 	);
 
 	this.__getParentFor = (name) => {
@@ -125,7 +124,7 @@ function ResourceMgr (bg) {
 			});
 	};
 	
-	this.storeResource = (name, type, file) => {
+	this.storeResource = (name, file) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -134,12 +133,22 @@ function ResourceMgr (bg) {
 				
 				let reader = new FileReader();
 				
+				let is_text = ['javascript', 'html', 'json', 'css']
+					.find(
+						kw => {
+										
+							return file.type.includes(kw);
+						}
+					);
+
+				let type = is_text ? 'text/' + is_text : file.type;
+				
 				reader.onload = () => {
 					
 					new Resource ({
 						
 						name: name,
-						type: type.includes('text') ? type : type.slice(0, -1) + file.name.split(".").pop(),
+						type: type,
 						file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
 						db: (file.size >= 1 * 1024 * 1024) ? mgr.bg.database_mgr : null,
 						size: file.size
@@ -286,7 +295,7 @@ function ResourceMgr (bg) {
 		} else {
 
 			return Promise.reject(new Error("Attempting to unload unloaded resource: " + name));
-
+			
 		}
 		
 		return Promise.resolve(url);
@@ -316,14 +325,45 @@ function ResourceMgr (bg) {
 						] = newn;
 
 						Promise.all([parent.persist(), resource.persist()])
-							.then(resolve, reject);
+							.then(ok => { resolve(newn) }, reject);
 						
 					}, reject);
 			}
 		)
 	};
 
-	this.__traverseVirtFS = (actual, bucket, result, paths) => {
+	this.resourceUpdate = (name, file) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+
+				this.findResource(name)
+					.then(resource => {
+
+						if (resource && !resource.dir) {
+
+							resource.db = (file.size >= 1 * 1024 * 1024) ? mgr.bg.database_mgr : null;
+							
+							resource.updateFileContent(file)
+								.then(file => {
+									
+									resource.persist()
+										.then(resolve, this.bg.notify_mgr.error);
+									
+								});
+							
+						} else {
+
+							reject(new Error("Updating bad resource: " + name));
+							
+						}
+						
+					}, reject);
+			}
+		);
+	};
+
+	this.__traverseVirtFS = (actual, bucket) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -333,78 +373,51 @@ function ResourceMgr (bg) {
 						resource => {
 
 							if (resource.dir) {
-								
-								let dirs = resource.items.filter(name => { return name.slice(-1) == "/" });
-								let files = resource.items.filter(name => { return name.slice(-1) != "/" });
 
-								paths += dirs.length;
-								
-								async.eachSeries(files,
+								async.eachSeries(resource.items,
 									(name, next) => {
-
+										
 										this.findResource(name)
 											.then(
 												child_resource => {
-
+													
 													if (child_resource) {
+
+														if (child_resource.dir) {
+															
+															this.__traverseVirtFS(child_resource.name, {
+																
+																name: child_resource.name,
+																items: []
+																
+															}).then(partial => {
+																
+																bucket.items.push(partial);
+																next();
+
+															}, next);
+															
+														} else {
 														
-														bucket.items.push(child_resource);
+															bucket.items.push(child_resource);
+															next();
+														}
 														
 													} else {
-
-														console.warn("Missing resource: " + name);
 														
+														console.warn("Missing resource: " + name);
+														next();
 													}
-
-													next();
-												}
-											);
+												
+												})
 											
 									}, err => {
 
-										if (!err) {			
-
-											async.eachSeries(dirs, (name, next) => {
-												
-												this.findResource(name)
-													.then(
-														child_resource => {
-															
-															if (child_resource) {
-																
-																let idx = bucket.items.push({
-																	
-																		name: child_resource.name,
-																	items: []
-																	
-																}) - 1;
-																
-																this.__traverseVirtFS(child_resource.name, bucket.items[idx], result, -- paths)
-																	.then(resolve, next);
-																
-															} else {
-																
-																console.warn("Missing resource: " + name);
-																next();
-															}
-															
-														});
-											}, err => {
-
-												if (!paths && !dirs.length)
-													resolve(result);
-												else
-													reject();
-											});
-											
-										} else {
-											
-											/* ?? */
-											reject();
-										}
-									}
-								);
+										resolve(bucket);
+										
+									});
 								
+							
 							} else {
 								
 								/* Only if requested path is a file resource. */
@@ -419,11 +432,8 @@ function ResourceMgr (bg) {
 	};
 
 	this.traverseVirtFS = (from) => {
-
-		let result = { name: from, items: [] };
 		
-		return this.__traverseVirtFS(from, result, result, 0);
-
+		return this.__traverseVirtFS(from, { name: from, items: [] });
 	}
 
 	this.__projectOpPageDir = (obj) => {
@@ -446,8 +456,6 @@ function ResourceMgr (bg) {
 				
 				this.traverseVirtFS("/").then(
 					result => {
-
-						console.log(result);
 						
 						if (result instanceof Resource)
 							resolve(result);
@@ -499,8 +507,8 @@ function ResourceMgr (bg) {
 											
 											new Script({
 												
-												parent: resource,
-												code: resource.file
+												parent: item,
+												code: item.file
 											})
 										)	
 									);
@@ -513,18 +521,4 @@ function ResourceMgr (bg) {
 			}
 		}
 	};
-	
-	this.storeNewResources = (changes, area) => {
-		
-		if (area != "local")
-	 		return;
-		
-		for (key of Object.keys(changes)) {
-			
-			if (key == "resources") 
-				this.resources = changes.resources.newValue || [];			
-		}
-	};
-	
-	browser.storage.onChanged.addListener(this.storeNewResources);
 } 

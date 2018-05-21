@@ -1017,6 +1017,35 @@ function Resource (opt) {
 			return (kb / 1024) + " MB";
 		
 	};
+
+	this.updateFileContent = (file) => {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				let reader = new FileReader ();
+				
+				reader.onload = () => {
+
+					this.file = reader.result;
+					this.size = file.size;
+					
+					resolve(this.file);
+
+				}
+
+				reader.onerror = () => {
+					
+					reject(new Error(reader.error));
+
+				}
+		
+				if (this.type.includes('text'))
+					reader.readAsText(file);
+				else
+					reader.readAsDataURL(file);
+			});
+	};
 	
 	this.getAsBinary = () => {
 
@@ -1050,25 +1079,9 @@ function Resource (opt) {
 				if (this.db) {
 					
 					if (this.db.connected) {
-						
-						global_storage.__getResources(
-							resources => {
-								
-								if (!resources.includes(name)) {
-									
-									resources.push(name);
-									global_storage.__setResources(resources)
-										.then(
-											() => {
-												
-												this.db.pushSync([this], "resources")
-													.then((arr) => { resolve(this) }, reject);
-												
-											}, reject);
-									
-								}
-							}
-						);
+
+						this.db.pushSync([this], "resources")
+							.then((arr) => { resolve(this) }, reject);
 						
 					} else {
 						
@@ -1098,20 +1111,10 @@ function Resource (opt) {
 					
 					global_storage.__getResources(
 						resources => {
+
+							this.db.removeResources([this.name])
+								.then(() => { resolve(this) }, reject);
 							
-							if (resources.includes(name)) {
-								
-								resources.remove(resources.indexOf(name));
-								global_storage.__setResources(resources)
-									.then(
-										() => {
-											
-											this.db.removeResources([this.name])
-												.then(() => { resolve(this) }, reject);
-											
-										}, reject);
-								
-							}
 						}
 					);
 					

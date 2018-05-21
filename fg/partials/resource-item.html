@@ -1,10 +1,9 @@
-<div style="display: table-row-group;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);">
+<div style="display: inline; width: 100%;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);">
 	<bdi ng-show="!editing" style="vertical-align: super;padding-right: 15px;"> {{ displayName() }} <i> ({{ resource.type }}) </i>
 
 		<div style="margin-left: 15px;display: inline-flex;">
 			
-			<div ng-show="hover" class="resource-add" ng-click="removeSelf()" style="margin-right: 5px;"> - </div>
-			<div ng-show="hover" class="resource-add" ng-click="viewSelf()" style="margin-right: 5px;">
+			<div ng-show="hover" class="resource-add" style="border:0;margin-right: 5px;" ng-click="viewSelf()" style="margin-right: 5px;">
 				<img src="../icons/16-eye.png" width="16px" height="16px"/>
 			</div>
 			<div ng-show="hover" class="resource-add" style="border:0; margin-right: 5px;" ng-click="editSelf()">
@@ -18,44 +17,38 @@
 		
 	</bdi>
 
-	<div ng-show="editing">
+	<div style="width: 100%;" ng-show="editing">
 
 		<input
-			style="width: 25%;"
+			style="width: 20%;"
 			class="browser-style"
 			type="text"
 			ng-change="resourceNameValidation()"
-			ng-model="resource.name"/>
-		
-		<label for="import_data" style="margin: 0 15px 0 15px">
-			<bdi> Import Resource </bdi>
-			<input
-				class="browser-style"
-				id="import_data"
-				ng-on-change="resourceFile()"
-				type="file"/>
-		</label>
+			ng-model="edit_name"/>
 		
 		<button
+			style="margin-left: 15px;"
 			class="browser-style"
-			ng-disabled="!validated"
-			ng-if="resource.type.includes('text')"
+			ng-disabled="in_progress"
+			ng-show="resource.type.includes('text')"
 			ng-click="editResource()">
 			Edit Source
 		</button>
 
 		<button
+			style="margin-left: 15px;"
 			class="browser-style"
-			ng-click="cancelEdit()">
-			Close
+			ng-disabled="in_progress"
+			ng-click="removeSelf()">
+			Remove
 		</button>
 		
-		<button
-			ng-disabled="!validated && !have_file"
-			class="browser-style"
-			ng-click="persistEdit()">
-			Persist
-		</button>
-			
+		<img src="../icons/ko_tick.png"
+			width="20px"
+			height="20px"
+			ng-click="cancelEdit()"
+			ng-disabled="in_progress"
+			style="vertical-align: sub; margin-left: 15px;display: inline;"/>
+		
 	</div>
 </div>

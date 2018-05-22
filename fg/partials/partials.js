@@ -566,7 +566,7 @@ angular.module('jslPartials', [])
 					   restrict: 'E',
 					   replace: true,
 					   scope: {
-						   resource: "=",
+						   resource: "="
 					   },
 					   
 					   templateUrl: function (elem, attr) {

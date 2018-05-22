@@ -39,9 +39,6 @@
 		  * Limit third party domains for each site ==> how?
 		  * Possible conflicts between scripts ?? ... =S ...
 
-  - Virtual resources: Allow user to store resources to be used from scripts.
-  		  * createObjectURL + web_accessible_resources
-
   - Editor Buttons to top bar?
   - Add binded site to group in group creation?
   

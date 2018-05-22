@@ -148,8 +148,12 @@ function OP (bg) {
 							$scope.resources_active = true;
 							$scope.data_ok = true;
 							$scope.list = dataResources;
-							$scope.filter = "";
 
+							$scope.filter = "";
+							$scope.name = null;
+							$scope.virt_siblings = [];
+							$scope.mgr = self.bg.resource_mgr;
+							
 							$scope.filterChange = () => {
 
 								if($scope.filterID)
@@ -157,27 +161,134 @@ function OP (bg) {
 
 								$scope.filterID = $timeout(
 									() => {
-
-										let query = $scope.filter ?
-													($scope.filter.slice(-1) == "/" ? $scope.filter : ($scope.filter.split("/").slice(0, -1).join("/") + "/"))
-											: "/";
 										
-										self.bg.resource_mgr.getVirtFS(query)
+										$scope.name = null;
+										$scope.virt_siblings.length = 0;
+										
+										self.bg.resource_mgr.getVirtFS($scope.filter)
 											.then(new_root => {
+
+												if ($scope.filter.slice(-1) != "/")
+													$scope.name = $scope.filter.split("/").slice(0, -1).join("/") + "/";
 												
 												$scope.list = new_root;
-												$scope.filter = query;
 												$scope.data_ok = true;
 												
 											}, path => {
 
-												$scope.filter = query;
-												$scope.data_ok = false;
+												if ($scope.filter.slice(-1) != "/") {
+
+													self.bg.resource_mgr.getVirtFS($scope.filter + "/")
+														.then(new_root => {
+															
+															$scope.list = new_root;
+															$scope.filter += "/";
+															$scope.data_ok = true;
+															
+														}, path => {
+															
+															$scope.data_ok = false;
+															
+														});
+													
+												} else {
+												
+													$scope.data_ok = false;
+
+												}
 
 											});
 										
 									}, 350) 
 
+							}
+
+							/* User asked to remove the top resource in view, unasisted by views ... (root will never arrive here) */
+							$scope.removeChild = (name) => {
+
+								self.bg.resource_mgr.removeResource(name, true)
+									.then(() => {
+										
+										$scope.filter = "";
+										$scope.filterChange();
+									   
+									});
+
+							}
+
+							$scope.__findAppropiateNameFor = (repeated) => {
+								
+								let cnt = 1;
+								let name = repeated;
+								let ext = repeated.split(".").pop();
+								let orig = repeated;
+								
+								let found = $scope.virt_siblings.find(
+									res => {
+										
+										return res.name == name;
+										
+									}
+									
+								);
+								
+								while (found) {
+									
+									name = name.split(".").slice(0, -1).join(".") + cnt.toString() + "." + ext;
+									
+									found = $scope.virt_siblings.find(
+										res => {
+											
+											return res.name == name;
+											
+										}
+									);
+									
+									cnt ++;
+									
+									if (found)
+										name = orig;
+								}
+								
+								return name;
+							};
+							
+							$scope._resourceNameValidation = (child) => {
+
+								if ($scope.name) {
+									
+									/* Must always be true here. */
+									
+									if ($scope.nameID)
+										$timeout.cancel($scope.nameID);
+
+									if (!$scope.virt_siblings.length) {
+										
+										self.bg.resource_mgr.getVirtFS($scope.name)
+											.then(siblings => {
+
+												$scope.virt_siblings = siblings.items;
+
+											});
+									}
+									
+									$scope.nameID = $timeout(
+										(child) => {
+
+											/* Names not ending in slash here!! */
+
+											return $scope.__findAppropiateNameFor($scope.name + child).split("/").pop();
+											
+										}, 2500, true, child
+									);
+									
+									return $scope.nameID;
+									
+								} else {
+									
+									return Promise.reject();
+									
+								}
 							}
 						}
 					},

@@ -215,8 +215,31 @@ function ResourceMgr (bg) {
 					});
 			});
 	};
-
-	this.removeResource = (name) => {
+	
+	this.removeHierarchyFor = (empty) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				empty.remove().then(
+					removed => {
+						
+						this.findResource(this.__getParentFor(removed.name))
+							.then(parent => {
+								
+								parent.removeItem(removed.name);
+								
+								if (parent.items.length || parent.name == "/") 	
+									parent.persist().then(resolve, reject);
+								else 
+									this.removeHierarchyFor(parent).then(resolve, reject);
+								
+							});
+					});
+			});
+	};
+	
+	this.removeResource = (name, noview) => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -224,7 +247,7 @@ function ResourceMgr (bg) {
 				this.findResource(this.__getParentFor(name))
 					.then(resource_dir => {
 
-						/* Void directories may be persisted here, however views must take care of solving the hierarchy as necessary. */
+						/* Void directories may be persisted here, however views must take care of solving the hierarchy as necessary (Unless "noview" argument is present). */
 						
 						let promise = resource_dir.removeItem(name) ? resource_dir.persist() : Promise.resolve(null);
 						
@@ -233,8 +256,22 @@ function ResourceMgr (bg) {
 
 								if (parent) {
 
-									this.__removeResource(name)
-										.then(resolve, reject);
+									if (noview && !parent.items.length) {
+										
+										this.removeHierarchyFor(parent).then(
+											solved => {
+												
+												this.__removeResource(name)
+													.then(resolve, reject);
+											}
+										)
+											
+									} else {
+										
+										this.__removeResource(name)
+											.then(resolve, reject);
+										
+									}
 
 								} else {
 

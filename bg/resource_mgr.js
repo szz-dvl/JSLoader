@@ -63,19 +63,19 @@ function ResourceMgr (bg) {
 
 				let rname = newn;
 				let oldn = resource.name;
-
+				let ext = rname.split(".").pop();
+				
 				this.findResource(this.__getParentFor(rname))
 					.then(parent => {
-
+						
 						if (parent) {
-
+							
 							let siblings = parent.items;
 
 							if (siblings.includes(oldn)) {
 								
 								siblings.remove(siblings.indexOf(oldn));
-							
-								let ext = rname.split(".").pop();
+								
 								let cnt = 1;
 							
 								while (siblings.includes(rname)) {
@@ -100,9 +100,17 @@ function ResourceMgr (bg) {
 										});
 								}
 
-							} else {
+							} else { /* Assume unexistent resource. */
 								
 								/* New Resources */
+
+								let cnt = 1;
+								
+								while (siblings.includes(rname)) {
+									
+									rname = newn.split(".").slice(0, -1).join(".") + cnt.toString() + "." + ext;
+									cnt ++;
+								}
 
 								resource.name = rname;
 								
@@ -612,52 +620,60 @@ function ResourceMgr (bg) {
 	}
 	
 	this.editTextResource = (resource) => {
-		
-		if (!resource.size) {
+
+		if (this.bg.editor_mgr.resourceEditing(resource)) {
+
+			/* Focus editor. */
 			
-			return this.bg.editor_mgr.openEditorInstanceForScript(
-				
-				new Script({
-					
-					parent: new Resource({
-						
-						name: resource.name,
-						type: 'text/javascript'
-						
-					}),
-					
-					code: " "
-				})
-			);
-			
+			return Promise.resolve();
+
 		} else {
 			
-			return new Promise(
-				(resolve, reject) => {
+			if (!resource.size) {
+				
+				return this.bg.editor_mgr.openEditorInstanceForScript(
 					
-					this.findResource(resource.name)
-						.then(item => {
+					new Script({
+						
+						parent: new Resource({
 							
-							if (item) {
+							name: resource.name,
+							type: 'text/javascript'
+							
+						}),
+						
+						code: " "
+					})
+				);
+				
+			} else {
+				
+				return new Promise(
+					(resolve, reject) => {
+						
+						this.findResource(resource.name)
+							.then(item => {
 								
-								resolve(
+								if (item) {
 									
-									this.bg.editor_mgr.openEditorInstanceForScript(
+									resolve(
 										
-										new Script({
+										this.bg.editor_mgr.openEditorInstanceForScript(
 											
-											parent: item,
-											code: item.file
-										})
-									)	
-								);
+											new Script({
+												
+												parent: item,
+												code: item.file
+											})
+										)	
+									);
+									
+								} else 	
+								reject(new Error("Missing persisted resource: " + resource.name));
 								
-							} else 	
-							reject(new Error("Missing persisted resource: " + resource.name));
-							
-						}, reject);
-				});
+							}, reject);
+					});
+			}
 		}
-		
 	};
 } 

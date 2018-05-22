@@ -134,13 +134,6 @@ function Editor (opt) {
 				}
 			)
 		);
-
-		if (this.script.parent && this.script.parent.isResource()) {
-
-			if (this.parent.bg.option_mgr.events) 
-				this.parent.bg.option_mgr.events.emit("close-resource", this.script.parent.getParentName());
-			
-		}
 	};
 	
 	this.setWdw = (wdw) => {

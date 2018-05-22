@@ -456,7 +456,6 @@ function EditorFG (id, bg) {
 				}
 			);
 			
-			
 			if ($scope.editor.script.parent) {
 				
 				self.editor_bucket.css("top", "50px");

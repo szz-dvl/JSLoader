@@ -91,10 +91,3 @@ div.resource-add::before {
 div.resource-add::after {
 	content: ' ';
 }
-
-
-.text-disabled {
-
-	color: gray;
-	
-}

@@ -349,8 +349,7 @@ angular.module('jslPartials', [])
 					   scope: {
 						   items: "=",
 						   name: "=",
-						   mgr: "=",
-						   events: "=?"
+						   mgr: "="
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -366,12 +365,10 @@ angular.module('jslPartials', [])
 						   $scope.adding = false;
 						   $scope.file = null;
 						   $scope.new_name = "";
-						   $scope.locked = $scope.items.find(resource => { return !resource.items && $scope.mgr.isBeingEdited(resource) }) ? true : false;
 						   
 						   $scope.addItem = () => {
-
-							   if (!$scope.locked) 
-								   $scope.adding = true;
+							   
+							   $scope.adding = true;
 							   
 						   }
 
@@ -490,28 +487,21 @@ angular.module('jslPartials', [])
 							   $scope.mgr.editTextResource(res)
 								   .then(() => {
 
-									   $scope.locked = true;
 									   $scope.adding = false;
 									   
-								   })
+								   });
 
 						   }
 
 						   $scope.setHover = (val) => {
-
-							   if (!$scope.locked) {
-								   
-								   if ($scope.hovID)
-									   $timeout.cancel($scope.hovID);
 							   
-								   if (val) 
-									   $scope.onadding = true;
-								   else 
-									   $scope.hovID = $timeout(() => { $scope.onadding = false; }, 750);
-							   } else {
-								   
-								   $scope.onadding = false
-							   }
+							   if ($scope.hovID)
+								   $timeout.cancel($scope.hovID);
+							   
+							   if (val) 
+								   $scope.onadding = true;
+							   else 
+								   $scope.hovID = $timeout(() => { $scope.onadding = false; }, 750);
 						   }
 						   
 						   $scope.resourceFile = (file) => {
@@ -567,18 +557,6 @@ angular.module('jslPartials', [])
 							   
 							   $scope.adding = false;
 						   }
-
-						   if ($scope.events) {
-
-							   $scope.events.on('close-resource',
-								   parent_name => {
-									   
-									   if (parent_name == $scope.name) 
-										   $scope.locked = $scope.items.find(resource => { return !resource.items && $scope.mgr.isBeingEdited(resource) }) ? true : false;
-										   
-								   }
-							   );
-						   }
 					   }
 					   
 				   }
@@ -611,20 +589,13 @@ angular.module('jslPartials', [])
 						   
 						   $scope.setHover = (val, elem) => {
 
-							   if (!$scope.$parent.locked) {
-								   
-								   if ($scope.hovID)
-									   $timeout.cancel($scope.hovID);
+							   if ($scope.hovID)
+								   $timeout.cancel($scope.hovID);
 							   
-								   if (val) 
-									   $scope.hover = true;
-								   else 
-									   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
-							   } else {
-
-								   $scope.hover = false;
-								   
-							   }
+							   if (val) 
+								   $scope.hover = true;
+							   else 
+								   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
 						   }
 						   
 						   $scope.removeSelf = () => {

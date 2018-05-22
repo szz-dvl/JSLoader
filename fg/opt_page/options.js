@@ -290,6 +290,15 @@ function OP (bg) {
 									
 								}
 							}
+
+						   
+							self.bg.option_mgr.events.on('new-resource',
+								resource => {
+									
+									$scope.filterChange();
+
+								}
+							);
 						}
 					},
 					

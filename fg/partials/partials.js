@@ -349,7 +349,8 @@ angular.module('jslPartials', [])
 					   scope: {
 						   items: "=",
 						   name: "=",
-						   mgr: "="
+						   mgr: "=",
+						   events: "=?"
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -365,10 +366,12 @@ angular.module('jslPartials', [])
 						   $scope.adding = false;
 						   $scope.file = null;
 						   $scope.new_name = "";
+						   $scope.locked = $scope.items.find(resource => { return !resource.items && $scope.mgr.isBeingEdited(resource) }) ? true : false;
 						   
 						   $scope.addItem = () => {
-							   
-							   $scope.adding = true;
+
+							   if (!$scope.locked) 
+								   $scope.adding = true;
 							   
 						   }
 
@@ -481,28 +484,41 @@ angular.module('jslPartials', [])
 						   }
 						   
 						   $scope.editTextResource = (resource) => {
+
+							   let res = resource || { name: $scope.name + UUID.generate().split('-').pop() + '.js' };
 							   
-							   $scope.mgr.editTextResource(resource);
+							   $scope.mgr.editTextResource(res)
+								   .then(() => {
+
+									   $scope.locked = true;
+									   $scope.adding = false;
+									   
+								   })
 
 						   }
 
 						   $scope.setHover = (val) => {
 
-							   if ($scope.hovID)
-								   $timeout.cancel($scope.hovID);
+							   if (!$scope.locked) {
+								   
+								   if ($scope.hovID)
+									   $timeout.cancel($scope.hovID);
 							   
-							   if (val) 
-								   $scope.onadding = true;
-							   else 
-								   $scope.hovID = $timeout(() => { $scope.onadding = false; }, 750);
-													 
+								   if (val) 
+									   $scope.onadding = true;
+								   else 
+									   $scope.hovID = $timeout(() => { $scope.onadding = false; }, 750);
+							   } else {
+								   
+								   $scope.onadding = false
+							   }
 						   }
 						   
 						   $scope.resourceFile = (file) => {
 
-							   console.log(file);
-
 							   if (file.type) { // && file.size
+								   
+								   $scope.adding = false;
 								   
 								   let validated = $scope.__resourceNameValidation(file.name, 'file');
 								   
@@ -517,8 +533,6 @@ angular.module('jslPartials', [])
 											   size: resource.getSizeString()
 												   
 										   });
-										   
-										   $scope.adding = false;
 										   
 									   }, console.error);
 								   
@@ -553,6 +567,18 @@ angular.module('jslPartials', [])
 							   
 							   $scope.adding = false;
 						   }
+
+						   if ($scope.events) {
+
+							   $scope.events.on('close-resource',
+								   parent_name => {
+									   
+									   if (parent_name == $scope.name) 
+										   $scope.locked = $scope.items.find(resource => { return !resource.items && $scope.mgr.isBeingEdited(resource) }) ? true : false;
+										   
+								   }
+							   );
+						   }
 					   }
 					   
 				   }
@@ -566,7 +592,7 @@ angular.module('jslPartials', [])
 					   restrict: 'E',
 					   replace: true,
 					   scope: {
-						   resource: "="
+						   resource: "=",
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -584,14 +610,21 @@ angular.module('jslPartials', [])
 						   $scope.id = UUID.generate().split("-").pop();
 						   
 						   $scope.setHover = (val, elem) => {
+
+							   if (!$scope.$parent.locked) {
+								   
+								   if ($scope.hovID)
+									   $timeout.cancel($scope.hovID);
 							   
-							   if ($scope.hovID)
-								   $timeout.cancel($scope.hovID);
-							   
-							   if (val) 
-								   $scope.hover = true;
-							   else 
-								   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
+								   if (val) 
+									   $scope.hover = true;
+								   else 
+									   $scope.hovID = $timeout(() => { $scope.hover = false; }, 750);
+							   } else {
+
+								   $scope.hover = false;
+								   
+							   }
 						   }
 						   
 						   $scope.removeSelf = () => {
@@ -642,7 +675,8 @@ angular.module('jslPartials', [])
 						   
 						   $scope.editResource = () => {
 							   
-							   $scope.$parent.mgr.editTextResource($scope.resource);
+							   $scope.$parent.editTextResource($scope.resource);
+							   $scope.editing = false;
 
 						   }
 
@@ -732,6 +766,74 @@ angular.module('jslPartials', [])
 				   }
 			   })
 
+	.directive('resourceName',
+		($timeout) => {
+
+			return {
+				
+				restrict: 'E',
+				replace: true,
+				scope: {
+					
+ 					name: "=",
+					siblings: "=",
+					ev: "=?"
+					
+				},
+
+				template: '<input class="browser-style" type="text" ng-model="text" ng-change="textChange()" />',
+
+				controller: function ($scope) {
+
+					$scope.allowed = ['js', 'html', 'json', 'css'];
+					
+					$scope.text = $scope.name.split("/").pop();
+					$scope.parent = $scope.name.split("/").slice(0, -1).join("/") + "/";
+					
+					$scope.backup = $scope.text;
+					$scope.ext = $scope.text.split(".").pop();
+					
+					$scope.textChange = () => {
+						
+						$scope.__textValidate($scope.text)
+							.then(
+								state => {
+									
+									if ($scope.ev)
+										$scope.ev.emit('resource_name', $scope.parent + $scope.text, state);
+									
+								}, ok => {});
+					}
+					
+					$scope.__textValidate = (text) => {
+
+						if ($scope.ev)
+							$scope.ev.emit('validation_start', text);
+						
+						if ($scope.valID)
+							$timeout.cancel($scope.valID);
+
+						$scope.valID = $timeout(
+							(pending) => {
+
+								let ok = pending.slice(-1) != "/" && !$scope.siblings.includes($scope.parent + pending) && $scope.allowed.includes(pending.split(".").pop());
+								
+								if (ok) 	
+									$scope.backup = $scope.text = pending;
+								else 
+									$scope.text = $scope.backup;
+
+								return ok;
+								
+							}, 2500, true, text
+						);
+						
+						return $scope.valID;
+					}
+				},	
+			}
+		})
+	
 	.directive('groupChooser',
 		() => {
 
@@ -757,7 +859,7 @@ angular.module('jslPartials', [])
 					
 					$scope.groups.push(".New group.");
 					$scope.current = $scope.groups[0];
-					$scope.adding = $scope.groups.length <= 1;
+					$scope.adding = true;
 					$scope.disabled_btns = false;
 					
 					$scope.selectChange = (nval) => {

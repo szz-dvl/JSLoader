@@ -2,7 +2,7 @@ function EditorWdw (opt) {
 	
 	return new Promise (
 		(resolve, reject) => {
-
+			
 			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : browser.tabs.query({ active: true, windowType: "normal" });
 
 			promise.then(
@@ -18,7 +18,7 @@ function EditorWdw (opt) {
 							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
 					}
 					
-					browser.windows.create({
+					Promise.all([browser.windows.create({
 						
 						type: "popup",
 						state: "normal",
@@ -26,10 +26,11 @@ function EditorWdw (opt) {
 						width: Math.min(1024, screen.width), 
 						height: 420 
 						
-					}).then (
-						wdw => {
+					}), editor.script.parent && editor.script.parent.isResource() ? editor.script.parent.getSiblings() : Promise.resolve(null)]).then (
+						arr => {
 							
-							editor.wdw = wdw;
+							editor.wdw = arr[0];
+							editor.siblings = arr[1];
 							
 							/* 
 							   Workaround to avoid blank windows: 
@@ -40,12 +41,12 @@ function EditorWdw (opt) {
 							
 							let updateInfo = {
 								
-								width: wdw.width,
-								height: wdw.height + 1, // 1 pixel more than original size...
+								width: editor.wdw.width,
+								height: editor.wdw.height + 1, // 1 pixel more than original size...
 								
 							};
 							
-							browser.windows.update(wdw.id, updateInfo)
+							browser.windows.update(editor.wdw.id, updateInfo)
 								.then(
 									newWdw => {
 										
@@ -87,12 +88,12 @@ function Editor (opt) {
 	};
 	
 	this.newTab = (tabInfo, valid) => {
+		
+		if (valid) {
+			
+			if (this.fg && this.script.parent) {
 
-		if (!this.script.parent.isResource()) {
-
-			if (valid) {
-				
-				if (this.fg && this.script.parent) {
+				if (!this.script.parent.isResource()) {
 					
 					if (this.script.persisted) {
 						
@@ -113,12 +114,12 @@ function Editor (opt) {
 						
 					}
 				}
-				
-			} else {
-				
-				if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
-					this.fg.scope.disableRun();
 			}
+			
+		} else {
+			
+			if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
+				this.fg.scope.disableRun();
 		}
 	}
 	
@@ -132,7 +133,14 @@ function Editor (opt) {
 					
 				}
 			)
-		);	
+		);
+
+		if (this.script.parent && this.script.parent.isResource()) {
+
+			if (this.parent.bg.option_mgr.events) 
+				this.parent.bg.option_mgr.events.emit("close-resource", this.script.parent.getParentName());
+			
+		}
 	};
 	
 	this.setWdw = (wdw) => {

@@ -9,7 +9,7 @@
 		<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
 
 			<resource-item resource="resource" ng-if="!resource.items"></resource-item>
-			<resource-directory ng-if="resource.items" items="resource.items" name="resource.name" mgr="mgr"></resource-directory>
+			<resource-directory ng-if="resource.items" items="resource.items" name="resource.name" mgr="mgr" events="events"></resource-directory>
 			
 		</li>
 	</ul>
@@ -41,7 +41,7 @@
 				style="margin: 0 5px 0 5px"
 				class="browser-style"
 				ng-if="item_type == 'file'"
-				ng-click="editTextResource({ name: new_name, type: file_type })">
+				ng-click="editTextResource()">
 				Edit Resource
 			</button>
 

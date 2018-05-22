@@ -93,3 +93,8 @@ div.resource-add::after {
 }
 
 
+.text-disabled {
+
+	color: gray;
+	
+}

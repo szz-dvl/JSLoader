@@ -15,7 +15,7 @@
 		
 		<div ng-show="resources_active && data_ok" style="width: 100%;margin-left: 75px;margin-bottom: 75px;min-height: 150px">
 			
-			<resource-directory ng-if="list.items" name="list.name" items="list.items"  mgr="page.bg.resource_mgr"> </resource-directory>
+			<resource-directory ng-if="list.items" name="list.name" items="list.items"  mgr="page.bg.resource_mgr" events="page.bg.option_mgr.events"> </resource-directory>
 			<resource-item ng-if="!list.items" resource="list"></resource-item>
 			
 		</div>

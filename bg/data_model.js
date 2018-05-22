@@ -1003,10 +1003,55 @@ function Resource (opt) {
 
 	this.setTextContent = (text) => {
 
+		let ext = this.name.split(".").pop();
+
+		if (ext != 'js') {
+
+			if (!this.type.includes(this.name.split(".").pop()))
+				this.type = 'text/' + ext;
+
+		} else {
+			
+			this.type = 'text/javascript';
+		}
+		
+		this.size = text.length * 2;
 		this.file = text;
 		
 	};
 
+	this.getParentName = () => {
+
+		return this.name.split("/").slice(0, -1).join("/") + "/";
+
+	};
+
+	this.getSiblings = () => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				global_storage.getResource(
+					parent => {
+
+						if (parent) {
+
+							parent.items.remove(
+								parent.items.indexOf(this.name));
+							
+							resolve(parent.items);
+
+						} else {
+
+							resolve([]);
+						}
+						
+					}, this.getParentName()
+				)
+					
+			});
+	};
+	
 	this.getSizeString = () => {
 
 		let kb = (this.size / 1024);

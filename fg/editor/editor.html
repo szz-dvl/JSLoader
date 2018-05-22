@@ -23,18 +23,40 @@
   <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle($event)" ng-cloak>
 
 	  <!-- ng-if fails here ¿¿?? -->
-	  <div ng-show="editor.script.parent && !editor.script.parent.isResource()" id="dropdown-header">
+	  <div ng-show="editor.script.parent" id="dropdown-header">
 		  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
 	  </div>
 	  
 	  <div id="editor-header" class="panel-section panel-section-header">
-		  <div class="text-section-header" style="display: inline-block;width: 100%"> <script-name script="script" onlyval="true" style="width: 15%;display: inline-block;"></script-name> || 
+		  <div class="text-section-header" style="display: inline-block;width: 100%">
+			  
+			  <script-name script="script" ng-if="!script.parent.isResource()" onlyval="true" style="width: 15%;display: inline-block;"></script-name>
+			  <bdi ng-if="script.parent.isResource()"> Resource </bdi> ||
 			  
 			  <div style="width: 80%;display: inline-block">
-				  <bdi id="user_action" class="bold" style="display: inline; width: 20%;margin-right: 10px;"> Script for: </bdi>
+				  <bdi ng-if="!script.parent.isResource()" id="user_action" class="bold" style="display: inline; width: 20%;margin-right: 10px;"> Script for: </bdi>
+				  <bdi ng-if="script.parent.isResource()" id="user_action" style="display: inline; width: 20%;margin-right: 0;margin-left: 15px;font-size: 80%;"> {{ script.parent.getParentName() }} </bdi>
 				  
-				  <site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"></site-validator>
-				  <group-chooser style="display: inline-block; width: 80%;margin: 0;" ng-if="script.parent.isGroup()" ev="page.events" validating="script.getParentName()" groups="groups_copy"></group-chooser>
+				  <site-validator
+					  id="site_validator"
+					  style="display: inline-block; width: 80%;margin: 0;"
+					  ng-if="!script.parent.isGroup() && !script.parent.isResource()"
+					  ev="page.events"
+					  url="url"></site-validator>
+				  
+				  <group-chooser
+					  style="display: inline-block; width: 80%;margin: 0;"
+					  ng-if="script.parent.isGroup() && !script.parent.isResource()"
+					  ev="page.events"
+					  validating="script.getParentName()"
+					  groups="groups_copy"></group-chooser>
+
+				  <resource-name
+					  style="display: inline-block; width: 30%;margin: 0;"
+					  ng-if="script.parent.isResource()"
+					  ev="page.events"
+					  name="resource_name"
+					  siblings="editor.siblings"></resource-name>
 				  
 			  </div>
 		  </div>

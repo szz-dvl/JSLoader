@@ -186,17 +186,20 @@ function EditorFG (id, bg) {
 			let error = this.getFirstError();
 			
 			if (!error) {
-				
+
 				let promise = this.editor.script.parent ?
 							  (this.editor.script.parent.isGroup()
 									  ? this.bg.group_mgr.updateParentFor(this.editor.script, this.scope.url)
 									  : (!this.editor.script.parent.isResource() ?
 										 this.bg.domain_mgr.updateParentFor(this.editor.script, this.scope.url) :
-										 Promise.resolve())) :
+										 this.bg.resource_mgr.solveHierarchyForEditor(this.editor.script.parent, this.scope.resource_name))) :
 							  Promise.resolve();
-				
+
 				promise.then (
-					() => {
+					data => {
+						
+						if (data && data.constructor.name == 'Resource') 
+							this.editor.script.parent = data;
 						
 						this.editor.script.code = this.editor.ace.getValue().toString().trim();
 						this.editor.script.persist()
@@ -204,10 +207,14 @@ function EditorFG (id, bg) {
 								parent => {
 									
 									this.scope.enableButtons();
+									
+									if (parent && parent.isResource()) {
+			
+										if (self.bg.option_mgr.events) 
+											self.bg.option_mgr.events.emit("new-resource", parent);
 
-									if (parent.isResource() && self.bg.option_mgr.events) 
-										self.bg.option_mgr.events.emit("new-resource");
-										
+									}
+									
 									if (this.editor.tab) {
 
 										if (this.editor.script.includedAt(this.editor.tab.url)) {
@@ -292,6 +299,7 @@ function EditorFG (id, bg) {
 		$scope.script = self.editor.script;
 		$scope.groups_copy = self.bg.group_mgr.groups.slice(0);
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
+		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
 		
 		$scope.editor_collapsed = false;
 		
@@ -333,6 +341,8 @@ function EditorFG (id, bg) {
 			.on('validation_start',
 				pending => {
 
+					console.log("Validating: " + pending);
+					
 					if (!$scope.buttons.disabled)	
 						$scope.disableButtons();
 					
@@ -352,8 +362,25 @@ function EditorFG (id, bg) {
 					$scope.url = selected;	
 					$scope.enableButtons();
 					
-				});
+				})
 
+			.on('resource_name',
+				(resource_name, state) => {
+
+					if (state) {
+
+						let mode = resource_name.split(".").pop() == "js" ? "javascript" : resource_name.split(".").pop();
+						
+						$scope.resource_name = resource_name;
+						$scope.editor.ace.session.setMode("ace/mode/" + mode);
+						
+					}
+					
+					$scope.enableButtons();
+					
+				});
+			
+			
 		$scope.disableRun = () => {
 
 			$scope.buttons.arr[1].available = false;
@@ -430,7 +457,7 @@ function EditorFG (id, bg) {
 			);
 			
 			
-			if ($scope.editor.script.parent && !$scope.editor.script.parent.isResource()) {
+			if ($scope.editor.script.parent) {
 				
 				self.editor_bucket.css("top", "50px");
 				self.editor_bucket.css("height", window.innerHeight - 50);

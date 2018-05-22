@@ -1,18 +1,12 @@
 - In-progress:
-  - Virtual Resources:
-  			* Edit Source:
-			  	   * for new elements: not done yet (Solve hierarchy).
-				   * name validation for persisted (in editor)
-				   * events for directives??
-				   
+  - Virtual Resources:	   
 		    * Missing view resource
 			* Missing DB management
+			* Missing Content API.
 						
   - Group creation:
   		  * bugs in PA: scripts not shown after first close (after import ¿?)
-		  * Start in add mode.
 		  
-  - Persist User Defs Bug.
   - Add small menu in editor to configure settings quickly (bottom right corner).
   
 - Big fails:

@@ -4,6 +4,8 @@ function ResourceMgr (bg) {
 	this.storage = global_storage;
 	this.resources = []; /* Index */
 	this.loaded = [];
+
+	this.MAX_STORAGE_SIZE = 1 * 1024 * 1024;
 	
 	this.storage.getResource(
 		root => {
@@ -53,6 +55,74 @@ function ResourceMgr (bg) {
 		);
 	};
 
+
+	this.solveHierarchyForEditor = (resource, newn) => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				let rname = newn;
+				let oldn = resource.name;
+
+				this.findResource(this.__getParentFor(rname))
+					.then(parent => {
+
+						if (parent) {
+
+							let siblings = parent.items;
+
+							if (siblings.includes(oldn)) {
+								
+								siblings.remove(siblings.indexOf(oldn));
+							
+								let ext = rname.split(".").pop();
+								let cnt = 1;
+							
+								while (siblings.includes(rname)) {
+								
+									rname = newn.split(".").slice(0, -1).join(".") + cnt.toString() + "." + ext;
+									cnt ++;
+								}
+								
+								if (oldn == rname) {
+
+									this.solveHierarchyFor(rname)
+										.then(resolve, reject);
+								
+								} else {
+
+									this.renameResource(oldn, rname)
+										.then(updated => {
+										
+											this.solveHierarchyFor(updated.name)
+												.then(last => { resolve(updated) }, reject);
+
+										});
+								}
+
+							} else {
+								
+								/* New Resources */
+
+								resource.name = rname;
+								
+								this.solveHierarchyFor(rname)
+									.then(resolve, reject);
+							}
+							
+						} else {
+
+							this.solveHierarchyFor(rname)
+								.then(resolve, reject);
+							
+						}
+						
+					});
+			}
+		);
+	};
+	
+	/* ** */
 	this.solveHierarchyFor = (name) => {
 		
 		return new Promise(
@@ -150,7 +220,7 @@ function ResourceMgr (bg) {
 						name: name,
 						type: type,
 						file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
-						db: (file.size >= 1 * 1024 * 1024) ? mgr.bg.database_mgr : null,
+						db: (file.size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null,
 						size: file.size
 						
 					}).persist().then(resolve, reject);
@@ -349,20 +419,32 @@ function ResourceMgr (bg) {
 						let resource = arr[0];
 						let parent = arr[1];
 
-						resource.name = newn;
-						parent.items[
-
-							parent.items.findIndex(
-								name => {
-									
-									return name == oldn;
-								}
-							)
+						if (resource) {
+							
+							resource.remove().then(
+								removed => {
 								
-						] = newn;
+									resource.name = newn;
+									parent.items[
 
-						Promise.all([parent.persist(), resource.persist()])
-							.then(ok => { resolve(newn) }, reject);
+										parent.items.findIndex(
+											name => {
+										
+												return name == oldn;
+											}
+										)
+									
+									] = newn;
+
+									Promise.all([parent.persist(), resource.persist()])
+										.then(ok => { resolve(resource) }, reject);
+								});
+
+						} else {
+
+							reject(resource);
+							
+						}
 						
 					}, reject);
 			}
@@ -379,7 +461,7 @@ function ResourceMgr (bg) {
 
 						if (resource && !resource.dir) {
 
-							resource.db = (file.size >= 1 * 1024 * 1024) ? mgr.bg.database_mgr : null;
+							resource.db = (file.size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null;
 							
 							resource.updateFileContent(file)
 								.then(file => {
@@ -522,58 +604,60 @@ function ResourceMgr (bg) {
 			}
 		) 
 	}
+
+	this.isBeingEdited = (resource) => {
+
+		return this.bg.editor_mgr.resourceEditing(resource);
+		
+	}
 	
 	this.editTextResource = (resource) => {
-
-		if (this.bg.editor_mgr.resourceEditing(resource))
-			return Promise.resolve();
-		else {
+		
+		if (!resource.size) {
 			
-			if (!resource.size) {
+			return this.bg.editor_mgr.openEditorInstanceForScript(
 				
-				return this.bg.editor_mgr.openEditorInstanceForScript(
+				new Script({
 					
-					new Script({
+					parent: new Resource({
 						
-						parent: new Resource({
-							
-							name: resource.name,
-							type: resource.type
-							
-						}),
+						name: resource.name,
+						type: 'text/javascript'
 						
-						code: " "
-					})
-				);
+					}),
+					
+					code: " "
+				})
+			);
 			
-			} else {
-				
-				return new Promise(
-					(resolve, reject) => {
-						
-						this.findResource(resource.name)
-							.then(item => {
+		} else {
+			
+			return new Promise(
+				(resolve, reject) => {
+					
+					this.findResource(resource.name)
+						.then(item => {
+							
+							if (item) {
 								
-								if (item) {
+								resolve(
 									
-									resolve(
+									this.bg.editor_mgr.openEditorInstanceForScript(
 										
-										this.bg.editor_mgr.openEditorInstanceForScript(
+										new Script({
 											
-											new Script({
-												
-												parent: item,
-												code: item.file
-											})
-										)	
-									);
-									
-								} else 	
-									reject(new Error("Missing persisted resource: " + resource.name));
+											parent: item,
+											code: item.file
+										})
+									)	
+								);
 								
-							}, reject);
-					});
-			}
+							} else 	
+							reject(new Error("Missing persisted resource: " + resource.name));
+							
+						}, reject);
+				});
 		}
+		
 	};
 } 

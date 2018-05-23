@@ -628,9 +628,9 @@ angular.module('jslPartials', [])
 									   $scope.edit_name = validated.split(".").slice(0, -1).join(".");
 									   
 									   $scope.$parent.mgr.renameResource($scope.resource.name, $scope.$parent.name + validated)
-										   .then(new_name => {
+										   .then(resource => {
 											   
-											   $scope.resource.name = new_name;
+											   $scope.resource.name = resource.name;
 											   $scope.in_progress = false;
 											   
 										   }, console.error);

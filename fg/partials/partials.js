@@ -611,10 +611,10 @@ angular.module('jslPartials', [])
 							   $scope.editing = true;
 							   
 						   }
-
+						   
 						   $scope.viewSelf = () => {
 							   
-							   $scope.viewing = true;
+							   $scope.$parent.mgr.viewResource($scope.resource.name);
 							   
 						   }
 

@@ -1001,6 +1001,12 @@ function Resource (opt) {
 		
 	};
 
+	this.load = () => {
+
+		return URL.createObjectURL(this.getAsBinary());
+		
+	};
+	
 	this.setTextContent = (text) => {
 
 		let ext = this.name.split(".").pop();
@@ -1061,35 +1067,6 @@ function Resource (opt) {
 		else
 			return (kb / 1024) + " MB";
 		
-	};
-
-	this.updateFileContent = (file) => {
-
-		return new Promise(
-			(resolve, reject) => {
-				
-				let reader = new FileReader ();
-				
-				reader.onload = () => {
-
-					this.file = reader.result;
-					this.size = file.size;
-					
-					resolve(this.file);
-
-				}
-
-				reader.onerror = () => {
-					
-					reject(new Error(reader.error));
-
-				}
-		
-				if (this.type.includes('text'))
-					reader.readAsText(file);
-				else
-					reader.readAsDataURL(file);
-			});
 	};
 	
 	this.getAsBinary = () => {

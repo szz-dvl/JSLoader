@@ -375,7 +375,7 @@ function ResourceMgr (bg) {
 						
 						if (resource) {
 							
-							let url = URL.createObjectURL ( resource.getAsBinary() );
+							let url = resource.load();
 							
 							this.loaded.push({ name: resource.name, url: url });
 							
@@ -409,11 +409,46 @@ function ResourceMgr (bg) {
 			
 		} else {
 
-			return Promise.reject(new Error("Attempting to unload unloaded resource: " + name));
+			return Promise.reject(new Error("Attempting to unload an unloaded resource: " + name));
 			
 		}
 		
 		return Promise.resolve(url);
+	};
+
+	this.viewResource = (name) =>{
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.findResource(name)
+					.then(resource => {
+
+						if (resource) {
+
+							let url = resource.load();
+							
+							/* To check: getCurrent() when editor is opened (filtering types) ===> null? */
+							
+							browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
+								.then(wdws => {
+									browser.tabs.create({ active: true, url: resource.load(), windowId: wdws[0].id })
+										.then(tab => {
+
+											URL.revokeObjectURL(url);
+
+										}, reject);
+									
+								}, reject);
+							
+						} else {
+							
+							reject(new Error("Trying to view unexisting resource: " + name));
+
+						}
+						
+					});
+			});
 	};
 	
 	this.renameResource = (oldn, newn) => {

@@ -340,7 +340,7 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('resourceDirectory',
-			   ($timeout) => {
+			   ($timeout, $interval) => {
 				   
 				   return {
 					   
@@ -365,11 +365,19 @@ angular.module('jslPartials', [])
 						   $scope.adding = false;
 						   $scope.file = null;
 						   $scope.new_name = "";
+						   $scope.idname = $scope.name.replace(/\//g, '-');
 						   
 						   $scope.addItem = () => {
-							   
+
 							   $scope.adding = true;
-							   
+							   $('#' + $scope.idname).keypress(e => {
+								   
+								   if (e.which == 13)
+									   $scope.newDir();
+
+								   return true;
+
+							   });
 						   }
 
 						   $scope.selectItemType = (nval) => {
@@ -430,35 +438,19 @@ angular.module('jslPartials', [])
 
 						   $scope._resourceNameValidation = (child) => {
 
-							   let name = child || $scope.new_name + "/";
-
 							   if ($scope.nameID)
 								   $timeout.cancel($scope.nameID);
 							   
 							   $scope.nameID = $timeout(
-								   () => {
+								   (name) => {
 
 									   return $scope.__resourceNameValidation(name);
 									   
-								   }, 2500, true
+								   }, 2500, true, child
 							   );
 							   
 							   return $scope.nameID;
 						   }
-
-						   $scope.resourceNameValidation = () => {
-
-							   $scope.validated = false;
-							   
-							   $scope._resourceNameValidation().then(
-								   validated => {
-									   
-									   $scope.new_name = validated;
-									   $scope.validated = validated ? true : false;
-									   
-								   }, ok => {}); 
-							   
-						   };
 						   
 						   $scope.removeChild = (name, persist) => {
 							   
@@ -510,7 +502,7 @@ angular.module('jslPartials', [])
 								   
 								   $scope.adding = false;
 								   
-								   let validated = $scope.__resourceNameValidation(file.name, 'file');
+								   let validated = $scope.__resourceNameValidation(file.name);
 								   
 								   $scope.mgr.storeResource($scope.name + validated, file)
 									   .then(resource => {
@@ -542,19 +534,59 @@ angular.module('jslPartials', [])
 						   }
 						   
 						   $scope.newDir = () => {
-							  	   
-							   $scope.items.push({
-								   
-								   name: $scope.name + $scope.new_name + "/", 
-								   items: []
-								   
-							   });
+
+							   let dirname = $scope.new_name + "/";
+							   let validated = $scope.new_name ? $scope.__resourceNameValidation(dirname) : null;
  
-							   $scope.adding = false;
+							   if (validated == $scope.new_name) {
+								   
+								   $scope.items.push({
+									   
+									   name: $scope.name + $scope.new_name + "/", 
+									   items: []
+								   
+								   });
+
+								   $('#' + $scope.idname).off('keypress');
+								   $scope.adding = false;
+								   
+							   } else {
+								   
+								   if ($scope.errID)
+									   $interval.cancel($scope.errID);
+								   
+								   let times = 21;
+								   
+								   $scope.errID = $interval(
+									   () => {
+
+										   times --;		   
+										   $('#' + $scope.idname).css({
+											   
+											   'box-shadow' : unescape(escape('0 0 20px ' + times + 'px red')),
+											   '-moz-box-shadow' : unescape(escape('0 0 20px ' + times + 'px red')),
+											   '-webkit-box-shadow' : unescape(escape('0 0 20px ' + times + 'px red'))
+										   });
+										   
+									   }, 20, 21, true);
+
+								   $scope.errID.then(
+									   () => {
+										   
+										   $('#' + $scope.idname).css({
+											   
+											   'box-shadow' : '',
+											   '-moz-box-shadow' : '',
+											   '-webkit-box-shadow' : ''
+										   });
+
+									   }, ok => {});
+							   }
 						   }
 						   
 						   $scope.cancelResource = () => {
-							   
+
+							   $('#' + $scope.idname).off('keypress');
 							   $scope.adding = false;
 						   }
 					   }

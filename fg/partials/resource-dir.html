@@ -28,15 +28,15 @@
 			ng-change="selectItemType(item_type)"></select>
 		
 		<div style="display: inline;">
-			
+
+			<!-- style="width: 15%;" -->
 			<input
-				style="width: 10%;"
+				id="{{idname}}"
 				class="browser-style"
 				type="text"
 				ng-show="item_type == 'directory'"
-				ng-change="resourceNameValidation()"
 				ng-model="new_name"/>
-
+				
 			<button
 				style="margin: 0 5px 0 5px"
 				class="browser-style"
@@ -63,7 +63,7 @@
 			<img src="../icons/ok_tick.png"
 				width="20px"
 				height="20px"
-				ng-show="validated && item_type == 'directory'"
+				ng-show="item_type == 'directory'"
 				ng-click="newDir()"
 				style="vertical-align: sub; margin-left: 15px;display: inline;"/>
 			

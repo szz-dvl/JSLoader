@@ -1060,12 +1060,18 @@ function Resource (opt) {
 	
 	this.getSizeString = () => {
 
-		let kb = (this.size / 1024);
+		if (this.size < 1024)
+			return parseInt(this.size) + " Bytes";
+		else {
 
-		if (kb <= 1024)
-			return kb + " KB";
-		else
-			return (kb / 1024) + " MB";
+			let kb = (this.size / 1024).toFixed(2);
+		
+			if (kb <= 1024)
+				return parseFloat(kb) + " KB";
+			else
+				return parseFloat(kb / 1024) + " MB";
+
+		}
 		
 	};
 	
@@ -1171,6 +1177,7 @@ function Resource (opt) {
 			
 			name: me.name,
 			type: me.type,
+			size: me.size,
 			file: me.file	
 		}
 	};

@@ -28,6 +28,25 @@ function ResourceMgr (bg) {
 		return name.split("/").slice(0, slice).join("/") + "/";
 
 	};
+
+	/* When clearing storage, be aware of other extensions! */
+	this.recreateRoot = () => {
+
+		this.storage.getResource(
+			root => {
+				
+				if (!root) {
+				
+					new ResourceDir({
+						
+						name: "/"
+					
+					}).persist();
+				}	
+			
+			}, "/"
+		);
+	};
 	
 	this.findResource = (name) => {
 
@@ -647,15 +666,9 @@ function ResourceMgr (bg) {
 			}
 		) 
 	}
-
-	this.isBeingEdited = (resource) => {
-
-		return this.bg.editor_mgr.resourceEditing(resource);
-		
-	}
 	
 	this.editTextResource = (resource) => {
-
+		
 		if (this.bg.editor_mgr.resourceEditing(resource)) {
 
 			/* Focus editor. */
@@ -664,7 +677,9 @@ function ResourceMgr (bg) {
 
 		} else {
 			
-			if (!resource.size) {
+			if (!resource.type) {
+
+				/* New Resource */
 				
 				return this.bg.editor_mgr.openEditorInstanceForScript(
 					

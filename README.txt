@@ -1,13 +1,11 @@
 - In-progress:
-  - Virtual Resources:	   
-		    * Missing view resource
+  - Add small menu in editor to configure settings quickly (bottom right corner).
+  - Virtual Resources:
 			* Missing DB management
 			* Missing Content API.
 						
   - Group creation:
-  		  * bugs in PA: scripts not shown after first close (after import ¿?)
-		  
-  - Add small menu in editor to configure settings quickly (bottom right corner).
+  	* bugs in PA: scripts not shown after first close (For imported groups ¿?)
   
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -25,7 +23,7 @@
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   - startsWith =====> "/" !!!
   - Cascade removes ====> Array.remove [destructive - index lost -] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
-  - Virt Resources filter.
+  - Virt Resources ==> what is done.
 			
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
@@ -35,11 +33,13 @@
 
   - Editor Buttons to top bar?
   - Add binded site to group in group creation?
+  - Prevent context menu on extension windows ???
   
 - Issues:
   - Computed "src" attributes won't display in extension pages (Any workarround)
   - Blank windows. Resize needed to render.
   - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
+  - Downloaded files will allways be named "download".
   
 - Finally:
   - Style everything up!
@@ -50,4 +50,3 @@
 		  * etc, etc, etc ...
 		  
   - Initial examples for each info recipient.
-  - Prevent context menu on extension windows ???

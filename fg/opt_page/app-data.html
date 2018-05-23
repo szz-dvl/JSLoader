@@ -78,14 +78,11 @@
 			</table>
 			<no-info ng-if="!domains.length && !groups.length" style="padding-top: 6%;"></no-info>
 			<div style="text-align: center;margin-top: 25px;">
-				<label for="import_data">
-					<bdi> Import Data </bdi>
-					<input
-						class="browser-style"
-						id="import_data"
-						ng-on-change="importData()"
-						type="file"/>
-				</label>
+				<input-file
+					file="'file'"
+					ng-file-selected="importData(file)"
+					text="'Import Data'">
+				</input-file>
 				<button class="browser-style"
 					ng-if="domains.length || groups.length"
 					ng-click="exportData()"> Export Data

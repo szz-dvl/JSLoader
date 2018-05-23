@@ -309,8 +309,9 @@ function OP (bg) {
 							
 							$scope.domains = dataStorage.domains;
 							$scope.groups = dataStorage.groups;
-
-							$scope.appdata_active = $scope.domains.length + $scope.groups.length > 0; 
+							$scope.file = null;
+							$scope.appdata_active = $scope.domains.length + $scope.groups.length > 0;
+							
 							
 							$scope.__updateService = () => {
 
@@ -387,9 +388,8 @@ function OP (bg) {
 
 								self.query_results.length = 0;
 							}
-
-							/* Any way to get the input element as a parameter here? */
-							$scope.importData = () => {
+							
+							$scope.importData = (file) => {
 								
 								let reader = new FileReader();
 								
@@ -400,7 +400,7 @@ function OP (bg) {
 									
 								}
 								
-								reader.readAsText($("#import_data")[0].files[0]);
+								reader.readAsText(file);
 							}
 
 							$scope.exportData = () => {
@@ -411,7 +411,7 @@ function OP (bg) {
 							$scope.clearStoredData = () => {
 								
 								browser.storage.local.clear()
-									.then($scope.__updateData);
+									.then(resp => { $scope.__updateData(); self.bg.resource_mgr.recreateRoot() });
 							}
 							
 							$scope.editUserDefs = () => {

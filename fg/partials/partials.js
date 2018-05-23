@@ -370,14 +370,17 @@ angular.module('jslPartials', [])
 						   $scope.addItem = () => {
 
 							   $scope.adding = true;
-							   $('#' + $scope.idname).keypress(e => {
-								   
-								   if (e.which == 13)
-									   $scope.newDir();
-
-								   return true;
-
-							   });
+							   $('#' + $scope.idname)
+								   .keypress(
+									   e => {
+										   
+										   if (e.which == 13)
+											   $scope.newDir();
+										   
+										   return true;
+										   
+									   }
+								   );
 						   }
 
 						   $scope.selectItemType = (nval) => {
@@ -534,7 +537,7 @@ angular.module('jslPartials', [])
 						   }
 						   
 						   $scope.newDir = () => {
-
+							   
 							   let dirname = $scope.new_name + "/";
 							   let validated = $scope.new_name ? $scope.__resourceNameValidation(dirname) : null;
  
@@ -546,12 +549,12 @@ angular.module('jslPartials', [])
 									   items: []
 								   
 								   });
-
+								   
 								   $('#' + $scope.idname).off('keypress');
 								   $scope.adding = false;
 								   
 							   } else {
-								   
+
 								   if ($scope.errID)
 									   $interval.cancel($scope.errID);
 								   
@@ -563,9 +566,9 @@ angular.module('jslPartials', [])
 										   times --;		   
 										   $('#' + $scope.idname).css({
 											   
-											   'box-shadow' : unescape(escape('0 0 20px ' + times + 'px red')),
-											   '-moz-box-shadow' : unescape(escape('0 0 20px ' + times + 'px red')),
-											   '-webkit-box-shadow' : unescape(escape('0 0 20px ' + times + 'px red'))
+											   'box-shadow' : '0 0 20px ' + times + 'px red',
+											   '-moz-box-shadow' : '0 0 20px ' + times + 'px red',
+											   '-webkit-box-shadow' : '0 0 20px ' + times + 'px red'
 										   });
 										   
 									   }, 20, 21, true);
@@ -578,6 +581,7 @@ angular.module('jslPartials', [])
 											   'box-shadow' : '',
 											   '-moz-box-shadow' : '',
 											   '-webkit-box-shadow' : ''
+											   
 										   });
 
 									   }, ok => {});

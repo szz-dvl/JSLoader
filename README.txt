@@ -1,5 +1,4 @@
 - In-progress:
-  - BUG in the script selection for an URL, in sites for domain.
   - Virtual Resources:
 			* Missing DB management
 			* Missing Content API.
@@ -9,7 +8,7 @@
   
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
-  - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too!)
+  - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
   - Opened windows after browser crash ==> to be recovered.
   - Extensions seems to be sharing storage key names!!
 	

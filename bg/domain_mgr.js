@@ -109,39 +109,33 @@ function DomainMgr (bg) {
 			});
 	};
 
-	this.__getSitesInfoFor = (domain, pathname) => {
+	this.__getSitesInfoFor = (domain, pname) => {
 		
-		let sites = [];
 		let res = { scripts: [], groups: domain.groups };
-
+		let pathname = pname.split("/").slice(1).join("/");
+		let path = "/";
+		
 		if (domain.scripts.length)
-			res.scripts.push({ name: "/", scripts: domain.scripts });
+			res.scripts.push({ name: "/", scripts: domain.scripts }); 
 		
 		if (pathname) {
 			
-			let path = "/";
-			
-			for (let endpoint of pathname.split("/").slice(1)) {
-			
+			for (let endpoint of pathname.split("/")) {
+				
 				path += endpoint;
 				site = domain.haveSite(path);
-			
-				if (site && site.url != "/")
-					sites.push(site);
-			
-				path += "/";	
-			}
-			
-			if (sites.length) {
 				
-				for (site of sites) {
-
+				if (site) {
+					
 					if (site.scripts.length)
 						res.scripts.push({ name: site.url,  scripts: site.scripts });
-
+					
 					if (site.groups.length)
 						res.groups.push.apply(res.groups, site.groups);
 				}
+
+				path += "/";
+				
 			}
 		}
 		
@@ -164,7 +158,7 @@ function DomainMgr (bg) {
 								let info = this.__getSitesInfoFor(subdomain, pathname);			
 								
 								scripts.push.apply(scripts,
-									info.scripts.reduce((val, nval) => { return val.scripts.concat(nval.scripts); }, {scripts: []}));
+									info.scripts.reduce((val, nval) => { return val.concat(nval.scripts); }, []));
 								
 								groups.push.apply(groups,
 									info.groups);
@@ -187,8 +181,7 @@ function DomainMgr (bg) {
 			}
 		);
 	};
-
-	/* BUG!!! */
+	
 	this.getScriptsForUrl = (url) => {
 		
 		return new Promise (
@@ -210,10 +203,9 @@ function DomainMgr (bg) {
 								let sites = this.__getSitesInfoFor(domain, url.pathname);
 		
 								/* Domain & Site scripts */
-
-								/* val.scripts: undefined !!! */
+								
 								scripts.push.apply(scripts,
-									sites.scripts.reduce((val, nval) => { return val.scripts.concat(nval.scripts); }, {scripts: []}));
+									sites.scripts.reduce((val, nval) => { return val.concat(nval.scripts); }, []));
 								
 								groups.push.apply(groups,
 									sites.groups);	

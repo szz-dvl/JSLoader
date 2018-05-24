@@ -1,4 +1,5 @@
 - In-progress:
+  - Siblings, Checkbox gutter
   - Virtual Resources:
 			* Missing DB management
 			* Missing Content API.

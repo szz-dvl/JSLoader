@@ -175,29 +175,34 @@ body {
 	-moz-transform: scaleX(-1);
 }
 
-.info-container {
-
+.settings-button {
+	
 	position: absolute;
-	bottom: 0;
-	right: 0;
-	width: 40% !important;
-	min-width: 40% !important;
-	max-width: 40% !important;
+	bottom: 2%;
+	right: 15px;
 	z-index: 99999999;
 
 }
 
-#result-info {
-	float: right !important;
-	margin-right: 20px;
-	margin-bottom: 20px;
-	
+.settings-panel {
+
+	position: absolute;
+	bottom: 75px;
+	right: -4px;
+	width: 250px;
+	height: 250px;
+	z-index: 99999999;
+	background: #fbfbfb;
+	box-shadow: -5px 7px #ebebeb;
+	transition: transform 0.5s;
+    transition-timing-function: ease-in;
 }
 
-/* .hidden_elem { */
+.settings-panel-hidden {
 
-/* 	/\* visibility: hidden !important;	 *\/ */
-/* } */
+	transform: translateX(251px);
+
+}
 
 .mright {
 

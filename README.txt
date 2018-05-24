@@ -1,5 +1,5 @@
 - In-progress:
-  - Add small menu in editor to configure settings quickly (bottom right corner).
+  - BUG in the script selection for an URL, in sites for domain.
   - Virtual Resources:
 			* Missing DB management
 			* Missing Content API.

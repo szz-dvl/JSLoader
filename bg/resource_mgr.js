@@ -148,77 +148,36 @@ function ResourceMgr (bg) {
 			}
 		);
 	};
-	
-	/* ** */
+
 	this.solveHierarchyFor = (name) => {
-		
+
 		return new Promise(
 			(resolve, reject) => {
 				
-				let split = name.split("/");
-				let last = name;
+				this.findResource(this.__getParentFor(name))
+					.then(parent => {
 
-				split.pop();
-				
-				let path = []
-				
-				while (split.length) {
-					
-					path.push(split.join("/") + "/");
-					split.pop();
-				}
-				
-				async.eachSeries(path,
-					(actual, next) => {
-		
-						this.findResource(actual)
-							.then(resource_dir => {
-								
-								if (resource_dir) {
-									
-									if (resource_dir.appendItem(last)) {
-										
-										resource_dir.persist().then(next, next);
-										
-									} else {
-										
-										next(actual);
-										
-									}
+						if (parent) {
 
-									last = actual;
-									
-								} else {
-									
-									let dir = new ResourceDir({
+							parent.appendItem(name);
+							parent.persist().then(dir => { resolve(name) }, reject);
+
+						} else {
+
+							let dir = new ResourceDir({
 										
-										name: actual
+								name: this.__getParentFor(name)
 										
-									});
-									
-									dir.appendItem(last);
-									
-									last = actual;
-								
-									dir.persist().then(
-										dirp => {
-											
-											next();
-											
-										}, next
-									);
-								}
-							})
-							
-					}, err => {
+							});
+
+							dir.appendItem(name);
+							dir.persist().then(resource => { this.solveHierarchyFor(this.__getParentFor(name)).then(resolve, reject) }, reject);
+						}
 						
-						if (err instanceof Error) 
-							reject(err);	
-						else	
-							resolve(err);
-					}
-				);
-			});
+					}, reject);
+				
+			}
+		)
 	};
 	
 	this.storeResource = (name, file) => {

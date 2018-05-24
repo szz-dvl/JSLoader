@@ -192,7 +192,90 @@ angular.module('jslPartials', [])
 			
 			link: function (scope, element) {
 				
-				element.on('change', scope.ngOnChange);
+				element.on('change', scope.ngOnChange());
+			}
+		};
+	})
+	
+	.directive('editorSettings', function() {
+		
+		return {
+			
+			restrict: "E",
+			replace: true,
+			scope: {
+				onChange: '&',
+				opts: '=',
+				rows: '=?'
+			},
+
+			templateUrl: function (elem, attr) {
+					
+				return browser.extension.getURL("fg/partials/editor-sett.html");
+					
+			},
+
+			link: function ($scope, elem, attrs) {
+
+				$scope.rows = 'rows' in attrs ? $scope.rows : false;
+				
+			},
+			
+			controller: function ($scope) {
+				
+				$scope.fonts = [
+					
+					"serif",
+					"sans-serif",
+					"monospace"
+				];
+				
+				$scope.themes = [
+					
+					"monokai",
+					"ambiance",
+					"chaos", 
+					"chrome",
+					"clouds",
+					"clouds_midnight",
+					"cobalt",
+					"crimson_editor",
+					"dawn",
+					"dreamweaver",
+					"eclipse",
+					"github",
+					"gob", 
+					"gruvbox",
+					"idle_fingers",
+					"iplastic",
+					"katzenmilch",
+					"kr_theme",
+					"kuroir",
+					"merbivore",
+					"merbivore_soft",
+					"mono_industrial",
+					"pastel_on_dark",
+					"solarized_dark",
+					"solarized_light",
+					"sqlserver",
+					"terminal",
+					"textmate",
+					"tomorrow",
+					"tomorrow_night_blue", 
+					"tomorrow_night_bright",
+					"tomorrow_night_eighties",
+					"tomorrow_night", 
+					"twilight",
+					"vibrant_ink",
+					"xcode"
+				];
+
+				$scope.onOptChange = (opt) => {
+
+					$scope.onChange()(opt);
+					
+				};
+				
 			}
 		};
 	})
@@ -205,7 +288,6 @@ angular.module('jslPartials', [])
 			replace: true,
 			transclude: true,
 			scope: {
-				file: "=",
 				text: "=?",
 				padding: "=?",
 				ngFileSelected: '&'
@@ -213,7 +295,7 @@ angular.module('jslPartials', [])
 			},
 
 			template: '<div style="display: inline;">' +
-				'<input ng-show="false" type="file" ng-on-change="inptChange()" class="browser-style"/>' +
+				'<input ng-show="false" type="file" ng-on-change="inptChange" class="browser-style"/>' +
 				'<button class="browser-style" ng-click="inptClick()"> {{ text }} </button>' +
 				'</div>',
 
@@ -262,9 +344,7 @@ angular.module('jslPartials', [])
 				$scope.__resolved = () => {
 					
 					$scope.__handleDone();
-					
-					$scope.$parent[$scope.file] = $scope.input[0].files[0];
-					$scope.ngFileSelected();
+					$scope.ngFileSelected()($scope.input[0].files[0]);
 				};
 				
 				$scope.__selectCheck = () => {
@@ -363,7 +443,6 @@ angular.module('jslPartials', [])
 						   $scope.dir_shown = true;
 						   $scope.item_type = "directory";
 						   $scope.adding = false;
-						   $scope.file = null;
 						   $scope.new_name = "";
 						   $scope.idname = $scope.name.replace(/\//g, '-');
 						   

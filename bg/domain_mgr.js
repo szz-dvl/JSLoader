@@ -187,7 +187,8 @@ function DomainMgr (bg) {
 			}
 		);
 	};
-	
+
+	/* BUG!!! */
 	this.getScriptsForUrl = (url) => {
 		
 		return new Promise (

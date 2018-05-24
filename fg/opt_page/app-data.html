@@ -79,8 +79,7 @@
 			<no-info ng-if="!domains.length && !groups.length" style="padding-top: 6%;"></no-info>
 			<div style="text-align: center;margin-top: 25px;">
 				<input-file
-					file="'file'"
-					ng-file-selected="importData(file)"
+					ng-file-selected="importData"
 					text="'Import Data'">
 				</input-file>
 				<button class="browser-style"

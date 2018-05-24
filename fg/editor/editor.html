@@ -20,7 +20,7 @@
 	  
   </head>
   
-  <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle($event)" ng-cloak>
+  <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle()" ng-cloak>
 
 	  <!-- ng-if fails here ¿¿?? -->
 	  <div ng-show="editor.script.parent" id="dropdown-header">
@@ -71,7 +71,7 @@
 	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999;">
 		  
 		  <button ng-repeat="button in buttons.arr"
-			  ng-if="button.available"
+			  ng-show="button.available"
 			  ng-disabled="buttons.disabled"
 			  id="button.id"
 			  class="hidden-elem browser-style mright jsload_button"
@@ -80,8 +80,20 @@
 			  {{button.text}}
 			  
 		  </button>
+		  
 	  </div>
-	  
+
+	   <div ng-class="settings_shown ? 'settings-panel' : 'settings-panel settings-panel-hidden'">
+		   
+		   <editor-settings rows="true" opts="opts" on-change="onOptChange"></editor-settings>
+		   
+	   </div>
+
+	   <div id="settings_btn" ng-mouseenter="buttonToggle()" class="settings-button">
+		   <img class="hidden-elem" ng-show="!settings_hover" style="outline: none;" src="../icons/settings_gears.png" width="48px" height="48px" ng-mouseover="settings_hover = true">
+		   <img class="hidden-elem" ng-show="settings_hover" style="outline: none;" src="../icons/settings_gears.gif" width="48px" height="48px" ng-click="toggleSettings()" ng-mouseleave="settings_hover = false">
+	   </div>
+	   
 	  <script src="editor.js"></script>
 	  
   </body>

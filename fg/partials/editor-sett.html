@@ -1,0 +1,82 @@
+<table style="display:table; width: 100%">
+	<thead>
+		<th ng-if="!rows" ng-repeat="opt in opts track by opt.id"></th>
+		<th ng-if="rows"></th>
+	</thead>
+	<tbody style="display: table-row-group;">
+
+		<tr ng-if="!rows">
+			<td ng-if="!rows" ng-repeat="opt in opts track by opt.id" ng-style="$index ? {} : {'width': '15%'}" class="browser-style">
+
+				<label for="{{opt.id}}" class="browser-style" style="margin-left: 25px;width: 100;display: inline-block">
+					
+					<bdi class="browser-style" ng-if="['text', 'select'].includes(opt.type)"> {{opt.text}}: </bdi>
+					
+					<input
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' != opt.type"
+						type="{{opt.type}}"
+						ng-model="opt.value"
+						ng-change="onOptChange(opt)"/>
+					
+					<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
+					
+					<select
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' == opt.type && 'theme' == opt.id"
+						ng-model="opt.value"
+						ng-options="theme for theme in themes"
+						ng-change="onOptChange(opt)"></select>
+
+					<select
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' == opt.type && 'font' == opt.id"
+						ng-model="opt.value"
+						ng-options="font for font in fonts"
+						ng-change="onOptChange(opt)"></select>
+					
+				</label>
+
+				
+			</td>
+		</tr>
+		<tr ng-if="rows" ng-repeat="opt in opts track by opt.id" class="browser-style">
+			<td>
+				<label for="{{opt.id}}" class="browser-style" style="margin-left: 25px;width: 100;display: inline-block">
+					
+					<bdi class="browser-style" ng-if="['text', 'select'].includes(opt.type)"> {{opt.text}}: </bdi>
+					
+					<input
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' != opt.type"
+						type="{{opt.type}}"
+						ng-model="opt.value"
+						ng-change="onOptChange(opt)"/>
+					
+					<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
+					
+					<select
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' == opt.type && 'theme' == opt.id"
+						ng-model="opt.value"
+						ng-options="theme for theme in themes"
+						ng-change="onOptChange(opt)"></select>
+
+					<select
+						id="{{opt.id}}"
+						class="browser-style"
+						ng-if="'select' == opt.type && 'font' == opt.id"
+						ng-model="opt.value"
+						ng-options="font for font in fonts"
+						ng-change="onOptChange(opt)"></select>
+					
+				</label>
+			</td>
+		</tr>
+	</tbody>
+</table>

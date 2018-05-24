@@ -48,11 +48,11 @@ function OptionMgr (bg) {
 				let self = this;
 				
 				this.storage
-					.setOptions({ editor: self.editor, data_origin: self.data_origin })
+					.setOptions({ editor: Object.assign({}, self.editor), data_origin: self.data_origin })
 					.then(
 						() => {
 							
-							this.bg.editor_mgr.broadcastEditors({action: "opts", message: self.editor});
+							this.bg.editor_mgr.broadcastEditors({action: "opts", message: Object.assign({}, self.editor)});
 							
 						}
 					);

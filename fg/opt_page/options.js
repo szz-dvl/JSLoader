@@ -65,54 +65,8 @@ function OP (bg) {
 							
 							$scope.editor_active = true;
 
-							$scope.fonts = [
-								
-								"serif",
-								"sans-serif",
-								"monospace"
-							];
-							
-							$scope.themes = [
-								"monokai",
-								"ambiance",
-								"chaos", 
-								"chrome",
-								"clouds",
-								"clouds_midnight",
-								"cobalt",
-								"crimson_editor",
-								"dawn",
-								"dreamweaver",
-								"eclipse",
-								"github",
-								"gob", 
-								"gruvbox",
-								"idle_fingers",
-								"iplastic",
-								"katzenmilch",
-								"kr_theme",
-								"kuroir",
-								"merbivore",
-								"merbivore_soft",
-								"mono_industrial",
-								"pastel_on_dark",
-								"solarized_dark",
-								"solarized_light",
-								"sqlserver",
-								"terminal",
-								"textmate",
-								"tomorrow",
-								"tomorrow_night_blue", 
-								"tomorrow_night_bright",
-								"tomorrow_night_eighties",
-								"tomorrow_night", 
-								"twilight",
-								"vibrant_ink",
-								"xcode"
-							];
-
 							$scope.onOptChange = (opt) => {
-
+								
 								self.bg.option_mgr.persistEditorOpt(opt);
 								
 								let aux = {};
@@ -130,11 +84,12 @@ function OP (bg) {
 							
 							$scope.opts = [
 
-								{text:'Show gutter line', value: self.bg.option_mgr.editor.showGutter, id: "showGutter", type: "checkbox", change: $scope.onOptChange},
-								{text:'Margin column', value: self.bg.option_mgr.editor.printMarginColumn, id: "printMarginColumn", type: "text", change: $scope.onOptChange},
-								{text:'Font size', value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text", change: $scope.onOptChange},
-								{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select", change: $scope.onOptChange},
-								{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select", change: $scope.onOptChange}
+								{text:'Show gutter line', value: self.bg.option_mgr.editor.showGutter, id: "showGutter", type: "checkbox"},
+								{text:'Margin column', value: self.bg.option_mgr.editor.printMarginColumn, id: "printMarginColumn", type: "text"},
+								{text:'Font size', value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text"},
+								{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select"},
+								{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select"}
+								
 							];
 						}
 					},
@@ -309,7 +264,6 @@ function OP (bg) {
 							
 							$scope.domains = dataStorage.domains;
 							$scope.groups = dataStorage.groups;
-							$scope.file = null;
 							$scope.appdata_active = $scope.domains.length + $scope.groups.length > 0;
 							
 							

@@ -97,18 +97,43 @@ function EditorFG (id, bg) {
 			
 			this.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", () => {
 				
-				this.btn_panel.find( ".hidden-elem" ).css("visibility", "hidden");
-				this.btn_panel.find( ".hidden-elem" ).css("display", "block");			
-
+				this.btn_panel.find(".hidden-elem")
+					.css({
+						"visibility" : "hidden",
+						"display": "block"
+					});
+				
+				this.settings_btn.find(".hidden-elem")
+					.css({
+						"visibility" : "hidden",
+						"display": "block"
+					});
+				
 				this.dropdown.fadeOut();
+				
 				
 			});
 			
 		} else {
 			
-			this.btn_panel.find( ".hidden-elem" ).css("display", "none");
-			this.btn_panel.find( ".hidden-elem" ).css("visibility", "visible");
-			this.btn_panel.find( ".hidden-elem" ).fadeIn();	
+			this.btn_panel.find(".hidden-elem").css({
+
+				"display" : "none",
+				"visibility": "visible"
+
+			});
+
+			this.btn_panel.find( ".hidden-elem" ).fadeIn();
+			
+			this.settings_btn.find(".hidden-elem").css({
+				
+				"display" : "none",
+				"visibility": "visible"
+				
+			});
+			
+			this.settings_btn.find( ".hidden-elem" ).fadeIn();
+			
 
 			this.dropdown.fadeIn();
 		}
@@ -274,16 +299,18 @@ function EditorFG (id, bg) {
 		this.editor.ace.resize();
 	};
 	
-	this.resetAce = () => {
+	this.resetAce = (args) => {
+
+		let opts = args || this.bg.option_mgr.editor;
 		
-		this.editor.ace.setPrintMarginColumn(this.bg.option_mgr.editor.printMarginColumn);
-		this.editor.ace.renderer.setShowGutter(this.bg.option_mgr.editor.showGutter);
-		this.editor.ace.setTheme("ace/theme/" + this.bg.option_mgr.editor.theme);
+		this.editor.ace.setPrintMarginColumn(opts.printMarginColumn);
+		this.editor.ace.renderer.setShowGutter(opts.showGutter);
+		this.editor.ace.setTheme("ace/theme/" + opts.theme);
 		
 		this.editor.ace.setOptions({
 			
-			fontSize: self.bg.option_mgr.editor.fontSize + "pt",
-			fontFamily: self.bg.option_mgr.editor.font
+			fontSize: opts.fontSize + "pt",
+			fontFamily: opts.font
 			
 		});
 	}
@@ -302,6 +329,7 @@ function EditorFG (id, bg) {
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
 		
 		$scope.editor_collapsed = false;
+		$scope.settings_shown = false;
 		
 		$scope.$watch(
 			
@@ -317,6 +345,47 @@ function EditorFG (id, bg) {
 					self.collapseHeader();
 			}
 		);
+
+		$scope.onOptChange = (opt) => {
+			
+			switch(opt.id) {
+
+				case "showGutter":
+					$scope.editor.ace.renderer.setShowGutter(opt.value);
+					break;
+				case "printMarginColumn":
+					$scope.editor.ace.setPrintMarginColumn(opt.value);
+					break;
+				case "fontSize":
+					$scope.editor.ace.setOptions({ fontSize: opt.value + "pt" });
+					break;
+				case "theme":
+					$scope.editor.ace.setTheme("ace/theme/" + opt.value);
+					break;
+				case "font":
+					$scope.editor.ace.setOptions({ fontFamily: opt.value });
+					break;
+				default:
+					break;
+			}
+			
+		};
+		
+		$scope.opts = [
+
+			{text:'Show gutter line', value: self.bg.option_mgr.editor.showGutter, id: "showGutter", type: "checkbox"},
+			{text:'Margin column', value: self.bg.option_mgr.editor.printMarginColumn, id: "printMarginColumn", type: "text"},
+			{text:'Font size', value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text"},
+			{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select"},
+			{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select"}
+			
+		];
+
+		$scope.toggleSettings = () => {
+			
+			$scope.settings_shown = !$scope.settings_shown;
+
+		}
 		
 		$scope.buttons = {
 			
@@ -473,7 +542,7 @@ function EditorFG (id, bg) {
 			switch (request.action) {
 				case "opts":
 				
-					self.resetAce();
+					self.resetAce(request.message);
 				
 				default:
 					break;
@@ -486,6 +555,7 @@ function EditorFG (id, bg) {
 		this.editor_bucket = $("#code_container");
 		this.dropdown = $("#dropdown-header");
 		this.btn_panel = $("#btns_panel");
+		this.settings_btn = $("#settings_btn");
 		this.res_box = $("#result-info");
 		this.target = $("#url_pattern");
 		

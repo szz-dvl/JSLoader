@@ -20,13 +20,16 @@
 	  
   </head>
   
-  <body spellcheck=false ng-controller="editorController" ng-click="buttonToggle()" ng-cloak>
+  <body spellcheck=false ng-controller="editorController" ng-cloak>
 
 	  <!-- ng-if fails here ¿¿?? -->
-	  <div ng-show="editor.script.parent" id="dropdown-header">
-		  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
+	  <div class="dropdown-header" ng-mouseenter="buttonToggle()" style="height:30px;width:30px;">
+		  <div ng-show="editor.script.parent" id="dropdown-header">
+			  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
+		  </div>
 	  </div>
-	  
+
+	  <!-- ¿button toggle on ng-mouseenter here? -->
 	  <div id="editor-header" class="panel-section panel-section-header">
 		  <div class="text-section-header" style="display: inline-block;width: 100%">
 			  

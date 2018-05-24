@@ -54,7 +54,18 @@ function EditorFG (id, bg) {
 			onTrigger: () => {
 				self.saveCurrent();
 			}
+		},
+		{
+			tab: '2',
+			name: 'settings',
+			parent: self,
+			onTrigger: () => {
+				
+				self.scope.toggleSettings();
+				self.scope.$digest();
+			}
 		}
+		
 	]
 	
 	this.editor = this.bg.editor_mgr.getEditorById(id);

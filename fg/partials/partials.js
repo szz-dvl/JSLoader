@@ -38,6 +38,8 @@ angular.module('jslPartials', [])
 				link: function($scope, element, attrs){
 					
 					$scope.obj = 'item' in attrs;
+					$scope.height = 'height' in attrs ? $scope.height : '20';
+					$scope.width = 'width' in attrs ? $scope.width : '20';
 					
 				},
 				
@@ -72,7 +74,7 @@ angular.module('jslPartials', [])
 					
 					$scope.toggleDD = function (ev) {
 						
-						$(ev.currentTarget).blur(); /* Avoid outline */
+						/* $(ev.currentTarget).blur(); */ /* Avoid outline */
 						$scope.mostra = !$scope.mostra;
 						
 						if ($scope.obj)

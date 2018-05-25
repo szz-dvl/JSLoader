@@ -1,12 +1,7 @@
 - In-progress:
-  - Editor transparency, possible?
-  - Virtual Resources:
+  - Virtual Resources: Content API.
 			* Missing DB management
-			* Missing Content API.
-						
-  - Group creation:
-  	* bugs in PA: scripts not shown after first close (For imported groups ¿?)
-  
+
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -24,7 +19,9 @@
   - startsWith =====> "/" !!!
   - Cascade removes ====> Array.remove [destructive - index lost -] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
   - Virt Resources ==> what is done.
-			
+  - Group creation:
+  	* bugs in PA: scripts not shown after first close (Probably from Array.reduce)
+	
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
   		  * Permissions controlled by user ==> how?
@@ -36,8 +33,8 @@
   - Prevent context menu on extension windows ???
   
 - Issues:
-  - Computed "src" attributes won't display in extension pages (Any workarround)
-  - Blank windows. Resize needed to render.
+  - Computed "src" attributes won't display in extension pages (when evaluated [eval & friends allowed in CSP])
+  - Blank windows. Resize needed to render. (Or right click on the wdw ...)
   - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
   - Downloaded files will allways be named "download".
   

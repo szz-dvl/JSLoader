@@ -1,3 +1,6 @@
-<button ng-class="mostra ? (flipped ? 'ddbutton-hidden' : 'ddbutton-shown' ) : (flipped ? 'ddbutton-shown' : 'ddbutton-hidden')" ng-click="toggleDD($event)" style="border: 0; background: transparent;">
-	<img style="vertical-align: sub;" src="../icons/right-arrow-64.png" width="{{width || '20'}}" height="{{height || '20'}}" alt="submit" />
-</button>
+<img
+	ng-class="mostra ? (flipped ? 'ddbutton-hidden' : 'ddbutton-shown' ) : (flipped ? 'ddbutton-shown' : 'ddbutton-hidden')"
+	ng-click="toggleDD($event)"
+	style="vertical-align: sub;border: 0; background: transparent;width:{{ with }}px;height:{{ height }}px;cursor: pointer"
+	src="../icons/right-arrow-64.png"
+	alt="drop-down"/>

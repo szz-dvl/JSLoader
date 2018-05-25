@@ -109,8 +109,11 @@ function OP (bg) {
 							$scope.virt_siblings = [];
 							$scope.mgr = self.bg.resource_mgr;
 							
-							$scope.filterChange = () => {
+							self.resourcesFilter = $scope.filterChange = (args) => {
 
+								if (args)
+									$scope.filter = args;
+								
 								if($scope.filterID)
 									$timeout.cancel($scope.filterID);
 
@@ -365,7 +368,13 @@ function OP (bg) {
 							$scope.clearStoredData = () => {
 								
 								browser.storage.local.clear()
-									.then(resp => { $scope.__updateData(); self.bg.resource_mgr.recreateRoot() });
+									.then(resp => {
+
+										$scope.__updateData();
+										self.bg.resource_mgr.recreateRoot()
+											.then(self.resourcesFilter);
+										
+									});
 							}
 							
 							$scope.editUserDefs = () => {

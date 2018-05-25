@@ -32,20 +32,24 @@ function ResourceMgr (bg) {
 	/* When clearing storage, be aware of other extensions! */
 	this.recreateRoot = () => {
 
-		this.storage.getResource(
-			root => {
+		return new Promise(
+			(resolve, reject) => {
 				
-				if (!root) {
-				
-					new ResourceDir({
+				this.storage.getResource(
+					root => {
 						
-						name: "/"
-					
-					}).persist();
-				}	
+						if (!root) {
+							
+							new ResourceDir({
+								
+								name: "/"
+								
+							}).persist().then(storage => { resolve("/"); }, reject);
+						}	
 			
-			}, "/"
-		);
+					}, "/"
+				);
+			});
 	};
 	
 	this.findResource = (name) => {

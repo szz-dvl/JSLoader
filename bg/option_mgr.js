@@ -17,15 +17,6 @@ function OptionMgr (bg) {
 	this.bg = bg;
 	this.storage = global_storage;
 	this.events = null;
-
-	this.default_defs = "\n/* Those are example definitions, won't be persisted or loaded \n until you decide so. */\n" + 
-		'\nthis.video = ["webm", "mp4", "ogg", "mkv"];\n\n' +
-		'this.isNativeVideoExtension = (ext) => {\n' + 
-		'\treturn this.video.includes(ext);\n' +
-		'};\n\n' +
-		'this.getNamedInputValue = (name) => {\n' +
-		'\treturn $("input[name=" + name + "]").attr("value");\n' +
-		'};';
 	
 	this.storage.getOptions(
 		
@@ -78,16 +69,22 @@ function OptionMgr (bg) {
 		this.storage.getUserDefs(
 			defs => {
 				
-				this.bg.editor_mgr.openEditorInstanceForScript(
-					new Script (
-						{
-							name: "UserDefs",
-							id:"UserDefs",
-							parent: null,
-							code: defs || this.default_defs 
-						}
-					)
-				);
+				let promise = defs ? Promise.resolve(defs) : this.bg.readLocalFile("init/user-defs.js");
+
+				promise.then(
+					defs => {
+					
+						this.bg.editor_mgr.openEditorInstanceForScript(
+							new Script (
+								{
+									name: "UserDefs",
+									id:"UserDefs",
+									parent: null,
+									code: defs 
+								}
+							)
+						);
+					});
 			});
 	};
 	

@@ -66,6 +66,23 @@ function BG_mgr () {
 				});
 	};
 	
+	this.readLocalFile = (path) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				fetch(browser.extension.getURL(path))
+					.then(
+						response => {
+							
+							response.text().then(resolve, reject);
+							
+						}, reject
+					);
+			}
+		);
+	};
+	
 	this.receiveCmd = (command) => {
 		
 		switch(command) {

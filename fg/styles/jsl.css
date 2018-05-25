@@ -91,3 +91,40 @@ div.resource-add::before {
 div.resource-add::after {
 	content: ' ';
 }
+
+input[type=checkbox] {
+
+	opacity: 0;
+    position: absolute;
+}
+
+span.checkmark {
+
+	position: relative;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 12px;
+    vertical-align: middle;
+    background-color: inherit;
+    color: #017b5f;
+    border: 2px solid #666;
+}
+
+span.checkmark:hover {
+
+	background-color: #ebebeb;
+	
+}
+
+input[type=checkbox]:checked+.checkmark:after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 10px;
+    height: 10px;
+	margin: auto;
+    background-color: #666;
+}

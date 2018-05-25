@@ -245,7 +245,7 @@ function EditorFG (id, bg) {
 									this.scope.enableButtons();
 									
 									if (parent && parent.isResource()) {
-			
+										
 										if (self.bg.option_mgr.events) 
 											self.bg.option_mgr.events.emit("new-resource", parent);
 
@@ -396,6 +396,13 @@ function EditorFG (id, bg) {
 			
 			$scope.settings_shown = !$scope.settings_shown;
 
+		}
+
+		$scope.settingsSrc = (enter) => {
+			
+			let next = "../icons/settings_gears" + (enter ? '.gif' : '.png');
+			$('#settings_img').attr('src', next);
+			
 		}
 		
 		$scope.buttons = {

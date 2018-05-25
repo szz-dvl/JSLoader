@@ -304,7 +304,7 @@ angular.module('jslPartials', [])
 				$scope.input = element.find('input');
 				$scope.button = element.find('button');
 				$scope.text = 'text' in attrs ? $scope.text : 'Import File';
-				$scope.padding = 'padding' in attrs ? $scope.padding : 35;
+				$scope.padding = 'padding' in attrs ? $scope.padding : 30;
 				$scope.backup = $scope.text;
 				
 			},
@@ -350,7 +350,7 @@ angular.module('jslPartials', [])
 				$scope.__selectCheck = () => {
 					
 					$scope.times = 100;
-					$scope.text = "Cancel";
+					$scope.text = $scope.input[0].files[0].name;
 					
 					$scope.button.css({
 						
@@ -862,7 +862,6 @@ angular.module('jslPartials', [])
 				scope: {
 					
  					name: "=",
-					siblings: "=",
 					ev: "=?"
 					
 				},
@@ -870,7 +869,7 @@ angular.module('jslPartials', [])
 				template: '<input class="browser-style" type="text" ng-model="text" ng-change="textChange()" />',
 
 				controller: function ($scope) {
-
+					
 					$scope.allowed = ['js', 'html', 'json', 'css'];
 					
 					$scope.text = $scope.name.split("/").pop();
@@ -892,23 +891,23 @@ angular.module('jslPartials', [])
 					}
 					
 					$scope.__textValidate = (text) => {
-
+						
 						if ($scope.ev)
 							$scope.ev.emit('validation_start', text);
 						
 						if ($scope.valID)
 							$timeout.cancel($scope.valID);
-
+						
 						$scope.valID = $timeout(
 							(pending) => {
-
-								let ok = pending.slice(-1) != "/" && !$scope.siblings.includes($scope.parent + pending) && $scope.allowed.includes(pending.split(".").pop());
+								
+								let ok = pending.slice(-1) != "/" && $scope.allowed.includes(pending.split(".").pop());
 								
 								if (ok) 	
 									$scope.backup = $scope.text = pending;
 								else 
 									$scope.text = $scope.backup;
-
+								
 								return ok;
 								
 							}, 2500, true, text

@@ -154,8 +154,9 @@ function OP (bg) {
 
 											});
 										
-									}, 350) 
+									}, 350);
 
+								return $scope.filterID;
 							}
 
 							/* User asked to remove the top resource in view, unasisted by views ... (root will never arrive here) */
@@ -251,7 +252,6 @@ function OP (bg) {
 								resource => {
 									
 									$scope.filterChange();
-
 								}
 							);
 						}

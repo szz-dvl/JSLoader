@@ -28,7 +28,7 @@ function ResourceMgr (bg) {
 		return name.split("/").slice(0, slice).join("/") + "/";
 
 	};
-
+	
 	/* When clearing storage, be aware of other extensions! */
 	this.recreateRoot = () => {
 
@@ -59,14 +59,20 @@ function ResourceMgr (bg) {
 						if (resource) 
 							resolve(resource);
 						else {
-							
-							this.bg.database_mgr.getSync([name], 'resources')
-								.then(arr => {
-									
-									resolve(arr.length ? arr[0] : null);
-									
-								}, reject);
-							
+
+							if (this.bg.database_mgr.connected) {
+								
+								this.bg.database_mgr.getSync([name], 'resources')
+									.then(arr => {
+										
+										resolve(arr.length ? arr[0] : null);
+										
+									}, reject);
+
+							} else {
+
+								resolve(null);
+							}
 						}
 					
 					}, name);

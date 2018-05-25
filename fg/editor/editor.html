@@ -58,8 +58,7 @@
 					  style="display: inline-block; width: 30%;margin: 0;"
 					  ng-if="script.parent.isResource()"
 					  ev="page.events"
-					  name="resource_name"
-					  siblings="editor.siblings"></resource-name>
+					  name="resource_name"></resource-name>
 				  
 			  </div>
 		  </div>
@@ -86,15 +85,24 @@
 		  
 	  </div>
 
-	   <div ng-class="settings_shown ? 'settings-panel' : 'settings-panel settings-panel-hidden'">
+	   <div ng-class="settings_shown ? 'settings-panel' : 'settings-panel settings-panel-hidden'" style="padding-top: 15px;">
 		   
 		   <editor-settings rows="true" opts="opts" on-change="onOptChange"></editor-settings>
 		   
 	   </div>
 
 	   <div id="settings_btn" ng-mouseenter="buttonToggle()" class="settings-button">
-		   <img class="hidden-elem" ng-show="!settings_hover" style="outline: none;" src="../icons/settings_gears.png" width="48px" height="48px" ng-mouseover="settings_hover = true">
-		   <img class="hidden-elem" ng-show="settings_hover" style="outline: none;" src="../icons/settings_gears.gif" width="48px" height="48px" ng-click="toggleSettings()" ng-mouseleave="settings_hover = false">
+		   <img
+			   id="settings_img"
+			   class="hidden-elem"
+			   ng-show="!settings_hover"
+			   style="outline: none;"
+			   src="../icons/settings_gears.png"
+			   width="48px"
+			   height="48px"
+			   ng-mouseenter="settingsSrc(true)"
+			   ng-mouseleave="settingsSrc(false)"
+			   ng-click="toggleSettings()">
 	   </div>
 	   
 	  <script src="editor.js"></script>

@@ -1,5 +1,5 @@
 - In-progress:
-  - Siblings, Checkbox gutter
+  - Editor transparency, possible?
   - Virtual Resources:
 			* Missing DB management
 			* Missing Content API.

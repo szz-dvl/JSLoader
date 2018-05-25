@@ -19,6 +19,8 @@
 						type="{{opt.type}}"
 						ng-model="opt.value"
 						ng-change="onOptChange(opt)"/>
+
+					<span ng-if="'checkbox' == opt.type" class="checkmark"> </span>
 					
 					<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
 					
@@ -44,8 +46,8 @@
 			</td>
 		</tr>
 		<tr ng-if="rows" ng-repeat="opt in opts track by opt.id" class="browser-style">
-			<td>
-				<label for="{{opt.id}}" class="browser-style" style="margin-left: 25px;width: 100;display: inline-block">
+			<td style="padding-bottom: 5px;">
+				<label for="{{opt.id}}" style="margin-left: 25px;width: 100;display: inline-block">
 					
 					<bdi class="browser-style" ng-if="['text', 'select'].includes(opt.type)"> {{opt.text}}: </bdi>
 					
@@ -56,6 +58,8 @@
 						type="{{opt.type}}"
 						ng-model="opt.value"
 						ng-change="onOptChange(opt)"/>
+					
+					<span ng-if="'checkbox' == opt.type" class="checkmark"> </span>
 					
 					<bdi ng-class="opt.value ? 'browser-style pressed' : 'browser-style'" ng-if="'checkbox' == opt.type"> {{opt.text}} </bdi>
 					
@@ -68,6 +72,7 @@
 						ng-change="onOptChange(opt)"></select>
 
 					<select
+						style="margin-left: 13px;"
 						id="{{opt.id}}"
 						class="browser-style"
 						ng-if="'select' == opt.type && 'font' == opt.id"

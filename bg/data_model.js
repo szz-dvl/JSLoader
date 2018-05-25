@@ -907,7 +907,7 @@ function ResourceDir (opt) {
 				
 			});
 	}
-
+	
 	this.remove = () => {
 
 		return new Promise (
@@ -930,7 +930,7 @@ function ResourceDir (opt) {
 	}
 
 	this.removeItem = (name) => {
-
+		
 		let exists = this.items.indexOf(name);
 
 		if (exists >= 0)
@@ -1139,7 +1139,7 @@ function Resource (opt) {
 					
 					global_storage.__getResources(
 						resources => {
-
+							
 							this.db.removeResources([this.name])
 								.then(() => { resolve(this) }, reject);
 							

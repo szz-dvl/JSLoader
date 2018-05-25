@@ -18,7 +18,7 @@ function EditorWdw (opt) {
 							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
 					}
 					
-					Promise.all([browser.windows.create({
+					browser.windows.create({
 						
 						type: "popup",
 						state: "normal",
@@ -26,11 +26,10 @@ function EditorWdw (opt) {
 						width: Math.min(1024, screen.width), 
 						height: 420 
 						
-					}), editor.script.parent && editor.script.parent.isResource() ? editor.script.parent.getSiblings() : Promise.resolve(null)]).then (
-						arr => {
+					}).then (
+						wdw => {
 							
-							editor.wdw = arr[0];
-							editor.siblings = arr[1];
+							editor.wdw = wdw;
 							
 							/* 
 							   Workaround to avoid blank windows: 
@@ -41,12 +40,12 @@ function EditorWdw (opt) {
 							
 							let updateInfo = {
 								
-								width: editor.wdw.width,
-								height: editor.wdw.height + 1, // 1 pixel more than original size...
+								width: wdw.width,
+								height: wdw.height + 1, // 1 pixel more than original size...
 								
 							};
 							
-							browser.windows.update(editor.wdw.id, updateInfo)
+							browser.windows.update(wdw.id, updateInfo)
 								.then(
 									newWdw => {
 										

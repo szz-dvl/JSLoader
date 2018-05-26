@@ -31,7 +31,8 @@ function BG_mgr () {
 									resolve(nfo);
 									
 								}, reject);
-					});
+						
+					}, reject);
 			});	
 	};
 	
@@ -104,7 +105,6 @@ function BG_mgr () {
 				break;
 		}
 	};
-	
 }
 
 BG_mgr.call(this);

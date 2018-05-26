@@ -238,7 +238,7 @@ function DomainMgr (bg) {
 					}, url.hostname);
 			});
 	};
-
+	
 	this.getEditInfoForUrl = (url) =>  {
 		
 		let self = this;
@@ -267,7 +267,7 @@ function DomainMgr (bg) {
 							editInfo.exists = true;
 							
 							let info = this.__getSitesInfoFor(domain, url.pathname);
-
+							
 							editInfo.site.push.apply(editInfo.site,
 								info.scripts);
 							
@@ -275,7 +275,7 @@ function DomainMgr (bg) {
 								info.groups); 
 							
 						}
-
+						
 						this.__getRepresentedBy(url.hostname)
 							.then(
 								subdomains => {

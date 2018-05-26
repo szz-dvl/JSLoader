@@ -28,9 +28,59 @@ function JSLTab (tabInfo, feeding) {
 	}
 }
 
+function deferredXHR (parent, tabId, scripts, frames) {
+	
+	this.tabId = tabId;
+	this.scripts = scripts;
+	this.frames = frames;
+	this.running = false;
+	
+	this.execute = () => {
+
+		this.running = true;
+
+		/* To be tested. */
+		console.warn('Re-running scripts at tab: ' + this.tabId);
+
+		/* Only one frame if Main frames ... */
+		async.each(this.frames,
+			(frame, next) => {
+				
+				frame.run(this.scripts)
+					.then(response => { next(); }, err => { next(); });
+				
+			}, err => {
+
+				parent.deferred.remove(
+					parent.deferred.findIndex(
+						deferred => {
+							
+							return deferred.tabId == this.tabId;
+							
+						}
+					)
+				);
+			}
+		);	
+	}
+	
+	this.earlyExecute = () => {
+		
+		clearTimeout(this.toID);
+		this.execute();
+		
+	}
+	
+	this.toID = setTimeout(this.execute, 1250);
+
+	parent.deferred.push(this);
+}
+
+
 function TabsMgr (bg) {
 	
 	this.bg = bg;
+	this.deferred = [];
 	
 	this.updateURLForTab = (tabId, url) => {
 
@@ -79,11 +129,11 @@ function TabsMgr (bg) {
 		
 		return new Promise (
 			(resolve, reject) => {
-			
+				
 				browser.tabs.query({ currentWindow: true, active: true })
 					.then(
 						tab_info => {
-							
+
 							resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
 
 						}, reject);
@@ -120,6 +170,23 @@ function TabsMgr (bg) {
 							
 						}, reject);
 			});
+	};
+
+	this.factory = (tabInfo) => {
+
+		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
+			
+	};
+
+	this.isDeferred = (tabId) => {
+		
+		return this.deferred.find(
+			deferred => {
+				
+				return deferred.tabId == tabId;
+				
+			}
+		);
 	};
 	
 	this.showPA = (tabId, changeInfo, tabInfo) => {
@@ -161,12 +228,6 @@ function TabsMgr (bg) {
 				});
 	};
 	
-	this.factory = (tabInfo) => {
-
-		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
-			
-	};
-	
 	this.updateWdws = (tabId, changeInfo) => {
 
 		browser.tabs.get(tabId.tabId || tabId)
@@ -174,17 +235,49 @@ function TabsMgr (bg) {
 				tabInfo => {
 					
 					if (tabInfo.active) {
+
+						if (changeInfo) {
+
+							let deferred = this.isDeferred(tabInfo.id);
+
+							if (deferred && !deferred.running) {
+								
+								deferred.earlyExecute();
+
+							}
+
+							if (!deferred) {
+								
+								if (changeInfo.url && changeInfo.status == "complete") {
+
+									/* Try to handle properly pages that load contents via XHR requests (ng-route & friends) */
+									
+									let frames = this.bg.content_mgr.getMainFramesForTab(tabInfo.id);
+
+									if (frames.length) {
+
+										this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
+											.then(
+												scripts => {
+													
+													if (scripts.length) 
+														new deferredXHR(this, tabInfo.id, scripts, frames);
+												
+												}
+											);
+									}	
+								}
+							}
+						}
 						
 						let url = new URL(tabInfo.url).sort();
 						
 						for (let editor of this.bg.editor_mgr.editors) 
 							editor.newTab(tabInfo, (url.hostname && url.protocol != "moz-extension:") ? true : false);
-						
 					}
 					
 				});
 	};
-
 	
 	browser.tabs.onUpdated.addListener(this.updateWdws);
 	browser.tabs.onActivated.addListener(this.updateWdws);

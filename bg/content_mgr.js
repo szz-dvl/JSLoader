@@ -279,7 +279,7 @@ function CSMgr (bg) {
 
 		return this.__forceMainFramesForTab(tabId, false);
 
-	};
+	}; 
 
 	this.getStatus = (script_id, tabId) => {
 
@@ -400,7 +400,6 @@ function CSMgr (bg) {
 	};
 	
 	this.contentDownload = (port, tag, options) => {
-		
 		
 		browser.downloads.download(typeof(options) == 'string' ? {url: options} : options)
 			.then(

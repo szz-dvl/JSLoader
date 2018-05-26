@@ -391,16 +391,18 @@ function PA (bg, info) {
 	);
 }
 
+/* !! catch error !! */
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
 			page.getPASite()
 				.then(
 					info => {
-
+						
 						new PA(page, info);
 						
 					}
-				);						
+				);
+			
 		}
 	);

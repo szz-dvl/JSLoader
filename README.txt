@@ -2,6 +2,7 @@
   	- Sync opt page editor settings with editor menu.
 	- Editor: several tab tappings on header breaks page.
 	- Editor: hide buttons on user scroll and editor focus.
+	- PA: Re-arrange lists.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -20,10 +21,10 @@
   - Group OwnerOf =====> Redesigned matching pattern. *
   - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
   - Proxys ===> test new PAC completely.
-  - Editor ===> minor testing, style floatting buttons (z-index above editor??).
+  - Editor ===> minor testing.
   - startsWith =====> "/" !!!
   - Cascade removes ====> Array.remove [ destructive - index lost - ] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
-  - Virt Resources ==> what is done. (Virt FS, Content API[v1]);
+  - Virt Resources ==> what is done. (Virt FS, Content API[v1] ==> load resource directory);
   - Group creation:
   	* bugs in PA: scripts not shown after first close (Probably from Array.reduce)	
 

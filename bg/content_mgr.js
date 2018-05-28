@@ -165,7 +165,6 @@ function CSMgr (bg) {
 									group: group_name
 								}
 							});
-						
 					}
 				)
 				
@@ -676,7 +675,7 @@ function CSMgr (bg) {
 						port => {
 
 							let frame = this.getFrameForPort(port);
-
+							
 							for (let loaded of frame.resources) 
 								this.bg.resource_mgr.unloadResource(loaded);
 

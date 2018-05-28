@@ -531,7 +531,7 @@ function ResourceMgr (bg) {
 	};
 	
 	this.unloadResource = (name) => {
-
+		
 		if (name.slice(-1) == "/") {
 
 			let idx = this.loaded.findIndex(
@@ -548,7 +548,7 @@ function ResourceMgr (bg) {
 
 				this.loaded.remove(idx);
 				
-				let idx = this.loaded.findIndex(
+				idx = this.loaded.findIndex(
 					resource => {
 						
 						return resource.name.startsWith(name);

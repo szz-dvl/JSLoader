@@ -2,14 +2,8 @@
 	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
 	- PA: Re-arrange lists.
-	¿?
-	- Groups won't be removed from its associated domains on group removal.
-	- Site name validator in PA group chooser fails if modified.
-	- Group addition for hostname fails sometimes (asyn: callback was already called).
 	- Frames not found on native video player (Adding group dyn amically).
-	- Run in Page for groups (from PA).
 	- Editor tab check for updated.
-	- Group autoremove.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

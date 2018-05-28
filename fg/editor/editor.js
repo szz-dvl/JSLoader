@@ -523,6 +523,12 @@ function EditorFG (id, bg) {
 			if (!$scope.buttons.shown)
 				self.toggleButtons();
 		};
+
+		$scope.buttonHide = () => {
+			
+			if ($scope.buttons.shown)
+				self.toggleButtons();
+		};
 				
 		/* After interpolation ready ... */
 		$timeout(() => {
@@ -556,6 +562,10 @@ function EditorFG (id, bg) {
 				self.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
+
+			/* @ https://github.com/ajaxorg/ace/issues/2737 */
+			$scope.editor.ace.session.on("changeScrollTop", $scope.buttonHide);
+			$scope.editor.ace.session.on("changeScrollLeft", $scope.buttonHide);
 			
 		});
 	});

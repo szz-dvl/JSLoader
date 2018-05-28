@@ -22,7 +22,7 @@
   
   <body spellcheck=false ng-controller="editorController" ng-cloak>
 	  
-	  <div id="header-top" tabindex="0" ng-keypress="keyOnHeader($event)" style="outline: none;"> 
+	  <div id="header-top" tabindex="0" ng-keypress="keyOnHeader($event)" style="outline: none;" ng-click="buttonToggle()"> 
 	      <!-- ng-if fails here ¿¿?? -->
 		  <div class="dropdown-header" ng-mouseenter="buttonToggle()" style="height:30px;width:30px;">
 			  <div ng-show="editor.script.parent" id="dropdown-header">
@@ -68,7 +68,7 @@
 	  
 	  <div id="code_container" class="panel-section">
 		  
-		  <pre id="code_area"> {{script.code}} </pre>
+		  <pre id="code_area" ng-click="buttonHide()"> {{script.code}} </pre>
 		  
 	  </div>
 	    

@@ -1,7 +1,8 @@
 - In-progress:
+	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
-	- Editor: hide buttons on user scroll and editor focus.
 	- PA: Re-arrange lists.
+	- Groups won't be removed from its associated domains on group removal.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

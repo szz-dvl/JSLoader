@@ -115,7 +115,6 @@ class CSUtils extends EventEmitter {
 			return new HttpRequest(opt, parent);
 			
 		};
-
 		
 	}
 }
@@ -158,7 +157,7 @@ function CSApi () {
 	
 	this.JSLAddSiteToGroup = (site_name, group_name) => {
 
-		return this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name});
+		return (site_name && group_name) ? this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name}) : Promise.reject("Missing info.");
 		
 	};
 
@@ -254,6 +253,12 @@ function CSApi () {
 			   this.__getMessageResponse("import-resource", { path: path || null, url: url, force: typeof(force) == 'undefined' ? false : force }) :
 			   Promise.reject("Missing url");
 	};
+
+	this.JSLDebug = (data) => {
+
+		this.port.postMessage({action: "print", message: {data: data}});
+
+	}
 	
 	this.port.onMessage.addListener(
 		

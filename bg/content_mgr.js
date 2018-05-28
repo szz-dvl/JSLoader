@@ -144,8 +144,8 @@ function CSMgr (bg) {
 			url = site_name.split("://").slice(1).join();
 		else
 			url = site_name;
-
-		let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(url.split("/")[0]);
+		
+		let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z0-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(url.split("/")[0]);
 		let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(url.split("/").slice(1).join("/"));
 
 		let newhost = regexh ? regexh[0] : null;
@@ -663,6 +663,10 @@ function CSMgr (bg) {
 									
 								case "download-file":
 									this.contentDownload(port, args.tag, args.message.args);
+									break;
+
+								case "print":
+									console.log(args.message.data);
 									break;
 									
 								default:

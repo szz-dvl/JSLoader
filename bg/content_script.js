@@ -35,15 +35,16 @@ function ContentScript() {
 	this.runAll = (scripts, response) => {
 
 		let errors = [];
-
+		let id = null;
+		
 		async.eachSeries(scripts,
 			(script, next) =>{
 
-				let id = null;
+				id = null;
 				
 				Promise.onPossiblyUnhandledRejection(
 					err => {
-
+						
 						if (id)
 							clearTimeout(id);
 						

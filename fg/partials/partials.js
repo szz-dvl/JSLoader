@@ -1124,7 +1124,7 @@ angular.module('jslPartials', [])
 									   let pathname = $scope.url.split("/").slice(1).join("/").trim();
 									   
 									   /* Won't match "*" (must it?), Will match "*.NAME.NAME2.NAME3.{...}.NAMEN.*" */
-									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z1-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(hostname);
+									   let regexh = new RegExp(/^(\*\.)?(?:[A-Za-z0-9\-]+\.)+(?:[A-Za-z1-9\-]+|(\*))$/).exec(hostname);
 									   let regexp = new RegExp(/^(?:[a-zA-Z0-9\.\-\_\~\!\$\&\'\(\)\+\,\;\=\:\@\/\*]*)?$/).exec(pathname);
 									   
 									   let newhost = regexh ? regexh[0] : null;

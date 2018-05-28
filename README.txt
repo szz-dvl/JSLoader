@@ -1,12 +1,17 @@
 - In-progress:
-  - Virtual Resources: Content API.
-			* Missing DB management
-
+  	- Sync opt page editor settings with editor menu.
+	- Editor: several tab tappings on header breaks page.
+	- Editor: hide buttons on user scroll and editor focus.
+	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
   - Opened windows after browser crash ==> to be recovered.
   - Extensions seems to be sharing storage key names!!
+
+-To Do:
+	- Virtual Resources: Missing DB management.
+	- script.remove(...) is undefined (pa.js:205);
 	
 - To be tested:
   - Import/Export features. **
@@ -17,18 +22,19 @@
   - Proxys ===> test new PAC completely.
   - Editor ===> minor testing, style floatting buttons (z-index above editor??).
   - startsWith =====> "/" !!!
-  - Cascade removes ====> Array.remove [destructive - index lost -] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
-  - Virt Resources ==> what is done.
+  - Cascade removes ====> Array.remove [ destructive - index lost - ] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
+  - Virt Resources ==> what is done. (Virt FS, Content API[v1]);
   - Group creation:
   	* bugs in PA: scripts not shown after first close (Probably from Array.reduce)	
 
   - Added support for pages that load contents via XHR requests: To be tested ===> when pages updates tab info several times after changing its URL
   		  		  	  			 	  		   	   	   			 (faster solution implemented: the first change will run the associated scripts, enough for any page?
 																 		 ===> otherwise debounce deferred execute until last change)
-	
-	
+
+															   * Hypothetical: Active/Unactive tab loading content via XHR without changing tab params (detectable?? ==> request filter.)
+															   
 - Caveats: /* !!! */
-  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿?]
+  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿? ]
   		  * Permissions controlled by user ==> how?
 		  * Limit third party domains for each site ==> how?
 		  * Possible conflicts between scripts ?? ... =S ...
@@ -36,6 +42,7 @@
   - Editor Buttons to top bar?
   - Add binded site to group in group creation?
   - Prevent context menu on extension windows ???
+  - Use classes in data_model && mgrs.
   
 - Issues:
   - Computed "src" attributes won't display in extension pages (when evaluated [eval & friends allowed in CSP])

@@ -229,7 +229,7 @@ function TabsMgr (bg) {
 	};
 	
 	this.updateWdws = (tabId, changeInfo) => {
-
+		
 		browser.tabs.get(tabId.tabId || tabId)
 			.then(
 				tabInfo => {
@@ -243,19 +243,19 @@ function TabsMgr (bg) {
 							if (deferred && !deferred.running) {
 								
 								deferred.earlyExecute();
-
+								
 							}
-
+							
 							if (!deferred) {
 								
 								if (changeInfo.url && changeInfo.status == "complete") {
-
+									
 									/* Try to handle properly pages that load contents via XHR requests (ng-route & friends) */
 									
 									let frames = this.bg.content_mgr.getMainFramesForTab(tabInfo.id);
-
+									
 									if (frames.length) {
-
+										
 										this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
 											.then(
 												scripts => {

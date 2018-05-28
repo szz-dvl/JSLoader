@@ -116,7 +116,7 @@ function PA (bg, info) {
 		}
 		
 		$scope.onSizeChange = () => {
-
+			
 			if ($scope.sizeID)
 				$timeout.cancel($scope.sizeID);
 

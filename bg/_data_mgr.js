@@ -129,7 +129,7 @@ function DataMgr (opt) {
 	this.getItem = (item_name) => {
 
 		return new Promise(
-			resolve => {
+			(resolve, reject) => {
 				this.storage["get" + this.key](
 					item => {
 

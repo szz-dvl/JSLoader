@@ -4,7 +4,7 @@ function Options (opt) {
 	
 	this.editor = opt.editor || {
 		
-		showGutter: false,
+		showGutter: true,
 		printMarginColumn: 80,
 		fontSize: 10,
 		theme: "github",

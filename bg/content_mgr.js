@@ -5,6 +5,7 @@ function CS (port) {
 	this.frame = port.sender || null;
 	this.id = port.name.split("_")[1];
 	this.history = [];
+	this.resources = [];
 	
 	this.run = (scripts) => {
 		
@@ -53,9 +54,9 @@ function CS (port) {
 
 		let idx = this.history.findIndex(
 			record => {
-
+				
 				return record.id == script_id;
-
+				
 			}
 		);
 
@@ -77,12 +78,25 @@ function CS (port) {
 		
 		return record ? (record.status ? 1 : -1) : 0;
 	}
+	
+	this.addLoadedResource = (url) => {
+		
+		if (!this.resources.includes(url))
+			this.resources.push(url);
+	};
+
+	this.removeLoadedResource = (url) => {
+		
+		this.resources.remove(
+			this.resources.indexOf(url)
+		);
+	};
 }
 
 function CSMgr (bg) {
 	
 	let self = this;
-
+	
 	this.bg = bg;
 	this.alive = [];
 	this.storage = global_storage;
@@ -432,6 +446,98 @@ function CSMgr (bg) {
 					
 				});
 	};
+
+	this.contentLoadResource = (port, tag, name) => {
+
+		let res = [];
+		let frame = this.getFrameForPort(port);
+		let error = false;
+		
+		this.bg.resource_mgr.loadResource(name)
+			.then(urls => {
+				
+				if (((urls instanceof Array && urls.length) || (urls instanceof Object && urls)))
+					frame.addLoadedResource(name);
+				
+				this.__postTaggedResponse(port, tag,
+					
+					{ status: ((urls instanceof Array && urls.length) || (urls instanceof Object && urls)),
+						
+						content: {
+							
+							urls: urls
+						}
+					}
+				);
+				
+			}, err => {
+				
+				this.__postTaggedResponse(port, tag,
+					
+					{ status: false,
+						
+						content: {
+							
+							err: err.message
+							
+						}
+					}
+				);	
+			});
+	};
+
+	this.contentUnloadResource = (port, tag, name) => {
+		
+		let frame = this.getFrameForPort(port);
+		let error = false;
+
+		this.bg.resource_mgr.unloadResource(name);
+		frame.removeLoadedResource(name);
+		
+		this.__postTaggedResponse(port, tag,
+			
+			{ status: true,
+						
+				content: {
+					
+					unloaded: name
+				}
+			}
+		);
+	};
+
+	this.contentImportAsResource = (port, tag, path, url, force) => {
+		
+		this.bg.resource_mgr.importAsResource(url, force, path)
+			.then(
+				resource => {
+					
+					this.__postTaggedResponse(port, tag,
+						{
+							status: true,
+							content: {
+
+								resource: resource.name
+
+							} 
+						}
+					);
+					
+				}, err => {
+					
+					this.__postTaggedResponse(port, tag,
+						{
+							status: false,
+							content: {
+								
+								err: err.message
+								
+							}
+						}
+					);
+				}
+			);
+	};
 	
 	browser.runtime.onConnect
 		.addListener(
@@ -443,7 +549,7 @@ function CSMgr (bg) {
 						args => {
 							
 							switch (args.action) {
-
+								
 								case "get-info":
 									{
 										
@@ -470,12 +576,15 @@ function CSMgr (bg) {
 														port.postMessage({action: "run",
 															response: "update-history",
 															message: scripts.filter(
+																
 																script => {
 																	
 																	return !script.disabled;
 																	
 																}
+																
 															).map(
+																
 																script => {
 																	
 																	return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
@@ -511,6 +620,18 @@ function CSMgr (bg) {
 									
 								case "notify":
 									this.bg.notify_mgr.user(args.message.title, args.message.body);
+									break;
+
+								case "load-resource":
+									this.contentLoadResource(port, args.tag, args.message.path);
+									break;
+
+								case "unload-resource":
+									this.contentUnloadResource(port, args.tag, args.message.path);
+									break;
+									
+								case "import-resource":
+									this.contentImportAsResource(port, args.tag, args.message.path, args.message.url, args.message.force);
 									break;
 									
 								case "event":
@@ -553,7 +674,12 @@ function CSMgr (bg) {
 					
 					port.onDisconnect.addListener(
 						port => {
-							
+
+							let frame = this.getFrameForPort(port);
+
+							for (let loaded of frame.resources) 
+								this.bg.resource_mgr.unloadResource(loaded);
+
 							/* Check for error */
 							this.alive.remove(
 								this.alive.findIndex(
@@ -563,7 +689,7 @@ function CSMgr (bg) {
 										
 									}
 								)
-							);		
+							);	
 						}
 					);
 				}

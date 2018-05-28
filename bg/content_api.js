@@ -48,81 +48,86 @@ function HttpRequest (opt, cs) {
 		});
 }
 
-function CSUtils (parent) {
+class CSUtils extends EventEmitter {
+	
+	constructor(parent) {
 
-	this.cs = parent;
-	this.events = new EventEmitter ();
+		super();
 		
-	this.sendHttpRequest = (url) => {
-		
-		return new HttpRequest({
-
-			url: url,
-			method: "GET"
-
-		}, this.cs);
-	};
-
-	/* Caller must care about aborting the request if needed. */
-	this.earlyHttpRequest = (url) => {
-
-		return new HttpRequest({
-
-			url: url,
-			method: "GET",
-			early: true
-
-		}, this.cs);
-	};
-
-	this.postHttpRequest = (url, data) => {
-
-		return new HttpRequest({
-
-			url: url,
-			method: "POST",
-			data: data
-
-		}, this.cs);
-	};
-
-	/* @proxy: An object describing a proxy (host, port, type) */
-	this.proxyHttpRequest = (url, proxy) => {
-
-		return new HttpRequest({
-
-			url: url,
-			method: "GET",
-			proxy: proxy
-
-		}, this.cs);
-	};
-
-	this.modifiedHttpRequest = (url, headers) => {
-
-		return new HttpRequest({
+		this.sendHttpRequest = (url) => {
 			
-			url: url,
-			method: "GET",
-			headers: headers
+			return new HttpRequest({
 
-		}, this.cs);
-	};
+				url: url,
+				method: "GET"
+				
+			}, parent);
+		};
 
-	this.complexHttpRequest = (opt) => {
+		/* Caller must care about aborting the request if needed. */
+		this.earlyHttpRequest = (url) => {
+			
+			return new HttpRequest({
+				
+				url: url,
+				method: "GET",
+				early: true
 
-		return new HttpRequest(opt, this.cs);
-	};
+			}, parent);
+		};
+		
+		this.postHttpRequest = (url, data) => {
+			
+			return new HttpRequest({
+
+				url: url,
+				method: "POST",
+				data: data
+				
+			}, parent);
+		};
+		
+		/* @proxy: An object describing a proxy (host, port, type) */
+		this.proxyHttpRequest = (url, proxy) => {
+
+			return new HttpRequest({
+				
+				url: url,
+				method: "GET",
+				proxy: proxy
+
+			}, parent);
+		};
+
+		this.modifiedHttpRequest = (url, headers) => {
+
+			return new HttpRequest({
+				
+				url: url,
+				method: "GET",
+				headers: headers
+
+			}, parent);
+		};
+
+		this.complexHttpRequest = (opt) => {
+			
+			return new HttpRequest(opt, parent);
+			
+		};
+
+		
+	}
 }
 
 function CSApi () {
-
+	
 	this.JSLUtils = new CSUtils(this);
-
+	
 	this.__getMessageResponse = (action, message) => {
 		
 		let event_id = UUID.generate().split("-").pop();
-
+		
 		this.port.postMessage({action: action, message: message, tag: event_id});
 		
 		return new Promise (
@@ -130,24 +135,26 @@ function CSApi () {
 				
 				let myID = setTimeout(
 					() => {
-
-						this.JSLUtils.events.off(event_id);
-						reject({status: false, content: "Timed-out."});
+						
+						this.JSLUtils.off(event_id);
+						reject({ err: "Timed-out." });
 						
 					}, 5000);
 				
-				this.JSLUtils.events
-					.once(event_id,
-						  response => {
-							  
-							  clearTimeout(myID);
-							  resolve(response);
-							  
-						  });
-				
+				this.JSLUtils.once(event_id,
+					response => {
+						
+						clearTimeout(myID);
+						
+						if (response.status)
+							resolve(response.content);
+						else
+							reject(response.content); /* Treat error properly. */
+					}
+				);
 			}
 		);
-	}
+	};
 	
 	this.JSLAddSiteToGroup = (site_name, group_name) => {
 
@@ -157,14 +164,15 @@ function CSApi () {
 
 	/* May return "undefined" values on unexistent keys */
 	this.JSLGetGlobal = (key) => {
-
-		return this.__getMessageResponse ("get-global", {key: key});
+		
+		return key ? this.__getMessageResponse ("get-global", {key: key}) : Promise.reject("Missing key");
 		
 	};
 
 	this.JSLSetGlobal = (key, val) => {
 
-		return this.__getMessageResponse ("set-global", {key: key, value: val});
+		
+		return key ? this.__getMessageResponse ("set-global", {key: key, value: val}) : Promise.reject("Missing key");
 		
 	};
 
@@ -177,7 +185,7 @@ function CSApi () {
 
 	this.JSLProxyHost = (hostname, proxy, times) => {
 
-		return this.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times });
+		return hostname ? this.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times }) : Promise.reject("Missing hostname");
 		
 	};
 
@@ -192,21 +200,29 @@ function CSApi () {
 	
 	this.JSLDownload = (params, proxy) => {
 
-		let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
-		
-		let promises = [];
+		if (params) {
 
-		if (proxy) {
-			promises.push(this.__getMessageResponse("set-proxy",
+			let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
+		
+			let promises = [];
+
+			if (proxy) {
+
+				promises.push(this.__getMessageResponse("set-proxy",
+					
+					{ host: url.hostname, proxy: proxy, times: 1 }
 				
-				{ host: url.hostname, proxy: proxy, times: 1 }
-				
-			));
+				));
+			}
+			
+			promises.push(this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
+		
+			return Promise.all(promises);
+
+		} else {
+
+			return Promise.reject('Missing params');
 		}
-
-		promises.push(this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
-		
-		return Promise.all(promises);
 	};
 	
 	this.JSLNotifyUser = (title, message) => {
@@ -214,36 +230,55 @@ function CSApi () {
 		this.port.postMessage({action: "notify", message: {title: title, body: message}});
 		
 	};
-
+	
 	this.JSLEventNeighbours = (name, args) => {
-		
-		this.port.postMessage({action: "event", message: {name: name, args: args}});
+
+		if (name)
+			this.port.postMessage({action: "event", message: {name: name, args: args}});
 		
 	};
 	
-	this.port.onMessage.addListener(
+	this.JSLResourceLoad = (path) => {
 
+		return path ? this.__getMessageResponse("load-resource", { path: path }) : Promise.reject("Missing path");
+	};
+
+	this.JSLResourceUnload = (path) => {
+		
+		return path ? this.__getMessageResponse("unload-resource", { path: path }) : Promise.reject("Missing path");
+	};
+
+	this.JSLImportAsResource = (url, force, path) => {
+
+		return url ?
+			   this.__getMessageResponse("import-resource", { path: path || null, url: url, force: typeof(force) == 'undefined' ? false : force }) :
+			   Promise.reject("Missing url");
+	};
+	
+	this.port.onMessage.addListener(
+		
 		response => {
 			
 			switch (response.action) {
 
 				/* Event Neighbours */
-			case "content-script-ev":
+				case "content-script-ev":
 				
-				this.JSLUtils.events.emit(response.message.name, response.message.args);
-
-				break;
-
-			case "response":
-				this.JSLUtils.events.emit(response.tag, response.message);
-
-				break;
+					this.JSLUtils.emit(response.message.name, response.message.args);
+					break;
+					
+				case "response":
+					
+					this.JSLUtils.emit(response.tag, response.message);
+					break;
 				
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 	);
+
+	
 
 }
 

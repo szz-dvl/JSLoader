@@ -63,7 +63,9 @@ function BG_mgr () {
 		this.group_mgr.getOrCreateItem(group_name, false)
 			.then(
 				group => {
+					
 					this.editor_mgr.openEditorInstanceForGroup(group);
+					
 				});
 	};
 	

@@ -353,55 +353,227 @@ function ResourceMgr (bg) {
 			});
 	}
 	
+	this.importAsResource = (url, force, name) => {
+		
+		return new Promise (
+			(resolve, reject) => {
+
+				try {
+
+					let myurl = new URL(url);
+					
+					fetch(url)
+						.then(
+							response => {
+								
+								let actual_name = name || '/imported/' + url.split("/").pop().split('?')[0];
+								let type = response.headers.get('content-type').split(';')[0];
+
+								if (type) {
+									
+									if (type.includes('javascript'))
+										type = 'text/javascript';													
+									
+									let split = actual_name.split(".");
+									let expected = type.split("/").pop() != 'javascript' ? new RegExp(/[a-z]+/).exec(type.split("/").pop())[0] : 'js' ;
+									let received = split.slice(-1).join();
+									
+									if (expected != received) 
+										actual_name = split.slice(0, -1).join('.') ? split.slice(0, -1).join('.') + "." + expected : actual_name + '.' + expected;
+
+									this.findResource(this.__getParentFor(actual_name))
+										.then(
+											parent => {
+
+												let ok = true;
+												
+												if (parent) {
+
+													if (force) {
+
+														let cnt = 1;
+														let backup = actual_name;
+														
+														while (parent.items.includes(actual_name)) {
+														
+															actual_name = backup.split(".").slice(0, -1).join(".") + cnt.toString() + "." + expected;
+															cnt ++;
+														}
+														
+													} else {
+														
+														if (parent.items.includes(actual_name))
+															ok = false;
+													}
+												}
+
+												let promise = ok ?
+															  (type.includes('text') ? response.text() : response.arrayBuffer()) :
+															  Promise.reject(new Error('Overwriting existing resource: ' + actual_name));
+												
+												promise.then(data => {
+													
+													/* @: https://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string */
+													
+													let content = type.includes('text') ? data : btoa(String.fromCharCode(...new Uint8Array(data)));
+													let size = content.length * 2; /* Not actually accurate ... */
+													
+													this.solveHierarchyFor(actual_name)
+														.then(
+															last_created => {
+
+																let mgr = this;
+																
+																new Resource ({
+																	
+																	name: actual_name,
+																	type: type,
+																	file: content,
+																	db: (size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null,
+																	size: size
+																	
+																}).persist().then(resolve, reject);
+																
+															}, reject
+														);
+													
+												}, reject);
+
+											}, reject);
+									
+								} else {
+
+									reject(new Error('Bad content type.'));
+
+								}
+								
+							}, reject);
+
+				} catch(err) {
+
+					reject(err);
+					
+				}
+			});
+	};
+	
 	this.loadResource = (name) => {
 		
 		return new Promise(
 			(resolve, reject) => {
+
+				let urls = [];
 				
 				this.findResource(name)
 					.then(resource => {
 						
 						if (resource) {
+
+							if (resource.dir) {
+
+								async.each(resource.items,
+									(item, next) => {
+
+										this.loadResource(item)
+											.then(loaded => {
+
+												if (loaded instanceof Array) 
+													urls.push.apply(urls, loaded);
+												else
+													urls.push(loaded);
+
+												next();
+												
+											}, err => {
+
+												next();
+
+											})
+
+									}, err => {
+
+										resolve(urls);
+										
+									}
+								)
+									
+							} else {
+
+								let loaded = this.loaded.find(
+									resource => {
+										
+										return resource.name == name;
+				
+									}
+								);
+
+								if (loaded)
+									resolve(loaded);
+								else {
+
+									let res = { name: resource.name, url: resource.load() };
 							
-							let url = resource.load();
+									this.loaded.push(res);
+									
+									resolve(res);
+								}
+							}
 							
-							this.loaded.push({ name: resource.name, url: url });
+						} else {
 							
-							resolve(url);
+							reject(new Error("Attempting to load missing resource: " + name));
 							
-						} else 	
-							reject(new Error("Attempting to load missing resource: " + resource.name));
+						}
 							
 					}, reject);
 			}
 		)
 	};
-
+	
 	this.unloadResource = (name) => {
 
-		let url = null;
-		
-		let idx = this.loaded.findIndex(
-			resource => {
-				
-				return resource.name == name;
-				
-			}
-		);
-		
-		if (idx >= 0) {
+		if (name.slice(-1) == "/") {
 
-			url = this.loaded[idx].url;
-			URL.revokeObjectURL(url);
-			this.loaded.remove(idx);
+			let idx = this.loaded.findIndex(
+				resource => {
+				
+					return resource.name.startsWith(name);
+				
+				}
+			);
 			
+			while (idx >= 0) {
+				
+				URL.revokeObjectURL(this.loaded[idx].url);
+
+				this.loaded.remove(idx);
+				
+				let idx = this.loaded.findIndex(
+					resource => {
+						
+						return resource.name.startsWith(name);
+						
+					}
+				);
+			}
+
 		} else {
 
-			return Promise.reject(new Error("Attempting to unload an unloaded resource: " + name));
-			
-		}
+			let idx = this.loaded.findIndex(
+				resource => {
+					
+					return resource.name == name;
+				
+				}
+			);
 		
-		return Promise.resolve(url);
+			if (idx >= 0) {
+
+				URL.revokeObjectURL(this.loaded[idx].url);
+				this.loaded.remove(idx);
+				
+			}
+		}	
 	};
 
 	this.viewResource = (name) =>{

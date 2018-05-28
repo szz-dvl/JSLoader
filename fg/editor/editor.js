@@ -392,6 +392,13 @@ function EditorFG (id, bg) {
 			
 		];
 
+		$scope.keyOnHeader = (ev) => {
+
+			/* Tab = 0; */
+			return ev.which;
+			
+		}
+		
 		$scope.toggleSettings = () => {
 			
 			$scope.settings_shown = !$scope.settings_shown;

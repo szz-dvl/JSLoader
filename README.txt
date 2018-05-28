@@ -1,6 +1,5 @@
 - In-progress:
   	- Sync opt page editor settings with editor menu.
-	- Editor: several tab tappings on header breaks page.
 	- Editor: hide buttons on user scroll and editor focus.
 	- PA: Re-arrange lists.
 	

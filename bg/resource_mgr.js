@@ -533,10 +533,10 @@ function ResourceMgr (bg) {
 	this.unloadResource = (name) => {
 		
 		if (name.slice(-1) == "/") {
-
+			
 			let idx = this.loaded.findIndex(
 				resource => {
-				
+					
 					return resource.name.startsWith(name);
 				
 				}

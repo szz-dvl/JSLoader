@@ -14,41 +14,8 @@ function PA (bg, info) {
 		script_list: false,
 		group_mgr: false,
 		current_group: bg.group_mgr.groups[0],
-		lists: {
-			
-			groups: info.groups.map(group => { return { name: group.name, state: false }; }),
-			site: info.site.map(resource => { return { name: resource.name, state: false }; }),
-			subdomains: info.subdomains.map(subdomain => { return { name: subdomain.name, state: false }; })
-		}
-	};
-
-	this.removeObsolete = (info) => {
+		sections: ""
 		
-		for (let key of Object.keys(this.pa_state.lists)) {
-			
-			for (let state of this.pa_state.lists[key]) {
-			
-				let found_item = info[key]
-					.find(
-						item => {
-							
-							return item.name == state.name;
-							
-						}
-					);
-
-				if (!found_item) {
-
-					this.pa_state.lists[key].remove(
-						this.pa_state.lists[key].findIndex(
-							old_state => {
-								return old_state.name == state.name;
-							}
-						)
-					);
-				}
-			}
-		}
 	};
 	
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
@@ -64,9 +31,9 @@ function PA (bg, info) {
 		$scope.disabled = self.info.disabled;
 		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
 		$scope.scrips_active = self.pa_state.script_list;
-
+		
 		$scope.disableSite = () => {
-
+			
 			$scope.disabled = !$scope.disabled;
 			self.bg.domain_mgr.toggleDisableFor($scope.hostname);
 			
@@ -74,10 +41,9 @@ function PA (bg, info) {
 		}
 
 		$scope.removeSite = () => {
-
-			/* Are U sure? */
+			
 			self.bg.domain_mgr.removeItem($scope.hostname)
-				.then($scope.updateData, console.error);
+				.then(() => { self.scheduleUpdateAt(350); }, console.error);
 		}
 		
 		$scope.updateData = () => {
@@ -91,17 +57,16 @@ function PA (bg, info) {
 								
 								$scope.info = self.info = info;
 								$scope.user_info = (info.site.length + info.subdomains.length + info.groups.length) != 0;
-
-								self.removeObsolete(info);
-
+								
 								browser.pageAction.setIcon(
 									{
 										path: {
+
 											16: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-16.png"),
 											32: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-32.png")
 												
 										},
-
+										
 										tabId: $scope.page.tabId
 									}
 								);
@@ -141,7 +106,7 @@ function PA (bg, info) {
 
 			return $scope.sizeID;
 		}
-
+		
 		$scope.$watch(() => { return $scope.scripts_active },
 			nval => {
 
@@ -172,56 +137,44 @@ function PA (bg, info) {
 		
 	});
 
-	this.listController = (key, scope, state) => {
+	this.itemExtend = (item, scope, section) => {
 
+		item.section = section
+		item.visible = self.mustOpen(item.section + item.name);
 		
-		/* To be observed
-		   console.log("listController for " + key);
-		   console.log(this.info[key]); */
-		
-		return this.info[key].map(
-			item => {
+		scope.$watch(() => { return item.visible },
+			(nval, oval) => {
 				
-				let gotState = state.lists[key].find(
-					item_state => {
-						
-						return item_state.name == item.name; 
-					}
-				 );
-				
-				item.visible = gotState ? gotState.state : false;
-				
-				if (!gotState)
-					self.pa_state.lists[key].push({ name: item.name, state: false });
-				
-				scope.$watch(() => { return item.visible },
-					(nval, oval) => {
+				if (nval != oval) {
+					
+					scope.onSizeChange();
 
-						if (nval != oval) {
-							
-							scope.onSizeChange();
-						
-							let idx = self.pa_state.lists[key].findIndex(
-								item_state => {
-									
-									return item_state.name == item.name;
-								
-								}
-							);
-							
-							self.pa_state.lists[key][idx].state = nval;
-						}
-					}
-				);
-				
-				return item;
+					if (nval)
+						self.addOpenedSection(item.section + item.name);
+					else
+						self.removeOpenedSection(item.section + item.name);
+				}
 			}
 		);
+		
+		return item;
 	};
+
+	this.scheduleUpdateAt = (to) => {
+		
+		if (self.updtId)
+			clearTimeout(self.updtId);
+		
+		self.updtId = setTimeout(() => {
+			
+			this.list_mgr.updateData();
+			
+		}, to)
+	}
 	
 	this.remove = (script) => {
 		
-		script.remove().then(this.list_mgr.updateData());
+		script.remove().then(() => { this.scheduleUpdateAt(350); });
 	};
 	
 	this.reload = (script, compile, scope) => {
@@ -249,6 +202,26 @@ function PA (bg, info) {
 				}
 			);
 	};
+
+	this.addOpenedSection = (name) => {
+
+		self.pa_state.sections += (";" + name); 
+		
+	};
+	
+	this.removeOpenedSection = (name) => {
+		
+		let split = self.pa_state.sections.split(";");
+		split.remove(split.indexOf(name));
+		
+		self.pa_state.sections = split.join(";");
+	};
+	
+	this.mustOpen = (name) => {
+		
+		return self.pa_state.sections.split(";")
+			.find(sec => { return sec == name; }) ? true : false;	
+	};
 	
 	this.app.config(
 		$stateProvider => {
@@ -268,8 +241,29 @@ function PA (bg, info) {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.key = "resource";
-							$scope.data = self.listController("site", $scope, $stateParams.state);
+							$scope.data = [{
+								
+								title: $scope.hostname,
+								list: self.info["site"].map(site => { return self.itemExtend(site, $scope, $scope.hostname) } ),
+								visible: self.mustOpen($scope.hostname)
+									
+							}];
+
+							$scope.$watch(() => { return $scope.data[0].visible },
+								(nval, oval) => {
+				
+									if (nval != oval) {
+										
+										$scope.onSizeChange();
+										
+										if (nval)
+											self.addOpenedSection($scope.hostname);
+										else
+											self.removeOpenedSection($scope.hostname);
+										
+									}
+								}
+							);
 							
 						}
 					},
@@ -278,15 +272,28 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams) {
-
 							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.key = "group";
-							$scope.data = self.listController('groups', $scope, $stateParams.state);
-							
+							$scope.data = [{title: 'Groups', list: self.info["groups"].map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ), visible: self.mustOpen('Groups') } ];
+
+							$scope.$watch(() => { return $scope.data[0].visible },
+								(nval, oval) => {
+									
+									if (nval != oval) {
+										
+										$scope.onSizeChange();
+
+										if (nval)
+											self.addOpenedSection('Groups');
+										else
+											self.removeOpenedSection('Groups');
+										
+									}
+								}
+							);
 						}
 					},
 
@@ -294,14 +301,35 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams) {
-
+							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.key = "subdomain";
-							$scope.data = self.listController("subdomains", $scope, $stateParams.state);
+							$scope.data = [];
 
+							for (let list of self.info["subdomains"]) {
+
+								let elem = { title: list.name, list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ), visible: self.mustOpen(list.name) };
+
+								$scope.data.push(elem);
+
+								$scope.$watch(() => { return elem.visible },
+									(nval, oval) => {
+										
+										if (nval != oval) {
+											
+											$scope.onSizeChange();
+
+											if (nval)
+												self.addOpenedSection(elem.title);
+											else
+												self.removeOpenedSection(elem.title);
+											
+										}
+									}
+								);
+							}
 						}
 					},
 					
@@ -355,9 +383,9 @@ function PA (bg, info) {
 									)
 							};
 							
-							$scope.selectChange = function (nval) {
+							$scope.selectChange = (nval) => {
 								
-								$scope.current = nval; //still not working.
+								self.pa_state.current_group = $scope.current = nval; //still not working.
 								$scope.setAction();
 							};
 							
@@ -384,7 +412,7 @@ function PA (bg, info) {
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
-								promise.then($scope.page.list_mgr.updateData);			
+								promise.then(() => { self.scheduleUpdateAt(350); });			
 							};
 							
 							$timeout(

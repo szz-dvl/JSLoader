@@ -207,7 +207,6 @@ function EditorFG (id, bg) {
 				this.bg.notify_mgr.error("Script Errors: Please check your syntax.");
 				this.editor.ace.gotoLine(error.row + 1, error.column, true);
 				this.scope.enableButtons();
-				this.scope.$digest();
 			}
 		}
 	};

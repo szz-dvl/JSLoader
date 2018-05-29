@@ -1,10 +1,7 @@
 - In-progress:
-	- PA: Re-arrange lists.
 	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
-	- Frames not found on native video player (Adding group dyn amically).
 	- Editor tab check for updated.
-	- editor.js (210) Inprog
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -36,6 +33,9 @@
 
 															   * Hypothetical: Active/Unactive tab loading content via XHR without changing tab params (detectable?? ==> request filter.)
 															   
+  - PA: Re-arrange lists [DropDown button keep failing when parent sections hides them while opened].
+  - Frames not found ===> getFramesFor instead of getMainFramesFor;
+  
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿? ]
   		  * Permissions controlled by user ==> how?

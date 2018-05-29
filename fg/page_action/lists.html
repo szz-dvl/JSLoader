@@ -1,58 +1,64 @@
-<div class="panel-section" ng-repeat="item in data track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 20px;">
-	
-	<h4> {{ key }} "{{ item.name }}"
-		<drop-down item="item" width="16" height="16"></drop-down>
+<div ng-repeat="list in data">
+	<h4 style="margin: 10px 0 0 20px;"> {{list.title}}
+		<drop-down item="list" width="14" height="14"></drop-down>
 	</h4>
 	
-	<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible">
-		<thead>
-			<th style="text-align: left; min-width: 30%;">
-				Name
-			</th>
-			<th style="text-align: left;">
-				Status
-			</th>
-			<th></th>
-			<th></th>
-			<th></th>
-			<th></th>
-		</thead>
-		<tbody style="display: table-row-group;">
-			
-			<tr ng-repeat="script in item.scripts track by script.uuid" style="border-bottom: 1px solid black;">
-
-				<td style="min-width: 30%;">
-					<script-name script="script" style="margin-right: 20px;"></script-name>
-				</td>
-				
-				<td style="float: left;margin-left: 10px;padding-right: 30px;">
-					<script-status id="status-{{script.uuid}}" status="page.bg.content_mgr.getStatus(script.uuid, page.tabId)"></script-status>
-				</td>
-				
-				<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
-					<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px; width: 80px; text-align: center;">
-						Reload
-					</button>
-				</td>
-				
-				<td style="float: left;margin-left: 5px;">
-					<button class="browser-style" ng-click="script.toggleDisableFor(page.url)" style="margin-left: 5px; width: 80px; text-align: center;">
-						{{ script.disabledAt(page.url) ? "Enable" : "Disable" }}
-					</button>
-				</td>
-				
-				<td style="float: left; margin-left: 5px;">
-					<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Edit </button>
-				</td>
-
-				<td style="float: left; margin-left: 5px;">
-					<are-u-sure style="margin-left: 5px;" text="'Remove'" action="page.remove(script)"> </are-u-sure>
-				</td>
-				
-			</tr>
-			
-		</tbody>
+	<div ng-show="list.visible" class="panel-section" ng-repeat="item in list.list track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 30px;">
 		
-	</table>
-	
+		<h5 style="margin: 5px 0 0 0;"> {{ item.name }}
+			<drop-down item="item" width="12" height="12"></drop-down>
+		</h5>
+		
+		<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible">
+			<thead>
+				<th style="text-align: left; min-width: 30%;">
+					Name
+				</th>
+				<th style="text-align: left;">
+					Status
+				</th>
+				<th></th>
+				<th></th>
+				<th></th>
+				<th></th>
+			</thead>
+			<tbody style="display: table-row-group;">
+				
+				<tr ng-repeat="script in item.scripts track by script.uuid" style="border-bottom: 1px solid black;">
+
+					<td style="min-width: 30%;">
+						<script-name script="script" style="margin-right: 20px;"></script-name>
+					</td>
+					
+					<td style="float: left;margin-left: 10px;padding-right: 30px;">
+						<script-status id="status-{{script.uuid}}" status="page.bg.content_mgr.getStatus(script.uuid, page.tabId)"></script-status>
+					</td>
+					
+					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
+						<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px; width: 80px; text-align: center;">
+							Reload
+						</button>
+					</td>
+					
+					<td style="float: left;margin-left: 5px;">
+						<button class="browser-style" ng-click="script.toggleDisableFor(page.url)" style="margin-left: 5px; width: 80px; text-align: center;">
+							{{ script.disabledAt(page.url) ? "Enable" : "Disable" }}
+						</button>
+					</td>
+					
+					<td style="float: left; margin-left: 5px;">
+						<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Edit </button>
+					</td>
+
+					<td style="float: left; margin-left: 5px;">
+						<are-u-sure style="margin-left: 5px;" text="'Remove'" action="page.remove(script)"> </are-u-sure>
+					</td>
+					
+				</tr>
+				
+			</tbody>
+			
+		</table>
+		
+	</div>
 </div>

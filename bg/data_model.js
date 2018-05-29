@@ -303,7 +303,7 @@ function Site (opt) {
 		
 		return this.parent.removeSite(this.url);	
 	};
-
+	
 	this.persist = () => {
 		
 		return this.parent.persist();
@@ -394,15 +394,21 @@ function Domain (opt) {
 
 	this.schedulePersistAt = (to) => {
 
-		if (this.pID)
-			clearTimeout(this.pID);
+		return new Promise(
+			(resolve, reject) => {
+				
+				if (this.pID)
+					clearTimeout(this.pID);
 		
-		this.pID = setTimeout(
-			() => {
+				this.pID = setTimeout(
+					() => {
 
-				this.persist();
-
-			}, to); 
+						this.persist()
+							.then(resolve, reject);
+						
+					}, to);
+			}
+		)
 	};
 	
 	this.persist = () => {
@@ -461,7 +467,7 @@ function Domain (opt) {
 		
 		let nsite = new Site ({url: pathname, parent: this});	
 		this.sites.push(nsite);
-	
+		
 		return nsite;
 	};
 	
@@ -501,8 +507,8 @@ function Domain (opt) {
 		);
 		
 		return this.isEmpty() ?
-			this.remove() :
-			this.schedulePersistAt(350);		
+			   this.remove() :
+			   this.schedulePersistAt(150);		
 	};
 	
 	this.mergeInfo = (imported) => {

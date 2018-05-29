@@ -281,23 +281,16 @@ function DomainMgr (bg) {
 								subdomains => {
 									
 									for (let subdomain of subdomains) {
+
+										let info = this.__getSitesInfoFor(subdomain, url.pathname);
 										
-										info = this.__getSitesInfoFor(subdomain, url.pathname);
-										
-										editInfo.subdomains.push.apply(editInfo.subdomains,
-											info.scripts.map(
-												script_info => {
-													
-													return {
-														
-														name: subdomain.name + script_info.name,
-														scripts: script_info.scripts
-														
-													};
-												}
-											)
-										);
-										
+										editInfo.subdomains.push({
+
+											name: subdomain.name,
+											sites: info.scripts
+
+										});
+											
 										groups.push.apply(groups,
 											info.groups);	
 									}

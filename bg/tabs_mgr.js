@@ -46,7 +46,7 @@ function deferredXHR (parent, tabId, scripts, frames) {
 		async.each(this.frames,
 			(frame, next) => {
 				
-				frame.run(this.scripts)
+				frame.run(this.scripts, 'deferred-res')
 					.then(response => { next(); }, err => { next(); });
 				
 			}, err => {

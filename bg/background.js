@@ -1,7 +1,8 @@
 function BG_mgr () {
 
 	this.app_events = new EventEmitter();
-
+	this.pa_events = null;
+	
 	this.database_mgr = new DBMgr(this);
 	this.option_mgr = new OptionMgr(this);
 	this.domain_mgr = new DomainMgr(this);

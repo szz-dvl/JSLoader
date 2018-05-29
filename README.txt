@@ -1,7 +1,7 @@
 - In-progress:
+	- PA: Re-arrange lists.
 	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
-	- PA: Re-arrange lists.
 	- Frames not found on native video player (Adding group dyn amically).
 	- Editor tab check for updated.
 	- editor.js (210) Inprog

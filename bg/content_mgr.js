@@ -7,14 +7,15 @@ function CS (port) {
 	this.history = [];
 	this.resources = [];
 	
-	this.run = (scripts) => {
+	this.run = (scripts, action) => {
 		
 		return new Promise(
 			resolve => {
-				
+
+				let my_response = action || "post-results";
 				let my_listener = (args) => {
 					
-					if (args.action == "post-results") {
+					if (args.action == my_response) {
 						
 						args.frame = Object.assign({}, this.frame);
 						
@@ -37,7 +38,7 @@ function CS (port) {
 				
 				this.port.postMessage({
 					action: "run",
-					response: "post-results",
+					response: my_response,
 					message: scripts.map(
 						script => {
 							

@@ -82,7 +82,7 @@ angular.module('jslPartials', [])
 
 				restrict: 'E',
 				replace: true,
-				transclude: true,
+				/* transclude: true, */
 				
 				scope: {
 					val: '=',
@@ -94,6 +94,8 @@ angular.module('jslPartials', [])
 				},
 
 				controller: function ($scope) {
+
+					/* Strange on PA: Will block opened childs the first time ...*/
 					
 					$scope[$scope.val] = $scope.$parent[$scope.val];
 					
@@ -105,9 +107,10 @@ angular.module('jslPartials', [])
 							
 						},
 						
-						function (modelValue) {
-							
-							$scope.$parent[$scope.val] = modelValue;
+						function (nval, oval) {
+
+							if (nval != oval)
+								$scope.$parent[$scope.val] = nval;
 							
 						}
 					);

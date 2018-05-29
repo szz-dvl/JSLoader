@@ -53,7 +53,7 @@ function PA (bg, info) {
 	
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
-	this.app.controller('siteController', function ($scope, $timeout, $state, $stateParams) {
+	this.app.controller('siteController', function ($scope, $timeout, $state, $compile, $stateParams) {
 		
 		$scope.page = self;
 		$scope.info = self.info;
@@ -150,6 +150,25 @@ function PA (bg, info) {
 				
 			}
 		);
+
+		self.bg.pa_events.on('new-status', (error, notify) => {
+
+			let uuid = error.id;
+			let elem = $("#status-" + uuid);
+
+			if (elem.length) {
+				
+				elem.replaceWith($compile('<script-status id="status-' 
+					+ uuid 
+					+ '" status="' 
+					+ self.bg.content_mgr.getStatus(uuid, self.tabId) 
+						+ '"></script-status>')($scope));
+
+				if (notify)
+					self.bg.notify_mgr.error(error.at + '\n' + error.type + ": " + error.message + '[' + error.line + ',' + error.col + ']');
+				
+			}
+		});
 		
 	});
 
@@ -171,7 +190,7 @@ function PA (bg, info) {
 				 );
 				
 				item.visible = gotState ? gotState.state : false;
-
+				
 				if (!gotState)
 					self.pa_state.lists[key].push({ name: item.name, state: false });
 				
@@ -189,7 +208,7 @@ function PA (bg, info) {
 								
 								}
 							);
-						
+							
 							self.pa_state.lists[key][idx].state = nval;
 						}
 					}
@@ -244,7 +263,7 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams) {
-
+							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
@@ -395,6 +414,15 @@ function PA (bg, info) {
 browser.runtime.getBackgroundPage()
 	.then(
 		page => {
+
+			page.pa_events = new EventEmitter();
+
+			window.onbeforeunload = () => {
+
+				page.pa_events = null;
+				
+			};
+			
 			page.getPASite()
 				.then(
 					info => {

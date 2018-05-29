@@ -248,16 +248,23 @@ function CSApi () {
 	};
 
 	this.JSLImportAsResource = (url, force, path) => {
-
+		
 		return url ?
 			   this.__getMessageResponse("import-resource", { path: path || null, url: url, force: typeof(force) == 'undefined' ? false : force }) :
 			   Promise.reject("Missing url");
 	};
-
+	
+	/* Must remain in final version? Some pages blocks its devtools console ... */
 	this.JSLDebug = (data) => {
-
+		
 		this.port.postMessage({action: "print", message: {data: data}});
 
+	}
+	
+	this.JSLDebugError = (data) => {
+
+		this.port.postMessage({action: "error", message: {data: data}});
+		
 	}
 	
 	this.port.onMessage.addListener(
@@ -265,7 +272,7 @@ function CSApi () {
 		response => {
 			
 			switch (response.action) {
-
+				
 				/* Event Neighbours */
 				case "content-script-ev":
 				

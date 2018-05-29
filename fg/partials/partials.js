@@ -73,8 +73,11 @@ angular.module('jslPartials', [])
 					);
 					
 					$scope.toggleDD = function (ev) {
+
+						/* Strange on PA: */
+						ev.stopPropagation();
+						ev.stopImmediatePropagation();
 						
-						/* $(ev.currentTarget).blur(); */ /* Avoid outline */
 						$scope.mostra = !$scope.mostra;
 						
 						if ($scope.obj)

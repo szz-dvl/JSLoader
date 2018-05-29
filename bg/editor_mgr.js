@@ -109,7 +109,7 @@ function Editor (opt) {
 					} else {
 						
 						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-						this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());
+						this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());/* Can't access dead object. */
 						
 					}
 				}

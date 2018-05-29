@@ -51,7 +51,7 @@ function CS (port) {
 	};
 
 	this.updateHistory = (script_id, status) => {
-
+		
 		let idx = this.history.findIndex(
 			record => {
 				
@@ -60,10 +60,11 @@ function CS (port) {
 			}
 		);
 
-		if (idx < 0)
-			this.history.push({id: script_id, status: status});
-		else
+		if (idx < 0) 
+			this.history.push({id: script_id, status: status});	
+		else 
 			this.history[idx].status = status;
+		
 	}
 
 	this.historyStatus = (script_id) => {
@@ -298,7 +299,8 @@ function CSMgr (bg) {
 
 		let retval = 0;
 		
-		for (let frame of this.getMainFramesForTab(tabId)) {
+		/* this.getFramesForTab instead of this.getMainFramesForTab: some page frames do not die on location reload (to be observed) Policy: look for hits. */
+		for (let frame of this.getFramesForTab(tabId)) {
 			
 			let status = frame.historyStatus(script_id);
 			
@@ -313,7 +315,7 @@ function CSMgr (bg) {
 	};
 
 	this.framesFor = (tabId) => {
-
+		
 		return this.getMainFramesForTab(tabId).length;
 
 	};
@@ -322,15 +324,16 @@ function CSMgr (bg) {
 
 		let promises = [];
 		
-		for (let frame of this.getMainFramesForTab(tabId)) 
+		/* @ getStatus */
+		for (let frame of this.getFramesForTab(tabId)) 
 			promises.push(frame.run([script]));
-
+		
 		return Promise.all(promises);
 		
 	};
-
+	
 	this.contentGetGlobal = (port, tag, key) => {
-
+		
 		let globals = this.globals;
 		
 		this.__postTaggedResponse(port, tag,
@@ -343,7 +346,7 @@ function CSMgr (bg) {
 	};
 	
 	this.contentSetGlobal = (port, tag, key, value) => {
-
+		
 		let created = !this.haveGlobal(key);
 		
 		this.globals[key] = value;
@@ -568,7 +571,7 @@ function CSMgr (bg) {
 										
 										this.bg.domain_mgr.getScriptsForUrl(url)
 											.then(
-												scripts => {
+												scripts => {				
 													
 													if (scripts.length) {
 														
@@ -599,9 +602,6 @@ function CSMgr (bg) {
 									break;
 								case "update-history":
 									
-									if (!args.status && args.run[0] == 'UserDefs') 
-										this.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
-									
 									function status (script_id) {
 										
 										return args.errors.find(error => { return error.id == script_id }) ? false : true;
@@ -610,6 +610,19 @@ function CSMgr (bg) {
 									
 									for(let script of args.run)
 										this.getFrameForPort(port).updateHistory(script, status(script));
+									
+									if (!args.status) { 
+										
+										if (args.run[0] == 'UserDefs')
+											this.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
+										
+										if (args.inform) 
+											this.bg.notify_mgr.error(args.errors[0].at + '\n' + args.errors[0].type + ": " + args.errors[0].message + '[' + args.errors[0].line + ',' + args.errors[0].col + ']');
+											
+										if (args.unhandled && this.bg.pa_events)
+											this.bg.pa_events.emit('new-status', args.errors[0], !args.inform);
+											
+									}
 									
 									break;
 									
@@ -668,6 +681,10 @@ function CSMgr (bg) {
 								case "print":
 									console.log(args.message.data);
 									break;
+
+								case "error":
+									console.error(args.message.data);
+									break;
 									
 								default:
 									break;
@@ -677,7 +694,7 @@ function CSMgr (bg) {
 					
 					port.onDisconnect.addListener(
 						port => {
-
+							
 							let frame = this.getFrameForPort(port);
 							
 							for (let loaded of frame.resources) 

@@ -3,12 +3,56 @@ function ContentScript() {
 	Promise = P;
 	
 	this.id = UUID.generate();
+
+	Promise.onPossiblyUnhandledRejection(
+		err => {
+
+			let encoded = err.stack.split("/")[0];
+			let action = encoded.split('$')[0].replace(/_/g,  '-');
+			let script = encoded.split('$').pop().replace(/_/g, '-'); /* Any other way? */
+
+			err.stack = err.stack.replace(encoded, 'anonymous');
+			console.error(err);
+			
+			this.port.postMessage(
+				{
+					action: "update-history",
+					status: false,
+					errors: [
+						{
+							
+							type: err.constructor.name,
+							message:  err.message,
+							line: err.lineNumber - 3,
+							col: err.columnNumber,
+							id: script,
+							at: window.location.href,
+							stamp: new Date().getTime()
+						}
+					],
+					
+					run: [script],
+					inform: action == 'post-results',
+					unhandled: true
+				}
+			);
+		}
+	);
 	
-	this.run = (script) => {
+	this.run = (script, response) => {
 		
 		try {
+
+			/* Try to bind possible unhandled rejections to the script that generates it. */
 			
-			(new Function(script.code)());
+			let encoded = 'function ' +
+				response.replace(/-/g,  '_') +
+				'$' + script.id.replace(/-/g,  '_') +
+				'() {\n' + script.code + '\n}; ' +
+				response.replace(/-/g,  '_') +
+				'$' + script.id.replace(/-/g,  '_') + '();'; 
+			
+			new Function(encoded).call(this);
 			
 			return void 0;
 			
@@ -17,15 +61,13 @@ function ContentScript() {
 			return {
 				raw: err,
 				info: {
-				
+					
 					type: err.constructor.name,
 					message:  err.message,
-					line: err.lineNumber - 2,
+					line: err.lineNumber - 3,
 					col: err.columnNumber,
 					id: script.id,
-					name: script.name,
 					at: window.location.href,
-					parent: script.parent,
 					stamp: new Date().getTime()
 				}
 			};
@@ -35,70 +77,28 @@ function ContentScript() {
 	this.runAll = (scripts, response) => {
 
 		let errors = [];
-		let id = null;
 		
-		async.eachSeries(scripts,
-			(script, next) =>{
+		for (let script of scripts) {
 
-				id = null;
+			let error = this.run(script, response);
+
+			if (error)
+				errors.push(error);
+		}
+		
+		for (let error of errors)
+			console.error(error.raw);
 				
-				Promise.onPossiblyUnhandledRejection(
-					err => {
-						
-						if (id)
-							clearTimeout(id);
-						
-						errors.push(
-							{
-								raw: err,
-								info: {	
-
-									type: err.constructor.name,
-									message:  err.message,
-									line: err.lineNumber - 2,
-									col: err.columnNumber,
-									id: script.id,
-									name: script.name,
-									at: window.location.href,
-									parent: script.parent,
-									stamp: new Date().getTime()
-
-								}
-							}
-						);
-
-						next();
-					}
-				);
-				
-				let error = this.run(script);
-
-				if (error) {
+		this.port.postMessage(
+			
+			{
+				action: response,
+				status: errors.length === 0,
+				errors: errors.map(error => { return error.info }),
+				run: scripts.map(script => { return script.id }),
+				inform: false,
+				unhandled: false
 					
-					errors.push(error);
-					next();
-					
-				} else {
-
-					/* Wait a jiffy for possible unhandled rejections */
-					id = setTimeout(next, 150);
-				}
-
-			}, err => {
-
-				for (error of errors)
-					console.error(error.raw);
-				
-				this.port.postMessage(
-					
-					{
-						action: response,
-						status: errors.length === 0,
-						errors: errors.map(error => { return error.info }),
-						run: scripts.map(script => { return script.id })
-					}
-					
-				);
 			}
 		);
 	};
@@ -137,12 +137,10 @@ function ContentScript() {
 							
 							type: "Bad user defs",
 							message:  e.message,
-							line: e.lineNumber - 2,
+							line: e.lineNumber - 3,
 							col: e.columnNumber,
 							id: "UserDefs",
-							name: "UserDefs",
 							at: window.location.href,
-							parent: null,
 							stamp: new Date().getTime()
 								
 						}],

@@ -4,6 +4,7 @@
 	- PA: Re-arrange lists.
 	- Frames not found on native video player (Adding group dyn amically).
 	- Editor tab check for updated.
+	- editor.js (210) Inprog
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

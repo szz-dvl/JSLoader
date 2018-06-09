@@ -65,3 +65,23 @@
 		  * etc, etc, etc ...
 		  
   - Initial examples for each info recipient.
+
+
+
+
+  ______________________________________________________________-- MANUALS --________________________________________________________________
+
+Linux users:
+
+	  $> git clone --recurse-submodules https://github.com/szz-dvl/JSLoader.git
+	  $> cd JSLoader
+	  $> ./build
+
+	  * Allow unsigned apps, etc, etc ... install jsloader-unsigned.xpi and enjoy!
+
+Windows users:
+
+		* Either wait for signed version or try to build xpi and native app by yourself.
+
+
+		Cheers!

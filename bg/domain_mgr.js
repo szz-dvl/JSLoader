@@ -528,18 +528,4 @@ function DomainMgr (bg) {
 					}, url.hostname);
 			});
 	};
-	
-	this.storeNewDomains = (changes, area) => {
-		
-		if (area != "local")
-	 		return;
-		
-		for (key of Object.keys(changes)) {
-			
-			if (key == "domains") 
-				this.domains = changes.domains.newValue || [];			
-		}
-	};
-	
-	browser.storage.onChanged.addListener(this.storeNewDomains);
 }

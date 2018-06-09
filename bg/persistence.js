@@ -1,9 +1,11 @@
 function Storage () {
 
+	this.room = "local";
+	this.target = browser.storage[this.room];
 	
 	this.__get = (cb, key) => {
 				
-		browser.storage.local.get(key)
+		this.target.get(key)
 			.then(
 				values => {
 
@@ -21,14 +23,14 @@ function Storage () {
 		var obj = {};
 		obj[key] = val;
 		
-		return browser.storage.local.set(obj);
+		return this.target.set(obj);
 	};
 
 	this.__remove = (key) => {
 		
 		console.log("Removing: " + key);
 		
-		return browser.storage.local.remove(key);
+		return this.target.remove(key);
 	};
 
 	/* Domains: */
@@ -178,7 +180,7 @@ function Storage () {
 	
 	this.removeOptions = () => {
 		
-		return browser.storage.local.remove('options');
+		return this.target.remove('options');
 
 	};
 

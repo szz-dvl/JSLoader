@@ -108,10 +108,55 @@ function BG_mgr () {
 				break;
 		}
 	};
+
+	this.storeChanges = (changes, area) => {
+		
+		if (area != global_storage.room)
+	 		return;
+
+		let found = false;
+		
+		for (key of Object.keys(changes)) {
+
+			switch(key) {
+
+				case "domains":
+
+					this.domain_mgr.domains = changes.domains.newValue || [];
+					found = true;
+
+					break;
+					
+				case "groups":
+
+					this.group_mgr.groups = changes.groups.newValue || [];
+					found = true;
+
+					break;
+
+				case "userdefs": 
+
+					this.content_mgr.defs = changes.userdefs.newValue || "";
+					found = true;
+
+					break;
+					
+				default:
+					break;
+			}
+			
+			/* To be tested */
+			if (found)
+				break;			
+		}
+	};
+	
+	browser.storage.onChanged.addListener(this.storeChanges);
+	browser.commands.onCommand.addListener(this.receiveCmd);
 }
 
 BG_mgr.call(this);
 
 /* browser.storage.local.clear(); */
-browser.commands.onCommand.addListener(this.receiveCmd);
+
 

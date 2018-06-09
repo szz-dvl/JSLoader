@@ -248,19 +248,4 @@ function GroupMgr (bg) {
 					});
 			});
 	}
-		
-	this.storeNewGroups = (changes, area) => {
-		
-		if (area != "local")
-	 		return;
-		
-		for (key of Object.keys(changes)) {
-			
-			if (key == "groups") 	
-				this.groups = changes.groups.newValue || [];
-		}
-	};
-	
-	browser.storage.onChanged.addListener(this.storeNewGroups);
-
 } 

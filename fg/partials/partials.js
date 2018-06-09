@@ -157,7 +157,7 @@ angular.module('jslPartials', [])
 				
 				link: function($scope, element, attr) {
 					
-					let color = $scope.status == "0" ? 'yellow' : ($scope.status == "1" ? 'green' : 'red');
+					let color = $scope.status == "0" ? 'lightgray' : ($scope.status == "1" ? 'green' : 'red');
 					let context = element[0].getContext('2d');
 					let centerX = element[0].width / 2;
 					let centerY = element[0].height / 2;

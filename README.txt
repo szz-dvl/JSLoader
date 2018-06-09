@@ -2,6 +2,7 @@
 	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
 	- Editor tab check for updated.
+	- Reset script status on script saving.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -12,6 +13,7 @@
 -To Do:
 	- Virtual Resources: Missing DB management.
 	- script.remove(...) is undefined (pa.js:205);
+	- Error manager for beta testing.
 	
 - To be tested:
   - Import/Export features. **

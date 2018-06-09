@@ -42,7 +42,7 @@ function CS (port) {
 					message: scripts.map(
 						script => {
 							
-							return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+							return { code: script.code, id: script.uuid, name: script.name };
 							
 						}
 					)
@@ -590,7 +590,7 @@ function CSMgr (bg) {
 																
 																script => {
 																	
-																	return { code: script.code, id: script.uuid, name: script.name, parent: script.getParentName() };
+																	return { code: script.code, id: script.uuid, name: script.name };
 																	
 																}
 															)
@@ -618,7 +618,8 @@ function CSMgr (bg) {
 											this.bg.notify_mgr.error("Bad User Defs: " + args.errors[0].type + ": " + args.errors[0].message);
 										
 										if (args.inform) 
-											this.bg.notify_mgr.error(args.errors[0].at + '\n' + args.errors[0].type + ": " + args.errors[0].message + '[' + args.errors[0].line + ',' + args.errors[0].col + ']');
+											this.bg.notify_mgr.error(args.errors[0].at + '\n'
+												+ args.errors[0].type + ": " + args.errors[0].message + '[' + args.errors[0].line + ',' + args.errors[0].col + ']');
 											
 										if (args.unhandled && this.bg.pa_events)
 											this.bg.pa_events.emit('new-status', args.errors[0], !args.inform);
@@ -716,17 +717,4 @@ function CSMgr (bg) {
 				}
 			});
 
-	this.storeNewDefs = (changes, area) => {
-		
-		if (area != "local")
-	 		return;
-		
-		for (key of Object.keys(changes)) {
-			
-			if (key == "userdefs") 
-				this.defs = changes.userdefs.newValue || "";			
-		}
-	};
-	
-	browser.storage.onChanged.addListener(this.storeNewDefs);
 }

@@ -234,8 +234,13 @@ function EditorFG (id, bg) {
 						
 						if (data && data.constructor.name == 'Resource') 
 							this.editor.script.parent = data;
+
+						let new_code = this.editor.ace.getValue().toString().trim();
+						let reload = this.editor.script.code.trim() != new_code;
 						
-						this.editor.script.code = this.editor.ace.getValue().toString().trim();
+						if (reload)
+							this.editor.script.code = new_code;
+						
 						this.editor.script.persist()
 							.then(	
 								parent => {
@@ -249,7 +254,7 @@ function EditorFG (id, bg) {
 											if (self.bg.option_mgr.events) 
 												self.bg.option_mgr.events.emit("new-resource", parent);
 
-										} else {
+										} else if (reload) {
 
 											self.bg.content_mgr.reloadScript(this.editor.script);
 											

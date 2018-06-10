@@ -2,7 +2,6 @@
 	- Editor: add download button (download code as text);
   	- Sync opt page editor settings with editor menu.
 	- Editor tab check for updated.
-	- Reset script status on script saving.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -14,6 +13,7 @@
 	- Virtual Resources: Missing DB management.
 	- script.remove(...) is undefined (pa.js:205);
 	- Error manager for beta testing.
+	- Paginate lists.
 	
 - To be tested:
   - Import/Export features. **
@@ -75,7 +75,7 @@ Linux users:
 	  $> cd JSLoader
 	  $> ./build
 
-	  * Allow unsigned apps, etc, etc ... install jsloader-unsigned.xpi and enjoy!
+	  * Allow unsigned apps, etc, etc ... install jsload-unsigned.xpi and enjoy!
 
 Windows users:
 

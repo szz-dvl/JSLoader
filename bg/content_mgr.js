@@ -3,7 +3,7 @@ function CS (port) {
 	this.port = port;
 	this.name = port.name;
 	this.frame = port.sender || null;
-	this.id = port.name.split("_")[1];
+	this.id = port.name.split("_").pop();
 	this.history = [];
 	this.resources = [];
 	
@@ -540,6 +540,31 @@ function CSMgr (bg) {
 					);
 				}
 			);
+	};
+
+	this.reloadScript = (script) => {
+
+		this.alive.filter(
+
+			frame => {
+
+				return frame.history.find(
+					record => {
+
+						return record.id == script.uuid;
+						
+					}
+				);
+
+			}
+			
+		).forEach(
+			frame => {
+
+				frame.run([script]);
+			
+			}
+		);	
 	};
 	
 	browser.runtime.onConnect

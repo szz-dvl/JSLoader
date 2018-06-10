@@ -122,7 +122,6 @@ function EditorFG (id, bg) {
 				
 				this.dropdown.fadeOut();
 				
-				
 			});
 			
 		} else {
@@ -243,11 +242,18 @@ function EditorFG (id, bg) {
 									
 									this.scope.enableButtons();
 									
-									if (parent && parent.isResource()) {
+									if (parent) {
 										
-										if (self.bg.option_mgr.events) 
-											self.bg.option_mgr.events.emit("new-resource", parent);
+										if (parent.isResource()) {
+										
+											if (self.bg.option_mgr.events) 
+												self.bg.option_mgr.events.emit("new-resource", parent);
 
+										} else {
+
+											self.bg.content_mgr.reloadScript(this.editor.script);
+											
+										}
 									}
 									
 									if (this.editor.tab) {

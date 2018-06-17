@@ -51,7 +51,8 @@ function OP (bg) {
 			$stateProvider.state('opt-site', {
 
 				resolve: {
-					dataStorage: () => { return self.bg.option_mgr.getDataInfo(); },
+					dataDomains: () => { return self.bg.domain_mgr.getSlice(0, 5); },
+					dataGroups: () => { return self.bg.group_mgr.getSlice(0, 5); },
 					storageContent: () => { return browser.storage.local.get(); },
 					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }
 				},
@@ -263,12 +264,11 @@ function OP (bg) {
 					'app-data': {
 						
 						templateUrl: 'app-data.html',
-						controller: function ($scope, $compile, $rootScope, $state, $interval, $timeout,  dataStorage) {
+						controller: function ($scope, $compile, $rootScope, $state, $interval, $timeout, dataGroups, dataDomains) {
 							
-							$scope.domains = dataStorage.domains;
-							$scope.groups = dataStorage.groups;
-							$scope.appdata_active = $scope.domains.length + $scope.groups.length > 0;
-							
+							$scope.domains = dataDomains;
+							$scope.groups = dataGroups;
+							$scope.appdata_active = $scope.domains.data.length + $scope.groups.data.length > 0;
 							
 							$scope.__updateService = () => {
 
@@ -280,45 +280,60 @@ function OP (bg) {
 
 								if (!service)
 									$interval.cancel($scope.dataID);
+
+								let changes = false;
 								
-								self.bg.option_mgr.getDataInfo()
-									.then(data => {
-										
-										let changes = false;
-										
-										if (!_.isEqual($scope.domains, data.domains)) {
-											
-											$scope.domains = data.domains;
-											changes = true;
+								async.each(['domain', 'group'], (mgr, next) => {
 
-										}
-										
-										if (!_.isEqual($scope.groups, data.groups)) {
-											
-											$scope.groups = data.groups;
-											changes = true;
-										}
+									self.bg[mgr + '_mgr'].getSlice($scope[mgr + 's'].actual, 5)
+										.then(
+											slice => {
 
+												if (!_.isEqual($scope[mgr + 's'], slice)) {
+											
+													$scope[mgr + 's'] = slice;
+													changes = true;
+
+												}
+
+												next();
+											}
+										);
+									
+								}, err => {
+
+									if (!err) {
+										
 										if (!service) {
 											
 											if (changes)
 												$scope.$digest();											
 											
 											$scope.__updateService();
-
-										} 
-									});
+										}	
+									}
+								})
 							}
+
+							$scope.newGroups = (slice) => {
+
+								$interval.cancel($scope.dataID);
+								$scope.groups = slice;
+								$scope.$digest();
+								$scope.__updateService();
+							};
+							
+							$scope.newDomains = (slice) => {
+
+								$interval.cancel($scope.dataID);
+								$scope.domains = slice;
+								$scope.$digest();
+								$scope.__updateService();
+							};
 							
 							$scope.goToDomain = (name) => {
 								
-								self.bg.tabs_mgr.openOrCreateTab('https://' + name)
-									.then(null, err => {
-
-										console.error("Rejected!");
-										console.error(err);
-
-									});
+								self.bg.tabs_mgr.openOrCreateTab('https://' + name);
 								
 							}
 							

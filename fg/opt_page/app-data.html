@@ -4,7 +4,7 @@
 		
 		<div ng-show="appdata_active" style="width: 100%;">
 
-			<table style="display: table;width: 100%;" ng-if="domains.length || groups.length">
+			<table style="display: table;width: 100%;" ng-if="domains.data.length || groups.data.length">
 				<thead>
 					<th></th>
 					<th style="text-align: center;"> Name </th>
@@ -13,7 +13,7 @@
 					<th style="text-align: center;"> Actions </th>
 				</thead>
 				<tbody style="display: table-row-group;">
-					<tr ng-repeat="domain in domains track by domain.name">
+					<tr ng-repeat="domain in domains.data track by domain.name">
 						<td>
 							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Domains: </h2>
 						</td>
@@ -47,8 +47,9 @@
 								
 							</div>
 						</td>
-					</tr><br>
-					<tr ng-repeat="group in groups track by group.name">
+					</tr>
+					<tr ng-if="domains.total > 5" paginator feeding="page.bg.domain_mgr.getSlice", slice="5" actual="domains.actual" total="domains.total" parent="newDomains"></tr><br>
+					<tr ng-repeat="group in groups.data track by group.name">
 						<td>
 							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Groups: </h2>
 						</td>
@@ -74,27 +75,28 @@
 							</div>
 						</td>
 					</tr>
+					<tr ng-if="groups.total > 5" paginator feeding="page.bg.group_mgr.getSlice", slice="5" actual="groups.actual" total="groups.total" parent="newGroups"></tr>
 				</tbody>
 			</table>
-			<no-info ng-if="!domains.length && !groups.length" style="padding-top: 6%;"></no-info>
+			<no-info ng-if="!domains.data.length && !groups.data.length" style="padding-top: 6%;"></no-info>
 			<div style="text-align: center;margin-top: 25px;">
 				<input-file
 					ng-file-selected="importData"
 					text="'Import Data'">
 				</input-file>
 				<button class="browser-style"
-					ng-if="domains.length || groups.length"
+					ng-if="domains.data.length || groups.data.length"
 					ng-click="exportData()"> Export Data
 				</button>
 				<are-u-sure
-					ng-if="data_origin.writeable && (domains.length + groups.length > 1) && !data_origin.reconnecting" 
+					ng-if="data_origin.writeable && (domains.data.length + groups.data.length > 1) && !data_origin.reconnecting" 
 					ng-disable="data-origin.reconnecting"
 					text="'Push all to DB'"
 					padding="35"
 					action="pushItem()">
 				</are-u-sure>
 				<are-u-sure
-					ng-if="domains.length || groups.length"
+					ng-if="domains.data.length || groups.data.length"
 					text="'Clear Storage'"
 					padding="35"
 					action="clearStoredData()">

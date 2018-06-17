@@ -190,6 +190,69 @@ angular.module('jslPartials', [])
 			}
 		};
 	})
+
+	.directive('paginator', function() {
+		
+		return {
+			
+			restrict: "A",
+			scope: {
+				parent: '&',
+				feeding: '&',
+				slice: '=',
+				actual: '=',
+				total:'='
+			},
+
+			templateUrl: function (elem, attr) {
+					
+				return browser.extension.getURL("fg/partials/paginator.html");
+					
+			},
+			
+			controller: function ($scope) {
+
+				$scope.last_page = Math.ceil($scope.total / $scope.slice);
+				$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+				
+				$scope.prevSlice = () => {
+
+					if ($scope.current_page > 1) {
+
+						$scope.feeding()($scope.actual - $scope.slice, $scope.slice)
+							.then(
+								slice => {
+
+									$scope.actual = slice.actual;
+									$scope.total = slice.total;
+									$scope.last_page = Math.ceil($scope.total / $scope.slice);
+									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;	
+									$scope.parent()(slice);
+								}
+							);
+					}
+				}
+
+				$scope.nextSlice = () => {
+					
+					if ( $scope.current_page < $scope.last_page ) {
+
+						$scope.feeding()($scope.actual + $scope.slice, $scope.slice)
+							.then(
+								slice => {
+
+									$scope.actual = slice.actual;
+									$scope.total = slice.total;
+									$scope.last_page = Math.ceil($scope.total / $scope.slice);
+									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+									$scope.parent()(slice);
+								}
+							);
+					}
+				}
+			}
+		}
+	})
 	
 	.directive('editorSettings', function() {
 		

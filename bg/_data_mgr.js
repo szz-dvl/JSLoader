@@ -235,4 +235,76 @@ function DataMgr (opt) {
 		
 	}
 
+	this.getMeaningfull = (start, len) => {
+
+		return new Promise((resolve, reject) => {
+
+			let data = [];
+			
+			async.each(this[this.key.toLowerCase() + "s"],
+				(item_name, next) => {
+					
+					this.getItem(item_name)
+						.then(
+							item => {
+								
+								if (item.haveData())
+									data.push(item);
+
+								next();
+								
+							}, err => {
+								
+								console.warn(err);
+								next();
+
+							});
+					
+				}, err => {
+
+					if (err)
+						reject(err);
+					else 
+						resolve(data);
+					
+				})
+
+		})
+	}
+	
+	this.getSlice = (start, len) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+
+				let items = [];
+
+				this.getMeaningfull().then(
+					data => {
+
+						resolve(
+							{
+								actual: start,
+								total: data.length,
+								data: data.sort(
+									(a,b) => {
+								
+										return a.name > b.name;
+
+									})
+									.slice(start, start + len)
+									.map(
+										item => {
+
+											return { name: item.name, scripts: item.getScriptCount(), sites: item.sites.length }
+											
+										}
+									)
+							}
+						);
+						
+					}, reject
+				);
+			});
+	}
 }

@@ -1,11 +1,4 @@
 .ddbutton-shown {
-
-	/* None of those seems to be correctly interpreted by the browser ...*/
-	
-	/* outline-style: solid; */
-	/* outline-color: white; */
-	/* outline-width: 1px; */
-	/* outline: 1px hidden white; */
 	
 	-moz-transition: all 0.5s ease;
 	vertical-align: text-bottom;
@@ -127,4 +120,28 @@ input[type=checkbox]:checked+.checkmark:after {
     height: 10px;
 	margin: auto;
     background-color: #666;
+}
+
+img.paginator {
+
+	-moz-transition: all 0.2s ease;
+
+}
+
+img.paginator:hover {
+
+	transform: scale(1.3);
+	
+}
+
+tr[paginator] {
+
+	height: 60px;
+}
+
+td.page-ref {
+
+	font-size: 75%;
+	text-align: center;
+
 }

@@ -586,6 +586,11 @@ function Group (opt) {
 		return !this.sites.length && !this.scripts.length; 
 	};
 
+	this.haveData = () => {
+		
+		return !this.isEmpty(); 
+	};
+	
 	this.getScriptCount = () => {
 
 		return this.scripts.length;

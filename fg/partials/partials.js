@@ -197,6 +197,8 @@ angular.module('jslPartials', [])
 			
 			restrict: "A",
 			scope: {
+				target: '=?',
+				site:'=?',
 				parent: '&',
 				feeding: '&',
 				slice: '=',
@@ -219,7 +221,7 @@ angular.module('jslPartials', [])
 
 					if ($scope.current_page > 1) {
 
-						$scope.feeding()($scope.actual - $scope.slice, $scope.slice)
+						$scope.feeding()($scope.actual - $scope.slice, $scope.slice, $scope.target, $scope.site)
 							.then(
 								slice => {
 
@@ -227,7 +229,7 @@ angular.module('jslPartials', [])
 									$scope.total = slice.total;
 									$scope.last_page = Math.ceil($scope.total / $scope.slice);
 									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;	
-									$scope.parent()(slice);
+									$scope.parent()(slice, $scope.target, $scope.site);
 								}
 							);
 					}
@@ -237,7 +239,7 @@ angular.module('jslPartials', [])
 					
 					if ( $scope.current_page < $scope.last_page ) {
 
-						$scope.feeding()($scope.actual + $scope.slice, $scope.slice)
+						$scope.feeding()($scope.actual + $scope.slice, $scope.slice, $scope.target, $scope.site)
 							.then(
 								slice => {
 
@@ -245,7 +247,7 @@ angular.module('jslPartials', [])
 									$scope.total = slice.total;
 									$scope.last_page = Math.ceil($scope.total / $scope.slice);
 									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
-									$scope.parent()(slice);
+									$scope.parent()(slice, $scope.target, $scope.site);
 								}
 							);
 					}

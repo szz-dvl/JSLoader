@@ -4,6 +4,8 @@ function DataMgr (opt) {
 	
 	this.removeItem = (item_name) => {
 
+		/* to be refactored */
+		
 		return new Promise(
 			resolve => {
 				this.storage["get" + this.key](
@@ -307,4 +309,34 @@ function DataMgr (opt) {
 				);
 			});
 	}
+
+	this.getScriptsSliceFor = (start, len, target, site) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.getItem(target == 'Groups' ? site : target)
+					.then(
+						item => {
+
+							let scripts = target == 'Groups' ?
+													item.scripts :
+													item.haveSite(site).scripts;
+							resolve(
+								{
+									actual: start,
+									total: scripts.length,
+									data: scripts.sort(
+										(a,b) => {
+											
+											return a.uuid > b.uuid;
+
+										}).slice(start, start + len)
+										
+								}, reject
+							);
+						});
+			});
+	}	
 }
+	

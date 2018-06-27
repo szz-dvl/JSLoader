@@ -1,7 +1,10 @@
 - In-progress:
-	- Editor: add download button (download code as text);
+	- Editor: Big Refactor { add download button (download code as text); }
   	- Sync opt page editor settings with editor menu.
 	- Editor tab check for updated.
+	- Refactor removeItem
+	- Pginate Lists
+	- Init user defs: Watchers && import Js (remove async && underscore)
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

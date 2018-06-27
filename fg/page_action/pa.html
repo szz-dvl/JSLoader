@@ -39,7 +39,7 @@
 
 					  <div ng-if="user_info" style="margin-left: 15px;">
 
-						  <div ng-if="info.site.length">
+						  <div ng-if="info.site.total">
 							  <div ui-view="site"></div>
 						  </div>
 						  
@@ -47,7 +47,7 @@
 							  <div ui-view="subdomains"></div>
 						  </div>
 						  
-						  <div ng-if="info.groups.length">
+						  <div ng-if="info.groups.total">
 							  <div ui-view="groups"></div>
 						  </div>
 						  

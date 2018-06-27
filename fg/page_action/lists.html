@@ -1,9 +1,9 @@
-<div ng-repeat="list in data">
+<ul ng-repeat="list in data">
 	<h4 style="margin: 10px 0 0 20px;"> {{list.title}}
 		<drop-down item="list" width="14" height="14"></drop-down>
 	</h4>
 	
-	<div ng-show="list.visible" class="panel-section" ng-repeat="item in list.list track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 30px;">
+	<li ng-show="list.visible" class="panel-section" ng-repeat="item in list.list track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 30px;">
 		
 		<h5 style="margin: 5px 0 0 0;"> {{ item.name }}
 			<drop-down item="item" width="12" height="12"></drop-down>
@@ -47,7 +47,8 @@
 					</td>
 					
 					<td style="float: left; margin-left: 5px;">
-						<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"> Edit </button>
+						<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;">
+							Edit </button>
 					</td>
 
 					<td style="float: left; margin-left: 5px;">
@@ -55,10 +56,20 @@
 					</td>
 					
 				</tr>
-				
+
+				<tr paginator
+					ng-if="item.total > 5" 
+					target="item.section"
+					site="item.name"
+					feeding="page.bg[(item.section == 'Groups' ? 'group' : 'domain') + '_mgr'].getScriptsSliceFor" 
+					slice="5" 
+					actual="item.actual" 
+					total="item.total" 
+					parent="newScriptsFor"></tr>
+
 			</tbody>
 			
 		</table>
 		
-	</div>
-</div>
+	</li>
+</ul>

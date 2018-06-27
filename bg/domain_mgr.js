@@ -254,9 +254,9 @@ function DomainMgr (bg) {
 						let groups = [];
 						let editInfo = {
 							
-							site: [], 
+							site: {}, 
 							subdomains: [],
-							groups: [],
+							groups: {},
 							disabled: self.__isDisabled(url.hostname),
 							exists: false
 							
@@ -268,8 +268,31 @@ function DomainMgr (bg) {
 							
 							let info = this.__getSitesInfoFor(domain, url.pathname);
 							
-							editInfo.site.push.apply(editInfo.site,
-								info.scripts);
+							editInfo.site.sites = info.scripts
+									.sort((a,b) => { return a.name > b.name; })
+									.slice(0, 5)
+									.map(
+										nfo => {
+											
+											return {
+												
+												name: nfo.name,
+												scripts: nfo.scripts.sort(
+													(a,b) => {
+														
+														return a.uuid > b.uuid;
+														
+													}).slice(0, 5),
+												actual: 0,
+												total: nfo.scripts.length
+											};
+											
+										}
+									);
+							
+							editInfo.site.actual = 0;
+							editInfo.site.total = info.scripts.length;
+							editInfo.site.name = url.hostname;
 							
 							groups.push.apply(groups,
 								info.groups); 
@@ -288,14 +311,36 @@ function DomainMgr (bg) {
 
 											name: subdomain.name,
 											sites: info.scripts
+												.sort((a,b) => { return a.name > b.name; })
+												.slice(0, 5)
+												.map(
+													nfo => {
 
+														return {
+											
+															name: nfo.name,
+															scripts: nfo.scripts.sort(
+																(a,b) => {
+																	
+																	return a.uuid > b.uuid;
+																	
+																}).slice(0, 5),
+															actual: 0,
+															total: nfo.scripts.length
+														};	
+													}
+												),
+											actual: 0,
+											total: info.scripts.length
 										});
 											
 										groups.push.apply(groups,
 											info.groups);	
 									}
 									
-									groups = groups.unique();
+									groups = groups.unique()
+										.sort((a,b) => { return a.name > b.name; })
+										.slice(0, 5);
 									
 									this.bg.group_mgr.getGroupScripts(groups).then(
 										group_scripts => {
@@ -309,8 +354,14 @@ function DomainMgr (bg) {
 														}
 													);
 												
-												if (filtered.length)
-													editInfo.groups.push({ name: group, scripts: filtered });
+												if (filtered.length) {
+													editInfo.groups.push({ name: group, scripts: { actual: 0, total: filtered.length, scripts: filtered.sort(
+														(a,b) => {
+								
+															return a.uuid > b.uuid;
+
+														}).slice(0, 5) }});
+												}
 											}
 											
 											resolve(editInfo);
@@ -324,6 +375,67 @@ function DomainMgr (bg) {
 					}, url.hostname);
 			});
 	};
+
+	this.__getFirstFor = (target, name, index) => {
+		
+		let record = index.find(
+			idx => {
+
+				return idx.section == target && idx.list == name;
+
+			}
+		);
+
+		return record.first || 0;
+		
+	};
+	
+	this.getPASliceFor = (start, len, target, path, index) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.getItem(target)
+					.then(
+						item => {
+							
+							let info = this.__getSitesInfoFor(item, path);
+							
+							resolve(
+								{
+									
+									name: target,
+									sites: info.scripts
+										.sort((a,b) => { return a.name > b.name; })
+										.slice(start, start + len)
+										.map(
+											nfo => {
+
+												let first = this.__getFirstFor(target, nfo.name, index);
+												
+												return {
+													
+													name: nfo.name,
+													scripts: nfo.scripts.sort(
+														(a,b) => {
+															
+															return a.uuid > b.uuid;
+															
+														}).slice(first, first + 5),
+													actual: 0,
+													total: nfo.scripts.length
+												};
+												
+											}
+										),
+									actual: start,
+									total: info.scripts.length
+								}
+							);
+							
+						}, reject);
+			});
+	}
 	
 	this.importData = (items) => {
 		

@@ -50,8 +50,9 @@ function BG_mgr () {
 							
 						},
 						() => {
-							
-							this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
+
+							this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+							//this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
 							
 						}
 					);

@@ -1,6 +1,8 @@
 function PA (bg, info) {
 	
 	let self = this;
+
+	console.log(info.site);
 	
 	this.bg = bg;
 	this.info = info;
@@ -14,7 +16,8 @@ function PA (bg, info) {
 		script_list: false,
 		group_mgr: false,
 		current_group: bg.group_mgr.groups[0],
-		sections: ""
+		sections: "",
+		page_idx: []
 		
 	};
 	
@@ -222,6 +225,28 @@ function PA (bg, info) {
 		return self.pa_state.sections.split(";")
 			.find(sec => { return sec == name; }) ? true : false;	
 	};
+
+	this.addPageIdx = (section, list, first) => {
+
+		let idx = self.pa_state.page_idx.findIndex(
+			record => {
+				
+				return record.section == section && record.list == list;			
+				
+			}
+		);
+
+		if (idx >= 0) {
+
+			if (first)
+				self.pa_state.page_idx[idx].first = first;
+			else
+				self.pa_state.page_idx.remove(idx);
+			
+		} else if (first)
+			self.pa_state.page_idx.push({ section: section, list: list, first: first });
+				
+	}
 	
 	this.app.config(
 		$stateProvider => {
@@ -241,30 +266,47 @@ function PA (bg, info) {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.data = [{
-								
-								title: $scope.hostname,
-								list: self.info["site"].map(site => { return self.itemExtend(site, $scope, $scope.hostname) } ),
-								visible: self.mustOpen($scope.hostname)
-									
-							}];
+							$scope.data = [];
 
-							$scope.$watch(() => { return $scope.data[0].visible },
+							let list = self.info.site;
+							let elem = { title: list.name, list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ), visible: self.mustOpen(list.name) };
+							
+							$scope.data.push(elem);
+							
+							$scope.$watch(() => { return elem.visible },
 								(nval, oval) => {
-				
+									
 									if (nval != oval) {
 										
 										$scope.onSizeChange();
 										
 										if (nval)
-											self.addOpenedSection($scope.hostname);
+											self.addOpenedSection(elem.title);
 										else
-											self.removeOpenedSection($scope.hostname);
+											self.removeOpenedSection(elem.title);
 										
 									}
 								}
 							);
 							
+							$scope.newScriptsFor = (slice, target, site) => {
+								
+								let elem = $scope.data[0].list.find(
+									item => {
+										
+										return item.name == site;
+										
+									}
+								);
+
+								self.addPageIdx(target, site, slice.actual);
+								
+								elem.scripts = slice.data;
+								elem.actual = slice.actual;
+								elem.total = slice.total;
+								
+								$scope.$digest();
+							}
 						}
 					},
 					
@@ -277,7 +319,13 @@ function PA (bg, info) {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.data = [{title: 'Groups', list: self.info["groups"].map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ), visible: self.mustOpen('Groups') } ];
+							$scope.data = [
+								{
+									title: 'Groups',
+									list: self.info["groups"].map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ),
+									visible: self.mustOpen('Groups')
+								}
+							];
 
 							$scope.$watch(() => { return $scope.data[0].visible },
 								(nval, oval) => {

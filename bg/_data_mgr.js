@@ -2,132 +2,6 @@ function DataMgr (opt) {
 
 	this.key = opt.key || "Generic";
 	
-	this.removeItem = (item_name) => {
-
-		/* to be refactored */
-		
-		return new Promise(
-			resolve => {
-				this.storage["get" + this.key](
-					item => {
-						
-						if (item) {
-							
-							item.remove()
-								.then(
-									removed => {
-
-										switch(this.key) {
-
-											case 'Domain':
-
-												{	
-													let sites = removed.sites.concat(removed);
-													
-													async.eachSeries(sites,
-														(site, next_site) => {
-															
-															async.each(site.groups,
-																(group_name, next_group) => {
-																	
-																	this.storage.getGroup(
-																		group => {
-																			
-																			if (group) {
-																				
-																				group.removeSite(site);
-																				site.removeGroup(group);
-																				
-																				group.persist().then(() => { next_group() }, next_group);
-																				
-																			} else {
-
-																				console.warn('missing group: ' + group_name);
-																				next_group();
-																			}
-																			
-																		}, group_name
-																	);
-																	
-																}, err => {
-
-																	if (err)
-																		reject(err);
-																	else
-																		next_site();
-																}
-															);
-															
-														}, err => {
-															
-															if (err)
-																reject(err);
-															else
-																resolve(removed);
-														}
-													);
-												}
-												
-												break;
-												
-											case 'Group':
-
-												{
-													async.each(removed.sites,
-														(site_name, next_site) => {
-															
-															let hostname = site_name.split("/")[0];
-															let pathname = "/" + site_name.split("/").slice(1).join("/");
-															
-															this.storage.getDomain(
-																domain => {
-																	
-																	if (domain) {
-																		
-																		let site = domain.haveSite(pathname);
-																		
-																		if (site) {
-																			
-																			site.removeGroup(removed);
-																			removed.removeSite(site);
-																		}
-																		
-																		site.persist().then(() => { next_site() }, next_site);
-
-																	} else {
-
-																		console.warn("missing site: " + site_name);
-																		next_site();
-																	}
-																	
-																}, hostname
-															);
-															
-														}, err => {
-															
-															if (err)
-																reject(err);
-															else
-																resolve(removed);
-														}
-													);
-												}
-												
-												break;
-
-											default:
-												break;
-										}
-									}
-								);
-						
-						} else
-							reject(new Error("Attempting to remove unexisting " + this.key.toLowerCase()  + ": \"" + item_name + "\""));
-						
-					}, item_name);
-			});
-	}
-
 	this.getItem = (item_name) => {
 
 		return new Promise(
@@ -237,7 +111,7 @@ function DataMgr (opt) {
 		
 	}
 
-	this.getMeaningfull = (start, len) => {
+	this.getMeaningful = (start, len) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -281,7 +155,7 @@ function DataMgr (opt) {
 
 				let items = [];
 
-				this.getMeaningfull().then(
+				this.getMeaningful().then(
 					data => {
 
 						resolve(

@@ -2,7 +2,7 @@ function PA (bg, info) {
 	
 	let self = this;
 
-	console.log(info.site);
+	//console.log(info.domains);
 	
 	this.bg = bg;
 	this.info = info;
@@ -12,8 +12,7 @@ function PA (bg, info) {
 	this.url = new URL(this.info.url).name();
 
 	this.pa_state = {
-
-		script_list: false,
+		
 		group_mgr: false,
 		current_group: bg.group_mgr.groups[0],
 		sections: "",
@@ -32,8 +31,7 @@ function PA (bg, info) {
 		$scope.hostname = new URL(self.info.url).hostname;
 		$scope.groups = self.bg.group_mgr.groups;
 		$scope.disabled = self.info.disabled;
-		$scope.user_info = ($scope.info.site.length + $scope.info.subdomains.length + $scope.info.groups.length) != 0; 
-		$scope.scrips_active = self.pa_state.script_list;
+		$scope.scrips_active = false;
 		
 		$scope.disableSite = () => {
 			
@@ -45,8 +43,8 @@ function PA (bg, info) {
 
 		$scope.removeSite = () => {
 			
-			self.bg.domain_mgr.removeItem($scope.hostname)
-				.then(() => { self.scheduleUpdateAt(350); }, console.error);
+			self.bg.domain_mgr.removeSite($scope.hostname)
+				.then($scope.updateData, console.error);
 		}
 		
 		$scope.updateData = () => {
@@ -59,7 +57,6 @@ function PA (bg, info) {
 							info => {
 								
 								$scope.info = self.info = info;
-								$scope.user_info = (info.site.length + info.subdomains.length + info.groups.length) != 0;
 								
 								browser.pageAction.setIcon(
 									{
@@ -111,11 +108,10 @@ function PA (bg, info) {
 		}
 		
 		$scope.$watch(() => { return $scope.scripts_active },
-			nval => {
+			(nval, oval) => {
 
-				$scope.onSizeChange();
-				self.pa_state.script_list = nval;
-				
+				if (nval != oval)
+					$scope.onSizeChange();
 			}
 		);
 
@@ -162,23 +158,6 @@ function PA (bg, info) {
 		
 		return item;
 	};
-
-	this.scheduleUpdateAt = (to) => {
-		
-		if (self.updtId)
-			clearTimeout(self.updtId);
-		
-		self.updtId = setTimeout(() => {
-			
-			this.list_mgr.updateData();
-			
-		}, to)
-	}
-	
-	this.remove = (script) => {
-		
-		script.remove().then(() => { this.scheduleUpdateAt(350); });
-	};
 	
 	this.reload = (script, compile, scope) => {
 		
@@ -206,6 +185,17 @@ function PA (bg, info) {
 			);
 	};
 
+	this.remove = (script, scope) => {
+		
+		script.remove().then(
+			parent => {
+				
+				scope.scheduleUpdateAt(350, script.getParentName(), script.parent.url || null);
+
+			}
+		);
+	};
+	
 	this.addOpenedSection = (name) => {
 
 		self.pa_state.sections += (";" + name); 
@@ -247,6 +237,20 @@ function PA (bg, info) {
 			self.pa_state.page_idx.push({ section: section, list: list, first: first });
 				
 	}
+
+	this.decreasePageIdx = (section, list) => {
+
+		let idx_elem = self.pa_state.page_idx.find(
+			record => {
+				
+				return record.section == section && record.list == list;			
+				
+			}
+		);
+
+		if (idx_elem)
+			idx_elem.first -= 5;	
+	}
 	
 	this.app.config(
 		$stateProvider => {
@@ -257,48 +261,111 @@ function PA (bg, info) {
 				},
 				views: {
 					
-					'site': {
+					'domains': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile, $stateParams) {
-							
-							$scope.reloadScript = (scr) => {
-								self.reload(scr, $compile, $scope);
-							}
+						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
 							
 							$scope.data = [];
+							
+							$scope.reloadScript = (scr) => {
+								self.reload(scr, $compile, $scope);								
+							}
+							
+							$scope.scheduleUpdateAt = (to, name, site) => {
+								
+								if ($scope[name + "Id"])
+									$timeout.cancel($scope[name + "Id"]);
+								
+								$scope[name + "Id"] = $timeout((name, site) => {
 
-							let list = self.info.site;
-							let elem = { title: list.name, list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ), visible: self.mustOpen(list.name) };
-							
-							$scope.data.push(elem);
-							
-							$scope.$watch(() => { return elem.visible },
-								(nval, oval) => {
+									let idx = $scope.data.findIndex(
+										list => {
+											
+											return list.title == name;
+											
+										}
+									);
+
+									if ($scope.data[idx].list.length == 1)
+										self.decreasePageIdx(name, site);
 									
-									if (nval != oval) {
+									self.bg.domain_mgr.getPASliceFor($scope.data[idx].actual, 5, name, new URL(self.info.url).pathname, self.pa_state.page_idx)
+										.then(slice => {
+
+											if (slice.total) {
+
+												$scope.data[idx].list = slice.sites.map(
+													site => {
+														return self.itemExtend(site, $scope, name)
+													}
+												);
+												
+											} else {
+												
+												$scope.data.remove(idx);
+
+												self.info.domains.remove(
+													self.info.domains.findIndex(
+														domain => {
+															return domain.name == name
+														}
+													)
+												);
+											}
+											
+											$rootScope.$digest();
+										});
+									
+								}, to, false, name, site);
+
+								return $scope[name + "Id"];
+							}
+							
+							$scope.removeScript = (script) => {
+								
+								self.remove(script, $scope);
+								
+							};
+
+							for (let list of self.info.domains) {
+
+								let elem = {
+
+									title: list.name,
+									list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ),
+									visible: false,
+									actual: list.actual,
+									total: list.total
+									
+								};
+								
+								$scope.data.push(elem);
+							
+								$scope.$watch(() => { return elem.visible },
+									(nval, oval) => {
 										
-										$scope.onSizeChange();
-										
-										if (nval)
-											self.addOpenedSection(elem.title);
-										else
-											self.removeOpenedSection(elem.title);
-										
+										if (nval != oval) 	
+											$scope.onSizeChange();
 									}
-								}
-							);
+								);
+							}
 							
 							$scope.newScriptsFor = (slice, target, site) => {
 								
-								let elem = $scope.data[0].list.find(
-									item => {
-										
-										return item.name == site;
-										
-									}
-								);
+								let elem = $scope.data.find(
+									list => {
 
+										return list.title == target;
+										
+									}).list.find(
+										item => {
+										
+											return item.name == site;
+										
+										}
+									);
+								
 								self.addPageIdx(target, site, slice.actual);
 								
 								elem.scripts = slice.data;
@@ -322,62 +389,63 @@ function PA (bg, info) {
 							$scope.data = [
 								{
 									title: 'Groups',
-									list: self.info["groups"].map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ),
-									visible: self.mustOpen('Groups')
+									list: self.info.groups.members.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ),
+									visible: false,
+									actual: self.info.groups.actual,
+									total: self.info.groups.total
 								}
 							];
 
 							$scope.$watch(() => { return $scope.data[0].visible },
 								(nval, oval) => {
 									
-									if (nval != oval) {
-										
+									if (nval != oval)										
 										$scope.onSizeChange();
-
-										if (nval)
-											self.addOpenedSection('Groups');
-										else
-											self.removeOpenedSection('Groups');
-										
-									}
 								}
 							);
-						}
-					},
 
-					'subdomains': {
-						
-						templateUrl: 'lists.html',
-						controller: function ($scope, $compile, $stateParams) {
-							
-							$scope.reloadScript = (scr) => {
-								self.reload(scr, $compile, $scope);
-							}
-							
-							$scope.data = [];
+							$scope.scheduleUpdateAt = (to, name, site) => {
+								
+								if ($scope.updtId)
+									$timeout.cancel($scope.updtId);
+								
+								$scope.updtId = $timeout(
+									name => {
 
-							for (let list of self.info["subdomains"]) {
+										if ($scope.data[0].lists.length == 1)
+											self.decreasePageIdx(name, site);
+									
+										self.bg.domain_mgr.getPASliceFor($scope.data[0].actual, 5, name, new URL(self.info.url).pathname, self.pa_state.page_idx)
+											.then(slice => {
 
-								let elem = { title: list.name, list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ), visible: self.mustOpen(list.name) };
+												if (slice.total) {
 
-								$scope.data.push(elem);
+													$scope.data[0].list = slice.members.map(
+														scripts => {
+															return self.itemExtend(scripts, $scope, 'Groups')
+														}
+													);
+												
+												} else {
 
-								$scope.$watch(() => { return elem.visible },
-									(nval, oval) => {
+													self.info.groups.members = []; /* ... */
+													$scope.data.remove(0);
+												
+												}
+											
+												$scope.$digest();
+											});
 										
-										if (nval != oval) {
-											
-											$scope.onSizeChange();
+									}, to, false, name);
 
-											if (nval)
-												self.addOpenedSection(elem.title);
-											else
-												self.removeOpenedSection(elem.title);
-											
-										}
-									}
-								);
+								return $scope.updtId;
 							}
+							
+							$scope.removeScript = (script) => {
+								
+								self.remove(script, $scope);
+								
+							};
 						}
 					},
 					
@@ -433,7 +501,7 @@ function PA (bg, info) {
 							
 							$scope.selectChange = (nval) => {
 								
-								self.pa_state.current_group = $scope.current = nval; //still not working.
+								self.pa_state.current_group = $scope.current = nval;
 								$scope.setAction();
 							};
 							

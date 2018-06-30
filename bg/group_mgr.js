@@ -52,6 +52,64 @@ function GroupMgr (bg) {
 					});
 			});
 	};
+
+	this.removeItem = (group_name) => {
+		
+		return new Promise(
+			resolve => {
+				this.storage.getGroup(
+					group => {
+						
+						if (group) {
+							
+							group.remove()
+								.then(
+									removed => {
+										
+										async.each(removed.sites,
+											(site_name, next_site) => {
+												
+												let hostname = site_name.split("/")[0];
+												let pathname = "/" + site_name.split("/").slice(1).join("/");
+												
+												this.storage.getDomain(
+													domain => {
+														
+														if (domain) {
+															
+															let site = domain.haveSite(pathname);
+															
+															if (site) 	
+																site.removeGroup(removed);
+															
+															site.persist().then(() => { next_site() }, next_site);
+															
+														} else {
+
+															console.warn("missing site: " + site_name);
+															next_site();
+														}
+														
+													}, hostname
+												);
+												
+											}, err => {
+												
+												if (err)
+													reject(err);
+												else
+													resolve(removed);
+											}
+										);
+									}
+								);
+						
+						} else
+							reject(new Error("Attempting to remove unexisting group: \"" + group_name + "\""));
+						
+					}, group_name);
+			});
+	}
 	
 	this.__siteOps = (group_name, url, func) => {
 

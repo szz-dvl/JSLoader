@@ -1,10 +1,13 @@
 - In-progress:
-	- Editor: Big Refactor { add download button (download code as text); }
-  	- Sync opt page editor settings with editor menu.
-	- Editor tab check for updated.
+	- Editor: Big Refactor { add download button (download code as text); 
+  	  		  	  		   - Sync opt page editor settings with editor menu.
+						   - Editor tab check for updated. }
 	- Refactor removeItem
-	- Pginate Lists
-	- Init user defs: Watchers && import Js (remove async && underscore)
+	- Paginate Lists
+	- Init user defs: import Js (remove async && underscore)
+	- Virtual resources:
+	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
+			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -36,7 +39,9 @@
   		  		  	  			 	  		   	   	   			 (faster solution implemented: the first change will run the associated scripts, enough for any page?
 																 		 ===> otherwise debounce deferred execute until last change)
 
-															   * Hypothetical: Active/Unactive tab loading content via XHR without changing tab params (detectable?? ==> request filter.)
+															   * Hypothetical:
+																	Active/Unactive tab loading content via XHR without changing tab params
+																	(detectable?? ==> [request filter, implement watchers for scripts better: user responsability].)
 															   
   - PA: Re-arrange lists [DropDown button keep failing when parent sections hides them while opened].
   - Frames not found ===> getFramesFor instead of getMainFramesFor;

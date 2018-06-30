@@ -7,35 +7,43 @@ function ContentScript() {
 	Promise.onPossiblyUnhandledRejection(
 		err => {
 
-			let encoded = err.stack.split("/")[0];
-			let action = encoded.split('$')[0].replace(/_/g,  '-');
-			let script = encoded.split('$').pop().replace(/_/g, '-'); /* Any other way? */
+			try {
+				let encoded = err.stack.split("/")[0];
+				let action = encoded.split('$')[0].replace(/_/g,  '-');
+				let script = encoded.split('$').pop().replace(/_/g, '-'); /* Any other way? */
 
-			err.stack = err.stack.replace(encoded, 'anonymous');
-			console.error(err);
-			
-			this.port.postMessage(
-				{
-					action: "update-history",
-					status: false,
-					errors: [
-						{
-							
-							type: err.constructor.name,
-							message:  err.message,
-							line: err.lineNumber - 3,
-							col: err.columnNumber,
-							id: script,
-							at: window.location.href,
-							stamp: new Date().getTime()
-						}
-					],
-					
-					run: [script],
-					inform: action == 'post-results',
-					unhandled: true
-				}
-			);
+				err.stack = err.stack.replace(encoded, 'anonymous');
+				console.error(err);
+				
+				this.port.postMessage(
+					{
+						action: "update-history",
+						status: false,
+						errors: [
+							{
+								
+								type: err.constructor.name,
+									message:  err.message,
+									line: err.lineNumber - 3,
+									col: err.columnNumber,
+									id: script,
+									at: window.location.href,
+									stamp: new Date().getTime()
+							}
+						],
+						
+						run: [script],
+						inform: action == 'post-results',
+						unhandled: true
+					}
+				);
+
+			} catch (error) {
+
+				console.error(error);
+				console.error(err);
+				
+			}
 		}
 	);
 	

@@ -51,6 +51,38 @@ function DomainMgr (bg) {
 		
 		this.storage.setDisabledDomains(this.disabled_domains);
 	};
+
+	this.__getNamesFor = (hostname) => {
+
+		let names = [];
+		let split = this.__isIPAddr(hostname) ? [] : hostname.split(".");
+		let aux = split.slice(1);
+		
+		while (aux.length) {
+					
+			names.push("*." + aux.join("."));
+			aux = aux.slice(1);
+		}
+		
+		aux = split.slice(0, -1);
+		
+		while (aux.length) {
+			
+			names.push(aux.join(".") + ".*");	
+			aux = aux.slice(0, -1);
+		}
+
+		aux = split.slice(1).slice(0, -1);
+				
+		while (aux.length) {
+					
+			names.push("*." + aux.join(".") + ".*");	
+			aux = aux.slice(1).slice(0, -1);
+		}
+
+		return names;
+		
+	};
 	
 	this.__getRepresentedBy = (hostname) => {
 		
@@ -58,32 +90,7 @@ function DomainMgr (bg) {
 			(resolve, reject) => {
 				
 				let domains = [];
-				let names = [];
-				
-				var split = this.__isIPAddr(hostname) ? [] : hostname.split(".");
-				let aux = split.slice(1);
-				
-				while (aux.length) {
-					
-					names.push("*." + aux.join("."));
-					aux = aux.slice(1);
-				}
-				
-				aux = split.slice(0, -1);
-				
-				while (aux.length) {
-					
-					names.push(aux.join(".") + ".*");	
-					aux = aux.slice(0, -1);
-				}
-
-				aux = split.slice(1).slice(0, -1);
-				
-				while (aux.length) {
-					
-					names.push("*." + aux.join(".") + ".*");	
-					aux = aux.slice(1).slice(0, -1);
-				}
+				let names = this.__getNamesFor(hostname);
 				
 				async.eachSeries(names,
 					(actual, cb) => {
@@ -181,6 +188,93 @@ function DomainMgr (bg) {
 			}
 		);
 	};
+
+	this.removeSite = (hostname) => {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				async.each(this.__getNamesFor(hostname).concat(hostname),
+					(name, next) => {
+
+						this.removeItem(name)
+							.then(removed => { next(); }, err => { next(); });
+						
+					}, err => {
+
+						if (err)
+							reject(new Error ("Error removing site: \"" + hostname + "\""));
+						else
+							resolve();
+						
+					});
+			});
+	};
+	
+	this.removeItem = (hostname) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				this.storage.getDomain(
+					domain => {
+						
+						if (domain) {
+							
+							domain.remove()
+								.then(
+									removed => {
+										
+										let sites = removed.sites.concat(removed);
+										
+										async.eachSeries(sites,
+											(site, next_site) => {
+												
+												async.each(site.groups,
+													(group_name, next_group) => {
+														
+														this.storage.getGroup(
+															group => {
+																
+																if (group) {
+																	
+																	group.removeSite(site);
+																	group.persist().then(() => { next_group() }, next_group);
+																	
+																} else {
+
+																	console.warn('missing group: ' + group_name);
+																	next_group();
+																}
+																
+															}, group_name
+														);
+														
+													}, err => {
+
+														if (err)
+															reject(err);
+														else
+															next_site();
+													}
+												);
+												
+											}, err => {
+												
+												if (err)
+													reject(err);
+												else
+													resolve(removed);
+											}
+										);
+									}
+								);
+						
+						} else
+							reject(new Error("Attempting to remove unexisting domain: \"" + hostname + "\""));
+						
+					}, hostname);
+			});
+	};
 	
 	this.getScriptsForUrl = (url) => {
 		
@@ -254,60 +348,25 @@ function DomainMgr (bg) {
 						let groups = [];
 						let editInfo = {
 							
-							site: {}, 
-							subdomains: [],
+							domains: [],
 							groups: {},
 							disabled: self.__isDisabled(url.hostname),
-							exists: false
+							exists: domain ? true : false
 							
 						};		
-						
-						if (domain) {
-							
-							editInfo.exists = true;
-							
-							let info = this.__getSitesInfoFor(domain, url.pathname);
-							
-							editInfo.site.sites = info.scripts
-									.sort((a,b) => { return a.name > b.name; })
-									.slice(0, 5)
-									.map(
-										nfo => {
-											
-											return {
-												
-												name: nfo.name,
-												scripts: nfo.scripts.sort(
-													(a,b) => {
-														
-														return a.uuid > b.uuid;
-														
-													}).slice(0, 5),
-												actual: 0,
-												total: nfo.scripts.length
-											};
-											
-										}
-									);
-							
-							editInfo.site.actual = 0;
-							editInfo.site.total = info.scripts.length;
-							editInfo.site.name = url.hostname;
-							
-							groups.push.apply(groups,
-								info.groups); 
-							
-						}
 						
 						this.__getRepresentedBy(url.hostname)
 							.then(
 								subdomains => {
 									
+									if (domain)
+										subdomains.push(domain);
+									
 									for (let subdomain of subdomains) {
 
 										let info = this.__getSitesInfoFor(subdomain, url.pathname);
 										
-										editInfo.subdomains.push({
+										editInfo.domains.push({
 
 											name: subdomain.name,
 											sites: info.scripts
@@ -333,14 +392,19 @@ function DomainMgr (bg) {
 											actual: 0,
 											total: info.scripts.length
 										});
-											
+										
 										groups.push.apply(groups,
 											info.groups);	
 									}
+
 									
-									groups = groups.unique()
-										.sort((a,b) => { return a.name > b.name; })
-										.slice(0, 5);
+									groups = groups.unique();
+
+									editInfo.groups.actual = 0;
+									editInfo.groups.total = groups.length
+									editInfo.groups.members = [];
+									
+									groups = groups.sort((a,b) => { return a.name > b.name; }).slice(0, 5);
 									
 									this.bg.group_mgr.getGroupScripts(groups).then(
 										group_scripts => {
@@ -355,7 +419,7 @@ function DomainMgr (bg) {
 													);
 												
 												if (filtered.length) {
-													editInfo.groups.push({ name: group, scripts: { actual: 0, total: filtered.length, scripts: filtered.sort(
+													editInfo.groups.members.push({ name: group, scripts: { actual: 0, total: filtered.length, scripts: filtered.sort(
 														(a,b) => {
 								
 															return a.uuid > b.uuid;
@@ -386,7 +450,7 @@ function DomainMgr (bg) {
 			}
 		);
 
-		return record.first || 0;
+		return record ? record.first : 0;
 		
 	};
 	
@@ -433,7 +497,11 @@ function DomainMgr (bg) {
 								}
 							);
 							
-						}, reject);
+						}, err => {
+
+							resolve({total: 0});
+
+						});
 			});
 	}
 	

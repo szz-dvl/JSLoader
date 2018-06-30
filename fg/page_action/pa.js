@@ -2,7 +2,7 @@ function PA (bg, info) {
 	
 	let self = this;
 
-	//console.log(info.domains);
+	console.log(info.groups);
 	
 	this.bg = bg;
 	this.info = info;
@@ -380,7 +380,7 @@ function PA (bg, info) {
 					'groups': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile, $stateParams) {
+						controller: function ($scope, $compile, $stateParams, $timeout) {
 							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
@@ -404,7 +404,7 @@ function PA (bg, info) {
 								}
 							);
 
-							$scope.scheduleUpdateAt = (to, name, site) => {
+							$scope.scheduleUpdateAt = (to, name) => {
 								
 								if ($scope.updtId)
 									$timeout.cancel($scope.updtId);
@@ -412,10 +412,10 @@ function PA (bg, info) {
 								$scope.updtId = $timeout(
 									name => {
 
-										if ($scope.data[0].lists.length == 1)
-											self.decreasePageIdx(name, site);
+										if ($scope.data[0].list.length == 1)
+											self.decreasePageIdx('Groups', name);
 									
-										self.bg.domain_mgr.getPASliceFor($scope.data[0].actual, 5, name, new URL(self.info.url).pathname, self.pa_state.page_idx)
+										self.bg.group_mgr.getPASliceFor($scope.data[0].actual, 5, 'Groups', new URL(self.info.url), self.pa_state.page_idx)
 											.then(slice => {
 
 												if (slice.total) {
@@ -427,10 +427,8 @@ function PA (bg, info) {
 													);
 												
 												} else {
-
-													self.info.groups.members = []; /* ... */
-													$scope.data.remove(0);
-												
+													
+													console.warn("Empty groups!");
 												}
 											
 												$scope.$digest();
@@ -446,6 +444,26 @@ function PA (bg, info) {
 								self.remove(script, $scope);
 								
 							};
+
+							$scope.newScriptsFor = (slice, target, group_name) => {
+								
+								let elem = $scope.data[0].list.find(
+									item => {
+										
+										return item.name == group_name;
+										
+									}
+								);
+								
+								self.addPageIdx('Groups', group_name, slice.actual);
+								
+								elem.scripts = slice.data;
+								elem.actual = slice.actual;
+								elem.total = slice.total;
+								
+								$scope.$digest();
+							}
+							
 						}
 					},
 					
@@ -488,7 +506,7 @@ function PA (bg, info) {
 									.then(
 										group => {
 											
-											/* ¿¿ isMySite vs includes ??*/
+											/* ¡¡ includes !! ==> "removeSite" must remove parent sites too. */
 											if (group.isMySite($scope.url))
 												$scope.action = "Remove";
 											else

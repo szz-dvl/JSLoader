@@ -184,6 +184,20 @@ function DataMgr (opt) {
 			});
 	}
 
+	this.__getFirstFor = (target, name, index) => {
+		
+		let record = index.find(
+			idx => {
+
+				return idx.section == target && idx.list == name;
+
+			}
+		);
+
+		return record ? record.first : 0;
+		
+	};
+
 	this.getScriptsSliceFor = (start, len, target, site) => {
 		
 		return new Promise(

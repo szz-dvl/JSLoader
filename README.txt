@@ -1,13 +1,10 @@
 - In-progress:
-	- Editor: Big Refactor { add download button (download code as text); 
-  	  		  	  		   - Sync opt page editor settings with editor menu.
-						   - Editor tab check for updated. }
-	- Refactor removeItem
-	- Paginate Lists
-	- Init user defs: import Js (remove async && underscore)
-	- Virtual resources:
-	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
-			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
+	- Paginate Lists:
+				- Missing filter for lists in opt page
+				- Missing testing for PA groups inner lists.
+				- Missing PA outter lists front end.  
+				- Missing group manager in PA.
+				- Missing views rearrange.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -15,11 +12,23 @@
   - Opened windows after browser crash ==> to be recovered.
   - Extensions seems to be sharing storage key names!!
 
--To Do:
-	- Virtual Resources: Missing DB management.
+- To Do:
+
+	- Editor: Big Refactor { add download button (download code as text); 
+  	  		  	  		   - Sync opt page editor settings with editor menu.
+						   - Editor tab check for outdated.
+						   - "Add site" button by group chooser when adding group scripts
+						   - Editor BG to class extending EventEmitter, talk FG via events }
+	
+	- Init user defs: import Js (remove async && underscore)
+	
+	- Virtual resources:
+	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
+			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
+			  - Missing DB management.
+			  
 	- script.remove(...) is undefined (pa.js:205);
 	- Error manager for beta testing.
-	- Paginate lists.
 	
 - To be tested:
   - Import/Export features. **
@@ -33,7 +42,7 @@
   - Cascade removes ====> Array.remove [ destructive - index lost - ] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
   - Virt Resources ==> what is done. (Virt FS, Content API[v1] ==> load resource directory);
   - Group creation:
-  	* bugs in PA: scripts not shown after first close (Probably from Array.reduce)	
+  	* bugs in PA: scripts not shown after first close (Probably from Array.reduce solved BUG)	
 
   - Added support for pages that load contents via XHR requests: To be tested ===> when pages updates tab info several times after changing its URL
   		  		  	  			 	  		   	   	   			 (faster solution implemented: the first change will run the associated scripts, enough for any page?
@@ -44,7 +53,7 @@
 																	(detectable?? ==> [request filter, implement watchers for scripts better: user responsability].)
 															   
   - PA: Re-arrange lists [DropDown button keep failing when parent sections hides them while opened].
-  - Frames not found ===> getFramesFor instead of getMainFramesFor;
+  - Frames not destroyed! ===> getFramesFor instead of getMainFramesFor;
   
 - Caveats: /* !!! */
   - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿? ]
@@ -52,10 +61,11 @@
 		  * Limit third party domains for each site ==> how?
 		  * Possible conflicts between scripts ?? ... =S ...
 
-  - Editor Buttons to top bar?
+  - Sidebar: JSL components ==> give support for mouse
+  
   - Add binded site to group in group creation?
   - Prevent context menu on extension windows ???
-  - Use classes in data_model && mgrs.
+  - Use classes in data_model && mgrs. ... _''_ ...
   
 - Issues:
   - Computed "src" attributes won't display in extension pages (when evaluated [eval & friends allowed in CSP])
@@ -67,13 +77,11 @@
 - Finally:
   - Style everything up!
   		  * Inform user of unpersisted data on views.
-		  * (( paginate lists, filter for domains & groups lists )).
-		  * Drop Down Buttons outline
-		  * Input + label (come & go ... =S)
+		  * (( paginate lists, filter for domains & groups lists )). (IP)
 		  * etc, etc, etc ...
 		  
   - Initial examples for each info recipient.
-
+  - Translations
 
 _____-- MANUALS --______
 

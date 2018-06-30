@@ -120,7 +120,7 @@ function GroupMgr (bg) {
 					group => {
 						
 						if (! group)
-							console.error("Group " + group_name + " not existent, site: " + url + " not added.");
+							reject(new Error("Group " + group_name + " not existent, site: " + url + " not added."));
 						else {
 							
 							var pathname, hostname;
@@ -259,6 +259,51 @@ function GroupMgr (bg) {
 						else
 							resolve();
 					});
+			});
+	}
+
+	this.getPASliceFor = (start, len, target, path, index) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.getMeaningful()
+					.then(
+						groups => {
+
+							let filtered = groups.filter(group => { return group.includes(path); });
+							
+							resolve(
+								{
+									members:filtered.sort((a,b) => { return a.name > b.name; })
+										.slice(start, start + len)
+										.map(
+											group => {
+												
+												let first = this.__getFirstFor(target, group.name, index);
+												
+												return {
+													
+													name: group.name,
+													scripts: group.scripts.sort(
+														(a,b) => {
+															
+															return a.uuid > b.uuid;
+															
+														}).slice(first, first + 5),
+													actual: 0,
+													total: group.scripts.length
+												};
+												
+											}
+										),
+
+									actual: start,
+									total: filtered.length
+								}
+							);
+							
+						}, reject);
 			});
 	}
 	

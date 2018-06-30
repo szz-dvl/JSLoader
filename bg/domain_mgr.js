@@ -419,12 +419,12 @@ function DomainMgr (bg) {
 													);
 												
 												if (filtered.length) {
-													editInfo.groups.members.push({ name: group, scripts: { actual: 0, total: filtered.length, scripts: filtered.sort(
+													editInfo.groups.members.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
 														(a,b) => {
 								
 															return a.uuid > b.uuid;
 
-														}).slice(0, 5) }});
+														}).slice(0, 5) });
 												}
 											}
 											
@@ -438,20 +438,6 @@ function DomainMgr (bg) {
 						
 					}, url.hostname);
 			});
-	};
-
-	this.__getFirstFor = (target, name, index) => {
-		
-		let record = index.find(
-			idx => {
-
-				return idx.section == target && idx.list == name;
-
-			}
-		);
-
-		return record ? record.first : 0;
-		
 	};
 	
 	this.getPASliceFor = (start, len, target, path, index) => {

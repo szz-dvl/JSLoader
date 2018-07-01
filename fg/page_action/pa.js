@@ -13,8 +13,6 @@ function PA (bg, info) {
 
 	this.pa_state = {
 		
-		group_mgr: false,
-		current_group: bg.group_mgr.groups[0],
 		sections: "",
 		page_idx: []
 		
@@ -62,8 +60,8 @@ function PA (bg, info) {
 									{
 										path: {
 
-											16: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-16.png"),
-											32: browser.extension.getURL("fg/icons/" + ($scope.user_info ? "red" : "blue") + "-diskette-32.png")
+											16: browser.extension.getURL("fg/icons/blue-diskette-16.png"),
+											32: browser.extension.getURL("fg/icons/blue-diskette-32.png")
 												
 										},
 										
@@ -287,12 +285,23 @@ function PA (bg, info) {
 										}
 									);
 
-									if ($scope.data[idx].list.length == 1)
+									let slist = $scope.data[idx].list.find(
+										inner => {
+											
+											return inner.name == site;
+											
+										}
+									);
+									
+									if (slist.length == 1)
 										self.decreasePageIdx(name, site);
 									
 									self.bg.domain_mgr.getPASliceFor($scope.data[idx].actual, 5, name, new URL(self.info.url).pathname, self.pa_state.page_idx)
 										.then(slice => {
 
+											$scope.data[idx].actual = slice.actual;
+											$scope.data[idx].total = slice.total;
+											
 											if (slice.total) {
 
 												$scope.data[idx].list = slice.sites.map(
@@ -334,7 +343,7 @@ function PA (bg, info) {
 
 									title: list.name,
 									list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ),
-									visible: false,
+									visible: self.mustOpen(list.name),
 									actual: list.actual,
 									total: list.total
 									
@@ -345,8 +354,15 @@ function PA (bg, info) {
 								$scope.$watch(() => { return elem.visible },
 									(nval, oval) => {
 										
-										if (nval != oval) 	
+										if (nval != oval) { 	
+											
 											$scope.onSizeChange();
+
+											if (nval)
+												self.addOpenedSection(list.name);
+											else
+												self.removeOpenedSection(list.name);
+										}
 									}
 								);
 							}
@@ -380,7 +396,7 @@ function PA (bg, info) {
 					'groups': {
 						
 						templateUrl: 'lists.html',
-						controller: function ($scope, $compile, $stateParams, $timeout) {
+						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
 							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
@@ -390,7 +406,7 @@ function PA (bg, info) {
 								{
 									title: 'Groups',
 									list: self.info.groups.members.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ),
-									visible: false,
+									visible: self.mustOpen('Groups'),
 									actual: self.info.groups.actual,
 									total: self.info.groups.total
 								}
@@ -399,12 +415,20 @@ function PA (bg, info) {
 							$scope.$watch(() => { return $scope.data[0].visible },
 								(nval, oval) => {
 									
-									if (nval != oval)										
+									if (nval != oval) {										
+
 										$scope.onSizeChange();
+
+										if (nval)
+											self.addOpenedSection('Groups');
+										else
+											self.removeOpenedSection('Groups');
+										
+									}
 								}
 							);
 
-							$scope.scheduleUpdateAt = (to, name) => {
+							self.updateGroups = $scope.scheduleUpdateAt = (to, name) => {
 								
 								if ($scope.updtId)
 									$timeout.cancel($scope.updtId);
@@ -412,24 +436,35 @@ function PA (bg, info) {
 								$scope.updtId = $timeout(
 									name => {
 
-										if ($scope.data[0].list.length == 1)
+										let glist = $scope.data[0].list
+											.find(
+												inner => {
+
+													return inner.name == name;
+																										
+												}
+											);
+										
+										if (glist && glist.length == 1)
 											self.decreasePageIdx('Groups', name);
 									
 										self.bg.group_mgr.getPASliceFor($scope.data[0].actual, 5, 'Groups', new URL(self.info.url), self.pa_state.page_idx)
 											.then(slice => {
 
-												if (slice.total) {
+												console.log(slice);
 
+												$scope.data[0].actual = slice.actual;
+												$scope.data[0].total = slice.total;
+												
+												if (slice.total) {
+													
 													$scope.data[0].list = slice.members.map(
 														scripts => {
 															return self.itemExtend(scripts, $scope, 'Groups')
 														}
 													);
 												
-												} else {
-													
-													console.warn("Empty groups!");
-												}
+												} 
 											
 												$scope.$digest();
 											});
@@ -471,11 +506,11 @@ function PA (bg, info) {
 
 						templateUrl: 'groups.html',
 						controller: function ($scope, $timeout, $stateParams, $location, $anchorScroll) {
+
+							$scope.current = $scope.groups[0];
+							$scope.groups_active = false;
 							
-							$scope.current = $stateParams.state.current_group;
-							$scope.groups_active = $stateParams.state.group_mgr;
-							
-							$scope.url = $scope.page.url;
+							$scope.url = self.url;
 							$scope.events = new EventEmitter();
 							
 							$scope.action;
@@ -495,8 +530,6 @@ function PA (bg, info) {
 												}
 											}
 										);
-									
-									self.pa_state.group_mgr = nval;
 								}
 							);
 							
@@ -506,8 +539,7 @@ function PA (bg, info) {
 									.then(
 										group => {
 											
-											/* ¡¡ includes !! ==> "removeSite" must remove parent sites too. */
-											if (group.isMySite($scope.url))
+											if (group.includes(new URL(self.info.url)))
 												$scope.action = "Remove";
 											else
 												$scope.action = "Add";
@@ -519,7 +551,7 @@ function PA (bg, info) {
 							
 							$scope.selectChange = (nval) => {
 								
-								self.pa_state.current_group = $scope.current = nval;
+								$scope.current = nval;
 								$scope.setAction();
 							};
 							
@@ -546,7 +578,7 @@ function PA (bg, info) {
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
-								promise.then(() => { self.scheduleUpdateAt(350); });			
+								promise.then(() => { self.updateGroups(350, $scope.current).then($scope.setAction); });			
 							};
 							
 							$timeout(

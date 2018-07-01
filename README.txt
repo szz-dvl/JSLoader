@@ -1,9 +1,7 @@
 - In-progress:
 	- Paginate Lists:
 				- Missing filter for lists in opt page
-				- Missing testing for PA groups inner lists.
 				- Missing PA outter lists front end.  
-				- Missing group manager in PA.
 				- Missing views rearrange.
 	
 - Big fails:

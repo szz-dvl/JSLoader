@@ -641,23 +641,35 @@ function Group (opt) {
 
 	this.removeSite = (site) => {
 		
-		this.sites.remove(this.sites.indexOf(site.siteName()));
 		site.groups.remove(site.groups.indexOf(this.name));
-		
-		let disabled = -1;
+
+		let done = -1;
 		
 		do {
 			
-			this.disabledAt.remove(disabled);
+			this.sites.remove(done);
 			
-			disabled = this.disabledAt.findIndex(
+			done = this.sites.findIndex(
+				site_name => {
+					
+					return site.siteName().startsWith(site_name);
+				}
+			);
+			
+		} while (done >= 0);
+		
+		do {
+			
+			this.disabledAt.remove(done);
+			
+			done = this.disabledAt.findIndex(
 				tuple => {
 					
 					return tuple.url.startsWith(site.siteName());
 				}
 			);
 			
-		} while (disabled >= 0);
+		} while (done >= 0);
 		
 		if (this.isEmpty())
 			this.remove();
@@ -856,21 +868,6 @@ function Group (opt) {
 			} while (idx >= 0);
 		}
 	}
-
-	/* ??? */
-	
-	this.isMySite = (site_name) => {
-		
-		return this.sites.find(
-			site => {
-				
-				return site == site_name;
-			}
-			
-		) ? true : false;
-	}
-	
-	/* -- ??? -- */
 	
 	this.getJSON = () => {
 

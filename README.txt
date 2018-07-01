@@ -1,7 +1,6 @@
 - In-progress:
 	- Paginate Lists:
 				- Missing filter for lists in opt page
-				- Missing PA outter lists front end.  
 				- Missing views rearrange.
 	
 - Big fails:
@@ -26,7 +25,11 @@
 			  - Missing DB management.
 			  
 	- script.remove(...) is undefined (pa.js:205);
+	- Groups won't be removed from PA select box when removed after "no scrits and no sites".
+	- BUG in decreasePageIdx when removing last script from page > 1;
 	- Error manager for beta testing.
+	
+	- -------------> Beta 1 <---------------
 	
 - To be tested:
   - Import/Export features. **

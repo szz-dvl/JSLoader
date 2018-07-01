@@ -3,13 +3,13 @@
 		<drop-down item="list" width="14" height="14"></drop-down>
 	</h4>
 	
-	<li ng-show="list.visible" class="panel-section" ng-repeat="item in list.list track by item.name" ng-if="item.scripts.length" style="display: block;margin-left: 30px;">
+	<li ng-show="list.visible" class="panel-section" ng-repeat="item in list.list track by item.name" style="display: block;margin-left: 30px;">
 		
 		<h5 style="margin: 5px 0 0 0;"> {{ item.name }}
 			<drop-down item="item" width="12" height="12"></drop-down>
 		</h5>
 		
-		<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible">
+		<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible" ng-if="item.scripts.length">
 			<thead>
 				<th style="text-align: left; min-width: 30%;">
 					Name
@@ -57,6 +57,8 @@
 					
 				</tr>
 
+				<no-info ng-show="item.visible" ng-if="!item.scripts.length" style="padding-top: 30px;font-size: 85%" text="'No Scripts'"></no-info>
+				
 				<tr paginator
 					ng-if="item.total > 5" 
 					target="item.section"
@@ -69,6 +71,24 @@
 
 			</tbody>
 			
+		</table>
+		
+	</li>
+	<li style="list-style-type: none;" ng-show="list.visible">
+		<table style="width: 100%;">
+			<tbody>
+
+				<tr paginator
+					ng-if="list.total > 5" 
+					target="list.title"
+					site="page.url"
+					feeding="page.bg[(list.title == 'Groups' ? 'group' : 'domain') + '_mgr'].getPASliceFor" 
+					slice="5" 
+					actual="list.actual" 
+					total="list.total" 
+					parent="newSliceFor"></tr>
+				
+			</tbody>
 		</table>
 		
 	</li>

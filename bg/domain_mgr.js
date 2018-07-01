@@ -449,7 +449,7 @@ function DomainMgr (bg) {
 					.then(
 						item => {
 							
-							let info = this.__getSitesInfoFor(item, path);
+							let info = this.__getSitesInfoFor(item, path.pathname);
 							
 							resolve(
 								{

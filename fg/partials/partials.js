@@ -214,6 +214,7 @@ angular.module('jslPartials', [])
 			
 			controller: function ($scope) {
 
+				/* console.log("actual: " + $scope.actual + " total: " + $scope.total); */
 				$scope.last_page = Math.ceil($scope.total / $scope.slice);
 				$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
 				
@@ -221,7 +222,7 @@ angular.module('jslPartials', [])
 
 					if ($scope.current_page > 1) {
 
-						$scope.feeding()($scope.actual - $scope.slice, $scope.slice, $scope.target, $scope.site)
+						$scope.feeding()($scope.actual - $scope.slice, $scope.slice, $scope.target, $scope.site, [])
 							.then(
 								slice => {
 
@@ -239,7 +240,7 @@ angular.module('jslPartials', [])
 					
 					if ( $scope.current_page < $scope.last_page ) {
 
-						$scope.feeding()($scope.actual + $scope.slice, $scope.slice, $scope.target, $scope.site)
+						$scope.feeding()($scope.actual + $scope.slice, $scope.slice, $scope.target, $scope.site, [])
 							.then(
 								slice => {
 

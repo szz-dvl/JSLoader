@@ -53,6 +53,7 @@ function PA (bg, info) {
 							info => {
 								
 								$scope.info = self.info = info;
+								$scope.groups = self.bg.group_mgr.groups;
 								
 								browser.pageAction.setIcon(
 									{
@@ -244,8 +245,13 @@ function PA (bg, info) {
 			}
 		);
 
-		if (idx_elem)
-			idx_elem.first -= 5;	/* !!! */
+		if (idx_elem) {
+			
+			if (idx_elem.first - 5 <= 0)
+				idx_elem.first = 0
+			else
+				idx_elem.first -= 5;
+		}
 	}
 	
 	this.app.config(
@@ -291,7 +297,7 @@ function PA (bg, info) {
 										}
 									);
 									
-									if (slist.length == 1)
+									if (slist.scripts.length == 1)
 										self.decreasePageIdx(name, site);
 									
 									self.bg.domain_mgr.getPASliceFor(
@@ -469,9 +475,9 @@ function PA (bg, info) {
 												}
 											);
 										
-										if (glist && glist.length == 1)
+										if (glist && glist.scripts.length == 1)
 											self.decreasePageIdx('Groups', name);
-									
+										
 										self.bg.group_mgr.getPASliceFor(
 											$scope.data[0].list.length == 1 && mgr ? ($scope.data[0].actual - 5 < 0 ? 0 : $scope.data[0].actual - 5) : $scope.data[0].actual, 5,
 											'Groups', self.url, self.pa_state.page_idx)
@@ -570,7 +576,10 @@ function PA (bg, info) {
 								}
 							);
 							
-							$scope.setAction = () => {
+							$scope.setAction = (update) => {
+
+								if (update)
+									$scope.current = update;
 								
 								$scope.page.bg.group_mgr.getItem($scope.current)
 									.then(
@@ -615,7 +624,18 @@ function PA (bg, info) {
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
-								promise.then(() => { self.updateGroups(350, $scope.current, true).then(() => { $scope.onSizeChange().then($scope.setAction) }); });			
+								promise.then(() => { self.updateGroups(350, $scope.current, true).then(() => {
+
+									let update = null;
+									if ($scope.groups.length != self.bg.group_mgr.groups.length) { 
+
+										$scope.groups = self.bg.group_mgr.groups;
+										update = $scope.groups[0]; 
+									}
+								
+									$scope.onSizeChange().then(() => { $scope.setAction(update) });
+
+								}); });			
 							};
 							
 							$timeout(

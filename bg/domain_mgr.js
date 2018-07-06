@@ -349,7 +349,7 @@ function DomainMgr (bg) {
 						let editInfo = {
 							
 							domains: [],
-							groups: {},
+							groups: [],
 							disabled: self.__isDisabled(url.hostname),
 							exists: domain ? true : false
 							
@@ -368,7 +368,7 @@ function DomainMgr (bg) {
 										
 										editInfo.domains.push({
 
-											name: subdomain.name,
+											title: subdomain.name,
 											sites: info.scripts
 												.sort((a,b) => { return a.name > b.name; })
 												.slice(0, 5)
@@ -399,10 +399,15 @@ function DomainMgr (bg) {
 
 									
 									groups = groups.unique();
+									
+									editInfo.groups.push({
+										
+										title: 'Groups',
+										actual: 0,
+										total: groups.length,
+										members: []
 
-									editInfo.groups.actual = 0;
-									editInfo.groups.total = groups.length
-									editInfo.groups.members = [];
+									});
 									
 									groups = groups.sort((a,b) => { return a.name > b.name; }).slice(0, 5);
 									
@@ -419,7 +424,7 @@ function DomainMgr (bg) {
 													);
 												
 												if (filtered.length) {
-													editInfo.groups.members.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
+													editInfo.groups[0].members.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
 														(a,b) => {
 								
 															return a.uuid > b.uuid;

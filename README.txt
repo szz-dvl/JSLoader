@@ -25,7 +25,7 @@
 			  - Missing DB management.
 			  
 	- script.remove(...) is undefined (pa.js:205);
-	- Groups won't be removed from PA select box when removed after "no scrits and no sites" ===> Being fixed.
+	- opt page: replace "Go" button ===> url on hover
 	- Error manager for beta testing.
 	
 	- -------------> Beta 1 <---------------

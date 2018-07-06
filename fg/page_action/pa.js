@@ -25,7 +25,7 @@ function PA (bg, info) {
 		
 		$scope.page.list_mgr = $scope;
 		$scope.hostname = self.url.hostname;
-		$scope.groups = self.bg.group_mgr.groups;
+		//$scope.groups = self.bg.group_mgr.groups;
 		$scope.disabled = self.info.disabled;
 		$scope.scrips_active = false;
 		
@@ -53,7 +53,7 @@ function PA (bg, info) {
 							info => {
 								
 								$scope.info = self.info = info;
-								$scope.groups = self.bg.group_mgr.groups;
+								//$scope.groups = self.bg.group_mgr.groups;
 								
 								browser.pageAction.setIcon(
 									{
@@ -268,7 +268,7 @@ function PA (bg, info) {
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
 							
-							$scope.data = [];
+							$scope.data = self.info.domains;
 							
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);								
@@ -319,14 +319,6 @@ function PA (bg, info) {
 											} else {
 												
 												$scope.data.remove(idx);
-
-												self.info.domains.remove(
-													self.info.domains.findIndex(
-														domain => {
-															return domain.name == name
-														}
-													)
-												);
 											}
 											
 											$rootScope.$digest();
@@ -343,21 +335,13 @@ function PA (bg, info) {
 								
 							};
 
-							for (let list of self.info.domains) {
+							for (let list of $scope.data) {
 
-								let elem = {
 
-									title: list.name,
-									list: list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } ),
-									visible: self.mustOpen(list.name),
-									actual: list.actual,
-									total: list.total
-									
-								};
+								list.list = list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } );
+								list.visible = self.mustOpen(list.name);	
 								
-								$scope.data.push(elem);
-							
-								$scope.$watch(() => { return elem.visible },
+								$scope.$watch(() => { return list.visible },
 									(nval, oval) => {
 										
 										if (nval != oval) { 	
@@ -399,7 +383,7 @@ function PA (bg, info) {
 
 							$scope.newSliceFor = (slice, target) => {
 
-								/* Will it ever happens? */
+								/* Will it ever happens? => tbt */
 								
 								let idx = $scope.data.findIndex(
 									list => {
@@ -427,21 +411,17 @@ function PA (bg, info) {
 						
 						templateUrl: 'lists.html',
 						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
-							
+
+							$scope.data = self.info.groups;
+
+							console.log($scope.data);
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.data = [
-								{
-									title: 'Groups',
-									list: self.info.groups.members.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } ),
-									visible: self.mustOpen('Groups'),
-									actual: self.info.groups.actual,
-									total: self.info.groups.total
-								}
-							];
-
+							$scope.data[0].list = self.info.groups[0].members.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } );
+							$scope.data[0].visible = self.mustOpen('Groups');
+							
 							$scope.$watch(() => { return $scope.data[0].visible },
 								(nval, oval) => {
 									
@@ -548,9 +528,9 @@ function PA (bg, info) {
 					'group_mgr': {
 
 						templateUrl: 'groups.html',
-						controller: function ($scope, $timeout, $stateParams, $location, $anchorScroll) {
+						controller: function ($scope, $timeout, $stateParams, $location, $anchorScroll, $compile) {
 
-							$scope.current = $scope.groups[0];
+							$scope.current = self.bg.group_mgr.groups[0];
 							$scope.groups_active = false;
 							
 							$scope.url = self.url.name();
@@ -578,27 +558,30 @@ function PA (bg, info) {
 							
 							$scope.setAction = (update) => {
 
-								if (update)
-									$scope.current = update;
-								
-								$scope.page.bg.group_mgr.getItem($scope.current)
-									.then(
-										group => {
-											
-											if (group.includes(self.url))
-												$scope.action = "Remove";
-											else
-												$scope.action = "Add";
-
-											$scope.$digest();
-										}
-									)
+								if ($scope.current) {
+									
+									$scope.page.bg.group_mgr.getItem($scope.current)
+										.then(
+											group => {
+												
+												if (group.includes(self.url))
+													$scope.action = "Remove";
+												else
+													$scope.action = "Add";
+												
+												$scope.$digest();
+											}
+										)
+								} 
 							};
 							
 							$scope.selectChange = (nval) => {
 								
-								$scope.current = nval;
-								$scope.setAction();
+								if (nval) {
+										
+									$scope.current = nval;
+									$scope.setAction();
+								}
 							};
 							
 							$scope.events
@@ -619,6 +602,8 @@ function PA (bg, info) {
 									});
 							
 							$scope.addSite = () => {
+
+								let init_len = self.bg.group_mgr.groups.length;
 								
 								let promise = $scope.action == "Add" ?
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
@@ -626,15 +611,8 @@ function PA (bg, info) {
 								
 								promise.then(() => { self.updateGroups(350, $scope.current, true).then(() => {
 
-									let update = null;
-									if ($scope.groups.length != self.bg.group_mgr.groups.length) { 
-
-										$scope.groups = self.bg.group_mgr.groups;
-										update = $scope.groups[0]; 
-									}
-								
-									$scope.onSizeChange().then(() => { $scope.setAction(update) });
-
+									$scope.onSizeChange().then(() => { $scope.setAction() });
+									
 								}); });			
 							};
 							

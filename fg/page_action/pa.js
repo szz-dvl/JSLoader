@@ -186,7 +186,7 @@ function PA (bg, info) {
 		script.remove().then(
 			parent => {
 				
-				scope.scheduleUpdateAt(350, script.getParentName(), script.parent.url || null);
+				scope.scheduleUpdateAt(350, script.getParentName());
 
 			}
 		);
@@ -268,18 +268,22 @@ function PA (bg, info) {
 						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
 							
 							$scope.data = self.info.domains;
-							
+							console.log($scope.data);
+
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);								
 							}
 							
-							$scope.scheduleUpdateAt = (to, name, site) => {
+							$scope.scheduleUpdateAt = (to, url) => {
 								
 								if ($scope[name + "Id"])
 									$timeout.cancel($scope[name + "Id"]);
 								
-								$scope[name + "Id"] = $timeout((name, site) => {
+								$scope[name + "Id"] = $timeout((url) => {
 
+									let site = '/' + url.split("/").slice(1).join("/");
+									let name = url.split("/")[0];
+									
 									let idx = $scope.data.findIndex(
 										list => {
 											
@@ -323,7 +327,7 @@ function PA (bg, info) {
 											$rootScope.$digest();
 										});
 									
-								}, to, false, name, site);
+								}, to, false, url);
 
 								return $scope[name + "Id"];
 							}
@@ -417,7 +421,6 @@ function PA (bg, info) {
 
 							$scope.data = self.info.groups;
 
-							console.log($scope.data);
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);
 							}

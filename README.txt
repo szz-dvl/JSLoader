@@ -23,9 +23,10 @@
 	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
 			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
 			  - Missing DB management.
-			  
-	- script.remove(...) is undefined (pa.js:205);
+	
 	- opt page: replace "Go" button ===> url on hover
+	  	  		Tooltip for sites showing the particular sites aded for a domain.
+				
 	- Error manager for beta testing.
 	
 	- -------------> Beta 1 <---------------

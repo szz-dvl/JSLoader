@@ -369,7 +369,7 @@ function DomainMgr (bg) {
 										editInfo.domains.push({
 
 											title: subdomain.name,
-											sites: info.scripts
+											list: info.scripts
 												.sort((a,b) => { return a.name > b.name; })
 												.slice(0, 5)
 												.map(
@@ -405,7 +405,7 @@ function DomainMgr (bg) {
 										title: 'Groups',
 										actual: 0,
 										total: groups.length,
-										members: []
+										list: []
 
 									});
 									
@@ -424,7 +424,7 @@ function DomainMgr (bg) {
 													);
 												
 												if (filtered.length) {
-													editInfo.groups[0].members.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
+													editInfo.groups[0].list.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
 														(a,b) => {
 								
 															return a.uuid > b.uuid;

@@ -25,7 +25,6 @@ function PA (bg, info) {
 		
 		$scope.page.list_mgr = $scope;
 		$scope.hostname = self.url.hostname;
-		//$scope.groups = self.bg.group_mgr.groups;
 		$scope.disabled = self.info.disabled;
 		$scope.scrips_active = false;
 		
@@ -53,7 +52,6 @@ function PA (bg, info) {
 							info => {
 								
 								$scope.info = self.info = info;
-								//$scope.groups = self.bg.group_mgr.groups;
 								
 								browser.pageAction.setIcon(
 									{
@@ -145,10 +143,11 @@ function PA (bg, info) {
 					
 					scope.onSizeChange();
 
-					if (nval)
+					if (nval) {
 						self.addOpenedSection(item.section + item.name);
-					else
+					} else {
 						self.removeOpenedSection(item.section + item.name);
+					}
 				}
 			}
 		);
@@ -338,8 +337,12 @@ function PA (bg, info) {
 							for (let list of $scope.data) {
 
 
-								list.list = list.sites.map(site => { return self.itemExtend(site, $scope, list.name) } );
+								list.list = list.list.map(site => { return self.itemExtend(site, $scope, list.name) } );
 								list.visible = self.mustOpen(list.name);	
+
+								list.mustPag = () => {
+									return !list.list.find(item => { return item.visible }) && list.total > 5;
+								};
 								
 								$scope.$watch(() => { return list.visible },
 									(nval, oval) => {
@@ -419,8 +422,13 @@ function PA (bg, info) {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.data[0].list = self.info.groups[0].members.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } );
+							$scope.data[0].list = self.info.groups[0].list.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } );
 							$scope.data[0].visible = self.mustOpen('Groups');
+
+							$scope.data[0].mustPag = () => {
+								
+								return !$scope.data[0].list.find(item => { return item.visible }) && $scope.data[0].total > 5;
+							};
 							
 							$scope.$watch(() => { return $scope.data[0].visible },
 								(nval, oval) => {

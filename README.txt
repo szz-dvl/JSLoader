@@ -1,7 +1,7 @@
 - In-progress:
 	- Paginate Lists:
 				- Missing filter for lists in opt page
-				- Missing views rearrange.
+				- Missing DB results list.
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

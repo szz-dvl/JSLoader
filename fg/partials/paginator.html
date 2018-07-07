@@ -3,16 +3,16 @@
 	<img
 		class="paginator"
 		ng-click="prevSlice($event)"
-		style="vertical-align: sub;border: 0; background: transparent;width:20px;height:20px;cursor: pointer;"
+		style="vertical-align: sub;border: 0; background: transparent;width:{{ size }}px;height:{{ size }}px;cursor: pointer;"
 		src="../icons/left-arrow-64.png"
 		alt="prev-pag"/>
 </td>
-<td class="page-ref"> {{ current_page }}/{{ last_page }} </td>
+<td ng-class="size == 20 ? 'page-ref' : 'page-ref-small'"> {{ current_page }}/{{ last_page }} </td>
 <td style="text-align: center;width: 30%">
 	<img
 		class="paginator"
 		ng-click="nextSlice($event)"
-		style="vertical-align: sub;border: 0; background: transparent;width:20px;height:20px;cursor: pointer;"
+		style="vertical-align: sub;border: 0; background: transparent;width:{{ size }}px;height:{{ size }}px;cursor: pointer;"
 		src="../icons/right-arrow-64.png"
 		alt="next-pag"/>
 </td>

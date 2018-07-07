@@ -57,12 +57,16 @@ angular.module('jslPartials', [])
 						
 						function (nval, oval) {
 							
-							if (nval != oval)
+							/* if (nval != oval) */
 								$scope.mostra = nval;
 						}
 					);
 					
 					$scope.toggleDD = function (ev) {
+
+						ev.stopPropagation();
+						ev.stopImmediatePropagation();
+						ev.preventDefault();
 						
 						$scope.mostra = !$scope.mostra;
 						
@@ -95,7 +99,7 @@ angular.module('jslPartials', [])
 
 				controller: function ($scope) {
 
-					/* Strange on PA: Will block opened childs the first time ...*/
+					/* Strange on PA: propagation? ...*/
 					
 					$scope[$scope.val] = $scope.$parent[$scope.val];
 					
@@ -109,8 +113,8 @@ angular.module('jslPartials', [])
 						
 						function (nval, oval) {
 
-							if (nval != oval)
-								$scope.$parent[$scope.val] = nval;
+							/* if (nval != oval) */
+							$scope.$parent[$scope.val] = nval;
 							
 						}
 					);
@@ -211,10 +215,14 @@ angular.module('jslPartials', [])
 				return browser.extension.getURL("fg/partials/paginator.html");
 					
 			},
+
+			link: function ($scope, element, attrs) {
+				
+				$scope.size = "pagSmall" in attrs ? '16' : '20';
+			},
 			
 			controller: function ($scope) {
 
-				/* console.log("actual: " + $scope.actual + " total: " + $scope.total); */
 				$scope.last_page = Math.ceil($scope.total / $scope.slice);
 				$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
 				

@@ -134,7 +134,7 @@ img.paginator:hover {
 	
 }
 
-tr[paginator] {
+tr[pag-big] {
 
 	height: 60px;
 }
@@ -142,6 +142,13 @@ tr[paginator] {
 td.page-ref {
 
 	font-size: 75%;
+	text-align: center;
+
+}
+
+td.page-ref-small {
+
+	font-size: 70%;
 	text-align: center;
 
 }

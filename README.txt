@@ -1,8 +1,8 @@
 - In-progress:
-	- Paginate Lists:
-				- Missing filter for lists in opt page
-				- Missing DB results list.
-	
+		PA:
+			- Bug when removing site
+			- Add not included scripts
+			
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -26,7 +26,10 @@
 	
 	- opt page: replace "Go" button ===> url on hover
 	  	  		Tooltip for sites showing the particular sites aded for a domain.
-				
+				- Paginate Lists:
+				  		  - Missing filter for lists in opt page
+						  - Missing DB results list.
+					
 	- Error manager for beta testing.
 	
 	- -------------> Beta 1 <---------------

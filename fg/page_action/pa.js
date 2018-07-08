@@ -1,6 +1,7 @@
 function PA (bg, info) {
 	
 	let self = this;
+	console.log(info);
 	
 	this.bg = bg;
 	this.info = info;
@@ -38,7 +39,7 @@ function PA (bg, info) {
 
 		$scope.removeSite = () => {
 			
-			self.bg.domain_mgr.removeSite($scope.hostname)
+			self.bg.domain_mgr.removeSite($scope.hostname, self.url.pathname)
 				.then($scope.updateData, console.error);
 		}
 		
@@ -46,6 +47,7 @@ function PA (bg, info) {
 
 			return new Promise(
 				(resolve, reject) => {
+
 					
 					$scope.page.bg.getPASite()
 						.then(
@@ -72,6 +74,7 @@ function PA (bg, info) {
 									
 								}).then(resolve, reject);
 							});
+					
 				});
 		}
 		
@@ -268,7 +271,6 @@ function PA (bg, info) {
 						controller: function ($scope, $compile, $stateParams, $timeout, $rootScope) {
 							
 							$scope.data = self.info.domains;
-							console.log($scope.data);
 
 							$scope.reloadScript = (scr) => {
 								self.reload(scr, $compile, $scope);								

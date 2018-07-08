@@ -191,6 +191,12 @@ function __Script_Bucket (scripts) {
 
 		return new Script({parent: self});
 	};
+
+	this.resetScripts = () => {
+
+		this.scripts = new Array();
+
+	}
 	
 }
 
@@ -494,17 +500,20 @@ function Domain (opt) {
 	};
 	
 	this.removeSite = (pathname) => {
-		
+
+		/* Big BUG here! from remove site. */
 		if (pathname == "/")
-			return this.remove();
-		
-		this.sites.remove(
-			this.sites.findIndex(
-				site => {
-					return site.url == pathname;
-				}
-			)
-		);
+			this.resetScripts();
+		else {
+			
+			this.sites.remove(
+				this.sites.findIndex(
+					site => {
+						return site.url == pathname;
+					}
+				)
+			);
+		}
 		
 		return this.isEmpty() ?
 			   this.remove() :
@@ -642,21 +651,24 @@ function Group (opt) {
 	this.removeSite = (site) => {
 		
 		site.groups.remove(site.groups.indexOf(this.name));
+		this.sites.remove(this.sites.indexOf(site.siteName()));
 
 		let done = -1;
 		
-		do {
-			
-			this.sites.remove(done);
-			
-			done = this.sites.findIndex(
-				site_name => {
-					
-					return site.siteName().startsWith(site_name);
-				}
-			);
-			
-		} while (done >= 0);
+		/* Unbalanced if done here ... to be solved?
+		   
+		   do {
+		   
+		   this.sites.remove(done);
+		   
+		   done = this.sites.findIndex(
+		   site_name => {
+		   
+		   return site.siteName().startsWith(site_name);
+		   }
+		   );
+		   
+		   } while (done >= 0); */
 		
 		do {
 			

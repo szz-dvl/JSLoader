@@ -145,6 +145,41 @@ function DomainMgr (bg) {
 				
 			}
 		}
+
+		res.groups.unique();
+		
+		return res;
+	};
+
+	this.__getAllSitesInfoFor = (domain, pname) => {
+		
+		let res = { scripts: [], groups: domain.groups };
+		let pathname = pname.split("/").slice(1).join("/");
+		let path = "/";
+		
+		if (domain.scripts.length)
+			res.scripts.push({ name: "/", scripts: domain.scripts, included: true });
+		
+		for (site of domain.sites) {
+
+			if (site.url.startsWith(pname)) {
+
+				if (site.scripts.length)
+					res.scripts.push({ name: site.url,  scripts: site.scripts, included: true });
+
+				if (site.groups.length)
+					res.groups.push.apply(res.groups, site.groups);
+				
+			} else {
+				
+				if (site.scripts.length)
+					res.scripts.push({ name: site.url,  scripts: site.scripts, included: false });
+				
+			}
+			
+		}
+
+		res.groups.unique();
 		
 		return res;
 	};
@@ -189,7 +224,70 @@ function DomainMgr (bg) {
 		);
 	};
 
-	this.removeSite = (hostname) => {
+	this.__removeSite = (hostname, pathname) => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				/* BUG: when removing child site its groups are added to the domain array '¬¬ */
+				
+				this.storage.getDomain(
+					domain => {
+						
+						if (domain) {
+
+							let sites = this.__getSitesInfoFor(domain, pathname);
+							
+							async.each(sites.scripts,
+								(site_tuple, next) => {
+
+									let site = domain.haveSite(site_tuple.name);
+
+									async.each(sites.groups,
+										(group_name, next_g) => {
+											
+											this.storage.getGroup(
+												group => {
+													
+													if (group) {
+														
+														group.removeSite(site);
+														group.persist().then(() => { next_g() }, next_g);
+														
+													} else {
+														
+														next_g();
+													}
+													
+												}, group_name
+											);
+											
+										}, err => {
+
+											domain.removeSite(site_tuple.name)
+												.then(() => { next() }, () => { next(); });
+										});
+										
+									
+								}, err => {
+									
+									if (err)
+										reject(err);
+									else
+										resolve();
+								});
+							
+						} else {
+							
+							reject(new Error("Domain " + hostname + " not found."));
+						}
+						
+					}, hostname
+				);			
+			})
+	}
+		
+	this.removeSite = (hostname, pathname) => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -197,11 +295,11 @@ function DomainMgr (bg) {
 				async.each(this.__getNamesFor(hostname).concat(hostname),
 					(name, next) => {
 
-						this.removeItem(name)
-							.then(removed => { next(); }, err => { next(); });
+						this.__removeSite(name, pathname)
+							.then(next, err => { next(); });
 						
 					}, err => {
-
+						
 						if (err)
 							reject(new Error ("Error removing site: \"" + hostname + "\""));
 						else
@@ -215,6 +313,7 @@ function DomainMgr (bg) {
 		
 		return new Promise(
 			(resolve, reject) => {
+
 				this.storage.getDomain(
 					domain => {
 						
@@ -350,8 +449,7 @@ function DomainMgr (bg) {
 							
 							domains: [],
 							groups: [],
-							disabled: self.__isDisabled(url.hostname),
-							exists: domain ? true : false
+							disabled: self.__isDisabled(url.hostname)
 							
 						};		
 						
@@ -364,41 +462,51 @@ function DomainMgr (bg) {
 									
 									for (let subdomain of subdomains) {
 
-										let info = this.__getSitesInfoFor(subdomain, url.pathname);
-										
-										editInfo.domains.push({
+										let info = this.__getAllSitesInfoFor(subdomain, url.pathname);
 
-											title: subdomain.name,
-											list: info.scripts
-												.sort((a,b) => { return a.name > b.name; })
-												.slice(0, 5)
-												.map(
-													nfo => {
+										if (info.scripts.length) {
 
-														return {
+											editInfo.domains.push({
+
+												title: subdomain.name,
+												list: info.scripts
+													.sort((a,b) => { return a.name > b.name; })
+													.slice(0, 5)
+													.map(
+														nfo => {
+
+															return {
+																
+																name: nfo.name,
+																scripts: nfo.scripts.sort(
+																	(a,b) => {
+																		
+																		return a.uuid > b.uuid;
+																		
+																	}).slice(0, 5),
+																actual: 0,
+																total: nfo.scripts.length
+															};	
+														}
+													),
+												actual: 0,
+												total: info.scripts.length
+											});
 											
-															name: nfo.name,
-															scripts: nfo.scripts.sort(
-																(a,b) => {
-																	
-																	return a.uuid > b.uuid;
-																	
-																}).slice(0, 5),
-															actual: 0,
-															total: nfo.scripts.length
-														};	
-													}
-												),
-											actual: 0,
-											total: info.scripts.length
-										});
-										
+										}
+
+										console.log("Pushing " + subdomain.name);
+										console.log(info.groups)
+											
 										groups.push.apply(groups,
 											info.groups);	
 									}
 
 									
 									groups = groups.unique();
+
+									console.log("Groups: ");
+									console.log(groups);
 									
 									editInfo.groups.push({
 										

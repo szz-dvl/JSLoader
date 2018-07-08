@@ -5,7 +5,9 @@
 	
 	<li ng-show="list.visible" ng-repeat="item in list.list track by item.name" style="display: block;margin-left: 30px;">
 		
-		<h5 style="margin: 5px 0 0 0;"> {{ item.name }}
+		<h5 style="margin: 5px 0 0 0;">
+			<bdi style="color: black" ng-if="item.included"> {{ item.name }} </bdi>
+			<bdi style="color: light-gray" ng-if="!item.included"> {{ item.name }} </bdi>
 			<drop-down item="item" width="12" height="12"></drop-down>
 		</h5>
 		

@@ -146,7 +146,7 @@ function DomainMgr (bg) {
 			}
 		}
 
-		res.groups.unique();
+		res.groups = res.groups.unique();
 		
 		return res;
 	};
@@ -162,7 +162,7 @@ function DomainMgr (bg) {
 		
 		for (site of domain.sites) {
 
-			if (site.url.startsWith(pname)) {
+			if (pname.startsWith(site.url)) {
 
 				if (site.scripts.length)
 					res.scripts.push({ name: site.url,  scripts: site.scripts, included: true });
@@ -179,7 +179,7 @@ function DomainMgr (bg) {
 			
 		}
 
-		res.groups.unique();
+		res.groups = res.groups.unique();
 		
 		return res;
 	};
@@ -470,7 +470,7 @@ function DomainMgr (bg) {
 
 												title: subdomain.name,
 												list: info.scripts
-													.sort((a,b) => { return a.name > b.name; })
+													.sort((a,b) => { return a.included - b.included && a.name > b.name; })
 													.slice(0, 5)
 													.map(
 														nfo => {
@@ -484,6 +484,7 @@ function DomainMgr (bg) {
 																		return a.uuid > b.uuid;
 																		
 																	}).slice(0, 5),
+																included: nfo.included,
 																actual: 0,
 																total: nfo.scripts.length
 															};	
@@ -495,8 +496,8 @@ function DomainMgr (bg) {
 											
 										}
 
-										console.log("Pushing " + subdomain.name);
-										console.log(info.groups)
+										/* console.log("Pushing " + subdomain.name);
+										   console.log(info.groups) */
 											
 										groups.push.apply(groups,
 											info.groups);	
@@ -505,9 +506,9 @@ function DomainMgr (bg) {
 									
 									groups = groups.unique();
 
-									console.log("Groups: ");
-									console.log(groups);
-									
+									/* console.log("Groups: ");
+									   console.log(groups);
+									 */
 									editInfo.groups.push({
 										
 										title: 'Groups',
@@ -532,7 +533,7 @@ function DomainMgr (bg) {
 													);
 												
 												if (filtered.length) {
-													editInfo.groups[0].list.push({ name: group, actual: 0, total: filtered.length, scripts: filtered.sort(
+													editInfo.groups[0].list.push({ name: group, actual: 0, total: filtered.length, included: true, scripts: filtered.sort(
 														(a,b) => {
 								
 															return a.uuid > b.uuid;

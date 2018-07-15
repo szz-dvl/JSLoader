@@ -501,7 +501,15 @@ function Domain (opt) {
 	
 	this.removeSite = (pathname) => {
 
-		/* Big BUG here! from remove site. */
+		/* 
+		   Big BUG here! from remove site: 
+
+		   Manually: Clean sites before erase them from the array, 
+		   it means remove inner group arrays and any data structure, then remove the "object". 
+
+		   By language: Sets may help here too.
+		 
+		 */
 		if (pathname == "/")
 			this.resetScripts();
 		else {

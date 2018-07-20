@@ -57,6 +57,8 @@ function DomainMgr (bg) {
 		let names = [];
 		let split = this.__isIPAddr(hostname) ? [] : hostname.split(".");
 		let aux = split.slice(1);
+
+		/* Add *.domainname.pdomainname able to detect domainname.pdomainname */
 		
 		while (aux.length) {
 					
@@ -118,7 +120,7 @@ function DomainMgr (bg) {
 
 	this.__getSitesInfoFor = (domain, pname) => {
 		
-		let res = { scripts: [], groups: domain.groups };
+		let res = { scripts: [] };
 		let pathname = pname.split("/").slice(1).join("/");
 		let path = "/";
 		
@@ -136,24 +138,20 @@ function DomainMgr (bg) {
 					
 					if (site.scripts.length)
 						res.scripts.push({ name: site.url,  scripts: site.scripts });
-					
-					if (site.groups.length)
-						res.groups.push.apply(res.groups, site.groups);
+
 				}
 
 				path += "/";
 				
 			}
 		}
-
-		res.groups = res.groups.unique();
 		
 		return res;
 	};
 
 	this.__getAllSitesInfoFor = (domain, pname) => {
 		
-		let res = { scripts: [], groups: domain.groups };
+		let res = { scripts: [] };
 		let pathname = pname.split("/").slice(1).join("/");
 		let path = "/";
 		
@@ -162,62 +160,44 @@ function DomainMgr (bg) {
 		
 		for (site of domain.sites) {
 
-			if (pname.startsWith(site.url)) {
-
-				if (site.scripts.length)
-					res.scripts.push({ name: site.url,  scripts: site.scripts, included: true });
-
-				if (site.groups.length)
-					res.groups.push.apply(res.groups, site.groups);
-				
-			} else {
-				
-				if (site.scripts.length)
-					res.scripts.push({ name: site.url,  scripts: site.scripts, included: false });
-				
-			}
-			
+			if (site.scripts.length)
+				res.scripts.push({ name: site.url,  scripts: site.scripts, included: pname.startsWith(site.url) });			
 		}
-
-		res.groups = res.groups.unique();
 		
 		return res;
 	};
-	
-	this.__getAggregatedScripts = (groups, hostname, pathname) => {
+
+	this.__getAggregatedScripts = (url) => {
 		
 		return new Promise (
 			(resolve, reject) => {
 				
 				let scripts = [];
 				
-				this.__getRepresentedBy(hostname)
+				this.__getRepresentedBy(url.hostname)
 					.then(
 						subdomains => {
 							
 							for (let subdomain of subdomains) {
 								
-								let info = this.__getSitesInfoFor(subdomain, pathname);			
+								let info = this.__getSitesInfoFor(subdomain, url.pathname);
 								
 								scripts.push.apply(scripts,
 									info.scripts.reduce((val, nval) => { return val.concat(nval.scripts); }, []));
 								
-								groups.push.apply(groups,
-									info.groups);
 							}
-							
-							this.bg.group_mgr.getGroupScripts(groups)
+
+							this.bg.group_mgr.getGroupScriptsForUrl(url)
 								.then(
 									group_scripts => {
 										
-										scripts.push.apply(scripts,
-											group_scripts);
-										
+										scripts.push.apply(scripts, group_scripts);
+
 										resolve(scripts);
-										
+
 									}, reject
 								);
-							
+								
 						}, reject
 					);
 			}
@@ -240,12 +220,13 @@ function DomainMgr (bg) {
 							
 							async.each(sites.scripts,
 								(site_tuple, next) => {
-
+									
 									let site = domain.haveSite(site_tuple.name);
 
 									async.each(sites.groups,
 										(group_name, next_g) => {
-											
+
+											/* refac */
 											this.storage.getGroup(
 												group => {
 													
@@ -309,72 +290,6 @@ function DomainMgr (bg) {
 			});
 	};
 	
-	this.removeItem = (hostname) => {
-		
-		return new Promise(
-			(resolve, reject) => {
-
-				this.storage.getDomain(
-					domain => {
-						
-						if (domain) {
-							
-							domain.remove()
-								.then(
-									removed => {
-										
-										let sites = removed.sites.concat(removed);
-										
-										async.eachSeries(sites,
-											(site, next_site) => {
-												
-												async.each(site.groups,
-													(group_name, next_group) => {
-														
-														this.storage.getGroup(
-															group => {
-																
-																if (group) {
-																	
-																	group.removeSite(site);
-																	group.persist().then(() => { next_group() }, next_group);
-																	
-																} else {
-
-																	console.warn('missing group: ' + group_name);
-																	next_group();
-																}
-																
-															}, group_name
-														);
-														
-													}, err => {
-
-														if (err)
-															reject(err);
-														else
-															next_site();
-													}
-												);
-												
-											}, err => {
-												
-												if (err)
-													reject(err);
-												else
-													resolve(removed);
-											}
-										);
-									}
-								);
-						
-						} else
-							reject(new Error("Attempting to remove unexisting domain: \"" + hostname + "\""));
-						
-					}, hostname);
-			});
-	};
-	
 	this.getScriptsForUrl = (url) => {
 		
 		return new Promise (
@@ -400,12 +315,10 @@ function DomainMgr (bg) {
 								scripts.push.apply(scripts,
 									sites.scripts.reduce((val, nval) => { return val.concat(nval.scripts); }, []));
 								
-								groups.push.apply(groups,
-									sites.groups);	
 							}
 							
-							/* Group & Subdomain scripts */
-							this.__getAggregatedScripts(groups.unique(), url.hostname, url.pathname)
+							/* Group & Subdomain scripts: refac*/
+							this.__getAggregatedScripts(url)
 								.then(group_scripts => {
 									
 									scripts.push.apply(scripts,
@@ -442,9 +355,6 @@ function DomainMgr (bg) {
 				this.storage.getDomain(
 					domain => {
 						
-						let site = null;
-						let sites = [];
-						let groups = [];
 						let editInfo = {
 							
 							domains: [],
@@ -498,55 +408,44 @@ function DomainMgr (bg) {
 										}
 
 										/* console.log("Pushing " + subdomain.name);
-										   console.log(info.groups) */
-											
-										groups.push.apply(groups,
-											info.groups);	
+										   console.log(info.groups) */	
 									}
 
 									
-									groups = groups.unique();
-
 									/* console.log("Groups: ");
 									   console.log(groups);
 									 */
-									editInfo.groups.push({
-										
-										title: 'Groups',
-										actual: 0,
-										total: groups.length,
-										list: []
 
-									});
+									this.bg.group_mgr.getGroupsForUrl(url)
+										.then(groups => {
+
+											editInfo.groups.push({
+										
+												title: 'Groups',
+												actual: 0,
+												total: groups.length,
+												list: []
+
+											});
 									
-									groups = groups.sort((a,b) => { return a.name > b.name; }).slice(0, 5);
-									
-									this.bg.group_mgr.getGroupScripts(groups).then(
-										group_scripts => {
-											
-											for (let group of groups) {
+											for (group of groups.sort((a,b) => { return a.name > b.name; }).slice(0, 5)) {
 												
-												let filtered = group_scripts
-													.filter(
-														script => {
-															return group == script.parent.name;
-														}
-													);
-												
-												if (filtered.length) {
-													editInfo.groups[0].list.push({ name: group, actual: 0, total: filtered.length, included: true, scripts: filtered.sort(
+												editInfo.groups[0].list.push({
+													name: group.name,
+													actual: 0,
+													total: group.scripts.length,
+													included: true,
+													scripts: group.scripts.sort(
 														(a,b) => {
-								
+															
 															return a.uuid > b.uuid;
 
 														}).slice(0, 5) });
-												}
 											}
-											
+
 											resolve(editInfo);
 											
-										}, reject
-									);
+										}, reject);
 									
 								}, reject
 							);
@@ -621,7 +520,7 @@ function DomainMgr (bg) {
 								
 								domain.mergeInfo(item);								
 
-								/* !!! */
+								/* !!! refac  */
 								for (let group_name of domain.groups) {
 									
 									this.storage.getGroup(
@@ -746,8 +645,6 @@ function DomainMgr (bg) {
 				this.storage.getDomain(
 					domain => {
 						
-						let groups = [];
-						
 						if (domain && domain.scripts.length)
 							
 							resolve(true);
@@ -760,13 +657,7 @@ function DomainMgr (bg) {
 
 								resolve(true);
 								
-							} else {
-								
-								if (domain) {
-									
-									groups.push.apply(groups,
-										sites.groups);	
-								}									
+							} else {			
 								
 								this.__getRepresentedBy(url.hostname)
 									.then(
@@ -787,13 +678,11 @@ function DomainMgr (bg) {
 													
 												}
 												
-												groups.push.apply(groups,
-													endpoint.groups);
 											}
 											
 											if (!resolved) {
 											
-												this.bg.group_mgr.getGroupScripts(groups.unique())
+												this.bg.group_mgr.getGroupScriptsForUrl(url)
 													.then(
 														group_scripts => {
 															

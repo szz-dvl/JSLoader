@@ -16,101 +16,44 @@ function GroupMgr (bg) {
 		}
 	);
 	
-	this.getGroupScripts = (groups) => {
+	/* Expensive */
+	this.getGroupsForUrl = (url) => {
+
+		return new Promise (
+			(resolve, reject) => {
+				
+				this.getMeaningful()
+					.then(
+						groups => {
+
+							resolve(
+								groups.filter(
+									group => {
+										return group.includes(url)
+									})
+							);
+							
+						}, reject);
+			});
+	}
+
+	/* Expensive */
+	this.getGroupScriptsForUrl = (url) => {
 
 		return new Promise (
 			(resolve, reject) => {
 
-				let scripts = [];
-
-				async.eachSeries(groups,
-					(group_name, next) => {
-						
-						this.storage.getGroup(
-							group => {
-								
-								if (group) {
-									
-									scripts.push.apply(scripts,
-										group.scripts);
-									
-								} else 
-									console.warn("Missing group: " + group_name);
-								
-								next();
-								
-							}, group_name
-						);		
-					},
-					err => {
-						
-						if (err)
-							reject(err);
-						else
-							resolve(scripts);
-						
-					});
-			});
-	};
-
-	this.removeItem = (group_name) => {
-		
-		return new Promise(
-			resolve => {
-				this.storage.getGroup(
-					group => {
-						
-						if (group) {
+				this.getGroupsForUrl(url)
+					.then(
+						groups => {
 							
-							group.remove()
-								.then(
-									removed => {
-										
-										async.each(removed.sites,
-											(site_name, next_site) => {
-												
-												let hostname = site_name.split("/")[0];
-												let pathname = "/" + site_name.split("/").slice(1).join("/");
-												
-												this.storage.getDomain(
-													domain => {
-														
-														if (domain) {
-															
-															let site = domain.haveSite(pathname);
-															
-															if (site) 	
-																site.removeGroup(removed);
-															
-															site.persist().then(() => { next_site() }, next_site);
-															
-														} else {
-
-															console.warn("missing site: " + site_name);
-															next_site();
-														}
-														
-													}, hostname
-												);
-												
-											}, err => {
-												
-												if (err)
-													reject(err);
-												else
-													resolve(removed);
-											}
-										);
-									}
-								);
-						
-						} else
-							reject(new Error("Attempting to remove unexisting group: \"" + group_name + "\""));
-						
-					}, group_name);
+							resolve(groups.reduce((val, nval) => { return val.concat(nval.scripts); }, []))
+							
+						}, reject);
 			});
 	}
 	
+	/* refac */
 	this.__siteOps = (group_name, url, func) => {
 
 		return new Promise (
@@ -219,6 +162,7 @@ function GroupMgr (bg) {
 
 								group.mergeInfo(item);
 
+								/* refac */
 								async.eachSeries(group.sites,
 									(site_name, next_site) => {
 										
@@ -266,16 +210,14 @@ function GroupMgr (bg) {
 		
 		return new Promise(
 			(resolve, reject) => {
-				
-				this.getMeaningful()
+
+				this.getGroupsForUrl(path)
 					.then(
 						groups => {
-
-							let filtered = groups.filter(group => { return group.includes(path); });
 							
 							resolve(
 								{
-									members:filtered.sort((a,b) => { return a.name > b.name; })
+									members: groups.sort((a,b) => { return a.name > b.name; })
 										.slice(start, start + len)
 										.map(
 											group => {
@@ -291,6 +233,7 @@ function GroupMgr (bg) {
 															return a.uuid > b.uuid;
 															
 														}).slice(first, first + 5),
+													included: true,
 													actual: 0,
 													total: group.scripts.length
 												};
@@ -299,7 +242,7 @@ function GroupMgr (bg) {
 										),
 
 									actual: start,
-									total: filtered.length
+									total: groups.length
 								}
 							);
 							

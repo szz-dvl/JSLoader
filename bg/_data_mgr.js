@@ -31,6 +31,21 @@ function DataMgr (opt) {
 			});
 	}
 
+	this.removeItem = (item_name) => {
+
+		return new Promise(
+			(resolve, reject) => {
+				
+				this.getItem(item_name)
+					.then(item => {
+						
+						item.remove()
+							.then(resolve, reject);
+						
+					})		
+			});
+	}
+	
 	this.pushToDB = (names) => {
 
 		let items = [];

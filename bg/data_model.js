@@ -217,7 +217,7 @@ function Site (opt) {
 	
 	this.isSubdomain = () => {
 		
-		return this.url == "/" && (this.name.startsWith("*.") || this.name.endsWith(".*")); /* All subdomains shortcut. */
+		return (this.name.startsWith("*.") || this.name.endsWith(".*")); /* All subdomains shortcut. */
 		
 	};
 	
@@ -320,7 +320,8 @@ function Site (opt) {
 		
 		for (script of imported.scripts)
 			this.upsertScript(script);
-		
+
+		/* refac */
 		for (group_name of imported.groups) {
 			
 			if (!this.groups.includes(group_name))
@@ -663,7 +664,7 @@ function Group (opt) {
 
 		let done = -1;
 		
-		/* Unbalanced if done here ... to be solved?
+		/* Unbalanced if done here ... to be solved? ===> isMySite
 		   
 		   do {
 		   
@@ -700,7 +701,7 @@ function Group (opt) {
 	}; 
 
 	this.includes = (url) => {
-
+		
 		return this.sites.find(
 			site => {
 
@@ -763,6 +764,7 @@ function Group (opt) {
 				this.sites.push(site_name);
 			
 			/* 
+			   refac 
 			   The other half of the relation to be 
 			   done from mgr! 
 			   

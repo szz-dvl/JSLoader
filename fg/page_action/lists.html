@@ -36,8 +36,8 @@
 						<script-status id="status-{{script.uuid}}" status="page.bg.content_mgr.getStatus(script.uuid, page.tabId)"></script-status>
 					</td>
 					
-					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
-						<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px;text-align: center;" ng-disabled="!item.included">
+					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url) && item.included">
+						<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px;text-align: center;">
 							Reload
 						</button>
 					</td>

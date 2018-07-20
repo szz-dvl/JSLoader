@@ -1,8 +1,9 @@
 - In-progress:
-		PA:
-			- Bug when removing site
-			- Add not included scripts
-			
+	- Big Refactor: groups not binded to domains (remove group array in Domain object: expensive queries).
+	  	  					PA:
+								- Bug when removing site
+								- Site included by parent: recover isMySite
+								
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -31,7 +32,7 @@
 						  - Missing DB results list.
 					
 	- Error manager for beta testing.
-	
+								
 	- -------------> Beta 1 <---------------
 	
 - To be tested:

@@ -470,7 +470,8 @@ function DomainMgr (bg) {
 
 												title: subdomain.name,
 												list: info.scripts
-													.sort((a,b) => { return a.included - b.included && a.name > b.name; })
+													.sort((a,b) => { return a.name > b.name; })
+													.sort((a,b) => { return b.included - a.included; })
 													.slice(0, 5)
 													.map(
 														nfo => {
@@ -563,7 +564,7 @@ function DomainMgr (bg) {
 					.then(
 						item => {
 							
-							let info = this.__getSitesInfoFor(item, path.pathname);
+							let info = this.__getAllSitesInfoFor(item, path.pathname);
 							
 							resolve(
 								{
@@ -571,6 +572,7 @@ function DomainMgr (bg) {
 									name: target,
 									sites: info.scripts
 										.sort((a,b) => { return a.name > b.name; })
+										.sort((a,b) => { return b.included - a.included; })
 										.slice(start, start + len)
 										.map(
 											nfo => {
@@ -586,6 +588,7 @@ function DomainMgr (bg) {
 															return a.uuid > b.uuid;
 															
 														}).slice(first, first + 5),
+													included: nfo.included,
 													actual: 0,
 													total: nfo.scripts.length
 												};

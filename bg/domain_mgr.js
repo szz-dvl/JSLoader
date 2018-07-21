@@ -18,7 +18,7 @@ function DomainMgr (bg) {
 	
 	this.__isIPAddr = (string) => {
 		
-		/* source: https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
+		/* @ https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses */
 		
 		return string.match(/^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$/);
 		
@@ -215,40 +215,19 @@ function DomainMgr (bg) {
 					domain => {
 						
 						if (domain) {
-
+							
 							let sites = this.__getSitesInfoFor(domain, pathname);
 							
 							async.each(sites.scripts,
 								(site_tuple, next) => {
-									
-									let site = domain.haveSite(site_tuple.name);
 
-									async.each(sites.groups,
-										(group_name, next_g) => {
+									domain.removeSite(site_tuple.name)
+										.then(() => {
 
-											/* refac */
-											this.storage.getGroup(
-												group => {
-													
-													if (group) {
-														
-														group.removeSite(site);
-														group.persist().then(() => { next_g() }, next_g);
-														
-													} else {
-														
-														next_g();
-													}
-													
-												}, group_name
-											);
+											this.bg.group_mgr.cleanSite(hostname + pathname)
+												.then(next, () => { next(); });
 											
-										}, err => {
-
-											domain.removeSite(site_tuple.name)
-												.then(() => { next() }, () => { next(); });
-										});
-										
+										}, () => { next(); });
 									
 								}, err => {
 									
@@ -261,6 +240,7 @@ function DomainMgr (bg) {
 						} else {
 							
 							reject(new Error("Domain " + hostname + " not found."));
+							
 						}
 						
 					}, hostname

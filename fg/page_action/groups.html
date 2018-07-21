@@ -21,7 +21,7 @@
 						ng-options="group for group in page.bg.group_mgr.groups track by group"
 						ng-change="selectChange(current)"></select>
 					
-					<button ng-disabled="validation_in_progress || !current" class="browser-style" ng-click="addSite()"> {{action}} Site </button>
+					<button ng-disabled="validation_in_progress || !current || !enabled" class="browser-style" ng-click="addSite()"> {{action}} Site </button>
 				</div>
 				
 			</div>	

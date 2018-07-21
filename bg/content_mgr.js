@@ -167,6 +167,18 @@ function CSMgr (bg) {
 									group: group_name
 								}
 							});
+					},
+					() => {
+
+						this.__postTaggedResponse(port, tag,
+							{
+								status: false,
+								content: {
+									err: 'Group does not exists.',
+									site: site_name,
+									group: group_name
+								}
+							});
 					}
 				)
 				

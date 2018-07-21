@@ -207,8 +207,6 @@ function Site (opt) {
 	
 	__Script_Bucket.call(this, opt.scripts || []);
 	
-	this.groups = opt.groups || [];
-	
 	this.isDomain = () => {
 		
 		return this.url == "/";
@@ -280,29 +278,8 @@ function Site (opt) {
 	
 	this.isEmpty = () => {
 		
-		return !this.scripts.length && !this.groups.length; 
+		return !this.scripts.length; 
 		
-	};
-	
-	this.appendGroup = (group) => {
-		
-		if (!this.groups.includes(group.name))
-			this.groups.push(group.name);
-		
-		if (!group.sites.includes(this.siteName()))
-			group.sites.push(this.siteName());	
-	};
-
-	this.removeGroup = (group) => {
-		
-		this.groups.remove(this.groups.indexOf(group.name));
-		group.sites.remove(group.sites.indexOf(this.siteName()));
-		
-		if (this.isEmpty())
-			this.remove();
-		
-		if (group.isEmpty())
-			group.remove();
 	};
 	
 	this.remove = () => {
@@ -321,15 +298,6 @@ function Site (opt) {
 		for (script of imported.scripts)
 			this.upsertScript(script);
 
-		/* refac */
-		for (group_name of imported.groups) {
-			
-			if (!this.groups.includes(group_name))
-				this.groups.push(group_name);
-			
-			/* The other half to be done from manager */
-			
-		}
 	}
 	
 	/* Stringify */
@@ -650,34 +618,20 @@ function Group (opt) {
 
 	this.appendSite = (site) => {
 		
-		if (!this.sites.includes(site.siteName()))
-			this.sites.push(site.siteName());
-		
-		if (!site.groups.includes(this.name))
-			site.groups.push(this.name);
+		if (!this.sites.includes(site))
+			this.sites.push(site);
+
+		return this.persist();
 	};
 
 	this.removeSite = (site) => {
+
+		let idx = this.sites.indexOf(site);
+		let cnt = 0;
 		
-		site.groups.remove(site.groups.indexOf(this.name));
-		this.sites.remove(this.sites.indexOf(site.siteName()));
+		this.sites.remove(idx);
 
 		let done = -1;
-		
-		/* Unbalanced if done here ... to be solved? ===> isMySite
-		   
-		   do {
-		   
-		   this.sites.remove(done);
-		   
-		   done = this.sites.findIndex(
-		   site_name => {
-		   
-		   return site.siteName().startsWith(site_name);
-		   }
-		   );
-		   
-		   } while (done >= 0); */
 		
 		do {
 			
@@ -686,20 +640,23 @@ function Group (opt) {
 			done = this.disabledAt.findIndex(
 				tuple => {
 					
-					return tuple.url.startsWith(site.siteName());
+					return tuple.url.startsWith(site);
 				}
 			);
 			
+			cnt ++;
+
 		} while (done >= 0);
 		
-		if (this.isEmpty())
-			this.remove();
-
-		if (site.isEmpty())
-			site.remove();
-		
+		return this.isEmpty() ? this.remove() : (cnt + idx ?  this.persist() : Promise.resolve());
 	}; 
 
+	this.isMySite = (site) => {
+
+		return this.sites.includes(site);
+
+	};
+	
 	this.includes = (url) => {
 		
 		return this.sites.find(

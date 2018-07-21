@@ -535,6 +535,14 @@ function PA (bg, info) {
 								
 								$scope.$digest();
 							}
+
+							$timeout(() => {
+
+								if (self.pa_state.outdated) 
+									$scope.scheduleUpdateAt(50, self.pa_state.outdated, true);
+								
+
+							})
 						}
 					},
 					
@@ -569,7 +577,7 @@ function PA (bg, info) {
 								}
 							);
 							
-							$scope.setAction = (update) => {
+							$scope.setAction = () => {
 
 								if ($scope.current) {
 									
@@ -577,10 +585,16 @@ function PA (bg, info) {
 										.then(
 											group => {
 												
-												if (group.includes(self.url))
+												if (group.includes(new URL('http://' + $scope.url))) { 
+
 													$scope.action = "Remove";
-												else
+													$scope.enabled = group.isMySite($scope.url);
+													
+												} else {
+													
 													$scope.action = "Add";
+													$scope.enabled = true;
+												}
 												
 												$scope.$digest();
 											}
@@ -615,18 +629,31 @@ function PA (bg, info) {
 									});
 							
 							$scope.addSite = () => {
-
-								let init_len = self.bg.group_mgr.groups.length;
 								
 								let promise = $scope.action == "Add" ?
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								
-								promise.then(() => { self.updateGroups(350, $scope.current, true).then(() => {
+								promise.then(
+									() => {
+										
+										if (self.updateGroups) {
+											
+											self.updateGroups(350, $scope.current, true)
+												.then(() => {
 
-									$scope.onSizeChange().then(() => { $scope.setAction() });
-									
-								}); });			
+													$scope.onSizeChange()
+														.then($scope.setAction);
+													
+												});
+											
+										} else {
+
+											$scope.setAction();
+											self.pa_state.outdated = $scope.current;
+											
+										}
+									});			
 							};
 							
 							$timeout(

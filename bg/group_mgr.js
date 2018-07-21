@@ -52,64 +52,58 @@ function GroupMgr (bg) {
 						}, reject);
 			});
 	}
-	
-	/* refac */
-	this.__siteOps = (group_name, url, func) => {
+
+	/* Expensive, @url: plain string here. */
+	this.cleanSite = (site) => {
 
 		return new Promise (
 			(resolve, reject) => {
 				
-				this.storage.getGroup(
-					group => {
-						
-						if (! group)
-							reject(new Error("Group " + group_name + " not existent, site: " + url + " not added."));
-						else {
+				this.getMeaningful()
+					.then(
+						groups => {
 							
-							var pathname, hostname;
-							
-							try {
-								
-								let temp = new URL("http://" + url);
-								
-								pathname = temp.pathname;
-								hostname = temp.hostname;
-								
-							} catch(e) {
-								
-								hostname = url.split("/")[0]; 
-								pathname = "/" + url.split("/").slice(1).join("/");
-							}
-							
-							this.storage.getOrCreateDomain(
-								domain => {
+							async.each(groups,
+								(group, next) => {
 									
-									let site = func == "append" ? domain.getOrCreateSite(pathname) : domain.haveSite(pathname);
-									let pr = [];
+									group.removeSite(site)
+										.then(() => { next() }, () => { next(); });
 									
-									if (site) {
-										
-										group[func + "Site"](site);								
-										
-										if (!site.isEmpty()) 
-											pr.push(site.persist());
-										
-										if (!group.isEmpty())
-											pr.push(group.persist());
- 									}
+								}, err => {
 									
-									Promise.all(pr).then(resolve, reject); /* Feedback when created ? */
+									if (err)
+										reject(err);
+									else
+										resolve();
 									
-								}, hostname
+								}
 							);
-						}
-						
-					}, group_name);
+							
+						}, reject);
 			});
+	}
+
+	/* @url: plain string here. */
+	this.__siteOps = (group_name, url, func) => {
+
+		return new Promise(
+			(resolve, reject) => {
+			
+				this.getItem(group_name)
+					.then(
+						group => {
+
+							group[func + "Site"](url)
+								.then(resolve, reject);
+							
+						}, reject
+					)
+			}
+		);
 	};
 
 	this.addSiteTo = (group_name, url) => {
-
+			
 		return this.__siteOps(group_name, url, "append");
 		
 	}

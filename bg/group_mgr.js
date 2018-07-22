@@ -66,10 +66,12 @@ function GroupMgr (bg) {
 							async.each(groups,
 								(group, next) => {
 									
-									group.removeSite(site)
+									group.cleanSite(site)
 										.then(() => { next() }, () => { next(); });
 									
 								}, err => {
+
+									console.log("Clean");
 									
 									if (err)
 										reject(err);

@@ -308,7 +308,6 @@ function Site (opt) {
 		return {
 
 			url: me.url,
-			groups: me.groups,
 			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();
@@ -340,7 +339,7 @@ function Domain (opt) {
 	
 	this.isEmpty = () => {
 		
-		return !this.scripts.length && !this.sites.length && !this.groups.length;
+		return !this.scripts.length && !this.sites.length;
 		
 	};
 
@@ -367,7 +366,7 @@ function Domain (opt) {
 			) || false;
 	};
 
-	this.schedulePersistAt = (to) => {
+	this.scheduleAt = (func, to) => {
 
 		return new Promise(
 			(resolve, reject) => {
@@ -378,7 +377,7 @@ function Domain (opt) {
 				this.pID = setTimeout(
 					() => {
 
-						this.persist()
+						func()
 							.then(resolve, reject);
 						
 					}, to);
@@ -493,8 +492,8 @@ function Domain (opt) {
 		}
 		
 		return this.isEmpty() ?
-			   this.remove() :
-			   this.schedulePersistAt(150);		
+			   this.scheduleAt(this.remove, 150) :
+			   this.scheduleAt(this.persist, 150);		
 	};
 	
 	this.mergeInfo = (imported) => {
@@ -519,8 +518,6 @@ function Domain (opt) {
 		return {
 			
 			name: me.name,
-			groups: me.groups,
-			
 			sites: me.sites.map(
 				site => {
 					return site.__getDBInfo();
@@ -649,6 +646,29 @@ function Group (opt) {
 		} while (done >= 0);
 		
 		return this.isEmpty() ? this.remove() : (cnt + idx ?  this.persist() : Promise.resolve());
+	};
+
+	this.cleanSite = (site) => {
+		
+		let done = -1;
+		let cnt = -1;
+		
+		do {
+			
+			this.sites.remove(done);
+			
+			done = this.sites.findIndex(
+				stored => {
+					
+					return site.startsWith(stored);
+				}
+			);
+
+			cnt ++;
+			
+		} while (done >= 0);
+		
+		return this.isEmpty() ? this.remove() : (cnt ? this.persist() : Promise.resolve());
 	}; 
 
 	this.isMySite = (site) => {

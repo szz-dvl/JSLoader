@@ -215,27 +215,24 @@ function DomainMgr (bg) {
 					domain => {
 						
 						if (domain) {
-							
+
 							let sites = this.__getSitesInfoFor(domain, pathname);
+
+							let promise = Promise.resolve();
 							
-							async.each(sites.scripts,
-								(site_tuple, next) => {
+							for (site_tuple of sites.scripts) {
 
-									domain.removeSite(site_tuple.name)
-										.then(() => {
+								promise = domain.removeSite(site_tuple.name);
+								
+							}
 
-											this.bg.group_mgr.cleanSite(hostname + pathname)
-												.then(next, () => { next(); });
-											
-										}, () => { next(); });
-									
-								}, err => {
-									
-									if (err)
-										reject(err);
-									else
-										resolve();
-								});
+							promise.then(() => {
+
+								this.bg.group_mgr.cleanSite(hostname + pathname)
+									.then(resolve, reject);
+							
+							});
+							
 							
 						} else {
 							
@@ -247,7 +244,7 @@ function DomainMgr (bg) {
 				);			
 			})
 	}
-		
+	
 	this.removeSite = (hostname, pathname) => {
 
 		return new Promise(
@@ -256,6 +253,8 @@ function DomainMgr (bg) {
 				async.each(this.__getNamesFor(hostname).concat(hostname),
 					(name, next) => {
 
+						console.log("Removing " + name);
+						
 						this.__removeSite(name, pathname)
 							.then(next, err => { next(); });
 						

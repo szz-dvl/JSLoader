@@ -40,7 +40,7 @@ function PA (bg, info) {
 		$scope.removeSite = () => {
 			
 			self.bg.domain_mgr.removeSite($scope.hostname, self.url.pathname)
-				.then($scope.updateData, console.error);
+				.then($scope.updateData, $scope.updateData);
 		}
 		
 		$scope.updateData = () => {
@@ -48,10 +48,12 @@ function PA (bg, info) {
 			return new Promise(
 				(resolve, reject) => {
 
-					
 					$scope.page.bg.getPASite()
 						.then(
 							info => {
+
+								console.log("new Info: ");
+								console.log(info);
 								
 								$scope.info = self.info = info;
 								
@@ -538,9 +540,11 @@ function PA (bg, info) {
 
 							$timeout(() => {
 
-								if (self.pa_state.outdated) 
+								if (self.pa_state.outdated) {
+									
 									$scope.scheduleUpdateAt(50, self.pa_state.outdated, true);
-								
+									self.pa_state.outdated = null;
+								}
 
 							})
 						}

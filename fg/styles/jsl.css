@@ -152,3 +152,9 @@ td.page-ref-small {
 	text-align: center;
 
 }
+
+bdi.clickable-domain:hover {
+
+	text-decoration: underline;
+	cursor: pointer;
+}

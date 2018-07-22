@@ -10,3 +10,33 @@ this.isNativeVideoExtension = (ext) => {
 this.getNamedInputValue = (name) => {
 	return $("input[name=" + name + "]").attr("value");
 }; 
+
+this.importJS = (path) => {
+
+	return new Promise(
+		(resolve, reject) => {
+			
+			fetch(path)
+				.then(
+					response => {
+
+						response.text().then(text => {
+
+							try {
+								
+								eval(text);
+								resolve();
+									
+							} catch(err) {
+
+								reject(err);
+								
+							}
+							
+						}, reject);
+							
+					}, reject
+				);
+		}
+	);	
+}

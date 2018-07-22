@@ -1,7 +1,5 @@
 - In-progress:
-	- opt page: replace "Go" button ===> url on hover
-	  	  		Tooltip for sites showing the particular sites aded for a domain. /* ??? */
-				- Paginate Lists:
+	- opt page: - Paginate Lists:
 				  		  - Missing filter for lists in opt page
 						  - Missing DB results list.
 				- Errors:
@@ -21,9 +19,7 @@
 						   - Editor tab check for outdated.
 						   - "Add site" button by group chooser when adding group scripts
 						   - Editor BG to class extending EventEmitter, talk FG via events }
-	
-	- Init user defs: import Js (remove async && underscore)
-	
+						   
 	- Virtual resources:
 	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
 			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);

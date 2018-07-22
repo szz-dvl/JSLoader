@@ -50,8 +50,6 @@
 			"matches": ["*://*/*", "<all_urls>"],
 			"js": [
 				"fg/deps/jquery.min.js",
-				"utils/deps/async.min.js",
-				"utils/deps/underscore-min.js",
 				"utils/deps/bluebird.min.js",
 				"utils/jsloader-utils.js",
 				"utils/deps/EventEmitter/EventEmitter.min.js",

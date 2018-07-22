@@ -468,16 +468,7 @@ function Domain (opt) {
 	};
 	
 	this.removeSite = (pathname) => {
-
-		/* 
-		   Big BUG here! from remove site: 
-
-		   Manually: Clean sites before erase them from the array, 
-		   it means remove inner group arrays and any data structure, then remove the "object". 
-
-		   By language: Sets may help here too.
-		 
-		 */
+		
 		if (pathname == "/")
 			this.resetScripts();
 		else {
@@ -503,6 +494,8 @@ function Domain (opt) {
 
 		for (site of imported.sites) 	
 			this.getOrCreateSite(site.url).mergeInfo(site);
+
+		return this.persist();
 	};
 
 	this.getJSON = () => {
@@ -739,13 +732,6 @@ function Group (opt) {
 			
 			if (!this.sites.includes(site_name))
 				this.sites.push(site_name);
-			
-			/* 
-			   refac 
-			   The other half of the relation to be 
-			   done from mgr! 
-			   
-			 */
 		}
 
 		for (let tuple of imported.disabledAt) {
@@ -775,6 +761,8 @@ function Group (opt) {
 					this.disabledAt.push({id: tuple.id, url: tuple.url});
 			}
 		}
+
+		return this.persist();
 	};
 	
 	this.isDisabled = (uuid, url_name) => {

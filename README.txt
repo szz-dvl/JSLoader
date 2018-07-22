@@ -1,8 +1,12 @@
 - In-progress:
-	- Big Refactor: groups not binded to domains (remove group array in Domain object: expensive queries).
-	  	  					PA:
-								- Bug when removing site
-								- Site included by parent: recover isMySite
+	- opt page: replace "Go" button ===> url on hover
+	  	  		Tooltip for sites showing the particular sites aded for a domain. /* ??? */
+				- Paginate Lists:
+				  		  - Missing filter for lists in opt page
+						  - Missing DB results list.
+				- Errors:
+						- Push all to DB fails
+						- Update service keeps looking for old data after clean storage (index arrays aren't properly removed)
 								
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -25,11 +29,6 @@
 			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
 			  - Missing DB management.
 	
-	- opt page: replace "Go" button ===> url on hover
-	  	  		Tooltip for sites showing the particular sites aded for a domain.
-				- Paginate Lists:
-				  		  - Missing filter for lists in opt page
-						  - Missing DB results list.
 					
 	- Error manager for beta testing.
 								

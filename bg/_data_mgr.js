@@ -75,6 +75,34 @@ function DataMgr (opt) {
 			});
 	};
 
+	this.importData = (items) => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				async.eachSeries(items,
+					(item, next) => {
+						
+						this.getOrCreateItem(item.name)
+							.then(
+								fetched => {
+									
+									fetched.mergeInfo(item)
+										.then(persisted => { next(); }, err => { next(); });
+									
+								}, reject);
+						
+					}, err => {
+						
+						if (err)
+							reject(err);
+						else
+							resolve();
+						
+					});
+			});
+	};
+	
 	this.exportData = (inline) => {
 
 		return new Promise(

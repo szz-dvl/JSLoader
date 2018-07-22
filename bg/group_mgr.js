@@ -144,64 +144,7 @@ function GroupMgr (bg) {
 			return Promise.resolve(script);
 		}
 	}
-
-	this.importData = (items) => {
-
-		return new Promise(
-			(resolve, reject) => {
-
-				async.eachSeries(items,
-					(item, next) => {
-						
-						this.storage.getOrCreateGroup(
-							group => {
-
-								group.mergeInfo(item);
-
-								/* refac */
-								async.eachSeries(group.sites,
-									(site_name, next_site) => {
-										
-										let url = new URL("http://" + site_name);
-										
-										this.storage.getOrCreateDomain(
-											domain => {
-												
-												let site = domain.haveSite(url.pathname);
-												
-												if (site) {
-													
-													site.appendGroup(group);
-													site.persist().then(persisted => { next_site() }, next_site);
-													
-												} else {
-													
-													group.sites.remove(group.sites.indexOf(site_name));
-													next_site();
-												}
-												
-											}, url.hostname);
-
-									}, err => {
-										
-										if (err)
-											reject(err);
-										else
-											group.persist().then(persisted => { next() }, next);
-									})
-									
-							}, item.name);
-
-					}, err => {
-
-						if (err)
-							reject(err);
-						else
-							resolve();
-					});
-			});
-	}
-
+	
 	this.getPASliceFor = (start, len, target, path, index) => {
 		
 		return new Promise(

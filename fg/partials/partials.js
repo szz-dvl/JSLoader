@@ -205,6 +205,7 @@ angular.module('jslPartials', [])
 				site:'=?',
 				parent: '&',
 				feeding: '&',
+				filter: '=?',
 				slice: '=',
 				actual: '=',
 				total:'='
@@ -261,6 +262,24 @@ angular.module('jslPartials', [])
 							);
 					}
 				}
+
+				if ($scope.filter) {
+					$scope.filter.on('change', (filter) => {
+
+						$scope.feeding()(0, $scope.slice, $scope.target, $scope.site, [], filter)
+							.then(
+								slice => {
+									
+									$scope.actual = slice.actual;
+									$scope.total = slice.total;
+									$scope.last_page = Math.ceil($scope.total / $scope.slice);
+									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+									$scope.parent()(slice, $scope.target, $scope.site);
+								}
+							);
+					});
+				}
+				
 			}
 		}
 	})
@@ -513,6 +532,13 @@ angular.module('jslPartials', [])
 						   $scope.adding = false;
 						   $scope.new_name = "";
 						   $scope.idname = $scope.name.replace(/\//g, '-');
+
+						   $scope.dargOver = (ev) => {
+							   
+							   ev.preventDefault();
+							   $(ev.currentTarget).css({"border": "1px solid red"});
+							   
+						   };
 						   
 						   $scope.addItem = () => {
 
@@ -769,6 +795,13 @@ angular.module('jslPartials', [])
 						   $scope.in_progress = false;
 						   $scope.ext = $scope.resource.name.split(".").pop();
 						   $scope.id = UUID.generate().split("-").pop();
+
+						   $scope.dragStart = (ev) => {
+
+							   console.log("drag start:" );
+							   console.log(ev);
+
+						   };
 						   
 						   $scope.setHover = (val, elem) => {
 

@@ -66,11 +66,29 @@
 									ng-change ="dbQuery()"
 									ng-disabled="data_origin.reconnecting"/>
 							</td>
-							<td style="width: 10%;"></td>
-							<td style="width: 10%;"></td>
+							<td style="width: 10%;text-align: center;">
+								<button
+									class="browser-style"
+									ng-click="updateFromDB()"
+									ng-show="query_results.length > 0"
+									style="z-index:999;">
+									Import Selection
+								</button>
+							</td>
+							<td style="width: 10%;text-align: center;">
+
+								<button
+									class="browser-style"
+									ng-click="query_results.length = 0; results_slice.data.length = 0;"
+									ng-show="query_results.length > 0"
+									style="z-index:999;">
+									Flush results
+								</button>
+								
+							</td>
 							<td style="width: 10%;"></td>
 						</tr>
-						<tr ng-repeat="record in query_results track by record.name" ng-show="data_origin.connected">
+						<tr ng-repeat="record in results_slice.data track by record.name" ng-show="data_origin.connected">
 							<td style="width: 20%;"></td>
 							<td style="width: 60%;">
 								
@@ -91,30 +109,20 @@
 							<td style="width: 10%;">  </td>
 							<td style="width: 10%;">  </td>
 						</tr>
-						<tr style="height: 30px;"></tr>
-						<tr ng-if="data_origin.readable">
-							<td style="width: 20%;"></td>
-							<td style="width: 100%;text-align: center;">
-								<div style="text-align: center;" ng-show="query_results.length">
-									<button
-										class="browser-style"
-										ng-click="updateFromDB()"
-										ng-show="query_results.length > 1"
-										style="z-index:999;">
-										Bring all
-									</button>
-									<button
-										class="browser-style"
-										ng-click="query_results.length = 0"
-										style="z-index:999;">
-										Flush results
-									</button>
-								</div>
-							</td>
-							<td style="width: 10%;"></td>
-							<td style="width: 10%;"></td>
-							<td style="width: 10%;"></td>
-						</tr>
+					</tbody>
+				</table>
+
+				<table style="width: 60%;margin: auto" ng-show="data_origin.connected">
+					<tbody>
+						<tr paginator
+							pag-big
+							ng-if="query_results.length > 5" 
+							feeding="getResultsSlice" 
+							slice="5" 
+							actual="0" 
+							total="query_results.length" 
+							parent="newResultsPage"
+							filter="filter_events"></tr>
 					</tbody>
 				</table>
 			</div>

@@ -1,11 +1,13 @@
 - In-progress:
-	- opt page: - Paginate Lists:
-				  		  - Missing filter for lists in opt page
-						  - Missing DB results list.
-				- Errors:
-						- Push all to DB fails
-						- Update service keeps looking for old data after clean storage (index arrays aren't properly removed)
-								
+			opt page:
+				- Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
+
+			- Editor: Big Refactor { add download button (download code as text); 
+  	  		  		  - Sync opt page editor settings with editor menu.
+					  - Editor tab check for outdated.
+					  - "Add site" button by group chooser when adding group scripts
+					  - Editor BG to class extending EventEmitter, talk FG via events }
+	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -14,15 +16,8 @@
 
 - To Do:
 
-	- Editor: Big Refactor { add download button (download code as text); 
-  	  		  	  		   - Sync opt page editor settings with editor menu.
-						   - Editor tab check for outdated.
-						   - "Add site" button by group chooser when adding group scripts
-						   - Editor BG to class extending EventEmitter, talk FG via events }
-						   
 	- Virtual resources:
 	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
-			  - Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
 			  - Missing DB management.
 	
 					

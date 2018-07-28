@@ -351,11 +351,11 @@ function OP (bg) {
 									self.bg[type + "_mgr"].pushToDB([name]);
 								else {
 									
-									if ($scope.groups.length)
-										self.bg.group_mgr.pushToDB($scope.groups.map(group => { return group.name }));
+									if (self.bg.group_mgr.groups.length)
+										self.bg.group_mgr.pushToDB(self.bg.group_mgr.groups);
 									
-									if ($scope.domains.length)
-										self.bg.domain_mgr.pushToDB($scope.domains.map(domain => { return domain.name }));
+									if (self.bg.domain_mgr.domains.length)
+										self.bg.domain_mgr.pushToDB(self.bg.domain_mgr.domains); /* Only meaningful domains */
 								}
 
 								self.query_results.length = 0;
@@ -412,7 +412,30 @@ function OP (bg) {
 							$scope.db_query = "";
 							
 							self.query_results = $scope.query_results = [];
+							$scope.results_slice = {data: []};
+							$scope.filter_events = new EventEmitter();
 							
+							$scope.getResultsSlice = (actual, len) => {
+
+								return Promise.resolve(
+									{
+										data: $scope.query_results
+											.sort((a,b) => {return a.name > b.name})
+											.slice(actual, actual + len),
+										
+										actual: actual,
+										total: $scope.query_results.length 
+									}
+								)
+							};
+							
+							$scope.newResultsPage = (slice) => {
+								
+								$scope.results_slice = slice;
+								$scope.$digest();
+
+							};
+
 							$scope.dbQuery = () => {
 								
 								if ($scope.queryID)
@@ -495,6 +518,7 @@ function OP (bg) {
 										$scope.in_progress = false;
 										
 										$scope.query_results.length = 0;
+										$scope.results_slice = {data: []};
 										
 										$rootScope.$digest();
 									}
@@ -503,6 +527,7 @@ function OP (bg) {
 									results => {
 										
 										$scope.query_results.length = 0;
+										$scope.results_slice = {data: []};
 										
 										if ($scope.data_origin.connected) {
 											
@@ -523,6 +548,7 @@ function OP (bg) {
 											);
 										}
 										
+										$scope.filter_events.emit('change');
 										$scope.$digest();
 									}
 								)

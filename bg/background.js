@@ -114,8 +114,6 @@ function BG_mgr () {
 		
 		if (area != global_storage.room)
 	 		return;
-
-		let found = false;
 		
 		for (key of Object.keys(changes)) {
 
@@ -124,31 +122,22 @@ function BG_mgr () {
 				case "domains":
 
 					this.domain_mgr.domains = changes.domains.newValue || [];
-					found = true;
-
 					break;
 					
 				case "groups":
 
 					this.group_mgr.groups = changes.groups.newValue || [];
-					found = true;
-
 					break;
 
 				case "userdefs": 
 
 					this.content_mgr.defs = changes.userdefs.newValue || "";
-					found = true;
-
 					break;
 					
 				default:
 					break;
 			}
 			
-			/* To be tested */
-			if (found)
-				break;			
 		}
 	};
 	

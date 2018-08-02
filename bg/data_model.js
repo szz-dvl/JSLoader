@@ -630,7 +630,7 @@ function Group (opt) {
 			done = this.disabledAt.findIndex(
 				tuple => {
 					
-					return tuple.url.startsWith(site);
+					return tuple.url.startsWith(site); /* BUG: will fail for domain sets "*" */
 				}
 			);
 			
@@ -653,7 +653,7 @@ function Group (opt) {
 			done = this.sites.findIndex(
 				stored => {
 					
-					return site.startsWith(stored);
+					return site.startsWith(stored); /* BUG: will fail for domain sets "*" */
 				}
 			);
 

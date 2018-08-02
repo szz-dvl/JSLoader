@@ -1,72 +1,74 @@
-<label for="directory-{{name}}" style="display: inline;">
-	
-	<strong style="margin:5px 0 5px 0;"> {{displayName()}} 
-		<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
-	</strong>
-	
-	<ul class="browser-style" style="width: -moz-fit-content" id="directory-{{name}}" ng-show="dir_shown">
+<div style="width: -moz-fit-content; padding-right: 50px;">
+	<label for="directory-{{name}}" style="display: inline;">
 		
-		<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
-
-			<resource-item resource="resource" ng-if="!resource.items"></resource-item>
-			<resource-directory ng-if="resource.items" items="resource.items" name="resource.name" mgr="mgr"></resource-directory>
+		<strong style="margin:5px 0 5px 0;"> {{displayName()}} 
+			<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
+		</strong>
+		
+		<ul class="browser-style" style="width: -moz-fit-content" id="directory-{{name}}" ng-show="dir_shown">
 			
-		</li>
-	</ul>
+			<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
 
-	<div style="display: table-row-group;">
-		<div ng-show="dir_shown && !adding" class="resource-add" ng-click="addItem()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> + </div>
-		<div ng-if="name != '/'" ng-show="dir_shown && !adding && onadding" class="resource-add" ng-click="removeSelf()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> - </div>
-	</div>
-	
-	<div ng-show="adding">
-		
-		<select
-			class="browser-style"
-			ng-model="item_type"
-			ng-options="type for type in ['directory', 'file']"
-			ng-change="selectItemType(item_type)"></select>
-		
-		<div style="display: inline;">
-			
-			<input
-				id="{{idname}}"
-				class="browser-style"
-				type="text"
-				ng-disabled="in_progress"
-				ng-show="item_type == 'directory'"
-				ng-model="new_name"/>
+				<resource-item resource="resource" ng-if="!resource.items"></resource-item>
+				<resource-directory ng-if="resource.items" items="resource.items" name="resource.name" mgr="mgr"></resource-directory>
 				
-			<button
-				style="margin: 0 5px 0 5px"
-				class="browser-style"
-				ng-if="item_type == 'file'"
-				ng-click="editTextResource()">
-				Edit Resource
-			</button>
+			</li>
+		</ul>
 
-			<input-file
-				style="margin: 0 5px 0 5px"
-				ng-if="item_type == 'file'"
-				ng-file-selected="resourceFile"
-				text="'Import Resource'">
-			</input-file>
-			
-			<img src="../icons/ko_tick.png"
-				width="22px"
-				height="22px"
-				ng-click="cancelResource()"
-				style="vertical-align: sub; margin-left: 15px;display: inline;"/>
-			
-			<img src="../icons/ok_tick.png"
-				width="20px"
-				height="20px"
-				ng-show="item_type == 'directory'"
-				ng-click="newDir()"
-				style="vertical-align: sub; margin-left: 15px;display: inline;"/>
-			
+		<div style="display: table-row-group;">
+			<div ng-show="dir_shown && !adding" class="resource-add" ng-click="addItem()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> + </div>
+			<div ng-if="name != '/'" ng-show="dir_shown && !adding && onadding" class="resource-add" ng-click="removeSelf()" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);"> - </div>
 		</div>
 		
-	</div>
+		<div ng-show="adding">
+			
+			<select
+				class="browser-style"
+				ng-model="item_type"
+				ng-options="type for type in ['directory', 'file']"
+				ng-change="selectItemType(item_type)"></select>
+			
+			<div style="display: inline;">
+				
+				<input
+					id="{{idname}}"
+					class="browser-style"
+					type="text"
+					ng-disabled="in_progress"
+					ng-show="item_type == 'directory'"
+					ng-model="new_name"/>
+				
+				<button
+					style="margin: 0 5px 0 5px"
+					class="browser-style"
+					ng-if="item_type == 'file'"
+					ng-click="editTextResource()">
+					Edit Resource
+				</button>
 
-</label>
+				<input-file
+					style="margin: 0 5px 0 5px"
+					ng-if="item_type == 'file'"
+					ng-file-selected="resourceFile"
+					text="'Import Resource'">
+				</input-file>
+				
+				<img src="../icons/ko_tick.png"
+					width="22px"
+					height="22px"
+					ng-click="cancelResource()"
+					style="vertical-align: sub; margin-left: 15px;display: inline;"/>
+				
+				<img src="../icons/ok_tick.png"
+					width="20px"
+					height="20px"
+					ng-show="item_type == 'directory'"
+					ng-click="newDir()"
+					style="vertical-align: sub; margin-left: 15px;display: inline;"/>
+				
+			</div>
+			
+		</div>
+
+	</label>
+</div>

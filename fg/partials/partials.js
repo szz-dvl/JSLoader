@@ -527,34 +527,46 @@ angular.module('jslPartials', [])
 
 					   link: function ($scope, elem, attrs) {
 
-						   $scope.ul = elem.find('ul');
+						   $scope.ul = elem;
 
 						   $scope.resetUl = () => {
-							   
-							   $scope.ul.css({"border": "0px"});
+
+							   $scope.ul.css(
+								   {
+									   "border": "0px",
+									   "background-color": "white"
+								   });
 
 						   };
 						   
 						   $scope.ul.on('dragenter', ev => {
 							   
 							   ev.preventDefault();
-							   $scope.ul.css({"border": "1px solid red"});
-							   $scope.$parent.resetUl();
+							   ev.stopImmediatePropagation();
+							   ev.stopPropagation();
+							   
+							   $scope.ul.css(
+								   {
+									   "border": "1px dashed black",
+									   "background-color": "LightGray"
+								   });
+							   
+							   if ($scope.$parent.resetUl)
+								   $scope.$parent.resetUl();
 						   });
 
 						   $scope.ul.on('dragexit', ev => {
 							   
 							   ev.preventDefault();
-							   $scope.ul.css({"border": "0px"});
+							   $scope.resetUl();
 							   
 						   });
 						   
 						   $scope.ul.on('drop', ev => {
 							   
 							   ev.preventDefault();
-							   $scope.ul.css({"border": "0px"});
+							   $scope.resetUl();
 							   
-							   console.log('drop');
 						   });
 						   
 					   },

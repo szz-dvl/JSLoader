@@ -4,7 +4,7 @@
 		<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
 	</strong>
 	
-	<ul class="browser-style" style="width: -moz-fit-content" id="directory-{{name}}" ng-show="dir_shown" ondragover="console.log('dragover')">
+	<ul class="browser-style" style="width: -moz-fit-content" id="directory-{{name}}" ng-show="dir_shown">
 		
 		<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
 

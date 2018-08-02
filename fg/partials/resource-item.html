@@ -1,8 +1,8 @@
-<div style="display: inline; width: 100%;" ng-mouseover="setHover(true);" class="caca" ng-mouseleave="setHover(false);" draggable="true"
-	ondragstart="angular.element(this).scope().$$childHead.dragStart(event);"> <!-- To be solved -->
-	
-	<bdi ng-show="!editing" style="vertical-align: super;padding-right: 15px;"> {{ displayName() }} <i> ({{ resource.size }}) </i>
+<div style="display: inline; width: 100%;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);" draggable="true"> 
 
+	<a ng-show="!editing" draggable="true" href="~" style="text-decoration: none; color: black" ng-click="$event.preventDefault()">
+		<bdi style="padding-right: 15px;"> {{ displayName() }} <i> ({{ resource.size }}) </i> </bdi>
+		
 		<div style="margin-left: 15px;display: inline-flex;">
 			
 			<div ng-show="hover" class="resource-add" style="border:0;margin-right: 5px;" ng-click="viewSelf()" style="margin-right: 5px;">
@@ -17,12 +17,12 @@
 			
 		</div>
 		
-	</bdi>
+	</a>
 
 	<div style="width: 100%;" ng-show="editing">
 
 		<input
-			style="width: 20%;"
+			style="width: 20%; min-width: 175px;"
 			class="browser-style"
 			type="text"
 			ng-change="resourceNameValidation()"

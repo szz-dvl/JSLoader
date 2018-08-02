@@ -524,6 +524,40 @@ angular.module('jslPartials', [])
 						   return browser.extension.getURL("fg/partials/resource-dir.html");
 					
 					   },
+
+					   link: function ($scope, elem, attrs) {
+
+						   $scope.ul = elem.find('ul');
+
+						   $scope.resetUl = () => {
+							   
+							   $scope.ul.css({"border": "0px"});
+
+						   };
+						   
+						   $scope.ul.on('dragenter', ev => {
+							   
+							   ev.preventDefault();
+							   $scope.ul.css({"border": "1px solid red"});
+							   $scope.$parent.resetUl();
+						   });
+
+						   $scope.ul.on('dragexit', ev => {
+							   
+							   ev.preventDefault();
+							   $scope.ul.css({"border": "0px"});
+							   
+						   });
+						   
+						   $scope.ul.on('drop', ev => {
+							   
+							   ev.preventDefault();
+							   $scope.ul.css({"border": "0px"});
+							   
+							   console.log('drop');
+						   });
+						   
+					   },
 					   
 					   controller: function ($scope) {
 
@@ -532,13 +566,6 @@ angular.module('jslPartials', [])
 						   $scope.adding = false;
 						   $scope.new_name = "";
 						   $scope.idname = $scope.name.replace(/\//g, '-');
-
-						   $scope.dargOver = (ev) => {
-							   
-							   ev.preventDefault();
-							   $(ev.currentTarget).css({"border": "1px solid red"});
-							   
-						   };
 						   
 						   $scope.addItem = () => {
 
@@ -787,6 +814,18 @@ angular.module('jslPartials', [])
 						   return browser.extension.getURL("fg/partials/resource-item.html");
 					
 					   },
+
+					   link: function ($scope, elem, attrs) {
+						   
+						   elem.on('dragstart', ev => {
+							   
+							   console.log("drag start:" );
+							   console.log(ev);
+
+							   return true;
+						   });
+						   
+					   },
 					   
 					   controller: function ($scope) {
 
@@ -795,13 +834,6 @@ angular.module('jslPartials', [])
 						   $scope.in_progress = false;
 						   $scope.ext = $scope.resource.name.split(".").pop();
 						   $scope.id = UUID.generate().split("-").pop();
-
-						   $scope.dragStart = (ev) => {
-
-							   console.log("drag start:" );
-							   console.log(ev);
-
-						   };
 						   
 						   $scope.setHover = (val, elem) => {
 

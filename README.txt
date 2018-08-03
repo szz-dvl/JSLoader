@@ -1,13 +1,8 @@
 - In-progress:
-			opt page:
-				- Drag & Drop (move resource ==> renameResource ==> ++ solveHierarchy);
-
-			- Editor: Big Refactor { add download button (download code as text); 
-  	  		  		  - Sync opt page editor settings with editor menu.
-					  - Editor tab check for outdated.
-					  - "Add site" button by group chooser when adding group scripts
-					  - Editor BG to class extending EventEmitter, talk FG via events }
-	
+		- Virtual resources:
+		  	- Missing DB management. (DB big refactor).
+			- load them recoursively (resource that claim another resource (some moustache like synthax));
+		
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -16,10 +11,11 @@
 
 - To Do:
 
-	- Virtual resources:
-	  		  - load them recoursively (resource that claim another resource (some moustache like synthax));
-			  - Missing DB management.
-	
+  	- Editor: Big Refactor { add download button (download code as text); 
+  	  		  		  - Sync opt page editor settings with editor menu.
+					  - Editor tab check for outdated.
+					  - "Add site" button by group chooser when adding group scripts
+					  - Editor BG to class extending EventEmitter, talk FG via events }
 					
 	- Error manager for beta testing.
 								

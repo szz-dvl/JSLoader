@@ -561,12 +561,52 @@ angular.module('jslPartials', [])
 							   $scope.resetUl();
 							   
 						   });
+
+						   $scope.ul.on('dragover', ev => {
+							   
+							   ev.preventDefault();
+							   
+						   });
 						   
 						   $scope.ul.on('drop', ev => {
 							   
 							   ev.preventDefault();
-							   $scope.resetUl();
+							   ev.stopImmediatePropagation();
+							   ev.stopPropagation();
 							   
+							   $scope.resetUl();
+
+							   if (ev.originalEvent.dataTransfer.files.length) {
+
+								   async.eachSeries(ev.originalEvent.dataTransfer.files,
+									   (file, next) => {
+
+										   $scope.resourceFile(file)
+											   .then(next, err => { next(); });
+									   
+									   })
+									   
+							   } else {
+
+								   let resource = JSON.parse(ev.originalEvent.dataTransfer.getData("resource"));
+								   let new_name = $scope.name + resource.name.split("/").pop();
+								   
+								   if (new_name != resource.name) {
+
+									   $scope.mgr.renameResource(resource.name, new_name)
+										   .then(renamed => {
+
+											   resource.name = renamed.name
+											   $scope.showChild(resource);
+										   
+										   }, console.error);
+
+								   } else {
+
+									   $scope.showChild(resource);
+									   
+								   }
+							   }
 						   });
 						   
 					   },
@@ -680,6 +720,19 @@ angular.module('jslPartials', [])
 									   
 								   });
 						   }
+
+						   $scope.hideChild = (resource) => {
+
+							   $scope.items.remove(
+									$scope.items.findIndex(item => { return item.name == resource.name }));
+
+						   };
+
+						   $scope.showChild = (item) => {
+
+							   $scope.items.push(item);
+
+						   };
 						   
 						   $scope.removeSelf = () => {
 
@@ -713,31 +766,38 @@ angular.module('jslPartials', [])
 						   
 						   $scope.resourceFile = (file) => {
 
-							   if (file.type) { // && file.size
-								   
-								   $scope.adding = false;
-								   
-								   let validated = $scope.__resourceNameValidation(file.name);
-								   
-								   $scope.mgr.storeResource($scope.name + validated, file)
-									   .then(resource => {
+							   return new Promise (
+								   (resolve, reject) => {
+									   
+									   if (file.type) { // && file.size
 										   
-										   $scope.items.push({
-											   
-											   name: resource.name, 
-											   type: resource.type,
-											   db: resource.db ? true : false,
-											   size: resource.getSizeString()
+										   $scope.adding = false;
+										   
+										   let validated = $scope.__resourceNameValidation(file.name);
+										   
+										   $scope.mgr.storeResource($scope.name + validated, file)
+											   .then(resource => {
 												   
-										   });
+												   $scope.items.push({
+													   
+													   name: resource.name, 
+													   type: resource.type,
+													   db: resource.db ? true : false,
+													   size: resource.getSizeString()
+														   
+												   });
+
+												   resolve();
+												   
+											   }, reject);
 										   
-									   }, console.error);
-								   
-							   } else {
-								   
-								   $scope.mgr.bg.notify_mgr.error("Missing file extension.");
-								   
-							   };
+									   } else {
+										   
+										   $scope.mgr.bg.notify_mgr.error(file.name +  ": Missing file extension.");
+										   reject(new Error("Missing file extension"));
+									   };
+
+								   });
 						   }
 
 						   $scope.displayName = () => {
@@ -830,11 +890,10 @@ angular.module('jslPartials', [])
 					   link: function ($scope, elem, attrs) {
 						   
 						   elem.on('dragstart', ev => {
-							   
-							   console.log("drag start:" );
-							   console.log(ev);
 
-							   return true;
+							   $scope.$parent.hideChild($scope.resource); 
+							   ev.originalEvent.dataTransfer.setData("resource", JSON.stringify($scope.resource));
+							   
 						   });
 						   
 					   },

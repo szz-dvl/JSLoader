@@ -283,6 +283,8 @@ function ResourceMgr (bg) {
 	};
 	
 	this.removeHierarchyFor = (empty) => {
+
+		console.log("Removing hierarchy for: " + empty.name);
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -616,38 +618,54 @@ function ResourceMgr (bg) {
 		return new Promise(
 			(resolve, reject) => {
 
-				Promise.all([this.findResource(oldn), this.findResource(this.__getParentFor(oldn))])
-					.then(arr => {
+				this.solveHierarchyFor(newn)
+					.then(solved => {
+						
+						Promise.all([this.findResource(oldn), this.findResource(this.__getParentFor(oldn))])
+							.then(arr => {
 
-						let resource = arr[0];
-						let parent = arr[1];
-
-						if (resource) {
-							
-							resource.remove().then(
-								removed => {
+								let resource = arr[0];
+								let old_parent = arr[1];
 								
-									resource.name = newn;
-									parent.items[
-
-										parent.items.findIndex(
-											name => {
-										
-												return name == oldn;
-											}
-										)
+								if (resource) {
 									
-									] = newn;
+									resource.remove().then(
+										removed => {
+											
+											resource.name = newn;
+											
+											old_parent.items.remove(
+												old_parent.items.findIndex(
+													name => {
+														
+														return name == oldn;
+													}
+												)
+											);
 
-									Promise.all([parent.persist(), resource.persist()])
-										.then(ok => { resolve(resource) }, reject);
-								});
+														
+											let promises = [];
+											
+											if (!old_parent.items.length && old_parent.name != "/")
+												promises.push(this.removeHierarchyFor(old_parent));
+											else
+												promises.push(old_parent.persist());
 
-						} else {
+											promises.push(resource.persist());
+											
+											Promise.all(promises)
+												.then(ok => { resolve(resource) }, reject);
+											
+												
+										});
 
-							reject(resource);
-							
-						}
+								} else {
+
+									reject(resource);
+									
+								}
+								
+							}, reject);
 						
 					}, reject);
 			}

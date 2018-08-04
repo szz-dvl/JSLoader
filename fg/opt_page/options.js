@@ -104,7 +104,8 @@ function OP (bg) {
 							$scope.resources_active = true;
 							$scope.data_ok = true;
 							$scope.list = dataResources;
-
+							$scope.events = new EventEmitter();
+							
 							$scope.filter = "";
 							$scope.name = null;
 							$scope.virt_siblings = [];

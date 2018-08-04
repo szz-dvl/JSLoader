@@ -516,7 +516,8 @@ angular.module('jslPartials', [])
 					   scope: {
 						   items: "=",
 						   name: "=",
-						   mgr: "="
+						   mgr: "=",
+						   events: "="
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -576,6 +577,8 @@ angular.module('jslPartials', [])
 							   
 							   $scope.resetUl();
 
+							   let resource = JSON.parse(ev.originalEvent.dataTransfer.getData("resource"));
+							   
 							   if (ev.originalEvent.dataTransfer.files.length) {
 
 								   async.eachSeries(ev.originalEvent.dataTransfer.files,
@@ -586,9 +589,10 @@ angular.module('jslPartials', [])
 									   
 									   })
 									   
-							   } else {
+							   } else if (resource) {
 
-								   let resource = JSON.parse(ev.originalEvent.dataTransfer.getData("resource"));
+								   $scope.events.emit("dropped", resource.name);
+								   
 								   let new_name = $scope.name + resource.name.split("/").pop();
 								   
 								   if (new_name != resource.name) {
@@ -724,14 +728,15 @@ angular.module('jslPartials', [])
 						   $scope.hideChild = (resource) => {
 
 							   $scope.items.remove(
-									$scope.items.findIndex(item => { return item.name == resource.name }));
+								   $scope.items.findIndex(item => { return item.name == resource.name }));
+
+							   $scope.$digest();
 
 						   };
 
 						   $scope.showChild = (item) => {
 
 							   $scope.items.push(item);
-
 						   };
 						   
 						   $scope.removeSelf = () => {
@@ -879,6 +884,7 @@ angular.module('jslPartials', [])
 					   replace: true,
 					   scope: {
 						   resource: "=",
+						   events: "="
 					   },
 					   
 					   templateUrl: function (elem, attr) {
@@ -890,11 +896,21 @@ angular.module('jslPartials', [])
 					   link: function ($scope, elem, attrs) {
 						   
 						   elem.on('dragstart', ev => {
-
-							   $scope.$parent.hideChild($scope.resource); 
+							   
 							   ev.originalEvent.dataTransfer.setData("resource", JSON.stringify($scope.resource));
 							   
 						   });
+
+						   $scope.events.on('dropped',
+							   (name) => {
+
+								   /* Drop event is not allowed to modify dataTransfer, 
+									  and dragend cannot know if the element has been dropped. */
+								   
+								   if (name == $scope.resource.name) 
+									   $scope.$parent.hideChild($scope.resource);
+							   }
+						   );
 						   
 					   },
 					   

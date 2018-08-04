@@ -791,7 +791,7 @@ function ResourceMgr (bg) {
 		obj.items = obj.items.map(
 			resource => {
 				
-				return resource.items ? this.__projectOpPageDir(resource) : { name: resource.name, type: resource.type, size: resource.getSizeString(), db: resource.db ? true : false };
+				return resource.items ? this.__projectOpPageDir(resource) : { name: resource.name, type: resource.type, size: resource.getSizeString(), shown: true };
 
 			}
 		);

@@ -605,10 +605,6 @@ angular.module('jslPartials', [])
 										   
 										   }, console.error);
 
-								   } else {
-
-									   $scope.showChild(resource);
-									   
 								   }
 							   }
 						   });
@@ -732,11 +728,6 @@ angular.module('jslPartials', [])
 
 							   $scope.$digest();
 
-						   };
-
-						   $scope.showChild = (item) => {
-
-							   $scope.items.push(item);
 						   };
 						   
 						   $scope.removeSelf = () => {

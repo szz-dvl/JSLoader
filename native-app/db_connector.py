@@ -7,7 +7,8 @@ import json
 import struct
 from pymongo import MongoClient
 
-db = 0;
+global db
+#db = {};
 
 # Python 2.x version (if sys.stdin.buffer is not defined)
 # Read a message from stdin and decode it.
@@ -29,7 +30,6 @@ def encodeMessage(messageContent):
     
 #Send an encoded message to stdout
 def sendMessage(encodedMessage):
-    sys.stdout.flush()
     sys.stdout.write(encodedMessage['length'])
     sys.stdout.write(encodedMessage['content'])
     sys.stdout.flush()
@@ -50,8 +50,9 @@ while True:
                 writeable = False;
                 readable = False;
                 removeable = False;
-                
+
                 db = client.get_database()
+
                 res = db.command("connectionStatus", 1, showPrivileges=True)
 
                 if len(res['authInfo']['authenticatedUserPrivileges']):
@@ -168,6 +169,9 @@ while True:
         elif tag == 'push_sync':
 
             try:
+
+                client = MongoClient(receivedMessage['string'])
+                db = client.get_database()
                 
                 for item in receivedMessage['content']:    
                     db[receivedMessage['collection']].replace_one(
@@ -184,6 +188,9 @@ while True:
         elif tag == 'get_sync':
 
             try:
+
+                client = MongoClient(receivedMessage['string'])
+                db = client.get_database()
                 
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
@@ -200,6 +207,9 @@ while True:
         elif tag == 'remove_sync':
 
             try:
+
+                client = MongoClient(receivedMessage['string'])
+                db = client.get_database()
                 
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
 

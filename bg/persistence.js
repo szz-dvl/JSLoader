@@ -10,71 +10,62 @@ class DB extends EventEmitter {
 		this.writeable = false;
 		this.readable = false;
 		
-		this.port = browser.runtime.connectNative("db_connector");
-
-		this.port.postMessage('{ "tag": "connect", "content": "' + connString + '" }');
-		
-		this.port.onMessage.addListener(
-			response => {
+		this.defaultHandler = (response) => {
 				
-				let obj = JSON.parse(response);					
-				this.reconnecting = false;
-
-				console.log("message: ");
-				console.log(obj);
-
-				if (obj.error)
-					this.emit('db_error', obj.error);
+			let obj = JSON.parse(response);					
+			this.reconnecting = false;
+			
+			console.log("message: ");
+			console.log(obj);
+			
+			switch (obj.tag) {
 				
-				switch (obj.tag) {
+				case "alive":
+
+					this.available = true;
+					this.connected = true;
+					this.writeable = obj.writeable;
+					this.readable = obj.readable;
+					this.removeable = obj.removeable;
+					this.data_origin = obj.string;
 					
-					case "alive":
+					this.emit("db_change", obj.string);
+					
+					break;;
 
-						this.available = true;
-						this.connected = true;
-						this.writeable = obj.writeable;
-						this.readable = obj.readable;
-						this.removeable = obj.removeable;
-						this.data_origin = obj.string;
-						
-						this.emit("db_change", obj.string);
-						
-						break;;
+				case "bad-params":
 
-					case "bad-params":
+					this.available = true;
+					this.connected = false;
+					this.writeable = false;
+					this.readable = false;
+					this.removeable = false;
+					this.data_origin = obj.string;
+					
+					this.emit("db_change", obj.string);
 
-						this.available = true;
-						this.connected = false;
-						this.writeable = false;
-						this.readable = false;
-						this.removeable = false;
-						this.data_origin = obj.string;
-						
-						this.emit("db_change", obj.string);
+					console.error("DB connection failed: " + obj.content + " for " + obj.string);
+					
+					break;;
+					
+				case "error":
 
-						console.error("DB connection failed: " + obj.content + " for " + obj.string);
-						
-						break;;
-						
-					case "error":
+					this.available = true;
+					this.connected = false;
+					this.writeable = false;
+					this.readable = false;
+					this.removeable = false;
+					
+					this.emit("db_error", obj.content);
 
-						this.available = true;
-						this.connected = false;
-						this.writeable = false;
-						this.readable = false;
-						this.removeable = false;
-						
-						this.emit("db_error", obj.content);
-
-						console.error("DB error: " + obj.content);
-						
-						break;;
-						
-					default:
-						break;
-				}
+					console.error("DB error: " + obj.content);
+					
+					break;;
+					
+				default:
+					break;
 			}
-		);
+		}
 		
 		this.pushSync = (items, collection) => {
 			
@@ -84,39 +75,36 @@ class DB extends EventEmitter {
 					(resolve, reject) => {
 						
 						var tID;
-						let tag = UUID.generate().split(".").pop();
+						let tag = UUID.generate().split(".").pop(); 
 						
-						let handler = (string) => {
-
-							let response = JSON.parse(string);
-							
-							if (response.tag == tag) {
-
-								clearTimeout(tID);
-								
-								if (response.error)
-									reject(new Error(response.error));
-								else
-									resolve(items);
-								
-								this.port.onMessage.removeListener(handler);
-
-							}
-						}
-						
-						this.port.onMessage.addListener(handler);
-						
-						this.port.postMessage('{ "tag": "push_sync", "response": "' 
+						browser.runtime.sendNativeMessage('db_connector', '{ "tag": "push_sync", "response": "' 
 							+ tag 
 							+ '", "collection": "' 
 							+ collection 
+							+ '", "string": "' 
+							+ this.data_origin
 							+ '", "content": '
-							+ ((items && items.length) ? JSON.stringify(items) : "[]") + '}');
+							+ ((items && items.length) ? JSON.stringify(items) : "[]") + '}')
+							.then(
+								(string) => {
 
+									let response = JSON.parse(string);
+									
+									if (response.tag == tag) {
+										
+										clearTimeout(tID);
+										
+										if (response.error)
+											reject(new Error(response.error));
+										else
+											resolve(items);
+								
+									} //else ==> reject??
+								}, reject);
+						
 						tID = setTimeout(() => {
 							
 							reject(new Error("Transaction " + tag + " timed out."));
-							this.port.onMessage.removeListener(handler);
 							
 						}, 5000);
 						
@@ -138,56 +126,64 @@ class DB extends EventEmitter {
 
 						var tID;
 						let tag = UUID.generate().split("-").pop();
-						
-						let handler = (string) => {
 
-							let response = JSON.parse(string);
-							
-							if (response.tag == tag) {
-								
-								clearTimeout(tID);
-								
-								if (response.error)
-									reject(new Error(response.error));
-								else {
-
-									resolve(response.content.map(
-										record => {
-
-											/* try - catch */
-											
-											if (collection == "resources") {
-
-												let resource = new Resource(record);
-												resource.db = this;
-
-												return resource
-
-											} else {
-												
-												return (collection == "domains") ? new Domain(record) : new Group(record);
-											}
-										})
-									);
-								}
-								
-								this.port.onMessage.removeListener(handler);
-							}
-						}
-						
-						this.port.onMessage.addListener(handler);
-						
-						this.port.postMessage('{ "tag": "get_sync", "response": "' 
+						console.log("sending: " + '{ "tag": "get_sync", "response": "' 
 							+ tag 
 							+ '", "collection": "' 
 							+ collection 
 							+ '", "content": '
 							+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
 						
+						browser.runtime.sendNativeMessage('db_connector', '{ "tag": "get_sync", "response": "' 
+							+ tag 
+							+ '", "collection": "' 
+							+ collection 
+							+ '", "string": "' 
+							+ this.data_origin
+							+ '", "content": '
+							+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }')
+							.then(
+								(string) => {
+								
+									let response = JSON.parse(string);
+
+									console.log("response for " + tag);
+									console.log(response);
+									
+									if (response.tag == tag) {
+								
+										clearTimeout(tID);
+								
+										if (response.error)
+											reject(new Error(response.error));
+										else {
+
+											resolve(response.content.map(
+												record => {
+
+													/* try - catch */
+											
+													if (collection == "resources") {
+
+														let resource = new Resource(record);
+														resource.db = this;
+
+														return resource
+
+													} else {
+												
+														return (collection == "domains") ? new Domain(record) : new Group(record);
+													}
+												})
+											);
+										}
+									} //else => reject??
+									
+								}, reject);
+						
 						tID = setTimeout(() => {
 							
 							reject(new Error("Transaction " + tag + " timed out."));
-							this.port.onMessage.removeListener(handler);
 							
 						}, 5000);
 					}
@@ -207,40 +203,39 @@ class DB extends EventEmitter {
 
 				return new Promise (
 					(resolve, reject) => {
-
+						
 						var tID;
 						let tag = UUID.generate().split("-").pop();
 						
-						let handler = (string) => {
-							
-							let response = JSON.parse(string);
-							
-							if (response.tag == tag) {
-								
-								clearTimeout(tID);
-								
-								if (response.error)
-									reject(new Error(response.error));
-								else 	
-									resolve(response.content);
-								
-								this.port.onMessage.removeListener(handler);
-							}						
-						}
-						
-						this.port.onMessage.addListener(handler);
-
-						this.port.postMessage('{ "tag": "remove_sync", "response": "' 
+						browser.runtime.sendNativeMessage('db_connector', '{ "tag": "remove_sync", "response": "' 
 							+ tag 
 							+ '", "collection": "' 
 							+ collection 
+							+ '", "string": "' 
+							+ this.data_origin
 							+ '", "content": '
-							+ ((names && names.length) ? JSON.stringify(names) : "[]") + ' }');
+							+ ((names && names.length) ? JSON.stringify(names) : "[]") + ' }')
+							.then(
+								(string) => {
+							
+									let response = JSON.parse(string);
+							
+									if (response.tag == tag) {
+								
+										clearTimeout(tID);
+										
+										if (response.error)
+											reject(new Error(response.error));
+										else 	
+											resolve(response.content);	
+										
+									} //else ==> reject??						
 
+								}, reject);
+						
 						tID = setTimeout(() => {
 							
 							reject(new Error("Transaction " + tag + " timed out."));
-							this.port.onMessage.removeListener(handler);
 							
 						}, 5000);
 					});
@@ -260,8 +255,9 @@ class DB extends EventEmitter {
 			this.removeable = false;
 			
 			this.reconnecting = true;
-			
-			this.port.postMessage('{ "tag": "connect", "content": "' + connectionString + '" }');
+
+			browser.runtime.sendNativeMessage('db_connector', '{ "tag": "connect", "content": "' + connString + '" }')
+				.then(this.defaultHandler, console.error);
 			
 		}
 
@@ -354,8 +350,11 @@ class DB extends EventEmitter {
 			else
 				return Promise.reject(new Error("Unremoveable DB"));
 		}
-	}
 
+		browser.runtime.sendNativeMessage('db_connector', '{ "tag": "connect", "content": "' + connString + '" }')
+			.then(this.defaultHandler, console.error);
+
+	}
 }
 
 class Storage extends EventEmitter  {

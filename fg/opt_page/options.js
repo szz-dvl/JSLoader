@@ -289,7 +289,8 @@ function OP (bg) {
 
 							$scope.__stopService = () => {
 
-								 $interval.cancel($scope.dataID);
+								if ($scope.dataID)
+									$interval.cancel($scope.dataID);
 								
 							}
 							
@@ -374,9 +375,10 @@ function OP (bg) {
 											
 											$scope.data_origin.string = string;
 											self.bg.option_mgr.persistDBString(string);
-											$scope.__updateService();
+											
 											/* Reindex && update view */
-											//$timeout(self.updateData, 350);
+											$timeout(self.updateData, 350);
+											$scope.__updateService();
 										}
 										
 										$scope.data_origin.reconnecting = false;
@@ -393,9 +395,6 @@ function OP (bg) {
 										$scope.data_origin.writeable = self.bg.db.writeable;
 										$scope.data_origin.readable  = self.bg.db.readable;
 										$scope.data_origin.removeable  = self.bg.db.removeable;
-
-										$scope.__stopService();
-										$scope.page.bg.db.reconnect($scope.data_origin.string);
 										
 										self.bg.notify_mgr.error("DB Error: " + error);
 										$scope.$digest();

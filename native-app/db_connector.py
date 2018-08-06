@@ -29,6 +29,7 @@ def encodeMessage(messageContent):
     
 #Send an encoded message to stdout
 def sendMessage(encodedMessage):
+    sys.stdout.flush()
     sys.stdout.write(encodedMessage['length'])
     sys.stdout.write(encodedMessage['content'])
     sys.stdout.flush()
@@ -48,6 +49,7 @@ while True:
 
                 writeable = False;
                 readable = False;
+                removeable = False;
                 
                 db = client.get_database()
                 res = db.command("connectionStatus", 1, showPrivileges=True)
@@ -58,15 +60,19 @@ while True:
                         if record['resource']['db'] == db.name and not record['resource']['collection'].startswith('system.'):
                             readable = 'find' in record['actions'] 
                             writeable = 'update' in record['actions'] and 'insert' in record['actions']
-
+                            removeable = 'remove' in record['actions']
+                            
                 else: #Running anonymously / no auth
                     readable=True
                     writeable=True
-                            
+                    removeable= True
+                    
                 sendMessage(encodeMessage('{"tag": "alive", "readable": ' +
                                           ("true" if readable else "false") +
                                           ', "writeable": ' +
                                           ("true" if writeable else "false") +
+                                          ', "removeable": ' +
+                                          ("true" if removeable else "false") +
                                           ', "string": "' +
                                           receivedMessage['content'] +
                                           '"}'));
@@ -191,13 +197,13 @@ while True:
             except Exception as e:
                 sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "error": "' + str(e) + '" }'));
                 
-        elif tag == 'remove_resources':
+        elif tag == 'remove_sync':
 
             try:
                 
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
 
-                result = db.resources.delete_many(query);
+                result = db[receivedMessage['collection']].delete_many(query);
                     
                 sendMessage (encodeMessage('{ "tag": "' + receivedMessage['response'] + '", "content": "' + str(result.deleted_count) + '" }'));
 

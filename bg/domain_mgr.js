@@ -385,15 +385,8 @@ function DomainMgr (bg) {
 											});
 											
 										}
-
-										/* console.log("Pushing " + subdomain.name);
-										   console.log(info.groups) */	
+										
 									}
-
-									
-									/* console.log("Groups: ");
-									   console.log(groups);
-									 */
 
 									this.bg.group_mgr.getGroupsForUrl(url)
 										.then(groups => {

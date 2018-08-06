@@ -24,10 +24,25 @@ function OptionMgr (bg) {
 			
 			Options.call(this, new_options || {});
 			
-			this.bg.app_events.emit('options-ready');
+			//this.bg.app_events.emit('options-ready');
+				
 		}
 	);
 
+	this.bg.db.on('db_error', content => {
+
+		if (this.events) 
+			this.events.emit("db_error", content);
+
+	});
+
+	this.bg.db.on('db_change', string => {
+
+		if (this.events) 
+			this.events.emit("db_change", string);
+
+	});
+	
 	this.__schedulePersistAt = (to) => {
 		
 		if (this.persistID)
@@ -141,6 +156,21 @@ function OptionMgr (bg) {
 							resolve();	
 					})
 			});
+	}
+
+	this.clearData = () => {
+
+		return new Promise(
+			(resolve, reject) => {
+
+				Promise.all([
+					this.bg.domain_mgr.clear(),
+					this.bg.group_mgr.clear(),
+					this.storage.removeGlobals(),
+					this.storage.removeUserDefs()
+						
+				]).then(resolve, reject);
+			})
 	}
 	
 }

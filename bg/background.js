@@ -3,7 +3,8 @@ function BG_mgr () {
 	this.app_events = new EventEmitter();
 	this.pa_events = null;
 	
-	this.database_mgr = new DBMgr(this);
+	//this.database_mgr = new DBMgr(this);
+	this.db = global_storage.db;
 	this.option_mgr = new OptionMgr(this);
 	this.domain_mgr = new DomainMgr(this);
 	this.group_mgr = new GroupMgr(this);
@@ -143,9 +144,16 @@ function BG_mgr () {
 	
 	browser.storage.onChanged.addListener(this.storeChanges);
 	browser.commands.onCommand.addListener(this.receiveCmd);
+	console.log(this);
 }
 
-BG_mgr.call(this);
+	
+global_storage.once('ready', () => {
+	
+	BG_mgr.call(this);
+
+})
+
 
 /* browser.storage.local.clear(); */
 

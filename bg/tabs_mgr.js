@@ -203,7 +203,7 @@ function TabsMgr (bg) {
 							.then(
 								any => {
 									
-									let nfo = any ? "red" : "blue";
+									let nfo = any ? "red" : "blue";									
 									
 									browser.pageAction.show(tabInfo.id)
 										.then(
@@ -221,7 +221,8 @@ function TabsMgr (bg) {
 												);
 											}
 										);
-								}
+									
+								}, console.error
 							);
 					}
 					

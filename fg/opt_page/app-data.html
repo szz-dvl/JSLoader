@@ -4,6 +4,53 @@
 		
 		<div ng-show="appdata_active" style="width: 100%;">
 
+			<table style="display: table;" ng-if="data_origin.available">
+				<thead>
+					<th></th>
+					<th></th>
+					<th style="text-align: center;"> Connected </th>
+					<th style="text-align: center;"> Readable </th>
+					<th style="text-align: center;"> Writeable </th>
+				</thead>
+				<tbody style="display: table-row-group;">
+					<tr>
+						<td style="width: 20%;">
+							<h2 style="float: right;margin-right: 135px;"> Data origin: </h2>
+						</td>
+						<td style="width: 60%;">	
+							<input
+								style="width: 100%;"
+								class="browser-style"
+								id="data-origin-inpt"
+								type="password"
+								ng-model="data_origin.string"
+								ng-change ="validateConnection()"
+								ng-disabled="in_progress"
+								info-protected/>
+						</td>
+						<td style="text-align: center; width: 10%;padding: 55px">
+							<div style="width: 40px;height: 40px;">
+								<img src="../icons/ok_tick.png" ng-show="data_origin.connected && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="!data_origin.connected && !data_origin.reconnecting" width="32px" height="32px">
+								<img src="../icons/loading.gif" ng-show="data_origin.reconnecting" width="32px" height="32px">
+							</div>
+						</td>
+						<td style="text-align: center; width: 10%;padding: 55px">
+							<div style="width: 40px;height: 40px;">
+								<img src="../icons/ok_tick.png" ng-show="data_origin.connected && data_origin.readable && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="data_origin.connected && !data_origin.readable && !data_origin.reconnecting" width="32px" height="32px">
+							</div>
+						</td>
+						<td style="text-align: center; width: 10%;padding: 55px">
+							<div style="width: 40px;height: 40px;">
+								<img src="../icons/ok_tick.png" ng-show="data_origin.connected && data_origin.writeable && !data_origin.reconnecting" width="24px" height="24px">
+								<img src="../icons/ko_tick.png" ng-show="data_origin.connected && !data_origin.writeable && !data_origin.reconnecting" width="32px" height="32px">
+							</div>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			
 			<table style="display: table;width: 100%;" ng-if="domains.data.length || groups.data.length">
 				<thead>
 					<th></th>
@@ -13,6 +60,7 @@
 					<th style="text-align: center;"> Actions </th>
 				</thead>
 				<tbody style="display: table-row-group;">
+					
 					<tr ng-repeat="domain in domains.data track by domain.name">
 						<td>
 							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Domains: </h2>
@@ -33,13 +81,14 @@
 							<div style="text-align: center;">
 								
 								<are-u-sure
+									ng-if="data_origin.removeable && !data_origin.reconnecting || domain.in_storage"
 									text="'Remove'"
 									action="removeItem(domain.name, 'domain')">
 								</are-u-sure>
 								
-								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
+								<button ng-if="data_origin.writeable && !data_origin.reconnecting && domain.in_storage"
 									class="browser-style"
-									ng-click="pushItem(domain.name, 'domain')"> Push to DB 
+									ng-click="moveToDb(domain, 'domain')"> Push to DB 
 								</button>
 								
 							</div>
@@ -62,13 +111,16 @@
 						</td>
 						<td style="text-align: center;">
 							<div style="text-align: center;">
+								<!-- if removeable or item live in storage -->
 								<are-u-sure
+									ng-if="data_origin.removeable && !data_origin.reconnecting ||  group.in_storage"
 									text="'Remove'"
 									action="removeItem(group.name, 'group')">
 								</are-u-sure>
-								<button ng-if="data_origin.writeable && !data_origin.reconnecting"
+								
+								<button ng-if="data_origin.writeable && !data_origin.reconnecting && group.in_storage"
 									class="browser-style"
-									ng-click="pushItem(group.name, 'group')"> Push to DB 
+									ng-click="moveToDb(group, 'group')"> Move to DB 
 								</button>
 							</div>
 						</td>
@@ -86,13 +138,6 @@
 					ng-if="domains.data.length || groups.data.length"
 					ng-click="exportData()"> Export Data
 				</button>
-				<are-u-sure
-					ng-if="data_origin.writeable && (domains.data.length + groups.data.length > 1) && !data_origin.reconnecting" 
-					ng-disable="data-origin.reconnecting"
-					text="'Push all to DB'"
-					padding="35"
-					action="pushItem()">
-				</are-u-sure>
 				<are-u-sure
 					ng-if="domains.data.length || groups.data.length"
 					text="'Clear Storage'"

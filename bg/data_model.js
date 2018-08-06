@@ -325,6 +325,7 @@ function Domain (opt) {
 	Site.call(this, {url: "/", parent: this, scripts: opt.scripts, groups: opt.groups });
 
 	this.name = opt.name;
+	this.in_storage = opt.in_storage || false;
 	
 	this.sites = [];
 	if (opt.sites) {
@@ -404,6 +405,8 @@ function Domain (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
+
+				console.log(global_storage);
 				
 				global_storage.removeDomain(this.name)
 					.then(() => {
@@ -533,6 +536,7 @@ function Group (opt) {
 	this.name = opt.name || UUID.generate().split("-").pop();
 	this.sites = opt.sites || [];
 	this.disabledAt = opt.disabledAt || [];
+	this.in_storage = opt.in_storage || false;
 	
 	this.isDomain = () => {
 		
@@ -956,7 +960,8 @@ function Resource (opt) {
 	this.file = opt.file || null;
 	this.type = opt.type || "application/octet-stream";
 	this.size = opt.size || 0;
-	this.db = opt.db || null;
+	//this.db = opt.db || null;
+	this.in_storage = opt.in_storage || false;
 	
 	this.parent = this; /* Compat. */
 	

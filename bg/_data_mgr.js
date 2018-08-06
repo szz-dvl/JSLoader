@@ -3,12 +3,12 @@ function DataMgr (opt) {
 	this.key = opt.key || "Generic";
 	
 	this.getItem = (item_name) => {
-
+		
 		return new Promise(
 			(resolve, reject) => {
 				this.storage["get" + this.key](
 					item => {
-
+						
 						if (item)
 							resolve(item);
 						else
@@ -174,7 +174,7 @@ function DataMgr (opt) {
 								
 							}, err => {
 								
-								console.warn(err);
+								//console.warn(err);
 								next();
 
 							});
@@ -215,7 +215,7 @@ function DataMgr (opt) {
 									.map(
 										item => {
 
-											return { name: item.name, scripts: item.getScriptCount(), sites: item.sites.length }
+											return { name: item.name, scripts: item.getScriptCount(), sites: item.sites.length, in_storage: item.in_storage }
 											
 										}
 									)
@@ -268,6 +268,58 @@ function DataMgr (opt) {
 							);
 						});
 			});
-	}	
+	}
+
+	this.clear = () => {
+
+		return new Promise((resolve, reject) => {
+			
+			async.each(this[this.key.toLowerCase() + "s"],
+				(item_name, next) => {
+					
+					this.getItem(item_name)
+						.then(
+							item => {
+
+								item.remove()
+									.then(() => { next() }, () => { next() });
+								
+							}, err => {
+								
+								//console.warn(err);
+								next();
+
+							});
+					
+				}, err => {
+
+					if (err)
+						reject(err);
+					else 
+						resolve();
+					
+				})
+
+		})
+	}
+
+	this.move2DB = (name) => {
+
+		return new Promise((resolve, reject) => {
+			
+			this.getItem(name)
+				.then(item => {
+					
+					item.remove()
+						.then(removed => {
+							
+							removed.persist()
+								.then(resolve,reject);
+							
+						})
+
+				}, console.error);
+		})
+	}
 }
 	

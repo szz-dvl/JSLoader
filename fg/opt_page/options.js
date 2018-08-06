@@ -5,17 +5,21 @@ function OP (bg) {
 	this.bg = bg;
 
 	this.app = angular.module('optionsPageApp', ['jslPartials', 'ui.router']);
+	console.log("module");
 	
 	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams, $rootScope, $interval) {
+
+		console.log("parent");
 		
 		$scope.page = self;
 		$scope.data_origin = {
 			
 			reconnecting: false,
-			available: self.bg.database_mgr.available,
-			connected: self.bg.database_mgr.connected,
-			writeable: self.bg.database_mgr.writeable,
-			readable: self.bg.database_mgr.readable,
+			available: self.bg.db.available,
+			connected: self.bg.db.connected,
+			writeable: self.bg.db.writeable,
+			readable: self.bg.db.readable,
+			removeable: self.bg.db.removeable,
 			string: self.bg.option_mgr.data_origin
 		}
 
@@ -24,12 +28,13 @@ function OP (bg) {
 			$scope.dbID = $interval(
 				() => {
 					
-					if (self.bg.database_mgr.available) {
+					if (self.bg.db.available) {
 						
 						$scope.data_origin.available = true;
-						$scope.data_origin.connected = self.bg.database_mgr.connected;
-						$scope.data_origin.writeable = self.bg.database_mgr.writeable;
-						$scope.data_origin.readable  = self.bg.database_mgr.readable;
+						$scope.data_origin.connected = self.bg.db.connected;
+						$scope.data_origin.writeable = self.bg.db.writeable;
+						$scope.data_origin.readable  = self.bg.db.readable;
+						$scope.data_origin.removeable  = self.bg.db.removeable;
 						
 						$interval.cancel($scope.dbID);
 					}
@@ -54,7 +59,7 @@ function OP (bg) {
 					dataDomains: () => { return self.bg.domain_mgr.getSlice(0, 5); },
 					dataGroups: () => { return self.bg.group_mgr.getSlice(0, 5); },
 					storageContent: () => { return browser.storage.local.get(); },
-					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }
+					dataResources: () => { return Promise.resolve({name: "/", items: []}) }  //return self.bg.resource_mgr.getVirtFS("/");
 				},
 				
 				views: {
@@ -63,6 +68,8 @@ function OP (bg) {
 						
 						templateUrl: 'editor-settings.html',
 						controller: function ($scope, $compile) {
+
+							console.log("editor");
 							
 							$scope.editor_active = true;
 
@@ -100,7 +107,9 @@ function OP (bg) {
 						
 						templateUrl: 'resources.html',
 						controller: function ($scope, $state, $timeout, dataResources) {
-		
+
+							console.log("resources");
+							
 							$scope.resources_active = true;
 							$scope.data_ok = true;
 							$scope.list = dataResources;
@@ -270,10 +279,17 @@ function OP (bg) {
 							$scope.domains = dataDomains;
 							$scope.groups = dataGroups;
 							$scope.appdata_active = $scope.domains.data.length + $scope.groups.data.length > 0;
+							$scope.in_progress = false;
 							
 							$scope.__updateService = () => {
 
 								$scope.dataID = $interval($scope.__updateData, 3500, 0, true, true);
+								
+							}
+
+							$scope.__stopService = () => {
+
+								 $interval.cancel($scope.dataID);
 								
 							}
 							
@@ -316,6 +332,77 @@ function OP (bg) {
 								})
 							}
 
+							$scope.validateConnection = (el) => {
+								
+								/* Won't check options and database properly*/
+								let str = $scope.data_origin.string;
+								let regex = new RegExp(/^mongodb\:\/\/(?:(?:[A-Za-z0-9.]+)\:(?:[A-Za-z0-9\$\_\-\?\/\=]+)\@)?(?:[A-Za-z0-9.]+)(?:((\:)(?:[0-9]+)))?((\/)?(?:(?:[A-Za-z0-9\=\_\-\?]+)?)?)$/)
+									.exec(str);
+								
+								if (regex) {		
+
+									$scope.data_origin.reconnecting = true;
+									
+									if ($scope.toID)
+										$timeout.cancel($scope.toID);
+									
+									$scope.toID = $timeout(
+										str => {
+
+											$scope.in_progress = true;
+											$scope.__stopService();
+											$scope.page.bg.db.reconnect(str);
+											
+										}, 4500, true, str);
+
+								} else if ($scope.toID)
+									$timeout.cancel($scope.toID);
+								
+							}
+
+							self.bg.option_mgr.events
+								.on('db_change',
+									string => {
+										
+										$scope.data_origin.available = self.bg.db.available;
+										$scope.data_origin.connected = self.bg.db.connected;
+										$scope.data_origin.writeable = self.bg.db.writeable;
+										$scope.data_origin.readable  = self.bg.db.readable;
+										$scope.data_origin.removeable  = self.bg.db.removeable;
+										
+										if ($scope.data_origin.connected) {
+											
+											$scope.data_origin.string = string;
+											self.bg.option_mgr.persistDBString(string);
+											$scope.__updateService();
+											/* Reindex && update view */
+											//$timeout(self.updateData, 350);
+										}
+										
+										$scope.data_origin.reconnecting = false;
+										$scope.in_progress = false;
+										
+										$scope.$digest();
+									}
+								)
+								.on('db_error',
+									error => {
+										
+										$scope.data_origin.available = self.bg.db.available;
+										$scope.data_origin.connected = self.bg.db.connected;
+										$scope.data_origin.writeable = self.bg.db.writeable;
+										$scope.data_origin.readable  = self.bg.db.readable;
+										$scope.data_origin.removeable  = self.bg.db.removeable;
+
+										$scope.__stopService();
+										$scope.page.bg.db.reconnect($scope.data_origin.string);
+										
+										self.bg.notify_mgr.error("DB Error: " + error);
+										$scope.$digest();
+										
+									}
+								)
+								
 							$scope.newGroups = (slice) => {
 
 								$interval.cancel($scope.dataID);
@@ -342,24 +429,7 @@ function OP (bg) {
 								
 								self.bg[type + "_mgr"].removeItem(name)
 									.then(() => { $scope.__updateData(); });
-
-								self.query_results.length = 0;
-							}
-
-							$scope.pushItem = (name, type) => {
 								
-								if (name) 
-									self.bg[type + "_mgr"].pushToDB([name]);
-								else {
-									
-									if (self.bg.group_mgr.groups.length)
-										self.bg.group_mgr.pushToDB(self.bg.group_mgr.groups);
-									
-									if (self.bg.domain_mgr.domains.length)
-										self.bg.domain_mgr.pushToDB(self.bg.domain_mgr.domains); /* Only meaningful domains */
-								}
-
-								self.query_results.length = 0;
 							}
 							
 							$scope.importData = (file) => {
@@ -381,14 +451,22 @@ function OP (bg) {
 								self.bg.option_mgr.exportApp();
 							}
 
+							$scope.moveToDb = (elem, type) => {
+								
+								self.bg[type + '_mgr'].move2DB(elem.name)
+									.then(() => {
+										
+										elem.in_storage = false;
+										$scope.$digest();
+									})
+							}
+							
 							$scope.clearStoredData = () => {
 								
-								browser.storage.local.clear()
+								self.bg.option_mgr.clearData()
 									.then(resp => {
-
+										
 										$scope.__updateData();
-										self.bg.resource_mgr.recreateRoot()
-											.then(self.resourcesFilter);
 										
 									});
 							}
@@ -400,179 +478,6 @@ function OP (bg) {
 							}
 
 							$timeout($scope.__updateService);
-						}
-					},
-					
-					'app-db': {
-						
-						templateUrl: 'app-db.html',
-						controller: function ($scope, $compile, $timeout, $rootScope) {
-							
-							$scope.appdb_active = false;
-							$scope.in_progress = false;
-							$scope.db_query = "";
-							
-							self.query_results = $scope.query_results = [];
-							$scope.results_slice = {data: []};
-							$scope.filter_events = new EventEmitter();
-							
-							$scope.getResultsSlice = (actual, len) => {
-
-								return Promise.resolve(
-									{
-										data: $scope.query_results
-											.sort((a,b) => {return a.name > b.name})
-											.slice(actual, actual + len),
-										
-										actual: actual,
-										total: $scope.query_results.length 
-									}
-								)
-							};
-							
-							$scope.newResultsPage = (slice) => {
-								
-								$scope.results_slice = slice;
-								$scope.$digest();
-
-							};
-
-							$scope.dbQuery = () => {
-								
-								if ($scope.queryID)
-									$timeout.cancel($scope.queryID);
-									
-								$scope.queryID = $timeout(
-									str => {
-										
-										self.bg.database_mgr.queryDB($scope.db_query);
-							
-									}, 350, false);
-								
-							}
-							
-							$scope.updateFromDB = (record) => {
-
-								let data = [];
-								
-								if (record) {
-
-									record.exists = true;
-									
-									if (record.type == "Group") 
-										$scope.page.bg.database_mgr.getGroups([record.name]);
-									else 
-										$scope.page.bg.database_mgr.getDomains([record.name]);
-
-								} else { 								
-							
-									$scope.page.bg.database_mgr.getDomains($scope.query_results.filter(record => { return record.type == "Domain" }).map(domain => { return domain.name }));
-									$scope.page.bg.database_mgr.getGroups($scope.query_results.filter(record => { return record.type == "Group" }).map(group => { return group.name }));	
-								}
-							}
-
-							$scope.validateConnection = (el) => {
-								
-								/* Won't check options and database properly */
-								let str = $scope.data_origin.string;
-								let regex = new RegExp(/^mongodb\:\/\/(?:(?:[A-Za-z0-9.]+)\:(?:[A-Za-z0-9\$\_\-\?\/\=]+)\@)?(?:[A-Za-z0-9.]+)(?:((\:)(?:[0-9]+)))?((\/)?(?:(?:[A-Za-z0-9\=\_\-\?]+)?)?)$/)
-									.exec(str);
-								
-								if (regex) {		
-
-									$scope.data_origin.reconnecting = true;
-									
-									if ($scope.toID)
-										$timeout.cancel($scope.toID);
-									
-									$scope.toID = $timeout(
-										str => {
-
-											$scope.in_progress = true;
-											
-											$scope.page.bg.database_mgr.reconnect(str);
-											
-										}, 4500, true, str);
-
-								} else if ($scope.toID)
-									$timeout.cancel($scope.toID);
-								
-							}
-							
-							self.bg.option_mgr.events
-								.on('db_change',
-									string => {
-										
-										$scope.data_origin.available = self.bg.database_mgr.available;
-										$scope.data_origin.connected = self.bg.database_mgr.connected;
-										$scope.data_origin.writeable = self.bg.database_mgr.writeable;
-										$scope.data_origin.readable  = self.bg.database_mgr.readable;
-										
-										if ($scope.data_origin.connected) {
-											
-											$scope.data_origin.string = string;
-											self.bg.option_mgr.persistDBString(string);
-											
-										}
-										
-										$scope.data_origin.reconnecting = false;
-										$scope.in_progress = false;
-										
-										$scope.query_results.length = 0;
-										$scope.results_slice = {data: []};
-										
-										$rootScope.$digest();
-									}
-								)
-								.on('db_query',
-									results => {
-										
-										$scope.query_results.length = 0;
-										$scope.results_slice = {data: []};
-										
-										if ($scope.data_origin.connected) {
-											
-											$scope.query_results.push.apply(
-												$scope.query_results, results.map(
-													instance => {
-													
-														return {
-														
-															name: instance.name,
-															type: instance.isGroup() ? "Group" : "Domain",
-															scripts: instance.getScriptCount(),
-															sites: instance.sites.length,
-															exists: self.bg[instance.isGroup() ? "group_mgr" : "domain_mgr"].exists(instance.name)
-														};
-													}
-												)
-											);
-										}
-										
-										$scope.filter_events.emit('change');
-										$scope.$digest();
-									}
-								)
-								.on('db_newdata',
-									() => {
-										
-										$timeout(self.updateData, 350);
-										
-									}
-								)
-								.on('db_error',
-									error => {
-										
-										$scope.data_origin.available = self.bg.database_mgr.available;
-										$scope.data_origin.connected = self.bg.database_mgr.connected;
-										$scope.data_origin.writeable = self.bg.database_mgr.writeable;
-										$scope.data_origin.readable  = self.bg.database_mgr.readable;
-
-										self.bg.notify_mgr.error("DB Error: " + error);
-										$rootScope.$digest();
-										
-									}
-								)
 						}
 					},
 
@@ -589,8 +494,10 @@ function OP (bg) {
 				}
 			})
 		});
+
 	
 	this.app.run($state => { $state.go('opt-site') });
+	console.log("run");
 	
 	/* this.app.factory('dataStorage', function($q) {
 	   return $q.resolve(self.bg.option_mgr.getDataInfo());
@@ -598,7 +505,8 @@ function OP (bg) {
 	
 	angular.element(document).ready(
 		() => {
-			
+
+			console.log("bootstrap");
 			angular.bootstrap(document, ['optionsPageApp']);
 			
 		}
@@ -616,6 +524,8 @@ browser.runtime.getBackgroundPage()
 				page.option_mgr.events = null;
 				
 			}
+			console.log("bg: new op");
+			console.log(page);
 			
 			new OP(page);				
 		}

@@ -81,7 +81,8 @@
 							<div style="text-align: center;">
 								
 								<are-u-sure
-									ng-if="data_origin.removeable && !data_origin.reconnecting || domain.in_storage"
+									ng-disabled="data_origin.reconnecting"
+									ng-show="data_origin.removeable || domain.in_storage"
 									text="'Remove'"
 									action="removeItem(domain.name, 'domain')">
 								</are-u-sure>
@@ -113,7 +114,8 @@
 							<div style="text-align: center;">
 								<!-- if removeable or item live in storage -->
 								<are-u-sure
-									ng-if="data_origin.removeable && !data_origin.reconnecting ||  group.in_storage"
+									ng-disabled="data_origin.reconnecting"
+									ng-show="data_origin.removeable || group.in_storage"
 									text="'Remove'"
 									action="removeItem(group.name, 'group')">
 								</are-u-sure>

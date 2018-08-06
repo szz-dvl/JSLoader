@@ -66,6 +66,21 @@ class DB extends EventEmitter {
 					break;
 			}
 		}
+
+		/* this.sendMessage = (message, cb) => {
+
+		   let handler = (response) => {
+
+		   this.port.onMessage.removeListener(handler);
+		   cb(response);
+		   
+		   }
+		   
+		   this.port.onMessage.addListener(handler);
+		   
+		   this.port.postMessage(message);
+
+		   } */
 		
 		this.pushSync = (items, collection) => {
 			
@@ -126,13 +141,6 @@ class DB extends EventEmitter {
 
 						var tID;
 						let tag = UUID.generate().split("-").pop();
-
-						console.log("sending: " + '{ "tag": "get_sync", "response": "' 
-							+ tag 
-							+ '", "collection": "' 
-							+ collection 
-							+ '", "content": '
-							+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
 						
 						browser.runtime.sendNativeMessage('db_connector', '{ "tag": "get_sync", "response": "' 
 							+ tag 
@@ -147,8 +155,8 @@ class DB extends EventEmitter {
 								
 									let response = JSON.parse(string);
 
-									console.log("response for " + tag);
-									console.log(response);
+									/* console.log("response for " + tag);
+									   console.log(response); */
 									
 									if (response.tag == tag) {
 								
@@ -256,7 +264,7 @@ class DB extends EventEmitter {
 			
 			this.reconnecting = true;
 
-			browser.runtime.sendNativeMessage('db_connector', '{ "tag": "connect", "content": "' + connString + '" }')
+			browser.runtime.sendNativeMessage('db_connector', '{ "tag": "connect", "content": "' + connectionString + '" }')
 				.then(this.defaultHandler, console.error);
 			
 		}
@@ -351,9 +359,31 @@ class DB extends EventEmitter {
 				return Promise.reject(new Error("Unremoveable DB"));
 		}
 
-		browser.runtime.sendNativeMessage('db_connector', '{ "tag": "connect", "content": "' + connString + '" }')
-			.then(this.defaultHandler, console.error);
+		this.getIdxFor = (type) => {
+			
+			return new Promise (
+				(resolve, reject) => {
+					browser.runtime.sendNativeMessage('db_connector', '{ "tag": "' + type + '_get", "content": ' + "[]" + ', "string": "' + this.data_origin + '" }')
+						.then(
+							string => {
 
+								let response = JSON.parse(string);
+								
+								if (response.tag == 'error')
+									reject(new Error(response.content));
+								else 	
+									resolve(response.content);
+								
+							}, reject);
+				});
+		}
+
+		this.getDomains = () => { return this.getIdxFor('domains') };
+		this.getGroups = () => { return this.getIdxFor('groups') };
+		
+		browser.runtime.sendNativeMessage('db_connector','{ "tag": "connect", "content": "' + connString + '" }')
+			.then(this.defaultHandler, console.error);
+		
 	}
 }
 
@@ -754,9 +784,8 @@ class Storage extends EventEmitter  {
 							return this.__removeItem(name, "Resource");
 						
 					};
-					
+
 					this.emit('ready');
-					
 				}
 			)
 	}

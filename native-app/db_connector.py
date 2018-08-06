@@ -79,48 +79,21 @@ while True:
                                           '"}'));
                 
             except Exception as e:     
-                sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '" ' + ', "string": "' + receivedMessage['content'] + '"}'));
-            
-        elif tag == 'domains_push':
-
-            try :
-            
-                for domain in receivedMessage['content']:
-                
-                    db.domains.replace_one(
-                        { "name": domain["name"] },
-                        domain,
-                        upsert=True
-                    );
-                    
-            except Exception as e:
-                sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
-                
-        elif tag == 'groups_push':
-
-            try :
-                
-                for group in receivedMessage['content']:
-                
-                    db.groups.replace_one(
-                        { "name": group["name"] },
-                        group,
-                        upsert=True
-                    );
-                    
-            except Exception as e:
-                sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
-                    
+                sendMessage(encodeMessage('{"tag": "bad-params", "content": "' + str(e) + '" ' + ', "string": "' + receivedMessage['content'] + '"}'));            
                 
         elif tag == 'domains_get':
 
-            try: 
+            try:
+
+                client = MongoClient(receivedMessage['string'])
+                db = client.get_database()
+                
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
             
                 for domain in db.domains.find(query):
                     del domain['_id']
-                    docs.append(domain)
+                    docs.append(domain['name'])
                 
                 sendMessage ( encodeMessage( '{ "tag": "domains", "content":' + json.dumps(docs) + ' }' ));
                     
@@ -131,40 +104,20 @@ while True:
 
             try:
 
+                client = MongoClient(receivedMessage['string'])
+                db = client.get_database()
+                
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
                 
                 for group in db.groups.find(query):
                     del group['_id']
-                    docs.append(group)
+                    docs.append(group['name'])
 
                 sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
 
             except Exception as e:
                 sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
-
-        elif tag == 'query_for':
-
-            try:
-
-                #Missing resources.
-                
-                docs = [];
-                query = { "name": { "$regex": ".*" + re.escape(receivedMessage['content']) + ".*" }} if len(receivedMessage['content']) > 0 else None;
-                
-                for group in db.groups.find(query):
-                    del group['_id']
-                    docs.append({'data': group, 'type': 'Group'})
-                    
-                for domain in db.domains.find(query):
-                    del domain['_id']
-                    docs.append({'data': domain, 'type': 'Domain'})
-                    
-                sendMessage ( encodeMessage( '{ "tag": "query", "content":' + json.dumps(docs) + ' }' ));
-
-            except Exception as e:
-                sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
-
 
         elif tag == 'push_sync':
 

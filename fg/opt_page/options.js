@@ -375,10 +375,15 @@ function OP (bg) {
 											
 											$scope.data_origin.string = string;
 											self.bg.option_mgr.persistDBString(string);
-											
-											/* Reindex && update view */
-											$timeout(self.updateData, 350);
-											$scope.__updateService();
+
+											self.bg.option_mgr.reIndex()
+												.then(resp => {
+													
+													$timeout(self.updateData, 350)
+														.then($scope.__updateService);
+													
+												}, console.error)
+												
 										}
 										
 										$scope.data_origin.reconnecting = false;
@@ -389,7 +394,7 @@ function OP (bg) {
 								)
 								.on('db_error',
 									error => {
-										
+										/* No use */
 										$scope.data_origin.available = self.bg.db.available;
 										$scope.data_origin.connected = self.bg.db.connected;
 										$scope.data_origin.writeable = self.bg.db.writeable;

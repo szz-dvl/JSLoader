@@ -321,5 +321,49 @@ function DataMgr (opt) {
 				}, console.error);
 		})
 	}
+
+	this.getStored = () => {
+
+		return new Promise(
+			(resolve, reject) => {
+				browser.storage.local.get()
+					.then(
+						stored => {
+							
+							resolve(
+
+								Object.keys(stored)
+									.filter(key => {
+										
+										return key.split("-")[0] == this.key.toLowerCase();
+											
+									})
+									.map(key => {
+										
+										return key.split("-").pop();
+										
+									})
+							)
+								
+						}, reject)
+			});
+							
+	}
+
+	this.reIndex = () => {
+		
+		return new Promise (
+			(resolve, reject) => {
+				
+				Promise.all([this.storage.db['get' + this.key + 's'](), this.getStored()])
+					.then(resp => {
+						
+						this.storage["__set" + this.key + "s"](resp[0].concat(resp[1]))
+							.then(resolve, reject);
+						
+					}, reject);
+			}
+		)
+	}
 }
 	

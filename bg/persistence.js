@@ -21,7 +21,7 @@ class DB extends EventEmitter {
 				console.log("message: ");
 				console.log(obj);
 
-				if (obj.error && obj.error.includes('[111]')) {
+				if (obj.error && obj.error.includes('[Errno 111]')) {
 
 					if (this.connected) {
 

@@ -312,12 +312,32 @@ function DataMgr (opt) {
 					
 					item.remove()
 						.then(removed => {
+
+							removed.in_storage = false;
 							
 							removed.persist()
 								.then(resolve,reject);
 							
 						})
 
+				}, console.error);
+		})
+	}
+
+	this.import2ST = (name) => {
+
+		return new Promise((resolve, reject) => {
+			
+			this.getItem(name)
+				.then(item => {
+
+					/* Item will be in DB for sure */
+					
+					item.in_storage = true;
+							
+					item.persist()
+						.then(resolve,reject);
+				
 				}, console.error);
 		})
 	}

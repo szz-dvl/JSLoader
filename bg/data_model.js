@@ -391,7 +391,7 @@ function Domain (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.upsertDomain(this.__getDBInfo())
+				global_storage.upsertDomain(this.__getDBInfo(), this.in_storage)
 					.then(() => {
 						
 						resolve(this);
@@ -408,7 +408,7 @@ function Domain (opt) {
 
 				console.log(global_storage);
 				
-				global_storage.removeDomain(this.name)
+				global_storage.removeDomain(this.name, this.in_storage)
 					.then(() => {
 						
 						resolve(this);
@@ -582,7 +582,7 @@ function Group (opt) {
 		return new Promise(
 			(resolve, reject) => {
 				
-				global_storage.upsertGroup(this.__getDBInfo())
+				global_storage.upsertGroup(this.__getDBInfo(), this.in_storage)
 					.then(
 						() => {
 							
@@ -599,7 +599,7 @@ function Group (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.removeGroup(this.name)
+				global_storage.removeGroup(this.name, this.in_storage)
 					.then(
 						() => {
 							

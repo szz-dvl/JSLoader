@@ -18,8 +18,8 @@ class DB extends EventEmitter {
 				let obj = JSON.parse(response);					
 				this.reconnecting = false;
 
-				console.log("message: ");
-				console.log(obj);
+				/* console.log("message: ");
+				   console.log(obj); */
 
 				if (obj.error && obj.error.includes('[Errno 111]')) {
 
@@ -547,121 +547,101 @@ class Storage extends EventEmitter  {
 					
 					this.__bringItem = (cb, name, type) => {
 
-						this.db['get' + type](name)
-							.then(arr => {
+						this.__get(
+							item => {
 								
-								if (arr.length)
-									cb(arr[0]);
-								else {
-									
-									this.__get(
-										item => {
+								if (item) {
 
-											if (item)
-												item.in_storage = true;
+									item.in_storage = true;
+								
+									switch (type) {
+										case "Domain":
+											cb(item ? new Domain(item) : null);
+										case "Group":
+											cb(item ? new Group(item) : null);
+										case "Resource":
+											cb(item ? new Resource(item) : null);
+										default:
+											break;
+									}
+
+								} else {
+									
+									this.db['get' + type](name)
+										.then(arr => {
 											
-											switch (type) {
-												case "Domain":
-													cb(item ? new Domain(item) : null);
-												case "Group":
-													cb(item ? new Group(item) : null);
-												case "Resource":
-													cb(item ? new Resource(item) : null);
-												default:
-													break;
-											}
+											cb(arr.length ? arr[0] : null);
 											
-										}, type.toLowerCase() + '-' + name);	
+										}, err => { cb(null) });
 								}
 								
-							}, err => {
-								//console.error(err);
-								this.__get(
-									item => {
-
-										if (item)
-											item.in_storage = true;
-										
-										switch (type) {
-											case "Domain":
-												cb(item ? new Domain(item) : null);
-											case "Group":
-												cb(item ? new Group(item) : null);
-											case "Resource":
-												cb(item ? new Resource(item) : null);
-											default:
-												break;
-										}
-										
-									}, type.toLowerCase() + '-' + name);
-							})
+							}, type.toLowerCase() + '-' + name);
 					};
 					
-					this.__pushItem = (val, type) => {
+					this.__pushItem = (val, type, in_storage) => {
 
 						return new Promise ((resolve, reject) => {
 							
-							this.db['set' + type](val)
-								.then(arr => {
-									
-									resolve(arr[0]); 	
-									
-								}, err => {
-									
-									//console.error(err);
-									
-									this.__set(type.toLowerCase() + '-' + val.name, val)
-										.then(resolve, reject);
-								})
+							if (in_storage) {
 
+								this.__set(type.toLowerCase() + '-' + val.name, val)
+									.then(resolve, reject);
+
+							} else {
+
+								this.db['set' + type](val)
+									.then(resolve, reject);
+							}
+							
 						})
 					};
 
-					this.__removeItem = (name, type) => {
-						
+					this.__removeItem = (name, type, in_storage) => {
+
 						return new Promise ((resolve, reject) => {
+							
+							if (in_storage) {
 
-							this.db['remove' + type](name)
-								.then(count => {
-									
-									
-									if (count > 0) {
+								this.__remove(type.toLowerCase() + '-' + name)
+									.then(resolve, reject);
+								
+							} else {
 
-										resolve(count);
-
-									} else {
-
-										this.__remove(type.toLowerCase() + '-' + name)
-											.then(resolve, reject);
-									}
-										
-								}, err => {
-
-									//console.error(err);
-									
-									this.__remove(type.toLowerCase() + '-' + name)
-										.then(resolve, reject);
-								})
+								this.db['remove' + type](name)
+									.then(resolve, reject);
+							}
+							
 						})
 					}
 					
 					/* Domains: */
 
-					this.upsertDomain = (val) => {
+					this.upsertDomain = (val, in_storage) => {
 
-						this.__getDomains(
-							arr => {
+						return new Promise (
+							(resolve, reject) => {
 
-								if (!arr.includes(val.name)) {
-
-									arr.push(val.name);
-									this.__setDomains(arr);
-									
-								}
-
-							}, true); 
-						
-						return this.__pushItem(val, "Domain");
+								this.__pushItem(val, "Domain", in_storage)
+									.then(
+										() => {
+											
+											this.__getDomains(
+												arr => {
+													
+													if (!arr.includes(val.name)) {
+														
+														arr.push(val.name);
+														this.__setDomains(arr)
+															.then(resolve, reject);
+														
+													} else {
+														resolve();
+													}
+													
+												}, true);
+											
+										}, reject)
+							})
 					};
 					
 					this.getDomain = (cb, name) => {
@@ -669,21 +649,32 @@ class Storage extends EventEmitter  {
 						this.__bringItem(cb, name, "Domain");
 					};
 
-					this.removeDomain = (name) => {
+					this.removeDomain = (name, in_storage) => {
 
-						this.__getDomains(
-							arr => {
+						return new Promise(
+							(resolve, reject) => {
 
-								if (arr.includes(name)) {
-
-									arr.remove(arr.indexOf(name));
-									this.__setDomains(arr);
-									
-								}
-
-							}, true);
-						
-						return this.__removeItem(name, "Domain");
+								this.__removeItem(name, "Domain", in_storage)
+									.then (
+										() => {
+											
+											this.__getDomains(
+												arr => {
+													
+													if (arr.includes(name)) {
+														
+														arr.remove(arr.indexOf(name));
+														this.__setDomains(arr)
+															.then(resolve, reject);
+												
+													} else {
+														resolve();
+													}
+													
+												}, true);
+											
+										}, reject)
+							})
 					};
 
 					this.getOrCreateDomain = (cb, name) => {
@@ -714,39 +705,64 @@ class Storage extends EventEmitter  {
 						this.__bringItem(cb, name, "Group");
 						
 					};
-					
-					this.upsertGroup = (val) => {
-						
-						this.__getGroups(
-							groups => {
-								
-								if (!groups.includes(val.name)) {
 
-									groups.push(val.name);
-									this.__setGroups(groups);
-									
-								}
-							}
-						);
+					this.upsertGroup = (val, in_storage) => {
 
-						return this.__pushItem(val, "Group");	
+						return new Promise (
+							(resolve, reject) => {
+
+								this.__pushItem(val, "Group", in_storage)
+									.then(
+										() => {
+											
+											this.__getGroups(
+												groups => {
+													
+													if (!groups.includes(val.name)) {
+
+														groups.push(val.name);
+														this.__setGroups(groups)
+															.then(resolve, reject);
+														
+													} else {
+														resolve();
+													}
+													
+												}
+											);
+
+											
+										}, reject)
+							})
 					};
-					
-					this.removeGroup = (name) => {
 
-						this.__getGroups(
-							groups => {
-								
-								if (groups.includes(name)) {
-									
-									groups.remove(groups.indexOf(name));
-									this.__setGroups(groups);	
-									
-								}
-							}
-						);
-						
-						return this.__removeItem(name, "Group");
+
+					this.removeGroup = (name, in_storage) => {
+
+						return new Promise(
+							(resolve, reject) => {
+
+								this.__removeItem(name, "Group", in_storage)
+									.then (
+										() => {
+											
+											this.__getGroups(
+												groups => {
+													
+													if (groups.includes(name)) {
+														
+														groups.remove(groups.indexOf(name));
+														this.__setGroups(groups)
+															.then(resolve, reject);
+														
+													} else {
+														resolve();
+													}
+												}
+											);
+											
+										}, reject)
+							})
 					};
 
 					this.getOrCreateGroup = (cb, name) => { 

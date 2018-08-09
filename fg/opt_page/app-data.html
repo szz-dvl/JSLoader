@@ -89,9 +89,16 @@
 									action="removeItem(domain.name, 'domain')">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && !page.bg.db.reconnecting && domain.in_storage"
+								<button ng-if="page.bg.db.writeable && domain.in_storage"
+									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
-									ng-click="moveToDb(domain, 'domain')"> Push to DB 
+									ng-click="moveToDb(domain, 'domain')"> Move to DB 
+								</button>
+
+								<button ng-if="page.bg.db.readable && !domain.in_storage"
+									ng-disabled="page.bg.db.reconnecting"
+									class="browser-style"
+									ng-click="importToST(domain, 'domain')"> Import to ST 
 								</button>
 								
 							</div>
@@ -124,10 +131,18 @@
 									action="removeItem(group.name, 'group')">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && !page.bg.db.reconnecting && group.in_storage"
+								<button ng-if="page.bg.db.writeable && group.in_storage"
+									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
 									ng-click="moveToDb(group, 'group')"> Move to DB 
 								</button>
+
+								<button ng-if="page.bg.db.readable && !group.in_storage"
+									ng-disabled="page.bg.db.reconnecting"
+									class="browser-style"
+									ng-click="importToST(group, 'group')"> Import to ST 
+								</button>
+								
 							</div>
 						</td>
 					</tr>

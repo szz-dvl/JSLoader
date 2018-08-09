@@ -403,6 +403,16 @@ function OP (bg) {
 										$scope.$digest();
 									})
 							}
+
+							$scope.importToST = (elem, type) => {
+								
+								self.bg[type + '_mgr'].import2ST(elem.name)
+									.then(() => {
+										
+										elem.in_storage = true;
+										$scope.$digest();
+									})
+							}
 							
 							$scope.clearStoredData = () => {
 								

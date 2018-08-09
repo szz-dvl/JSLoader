@@ -5,48 +5,11 @@ function OP (bg) {
 	this.bg = bg;
 
 	this.app = angular.module('optionsPageApp', ['jslPartials', 'ui.router']);
-	console.log("module");
 	
 	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams, $rootScope, $interval) {
-
-		console.log("parent");
 		
 		$scope.page = self;
-		$scope.data_origin = {
-			
-			reconnecting: false,
-			available: self.bg.db.available,
-			connected: self.bg.db.connected,
-			writeable: self.bg.db.writeable,
-			readable: self.bg.db.readable,
-			removeable: self.bg.db.removeable,
-			string: self.bg.option_mgr.data_origin
-		}
-
-		if (!$scope.data_origin.available) {
-			
-			$scope.dbID = $interval(
-				() => {
-					
-					if (self.bg.db.available) {
-						
-						$scope.data_origin.available = true;
-						$scope.data_origin.connected = self.bg.db.connected;
-						$scope.data_origin.writeable = self.bg.db.writeable;
-						$scope.data_origin.readable  = self.bg.db.readable;
-						$scope.data_origin.removeable  = self.bg.db.removeable;
-						
-						$interval.cancel($scope.dbID);
-					}
-					
-				}, 5000, 0, false);
-			
-			$scope.dbID.then(null, () => {
-				
-				$rootScope.$digest();
-				
-			});
-		}
+	
 	});
 	
 	this.app.config(
@@ -280,6 +243,7 @@ function OP (bg) {
 							$scope.groups = dataGroups;
 							$scope.appdata_active = $scope.domains.data.length + $scope.groups.data.length > 0;
 							$scope.in_progress = false;
+							$scope.string = self.bg.db.data_origin;
 							
 							$scope.__updateService = () => {
 
@@ -333,16 +297,13 @@ function OP (bg) {
 								})
 							}
 
-							$scope.validateConnection = (el) => {
+							$scope.validateConnection = (str) => {
 								
 								/* Won't check options and database properly*/
-								let str = $scope.data_origin.string;
 								let regex = new RegExp(/^mongodb\:\/\/(?:(?:[A-Za-z0-9.]+)\:(?:[A-Za-z0-9\$\_\-\?\/\=]+)\@)?(?:[A-Za-z0-9.]+)(?:((\:)(?:[0-9]+)))?((\/)?(?:(?:[A-Za-z0-9\=\_\-\?]+)?)?)$/)
 									.exec(str);
 								
-								if (regex) {		
-
-									$scope.data_origin.reconnecting = true;
+								if (regex) {
 									
 									if ($scope.toID)
 										$timeout.cancel($scope.toID);
@@ -365,45 +326,23 @@ function OP (bg) {
 								.on('db_change',
 									string => {
 										
-										$scope.data_origin.available = self.bg.db.available;
-										$scope.data_origin.connected = self.bg.db.connected;
-										$scope.data_origin.writeable = self.bg.db.writeable;
-										$scope.data_origin.readable  = self.bg.db.readable;
-										$scope.data_origin.removeable  = self.bg.db.removeable;
-										
-										if ($scope.data_origin.connected) {
+										if (self.bg.db.connected) {
 											
-											$scope.data_origin.string = string;
+											$scope.string = string;
 											self.bg.option_mgr.persistDBString(string);
 
 											self.bg.option_mgr.reIndex()
 												.then(resp => {
 													
-													$timeout(self.updateData, 350)
-														.then($scope.__updateService);
+													$timeout($scope.__updateData, 350, false, false);
 													
 												}, console.error)
 												
 										}
-										
-										$scope.data_origin.reconnecting = false;
+
 										$scope.in_progress = false;
 										
 										$scope.$digest();
-									}
-								)
-								.on('db_error',
-									error => {
-										/* No use */
-										$scope.data_origin.available = self.bg.db.available;
-										$scope.data_origin.connected = self.bg.db.connected;
-										$scope.data_origin.writeable = self.bg.db.writeable;
-										$scope.data_origin.readable  = self.bg.db.readable;
-										$scope.data_origin.removeable  = self.bg.db.removeable;
-										
-										self.bg.notify_mgr.error("DB Error: " + error);
-										$scope.$digest();
-										
 									}
 								)
 								

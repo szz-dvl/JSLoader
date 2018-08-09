@@ -29,13 +29,6 @@ function OptionMgr (bg) {
 		}
 	);
 
-	this.bg.db.on('db_error', content => {
-
-		if (this.events) 
-			this.events.emit("db_error", content);
-
-	});
-
 	this.bg.db.on('db_change', string => {
 
 		if (this.events) 

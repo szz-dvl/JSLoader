@@ -8,7 +8,7 @@ import struct
 from pymongo import MongoClient
 
 global db
-#db = {};
+db = {};
 
 # Python 2.x version (if sys.stdin.buffer is not defined)
 # Read a message from stdin and decode it.
@@ -85,8 +85,8 @@ while True:
 
             try:
 
-                client = MongoClient(receivedMessage['string'])
-                db = client.get_database()
+                # client = MongoClient(receivedMessage['string'])
+                # db = client.get_database()
                 
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
@@ -98,14 +98,14 @@ while True:
                 sendMessage ( encodeMessage( '{ "tag": "domains", "content":' + json.dumps(docs) + ' }' ));
                     
             except Exception as e:
-                sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
+                sendMessage(encodeMessage('{"tag": "domains", "error": "' + str(e) + '" }'));
 
         elif tag == 'groups_get':
 
             try:
 
-                client = MongoClient(receivedMessage['string'])
-                db = client.get_database()
+                # client = MongoClient(receivedMessage['string'])
+                # db = client.get_database()
                 
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
@@ -117,14 +117,14 @@ while True:
                 sendMessage ( encodeMessage( '{ "tag": "groups", "content":' + json.dumps(docs) + ' }' ));
 
             except Exception as e:
-                sendMessage(encodeMessage('{"tag": "error", "content": "' + str(e) + '" }'));
+                sendMessage(encodeMessage('{"tag": "groups", "error": "' + str(e) + '" }'));
 
         elif tag == 'push_sync':
 
             try:
 
-                client = MongoClient(receivedMessage['string'])
-                db = client.get_database()
+                # client = MongoClient(receivedMessage['string'])
+                # db = client.get_database()
                 
                 for item in receivedMessage['content']:    
                     db[receivedMessage['collection']].replace_one(
@@ -142,8 +142,8 @@ while True:
 
             try:
 
-                client = MongoClient(receivedMessage['string'])
-                db = client.get_database()
+                # client = MongoClient(receivedMessage['string'])
+                # db = client.get_database()
                 
                 docs = [];
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None; 
@@ -161,8 +161,8 @@ while True:
 
             try:
 
-                client = MongoClient(receivedMessage['string'])
-                db = client.get_database()
+                # client = MongoClient(receivedMessage['string'])
+                # db = client.get_database()
                 
                 query = { "name": { "$in": receivedMessage['content'] }} if len(receivedMessage['content']) > 0 else None;
 

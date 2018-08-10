@@ -55,6 +55,7 @@
 				<thead>
 					<th></th>
 					<th style="text-align: center;"> Name </th>
+					<th style="text-align: center;"> Origin </th>
 					<th style="text-align: center;"> Scripts </th>
 					<th style="text-align: center;"> Sites </th>
 					<th style="text-align: center;"> Actions </th>
@@ -66,12 +67,14 @@
 							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Domains: </h2>
 						</td>
 						<td style="text-align: center;">
-
-							<div ng-if="!domain.in_storage" style="width:24px; height:24px; background-color:lightgray; color: white; float:left; text-align: center; padding-top: 2px;">DB</div>
-							<div ng-if="domain.in_storage" style="width:24px; height:24px; background-color:lightgray; color: white; float:left; text-align: center; padding-top: 2px;">ST</div>
+							
 							<bdi ng-if="!domain.name.includes('*')" ng-click="goToDomain(domain.name)" class="clickable-domain"> {{ domain.name }} </bdi>
 							<bdi ng-if="domain.name.includes('*')"> {{ domain.name }} </bdi>
 							
+						</td>
+						<td style="text-align: center;">
+							<div ng-if="!domain.in_storage" class="origin-mark">DB</div>
+							<div ng-if="domain.in_storage" class="origin-mark">ST</div>
 						</td>
 						<td style="text-align: center;">
 							{{ domain.scripts }}
@@ -111,9 +114,11 @@
 							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Groups: </h2>
 						</td>
 						<td style="text-align: center;">
-							<div ng-if="!group.in_storage" style="width:24px; height:24px; background-color:lightgray; color: white; float:left; text-align: center; padding-top: 2px;">DB</div>
-							<div ng-if="group.in_storage" style="width:24px; height:24px; background-color:lightgray; color: white; float:left; text-align: center; padding-top: 2px;">ST</div>
 							{{ group.name }}
+						</td>
+						<td style="text-align: center;">
+							<div ng-if="!group.in_storage" class="origin-mark">DB</div>
+							<div ng-if="group.in_storage" class="origin-mark">ST</div>
 						</td>
 						<td style="text-align: center;">
 							{{ group.scripts }}

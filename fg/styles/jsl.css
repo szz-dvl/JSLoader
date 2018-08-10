@@ -158,3 +158,15 @@ bdi.clickable-domain:hover {
 	text-decoration: underline;
 	cursor: pointer;
 }
+
+div.origin-mark {
+
+	width: 24px;
+	height: 24px;
+	background-color: darkgray;
+	color: white;
+	/* float: left; */
+	text-align: center;
+	padding-top: 2px;
+	margin: auto;
+}

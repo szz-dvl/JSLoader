@@ -378,7 +378,7 @@ function DataMgr (opt) {
 				Promise.all([this.storage.db['get' + this.key + 's'](), this.getStored()])
 					.then(resp => {
 						
-						this.storage["__set" + this.key + "s"](resp[0].concat(resp[1]))
+						this.storage["__set" + this.key + "s"](resp[0].concat(resp[1]).unique())
 							.then(resolve, reject);
 						
 					}, reject);

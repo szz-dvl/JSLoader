@@ -325,24 +325,27 @@ function OP (bg) {
 							self.bg.option_mgr.events
 								.on('db_change',
 									string => {
+
+										$scope.in_progress = false;
 										
 										if (self.bg.db.connected) {
 											
 											$scope.string = string;
 											self.bg.option_mgr.persistDBString(string);
 
-											self.bg.option_mgr.reIndex()
+											self.bg.reIndex()
 												.then(resp => {
 													
-													$timeout($scope.__updateData, 350, false, false);
+													$timeout($scope.__updateData, 50, false, false);
 													
 												}, console.error)
 												
+										} else {
+											
+											$timeout($scope.__updateData, 50, true, true);
 										}
-
-										$scope.in_progress = false;
 										
-										$scope.$digest();
+										//$scope.$digest();
 									}
 								)
 								

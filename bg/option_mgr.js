@@ -165,20 +165,6 @@ function OptionMgr (bg) {
 				]).then(resolve, reject);
 			})
 	}
-
-	this.reIndex = () => {
-
-		return new Promise(
-			(resolve, reject) => {
-				
-				Promise.all([
-					
-					this.bg.domain_mgr.reIndex(),
-					this.bg.group_mgr.reIndex()
-					
-				]).then(resolve, reject);
-			})
-	}
 	
 }
 

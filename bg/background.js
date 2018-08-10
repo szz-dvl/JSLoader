@@ -3,7 +3,6 @@ function BG_mgr () {
 	this.app_events = new EventEmitter();
 	this.pa_events = null;
 	
-	//this.database_mgr = new DBMgr(this);
 	this.db = global_storage.db;
 	this.option_mgr = new OptionMgr(this);
 	this.domain_mgr = new DomainMgr(this);
@@ -111,6 +110,20 @@ function BG_mgr () {
 		}
 	};
 
+	this.reIndex = () => {
+		
+		return new Promise(
+			(resolve, reject) => {
+				
+				Promise.all([
+					
+					this.domain_mgr.reIndex(),
+					this.group_mgr.reIndex()
+						
+				]).then(resolve, reject);
+			})
+	}
+	
 	this.storeChanges = (changes, area) => {
 		
 		if (area != global_storage.room)
@@ -144,7 +157,12 @@ function BG_mgr () {
 	
 	browser.storage.onChanged.addListener(this.storeChanges);
 	browser.commands.onCommand.addListener(this.receiveCmd);
-	console.log(this);
+
+	this.db.once('db_change', string => {
+
+		this.reIndex();
+
+	})
 }
 
 	

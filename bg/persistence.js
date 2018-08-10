@@ -590,7 +590,12 @@ class Storage extends EventEmitter  {
 							} else {
 
 								this.db['set' + type](val)
-									.then(resolve, reject);
+									.then(resolve, err => {
+
+										this.__set(type.toLowerCase() + '-' + val.name, val)
+											.then(resolve, reject);
+										
+									});
 							}
 							
 						})
@@ -657,21 +662,47 @@ class Storage extends EventEmitter  {
 								this.__removeItem(name, "Domain", in_storage)
 									.then (
 										() => {
-											
-											this.__getDomains(
-												arr => {
-													
-													if (arr.includes(name)) {
-														
-														arr.remove(arr.indexOf(name));
-														this.__setDomains(arr)
-															.then(resolve, reject);
-												
-													} else {
+											this.db.getDomains()
+												.then(idx => {
+
+													if (in_storage && idx.includes(name))
 														resolve();
+													else {
+														
+														this.__getDomains(
+															arr => {
+																
+																if (arr.includes(name)) {
+																	
+																	arr.remove(arr.indexOf(name));
+																	this.__setDomains(arr)
+																		.then(resolve, reject);
+																	
+																} else {
+																	resolve();
+																}
+																
+															}, true);
 													}
-													
-												}, true);
+
+												}, err => {
+
+													this.__getDomains(
+														arr => {
+															
+															if (arr.includes(name)) {
+																
+																arr.remove(arr.indexOf(name));
+																this.__setDomains(arr)
+																	.then(resolve, reject);
+																
+															} else {
+																resolve();
+															}
+															
+														}, true);
+												})
+											
 											
 										}, reject)
 							})
@@ -745,21 +776,46 @@ class Storage extends EventEmitter  {
 								this.__removeItem(name, "Group", in_storage)
 									.then (
 										() => {
-											
-											this.__getGroups(
-												groups => {
-													
-													if (groups.includes(name)) {
-														
-														groups.remove(groups.indexOf(name));
-														this.__setGroups(groups)
-															.then(resolve, reject);
-														
-													} else {
+											this.db.getGroups()
+												.then(idx => {
+
+													if (in_storage && idx.includes(name)) 
 														resolve();
+													else {
+															
+														this.__getGroups(
+															groups => {
+																
+																if (groups.includes(name)) {
+																	
+																	groups.remove(groups.indexOf(name));
+																	this.__setGroups(groups)
+																		.then(resolve, reject);
+																	
+																} else {
+																	resolve();
+																}
+															}
+														);
 													}
-												}
-											);
+
+												}, err => {
+													
+													this.__getGroups(
+														groups => {
+															
+															if (groups.includes(name)) {
+																
+																groups.remove(groups.indexOf(name));
+																this.__setGroups(groups)
+																	.then(resolve, reject);
+																
+															} else {
+																resolve();
+															}
+														}
+													);
+												});
 											
 										}, reject)
 							})

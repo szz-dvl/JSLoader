@@ -405,8 +405,6 @@ function Domain (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
-
-				console.log(global_storage);
 				
 				global_storage.removeDomain(this.name, this.in_storage)
 					.then(() => {

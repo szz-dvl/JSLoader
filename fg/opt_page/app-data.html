@@ -108,6 +108,7 @@
 						</td>
 					</tr>
 					<tr ng-if="domains.total > 5" paginator pag-big feeding="page.bg.domain_mgr.getSlice", slice="5" actual="domains.actual" total="domains.total" parent="newDomains"></tr>
+					<tr ng-if="domains.total <= 5" pag-big></tr>
 					<br>
 					<tr ng-repeat="group in groups.data track by group.name">
 						<td>

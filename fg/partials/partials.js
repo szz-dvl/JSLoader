@@ -507,7 +507,7 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('resourceDirectory',
-			   ($timeout, $interval) => {
+			   ($timeout, $interval, $rootScope) => {
 				   
 				   return {
 					   
@@ -577,7 +577,6 @@ angular.module('jslPartials', [])
 							   
 							   $scope.resetUl();
 
-							   let resource = JSON.parse(ev.originalEvent.dataTransfer.getData("resource"));
 							   
 							   if (ev.originalEvent.dataTransfer.files.length) {
 
@@ -589,22 +588,27 @@ angular.module('jslPartials', [])
 									   
 									   })
 									   
-							   } else if (resource) {
+							   } else {
 
-								   $scope.events.emit("dropped", resource.name);
+								   let resource = JSON.parse(ev.originalEvent.dataTransfer.getData("resource"));
 								   
-								   let new_name = $scope.name + resource.name.split("/").pop();
-								   
-								   if (new_name != resource.name) {
+								   if (resource) {
 
-									   $scope.mgr.renameResource(resource.name, new_name)
-										   .then(renamed => {
+									   $scope.events.emit("dropped", resource.name);
+									   
+									   let new_name = $scope.name + resource.name.split("/").pop();
+									   
+									   if (new_name != resource.name) {
 
-											   resource.name = renamed.name
-											   $scope.showChild(resource);
-										   
-										   }, console.error);
+										   $scope.mgr.renameResource(resource.name, new_name)
+											   .then(renamed => {
 
+												   resource.name = renamed.name
+												   $scope.showChild(resource);
+												   
+											   }, console.error);
+
+									   }
 								   }
 							   }
 						   });
@@ -773,16 +777,22 @@ angular.module('jslPartials', [])
 										   
 										   $scope.mgr.storeResource($scope.name + validated, file)
 											   .then(resource => {
+
+												   console.log("From stored!");
+												   console.log(resource);
 												   
 												   $scope.items.push({
 													   
 													   name: resource.name, 
 													   type: resource.type,
-													   db: resource.db ? true : false,
 													   size: resource.getSizeString()
 														   
 												   });
-
+												   
+												   console.log($scope.items);
+												   
+												   $scope.$digest();
+												   
 												   resolve();
 												   
 											   }, reject);

@@ -890,6 +890,7 @@ function ResourceDir (opt) {
 	this.name = opt.name;
 	this.items = opt.items || [];
 	this.dir = true;
+	this.in_storage = opt.in_storage || true;
 	
 	this.persist = () => {
 		
@@ -898,7 +899,8 @@ function ResourceDir (opt) {
 				
 				global_storage.setResource(
 			
-					this.__getDBInfo()
+					this.__getDBInfo(),
+					this.in_storage
 				
 				).then(storage => { resolve(this); }, reject);
 				
@@ -910,7 +912,7 @@ function ResourceDir (opt) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				global_storage.removeResource(this.name)
+				global_storage.removeResource(this.name, this.in_storage)
 					.then(() => { resolve(this) }, reject);
 			}
 		);
@@ -958,7 +960,6 @@ function Resource (opt) {
 	this.file = opt.file || null;
 	this.type = opt.type || "application/octet-stream";
 	this.size = opt.size || 0;
-	//this.db = opt.db || null;
 	this.in_storage = opt.in_storage || false;
 	
 	this.parent = this; /* Compat. */
@@ -1093,73 +1094,33 @@ function Resource (opt) {
 			return new Blob([new Uint8Array(byteNumbers)], { type: this.type });
 		}
 	};
-	
-	this.persist = (content) => {
+
+
+	this.persist = () => {
 		
-		return new Promise (
+		return new Promise(
 			(resolve, reject) => {
-
-				if (content)
-					this.setTextContent(content);
 				
-				if (this.db) {
-					
-					if (this.db.connected) {
-
-						this.db.pushSync([this], "resources")
-							.then((arr) => { resolve(this) }, reject);
-						
-					} else {
-						
-						reject(new Error("File too big for storage, please connect a DB."));
-						
-					}
-					
-				} else {
-					
-					global_storage.setResource(
-						
-						this.__getDBInfo()
-							
-					).then(storage => { resolve(this); });
-				}
-			}
-		);
-	};
+				global_storage.setResource(
+			
+					this.__getDBInfo(),
+					this.in_storage
+				
+				).then(storage => { resolve(this); }, reject);
+				
+			});
+	}
 	
 	this.remove = () => {
 
-		return new Promise ((resolve, reject) => {
-
-			if (this.db) {
+		return new Promise (
+			(resolve, reject) => {
 				
-				if (this.db.connected) {
-					
-					global_storage.__getResources(
-						resources => {
-							
-							this.db.removeResources([this.name])
-								.then(() => { resolve(this) }, reject);
-							
-						}
-					);
-					
-				} else {
-					
-					reject(new Error("DB not available, resource " + this.name + " not removed."));
-					
-				}
-				
-			} else {
-				
-				global_storage.removeResource(this.name)
+				global_storage.removeResource(this.name, this.in_storage)
 					.then(() => { resolve(this) }, reject);
-				
 			}
-			
-		});
-		
-	};
+		);
+	}
 
 	this.getJSON = () => {
 		

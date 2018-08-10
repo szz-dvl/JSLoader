@@ -20,7 +20,6 @@
 			"utils/jsloader-utils.js",
 			"bg/persistence.js",
 			"bg/data_model.js",
-			"bg/database_mgr.js",
 			"bg/option_mgr.js",
 			"bg/proxy_mgr.js",
 			"bg/editor_mgr.js",

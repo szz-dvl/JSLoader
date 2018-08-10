@@ -5,7 +5,7 @@ function ResourceMgr (bg) {
 	this.resources = []; /* Index */
 	this.loaded = [];
 
-	this.MAX_STORAGE_SIZE = 1 * 1024 * 1024;
+	this.MAX_STORAGE_SIZE = (1 * 1024 * 1024) + 1;
 	
 	this.storage.getResource(
 		root => {
@@ -57,31 +57,9 @@ function ResourceMgr (bg) {
 		return new Promise(
 			(resolve, reject) => {
 				
-				this.storage.getResource(
-					resource => {
-
-						if (resource) 
-							resolve(resource);
-						else {
-
-							if (this.bg.database_mgr.connected) {
-								
-								this.bg.database_mgr.getSync([name], 'resources')
-									.then(arr => {
-										
-										resolve(arr.length ? arr[0] : null);
-										
-									}, reject);
-
-							} else {
-
-								resolve(null);
-							}
-						}
-					
-					}, name);
-			}
-		);
+				this.storage.getResource(resolve, name);
+				
+			});
 	};
 
 
@@ -195,43 +173,47 @@ function ResourceMgr (bg) {
 		return new Promise(
 			(resolve, reject) => {
 
-				let mgr = this;
-				
-				let reader = new FileReader();
-				
-				let is_text = ['javascript', 'html', 'json', 'css']
-					.find(
-						kw => {
-										
-							return file.type.includes(kw);
-						}
-					);
-
-				let type = is_text ? 'text/' + is_text : file.type;
-				
-				reader.onload = () => {
+				if (file.size < this.MAX_STORAGE_SIZE) {
 					
-					new Resource ({
+					let reader = new FileReader();
+					
+					let is_text = ['javascript', 'html', 'json', 'css']
+						.find(
+							kw => {
+								
+								return file.type.includes(kw);
+							}
+						);
+					
+					let type = is_text ? 'text/' + is_text : file.type;
+					
+					reader.onload = () => {
 						
-						name: name,
-						type: type,
-						file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
-						db: (file.size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null,
-						size: file.size
-						
-					}).persist().then(resolve, reject);
-				}
-
-				this.solveHierarchyFor(name)
-					.then(
-						last_created => {
+						new Resource ({
 							
-							if (type.includes('text'))
-								reader.readAsText(file);
-							else
-								reader.readAsDataURL(file);
-						}
-					);
+							name: name,
+							type: type,
+							file: type.includes('text') ? reader.result : reader.result.split(",").slice(1).join(),
+							size: file.size
+							
+						}).persist().then(resolve, reject);
+					}
+
+					this.solveHierarchyFor(name)
+						.then(
+							last_created => {
+								
+								if (type.includes('text'))
+									reader.readAsText(file);
+								else
+									reader.readAsDataURL(file);
+							}
+						);
+					
+				} else {
+
+					reject(new Error("Resource too big (" + file.size + ")"));
+				}
 			}
 		);
 	};
@@ -418,26 +400,30 @@ function ResourceMgr (bg) {
 													/* @: https://stackoverflow.com/questions/9267899/arraybuffer-to-base64-encoded-string */
 													
 													let content = type.includes('text') ? data : btoa(String.fromCharCode(...new Uint8Array(data)));
-													let size = content.length * 2; /* Not actually accurate ... */
-													
-													this.solveHierarchyFor(actual_name)
-														.then(
-															last_created => {
+													let size = content.length * 4; /* Not actually accurate ... */
 
-																let mgr = this;
-																
-																new Resource ({
+													if (size < this.MAX_STORAGE_SIZE) {
+														
+														this.solveHierarchyFor(actual_name)
+															.then(
+																last_created => {
 																	
-																	name: actual_name,
-																	type: type,
-																	file: content,
-																	db: (size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null,
-																	size: size
+																	new Resource ({
+																		
+																		name: actual_name,
+																		type: type,
+																		file: content,
+																		size: size
+																		
+																	}).persist().then(resolve, reject);
 																	
-																}).persist().then(resolve, reject);
-																
-															}, reject
-														);
+																}, reject
+															);
+
+													} else {
+														
+														 reject(new Error("Resource too big (" + size + ")"));
+													}
 													
 												}, reject);
 
@@ -671,39 +657,10 @@ function ResourceMgr (bg) {
 			}
 		)
 	};
-
-	this.resourceUpdate = (name, file) => {
-		
-		return new Promise(
-			(resolve, reject) => {
-
-				this.findResource(name)
-					.then(resource => {
-
-						if (resource && !resource.dir) {
-
-							resource.db = (file.size >= this.MAX_STORAGE_SIZE) ? mgr.bg.database_mgr : null;
-							
-							resource.updateFileContent(file)
-								.then(file => {
-									
-									resource.persist()
-										.then(resolve, this.bg.notify_mgr.error);
-									
-								});
-							
-						} else {
-
-							reject(new Error("Updating bad resource: " + name));
-							
-						}
-						
-					}, reject);
-			}
-		);
-	};
-
+	
 	this.__traverseVirtFS = (actual, bucket) => {
+
+		console.log("finding: " + actual);
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -711,7 +668,7 @@ function ResourceMgr (bg) {
 				this.findResource(actual)
 					.then(
 						resource => {
-
+							
 							if (resource) {
 								
 								if (resource.dir) {
@@ -782,6 +739,8 @@ function ResourceMgr (bg) {
 	};
 
 	this.traverseVirtFS = (from) => {
+
+		console.log("traversing: " + from);
 		
 		return this.__traverseVirtFS(from, { name: from, items: [] });
 	}
@@ -801,6 +760,8 @@ function ResourceMgr (bg) {
 	
 	this.getVirtFS = (from) => {
 
+		console.log("getting: " + from);
+		
 		return new Promise(
 			(resolve, reject) => {
 				

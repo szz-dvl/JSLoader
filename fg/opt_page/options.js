@@ -22,7 +22,7 @@ function OP (bg) {
 					dataDomains: () => { return self.bg.domain_mgr.getSlice(0, 5); },
 					dataGroups: () => { return self.bg.group_mgr.getSlice(0, 5); },
 					storageContent: () => { return browser.storage.local.get(); },
-					dataResources: () => { return Promise.resolve({name: "/", items: []}) }  //return self.bg.resource_mgr.getVirtFS("/");
+					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }  //return Promise.resolve({name: "/", items: []}) , return self.bg.resource_mgr.getVirtFS("/");
 				},
 				
 				views: {

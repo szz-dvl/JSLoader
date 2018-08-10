@@ -560,7 +560,7 @@ class Storage extends EventEmitter  {
 										case "Group":
 											cb(item ? new Group(item) : null);
 										case "Resource":
-											cb(item ? new Resource(item) : null);
+											cb(item ? (item.dir ? new ResourceDir(item) : new Resource(item)) : null);
 										default:
 											break;
 									}
@@ -836,37 +836,20 @@ class Storage extends EventEmitter  {
 
 					/* Resources: */
 					this.getResource = (cb, name) => {
-
-						if (name.endsWith("/")) {
-
-							this.__get(res => {
-
-								cb(new ResourceDir(res))
-									
-							}, 'resource-' + name);
-
-						} else {
-							
-							this.__bringItem(cb, name, "Resource");
-						}
+						
+						this.__bringItem(cb, name, "Resource");
 						
 					};
 
-					this.setResource = (val) => {
+					this.setResource = (val, in_storage) => {
 
-						if (val.dir) 
-							return this.__set('resource-' + val.name, val);	
-						else 
-							return this.__pushItem(val, "Resource");
+						return this.__pushItem(val, "Resource", in_storage);
 						
 					}
 					
-					this.removeResource = (name) => {
+					this.removeResource = (name, in_storage) => {
 
-						if (name.endsWith("/"))
-							return this._remove('resource-' + name);
-						else
-							return this.__removeItem(name, "Resource");
+						return this.__removeItem(name, "Resource", in_storage);
 						
 					};
 

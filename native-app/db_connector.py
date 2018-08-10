@@ -58,7 +58,7 @@ while True:
                 if len(res['authInfo']['authenticatedUserPrivileges']):
                     
                     for record in res['authInfo']['authenticatedUserPrivileges']:
-                        if record['resource']['db'] == db.name and not record['resource']['collection'].startswith('system.'):
+                        if record['resource']['db'] == db.name and (record['resource']['collection'] == 'groups' or record['resource']['collection'] == 'domains'):
                             readable = 'find' in record['actions'] 
                             writeable = 'update' in record['actions'] and 'insert' in record['actions']
                             removeable = 'remove' in record['actions']

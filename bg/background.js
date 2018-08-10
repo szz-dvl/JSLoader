@@ -31,7 +31,7 @@ function BG_mgr () {
 									
 									resolve(nfo);
 									
-								}, reject);
+								}, console.error);
 						
 					}, reject);
 			});	

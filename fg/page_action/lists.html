@@ -1,17 +1,37 @@
 <ul style="margin: 0 0 0 0" class="browser-style" ng-repeat="list in data" ng-if="list.total">
-	<h4 style="margin: 10px 0 0 20px;"> {{list.title}}
+
+	<div
+		ng-if="list.title != 'Groups'"
+		style="display: inline-block;"
+		class="origin-mark-sm"
+		ng-click="switchOrigin('domain', list)">
+		
+		{{ list.in_storage ? "ST" : "DB" }}
+	</div>
+	
+	<h4 style="margin: 10px 0 0 5px;display: inline-block;"> {{list.title}}
 		<drop-down item="list" width="14" height="14"></drop-down>
 	</h4>
 	
 	<li ng-show="list.visible" ng-repeat="item in list.list track by item.name" style="display: block;margin-left: 30px;">
+
+		<div
+			ng-if="list.title == 'Groups'"
+			style="display: inline-block;"
+			class="origin-mark-sm"
+			ng-click="switchOrigin('group', item)">
+			
+			{{ item.in_storage ? "ST" : "DB" }}
+			
+		</div>
 		
-		<h5 style="margin: 5px 0 0 0;">
+		<h5 style="margin: 5px 0 0 2px; display: inline-block;">
 			<bdi style="color: black" ng-if="item.included"> {{ item.name }} </bdi>
 			<bdi style="color: gray;" ng-if="!item.included"> {{ item.name }} </bdi>
-			<drop-down item="item" width="12" height="12"></drop-down>
+			<drop-down ng-if="item.included" item="item" width="12" height="12"></drop-down>
 		</h5>
 		
-		<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible" ng-if="item.scripts.length">
+		<table style="margin-bottom: 30px;width: 100%;display: table;margin-left: 20px;" ng-show="item.visible" ng-if="item.scripts.length && item.included">
 			<thead>
 				<th style="text-align: left; width: 30%;">
 					<h5 style="margin-bottom: 2px;">Name</h5>
@@ -29,33 +49,50 @@
 				<tr ng-repeat="script in item.scripts track by script.uuid" style="width: 100%;">
 
 					<td style="width: 30%;">
-						<script-name script="script" style="margin-right: 20px;" ng-disabled="!item.included"></script-name>
+						<script-name script="script" style="margin-right: 20px;"></script-name>
 					</td>
 					
 					<td style="float: left;margin-left: 10px;padding-right: 30px;">
 						<script-status id="status-{{script.uuid}}" status="page.bg.content_mgr.getStatus(script.uuid, page.tabId)"></script-status>
 					</td>
 					
-					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url) && item.included">
+					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
 						<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px;text-align: center;">
 							Reload
 						</button>
 					</td>
 					
 					<td style="float: left;margin-left: 5px;">
-						<button class="browser-style" ng-click="script.toggleDisableFor(page.url)" style="margin-left: 5px; width: 80px; text-align: center;" ng-disabled="!item.included">
+
+						<button
+							ng-disabled="!canDisable(list, item)"
+							class="browser-style"
+							ng-click="script.toggleDisableFor(page.url)"
+							style="margin-left: 5px; width: 80px; text-align: center;">
+							
 							{{ script.disabledAt(page.url) ? "Enable" : "Disable" }}
+
 						</button>
 					</td>
 					
 					<td style="float: left; margin-left: 5px;">
-						<button class="browser-style" ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)" style="margin-left: 5px; width: 80px; text-align: center;"
-							ng-disabled="!item.included">
-							Edit </button>
+						<button
+							class="browser-style"
+							ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)"
+							style="margin-left: 5px; width: 80px; text-align: center;">
+							
+							Edit
+
+						</button>
 					</td>
 
 					<td style="float: left; margin-left: 5px;">
-						<are-u-sure style="margin-left: 5px;width: 80px;" text="'Remove'" action="removeScript(script)" ng-disabled="!item.included"> </are-u-sure>
+						<are-u-sure
+							ng-disabled="!canRemove(list, item)"
+							style="margin-left: 5px;width: 80px;"
+							text="'Remove'"
+							action="removeScript(script)">
+						</are-u-sure>
 					</td>
 					
 				</tr>

@@ -242,7 +242,8 @@ function DataMgr (opt) {
 	};
 
 	this.getScriptsSliceFor = (start, len, target, site) => {
-		
+
+		console.log()
 		return new Promise(
 			(resolve, reject) => {
 				
@@ -253,6 +254,7 @@ function DataMgr (opt) {
 							let scripts = target == 'Groups' ?
 													item.scripts :
 													item.haveSite(site).scripts;
+							
 							resolve(
 								{
 									actual: start,
@@ -266,7 +268,7 @@ function DataMgr (opt) {
 										
 								}, reject
 							);
-						});
+						}, console.error);
 			});
 	}
 

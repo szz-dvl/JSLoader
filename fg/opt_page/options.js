@@ -31,8 +31,6 @@ function OP (bg) {
 						
 						templateUrl: 'editor-settings.html',
 						controller: function ($scope, $compile) {
-
-							console.log("editor");
 							
 							$scope.editor_active = true;
 
@@ -71,8 +69,6 @@ function OP (bg) {
 						templateUrl: 'resources.html',
 						controller: function ($scope, $state, $timeout, dataResources) {
 
-							console.log("resources");
-							
 							$scope.resources_active = true;
 							$scope.data_ok = true;
 							$scope.list = dataResources;
@@ -453,7 +449,6 @@ function OP (bg) {
 
 	
 	this.app.run($state => { $state.go('opt-site') });
-	console.log("run");
 	
 	/* this.app.factory('dataStorage', function($q) {
 	   return $q.resolve(self.bg.option_mgr.getDataInfo());
@@ -462,7 +457,6 @@ function OP (bg) {
 	angular.element(document).ready(
 		() => {
 
-			console.log("bootstrap");
 			angular.bootstrap(document, ['optionsPageApp']);
 			
 		}
@@ -480,8 +474,6 @@ browser.runtime.getBackgroundPage()
 				page.option_mgr.events = null;
 				
 			}
-			console.log("bg: new op");
-			console.log(page);
 			
 			new OP(page);				
 		}

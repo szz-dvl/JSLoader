@@ -165,8 +165,23 @@ div.origin-mark {
 	height: 24px;
 	background-color: darkgray;
 	color: white;
-	/* float: left; */
 	text-align: center;
 	padding-top: 2px;
 	margin: auto;
+}
+
+div.origin-mark-sm {
+
+	width: 18px;
+	height: 16px;
+	background-color: darkgray;
+	color: white;
+	text-align: center;
+	padding-top: 1px;
+	margin: auto;
+	font-size: 80%;
+}
+
+div.origin-mark-sm:hover {
+	cursor: pointer;
 }

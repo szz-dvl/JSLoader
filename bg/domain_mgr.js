@@ -208,8 +208,6 @@ function DomainMgr (bg) {
 
 		return new Promise(
 			(resolve, reject) => {
-
-				/* BUG: when removing child site its groups are added to the domain array '¬¬ */
 				
 				this.storage.getDomain(
 					domain => {
@@ -252,8 +250,6 @@ function DomainMgr (bg) {
 				
 				async.each(this.__getNamesFor(hostname).concat(hostname),
 					(name, next) => {
-
-						console.log("Removing " + name);
 						
 						this.__removeSite(name, pathname)
 							.then(next, err => { next(); });
@@ -338,7 +334,7 @@ function DomainMgr (bg) {
 							
 							domains: [],
 							groups: [],
-							disabled: self.__isDisabled(url.hostname)
+							disabled: self.__isDisabled(url.hostname),
 							
 						};		
 						
@@ -380,6 +376,7 @@ function DomainMgr (bg) {
 															};	
 														}
 													),
+												in_storage: subdomain.in_storage,
 												actual: 0,
 												total: info.scripts.length
 											});
@@ -387,7 +384,7 @@ function DomainMgr (bg) {
 										}
 										
 									}
-
+		
 									this.bg.group_mgr.getGroupsForUrl(url)
 										.then(groups => {
 
@@ -404,6 +401,7 @@ function DomainMgr (bg) {
 												
 												editInfo.groups[0].list.push({
 													name: group.name,
+													in_storage: group.in_storage, 
 													actual: 0,
 													total: group.scripts.length,
 													included: true,
@@ -414,12 +412,12 @@ function DomainMgr (bg) {
 
 														}).slice(0, 5) });
 											}
-
+											
 											resolve(editInfo);
 											
-										}, reject);
+										}, console.error);
 									
-								}, reject
+								}, console.error
 							);
 						
 					}, url.hostname);

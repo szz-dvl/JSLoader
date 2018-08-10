@@ -1,7 +1,6 @@
 function PA (bg, info) {
 	
 	let self = this;
-	console.log(info);
 	
 	this.bg = bg;
 	this.info = info;
@@ -20,7 +19,7 @@ function PA (bg, info) {
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
 	this.app.controller('siteController', function ($scope, $timeout, $state, $compile, $stateParams) {
-		
+
 		$scope.page = self;
 		$scope.info = self.info;
 		
@@ -42,6 +41,53 @@ function PA (bg, info) {
 			self.bg.domain_mgr.removeSite($scope.hostname, self.url.pathname)
 				.then($scope.updateData, $scope.updateData);
 		}
+
+		$scope.switchOrigin = (mgr, elem) => {
+
+			let name = mgr == "domain" ? elem.title : elem.name;
+			
+			if (elem.in_storage) {
+
+				if (self.bg.db.writeable) {
+					
+					self.bg[mgr + '_mgr'].move2DB(name)
+						.then(() => {
+						
+							elem.in_storage = false;
+							$scope.$digest();
+
+						})
+				}
+
+			} else {
+
+				/* If the domain is listed here DB is readable.*/
+				
+				self.bg[mgr + '_mgr'].import2ST(name)
+					.then(() => {
+						
+						elem.in_storage = true;
+						$scope.$digest();
+						
+					})
+			}
+		};
+
+		$scope.canDisable = (list, item) => {
+
+			if (list.title == 'Groups')
+				return item.in_storage || self.bg.db.writeable;
+			else
+				return list.in_storage || self.bg.db.writeable
+		};
+
+		$scope.canRemove = (list, item) => {
+
+			if (list.title == 'Groups')
+				return item.in_storage || (self.bg.db.writeable && self.bg.db.removeable);
+			else
+				return list.in_storage || (self.bg.db.writeable && self.bg.db.removeable);
+		};
 		
 		$scope.updateData = () => {
 
@@ -343,9 +389,8 @@ function PA (bg, info) {
 							};
 
 							for (let list of $scope.data) {
-
-
-								list.list = list.list.map(site => { return self.itemExtend(site, $scope, list.name) } );
+								
+								list.list = list.list.map(site => { return self.itemExtend(site, $scope, list.title) } );
 								list.visible = self.mustOpen(list.name);	
 
 								list.mustPag = () => {
@@ -441,7 +486,7 @@ function PA (bg, info) {
 								(nval, oval) => {
 									
 									if (nval != oval) {										
-
+										
 										$scope.onSizeChange();
 
 										if (nval)

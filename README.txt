@@ -1,6 +1,5 @@
 - In-progress:
-		- Virtual resources:
-		  	- Missing DB management. (DB big refactor).
+  		- Virtual resources:
 			- load them recoursively (resource that claim another resource (some moustache like synthax));
 		
 - Big fails:
@@ -17,7 +16,7 @@
 					  - "Add site" button by group chooser when adding group scripts
 					  - Editor BG to class extending EventEmitter, talk FG via events }
 					
-	- Error manager for beta testing.
+	- Error manager for beta testing ?¿.
 								
 	- -------------> Beta 1 <---------------
 	

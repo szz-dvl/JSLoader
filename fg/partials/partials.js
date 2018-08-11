@@ -507,7 +507,7 @@ angular.module('jslPartials', [])
 			   })
 
 	.directive('resourceDirectory',
-			   ($timeout, $interval, $rootScope) => {
+			   ($timeout, $interval, $compile) => {
 				   
 				   return {
 					   
@@ -528,11 +528,12 @@ angular.module('jslPartials', [])
 
 					   link: function ($scope, elem, attrs) {
 
-						   $scope.ul = elem;
-
+						   $scope.elem = elem;
+						   $scope.ul = elem.find('ul');
+						   
 						   $scope.resetUl = () => {
 
-							   $scope.ul.css(
+							   $scope.elem.css(
 								   {
 									   "border": "0px",
 									   "background-color": "white"
@@ -540,13 +541,13 @@ angular.module('jslPartials', [])
 
 						   };
 						   
-						   $scope.ul.on('dragenter', ev => {
+						   $scope.elem.on('dragenter', ev => {
 							   
 							   ev.preventDefault();
 							   ev.stopImmediatePropagation();
 							   ev.stopPropagation();
 							   
-							   $scope.ul.css(
+							   $scope.elem.css(
 								   {
 									   "border": "1px dashed black",
 									   "background-color": "LightGray"
@@ -556,20 +557,20 @@ angular.module('jslPartials', [])
 								   $scope.$parent.resetUl();
 						   });
 
-						   $scope.ul.on('dragexit', ev => {
+						   $scope.elem.on('dragexit', ev => {
 							   
 							   ev.preventDefault();
 							   $scope.resetUl();
 							   
 						   });
 
-						   $scope.ul.on('dragover', ev => {
+						   $scope.elem.on('dragover', ev => {
 							   
 							   ev.preventDefault();
 							   
 						   });
 						   
-						   $scope.ul.on('drop', ev => {
+						   $scope.elem.on('drop', ev => {
 							   
 							   ev.preventDefault();
 							   ev.stopImmediatePropagation();
@@ -778,9 +779,6 @@ angular.module('jslPartials', [])
 										   $scope.mgr.storeResource($scope.name + validated, file)
 											   .then(resource => {
 
-												   console.log("From stored!");
-												   console.log(resource);
-												   
 												   $scope.items.push({
 													   
 													   name: resource.name, 
@@ -788,14 +786,10 @@ angular.module('jslPartials', [])
 													   size: resource.getSizeString()
 														   
 												   });
-												   
-												   console.log($scope.items);
-												   
-												   $scope.$digest();
-												   
+												   					   
 												   resolve();
 												   
-											   }, reject);
+											   }, console.error);
 										   
 									   } else {
 										   

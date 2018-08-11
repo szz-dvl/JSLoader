@@ -1,7 +1,8 @@
 <ul style="margin: 0 0 0 0" class="browser-style" ng-repeat="list in data" ng-if="list.total">
 
 	<div
-		ng-if="list.title != 'Groups'"
+		ng-if="page.bg.db.available"
+		ng-show="list.title != 'Groups'"
 		style="display: inline-block;"
 		class="origin-mark-sm"
 		ng-click="switchOrigin('domain', list)">
@@ -16,7 +17,8 @@
 	<li ng-show="list.visible" ng-repeat="item in list.list track by item.name" style="display: block;margin-left: 30px;">
 
 		<div
-			ng-if="list.title == 'Groups'"
+			ng-if="page.bg.db.available"
+			ng-show="list.title == 'Groups'"
 			style="display: inline-block;"
 			class="origin-mark-sm"
 			ng-click="switchOrigin('group', item)">

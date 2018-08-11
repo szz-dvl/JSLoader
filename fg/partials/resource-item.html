@@ -1,7 +1,7 @@
-<div style="display: inline; width: 100%;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);" draggable="true" ng-show="resource.shown"> 
+<div style="display: inline; width: 100%;" ng-mouseover="setHover(true);" ng-mouseleave="setHover(false);" draggable="true"> 
 
 	<a ng-show="!editing" draggable="true" href="~" style="text-decoration: none; color: black" ng-click="$event.preventDefault()">
-		<bdi style="padding-right: 15px;"> {{ displayName() }} <i> ({{ resource.size }}) </i> </bdi>
+		<bdi style="padding-right: 15px;vertical-align: sub;"> {{ displayName() }} <i> ({{ resource.size }}) </i> </bdi>
 		
 		<div style="margin-left: 15px;display: inline-flex;">
 			<div ng-show="hover" class="resource-add" style="border:0;margin-right: 5px;" ng-click="viewSelf()" style="margin-right: 5px;">

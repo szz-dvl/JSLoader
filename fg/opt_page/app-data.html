@@ -55,7 +55,7 @@
 				<thead>
 					<th></th>
 					<th style="text-align: center;"> Name </th>
-					<th style="text-align: center;"> Origin </th>
+					<th style="text-align: center;" ng-if="page.bg.db.available"> Origin </th>
 					<th style="text-align: center;"> Scripts </th>
 					<th style="text-align: center;"> Sites </th>
 					<th style="text-align: center;"> Actions </th>
@@ -72,7 +72,7 @@
 							<bdi ng-if="domain.name.includes('*')"> {{ domain.name }} </bdi>
 							
 						</td>
-						<td style="text-align: center;">
+						<td style="text-align: center;" ng-if="page.bg.db.available">
 							<div ng-if="!domain.in_storage" class="origin-mark">DB</div>
 							<div ng-if="domain.in_storage" class="origin-mark">ST</div>
 						</td>
@@ -117,7 +117,7 @@
 						<td style="text-align: center;">
 							{{ group.name }}
 						</td>
-						<td style="text-align: center;">
+						<td style="text-align: center;" ng-if="page.bg.db.available">
 							<div ng-if="!group.in_storage" class="origin-mark">DB</div>
 							<div ng-if="group.in_storage" class="origin-mark">ST</div>
 						</td>

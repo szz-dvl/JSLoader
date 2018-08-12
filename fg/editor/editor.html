@@ -88,26 +88,35 @@
 	    
 	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999;">
 		  
-		  <button ng-repeat="button in buttons.arr"
-			  ng-show="button.available"
-			  ng-disabled="buttons.disabled || button.disabled"
-			  id="button.id"
+		  <button 
+			  ng-disabled="buttons.disabled && (self.bg.db.writeable ? false : !editor.script.inStorage())"
 			  class="hidden-elem browser-style mright jsload_button"
-			  ng-click="button.click()">
+			  ng-click="saveCurrent()">
 
-			  {{button.text}}
+			  Save
 			  
 		  </button>
 
 		  <button 
-			  ng-show="script.persisted"
+			  ng-show="run_shown"
 			  ng-disabled="buttons.disabled"
+			  class="hidden-elem browser-style mright jsload_button"
+			  ng-click="runCurrent()">
+
+			  Run in Page
+			  
+		  </button>
+		  
+		  <button 
+			  ng-show="script.persisted"
+			  ng-disabled="buttons.disabled && (self.bg.db.writeable && self.bg.db.writeable ? false : !editor.script.inStorage())"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="script.remove()">
 
 			  Remove
 			  
 		  </button>
+		  
 		  
 	  </div>
 

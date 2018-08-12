@@ -63,6 +63,13 @@ function EditorFG (id, bg) {
 		
 		$scope.editor_collapsed = false;
 		$scope.settings_shown = false;
+		$scope.run_shown = $scope.editor.tab ? true : false;
+
+		$scope.buttons = {
+			
+			disabled: false
+
+		};
 		
 		$scope.shortcuts = [
 			{
@@ -426,25 +433,6 @@ function EditorFG (id, bg) {
 			
 		}
 		
-		$scope.buttons = {
-			
-			shown: true,
-			disabled: $scope.script.getUrl() ? false : true,
-			arr: [{text:"Save", id: "save_btn", available: true, disabled: !$scope.editor.script.inStorage() && !self.bg.db.writeable,
-				click: () => {
-					
-					$scope.saveCurrent();
-					
-				}},
-				{text:"Run in Page", id: "run_btn", available: $scope.editor.tab ? true : false, disabled: false, 
-					click: () => {
-						
-						$scope.runCurrent();
-						
-					}
-				}]
-		};
-		
 		$scope.editor
 			.on('validation_start',
 				pending => {
@@ -574,20 +562,20 @@ function EditorFG (id, bg) {
 			
 		$scope.disableRun = () => {
 
-			$scope.buttons.arr[1].available = false;
+			$scope.run_shown = false;
 			$scope.$digest();
 		};
 
 		$scope.enableRun = () => {
 
-			$scope.buttons.arr[1].available = true;
+			$scope.run_shown = true;
 			$scope.$digest();
 			
 		};
 
 		$scope.canRun = () => {
 
-			return $scope.buttons.arr[1].available;
+			return $scope.run_shown;
 		}
 		
 		$scope.disableButtons = () => {

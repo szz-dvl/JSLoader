@@ -1,7 +1,8 @@
 - In-progress:
   		- Editor: Big Refactor { 
 					  - "Add site" button by group chooser when adding group scripts
-					  - DB managing }
+					  - DB managing
+					  - Shortcut for new resource? }
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...

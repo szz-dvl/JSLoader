@@ -1,8 +1,5 @@
 - In-progress:
-  		- Editor: Big Refactor { 
-					  - "Add site" button by group chooser when adding group scripts
-					  - DB managing
-					  - Shortcut for new resource? }
+		DB testing
 	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
@@ -22,7 +19,7 @@
   - Virtual resources:
 			- load them recoursively (resource that claim another resource (some moustache like synthax));
 			(Any way to control circular dependencies)
-		
+  - Editor: Big Refactor {- DB managing }		
   - Import/Export features. **
   - Data origin ====> support for MongoDB only. **
   - DB Managing ===> Unitary inserts / updates. ** (¿ Modify db connector replace_one ==> update_one ?)

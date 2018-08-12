@@ -51,9 +51,15 @@ function EditorFG (id, bg) {
 
 		$scope.editor = self.bg.editor_mgr.getEditorById(id);
 		$scope.script = $scope.editor.script;
+
+		/* Groups */
 		$scope.groups_copy = self.bg.group_mgr.groups.slice(0);
+		$scope.gotit = true;
+		$scope.adding_group = true;
+		
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
+
 		
 		$scope.editor_collapsed = false;
 		$scope.settings_shown = false;
@@ -424,13 +430,13 @@ function EditorFG (id, bg) {
 			
 			shown: true,
 			disabled: false,
-			arr: [{text:"Save", id: "save_btn", available: true,
+			arr: [{text:"Save", id: "save_btn", available: true, disabled: !$scope.editor.script.inStorage() && !self.bg.db.writeable,
 				click: () => {
 					
 					$scope.saveCurrent();
 					
 				}},
-				{text:"Run in Page", id: "run_btn", available: $scope.editor.tab ? true : false,
+				{text:"Run in Page", id: "run_btn", available: $scope.editor.tab ? true : false, disabled: false, 
 					click: () => {
 						
 						$scope.runCurrent();
@@ -444,6 +450,8 @@ function EditorFG (id, bg) {
 				pending => {
 
 					console.log("Validating: " + pending);
+
+					$scope.adding_group = true;
 					
 					if (!$scope.buttons.disabled)	
 						$scope.disableButtons();
@@ -460,7 +468,29 @@ function EditorFG (id, bg) {
 			
 			.on('new_selection',
 				selected => {
+
+					/* new group */
 					
+					$scope.page.bg.group_mgr.getItem(selected)
+						.then(
+							group => {
+
+								$scope.adding_group = false;
+								
+								if (group.isMySite($scope.editor.tab.url.name())) 
+									$scope.gotit = true;
+								else 
+									$scope.gotit = false;
+								
+								$scope.$digest();
+
+							}, err => {
+
+								$scope.adding_group = true;
+								$scope.$digest();
+							}
+						)
+						
 					$scope.url = selected;	
 					$scope.enableButtons();
 					
@@ -529,8 +559,18 @@ function EditorFG (id, bg) {
 						default:
 							break;
 					}
-				})
+				});
+
+
+		$scope.tabSiteToCurrentGroup = () => {
+
+			if ($scope.gotit) 
+				self.bg.group_mgr.removeSiteFrom($scope.url, $scope.editor.tab.url.name());
+			else
+				self.bg.group_mgr.addSiteTo($scope.url, $scope.editor.tab.url.name());
 			
+			$scope.gotit = !$scope.gotit;
+		}
 			
 		$scope.disableRun = () => {
 

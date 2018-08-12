@@ -11,7 +11,7 @@ function NotificationMgr (bg) {
 			"iconUrl": browser.extension.getURL("fg/icons/error.png"),
 			"priority": 2,
 			"title": 'Error',
-			"message": message,
+			"message": message instanceof Error ? message.message : message,
 		});
 		
 		return id;

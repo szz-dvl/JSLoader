@@ -99,6 +99,12 @@ function Script (opt) {
 		return this.parent ? this.parent.isGroup() ? this.parent.name : (this.parent == this.parent.parent ? this.parent.name : this.parent.parent.name + this.parent.url) : this.name;
 		
 	};
+
+	this.inStorage = () => {
+
+		return this.parent ? this.parent.isGroup() ? this.parent.in_storage : (this.parent == this.parent.parent ? this.parent.in_storage : this.parent.parent.in_storage) : true;
+
+	};
 	
 	/* Stringify */
 	this.__getDBInfo = () => {

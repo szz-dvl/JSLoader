@@ -116,16 +116,16 @@ class Editor extends EventEmitter {
 					if (!this.script.parent.isResource()) {
 
 						/* Resources does not care about tabs */
+
+						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
 						
 						if (this.script.persisted) {
 
-							/* If script is persisted ... */
+							/* If script is persisted ... */	
 							
 							if (this.script.includedAt(new URL(tabInfo.url))) {
 								
-								/* ... Tab url must belong to the set of valid urls for our script to run the script.*/
-								
-								this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+								/* ... Tab url must belong to the set of valid urls for our script to run the script.*/	
 
 								this.emit('new_tab', true, false);
 								
@@ -133,7 +133,7 @@ class Editor extends EventEmitter {
 
 								/* ... Otherwise disallow run for the script on this tab */
 
-								this.tab.outdated = true;
+								/* this.tab.outdated = true; */
 								
 								this.emit('new_tab', false, false);
 							}
@@ -141,8 +141,6 @@ class Editor extends EventEmitter {
 						} else {
 
 							/* If the script is not persisted, allow running it anywhere */
-							
-							this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
 
 							this.emit('new_tab', true, true);
 							
@@ -154,10 +152,12 @@ class Editor extends EventEmitter {
 
 				/* This is a configuration page, if not an editor window disable run, otherwise ignore it. */
 
-				this.tab.outdated = true;
-				
-				if (!this.parent.isEditorWdw(tabInfo.windowId))
+				if (!this.parent.isEditorWdw(tabInfo.windowId)) {
+
 					this.emit('new_tab', false, false);
+					this.tab.outdated = true;
+					
+				}
 				
 			}
 		}

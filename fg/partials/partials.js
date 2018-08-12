@@ -789,7 +789,7 @@ angular.module('jslPartials', [])
 												   					   
 												   resolve();
 												   
-											   }, console.error);
+											   }, $scope.mgr.bg.notify_mgr.error);
 										   
 									   } else {
 										   
@@ -1195,16 +1195,18 @@ angular.module('jslPartials', [])
 						
 						$scope.adding = false;
 
-						if ($scope.events)
-							$scope.events.emit("validation_ready", $scope.current, true);
+						if ($scope.events) 
+							$scope.events.emit("new_selection", $scope.current);
+						
 					};
 
 					$scope.cancelAdd = () => {
 						
 						$scope.adding = false;
 
-						if ($scope.events)
-							$scope.events.emit("validation_ready", $scope.current, false);
+						if ($scope.events) 
+							$scope.events.emit("new_selection", $scope.current);
+						
 					};
 
 					if ($scope.events) {

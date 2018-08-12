@@ -106,7 +106,7 @@ function Script (opt) {
 	this.inStorage = () => {
 
 		return this.parent ? this.parent.isGroup() ? this.parent.in_storage : (this.parent == this.parent.parent ? this.parent.in_storage : this.parent.parent.in_storage) : true;
-
+		
 	};
 	
 	/* Stringify */

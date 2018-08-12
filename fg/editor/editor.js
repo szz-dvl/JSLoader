@@ -67,7 +67,7 @@ function EditorFG (id, bg) {
 
 		$scope.buttons = {
 			
-			disabled: $scope.script.getUrl() ? false : true
+			disabled: !$scope.script.parent ? false : ($scope.script.getUrl() ? false : true)
 
 		};
 		

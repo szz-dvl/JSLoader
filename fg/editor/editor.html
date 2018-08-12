@@ -89,7 +89,7 @@
 	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999;">
 		  
 		  <button 
-			  ng-disabled=" (buttons.disabled ? true : (page.bg.db.writeable ? false : !editor.script.inStorage()))"
+			  ng-disabled="(buttons.disabled ? true : (!script.parent ? false : (page.bg.db.writeable ? false : !editor.script.inStorage())))"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="saveCurrent()">
 
@@ -108,7 +108,7 @@
 		  </button>
 		  
 		  <button 
-			  ng-show="script.persisted"
+			  ng-show="script.persisted && script.parent"
 			  ng-disabled="(buttons.disabled ? true : (page.bg.db.writeable && page.bg.db.removeable ? false : !editor.script.inStorage()))"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="script.remove()">

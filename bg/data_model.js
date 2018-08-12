@@ -21,6 +21,9 @@ function Script (opt) {
 	};
 
 	this.remove = () => {
+
+		if (this.persisted)
+			this.persisted = false;
 		
 		return this.parent 
 			? this.parent.removeScript(this.uuid)

@@ -98,6 +98,16 @@
 			  {{button.text}}
 			  
 		  </button>
+
+		  <button 
+			  ng-show="script.persisted"
+			  ng-disabled="buttons.disabled"
+			  class="hidden-elem browser-style mright jsload_button"
+			  ng-click="script.remove()">
+
+			  Remove
+			  
+		  </button>
 		  
 	  </div>
 

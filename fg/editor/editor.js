@@ -429,7 +429,7 @@ function EditorFG (id, bg) {
 		$scope.buttons = {
 			
 			shown: true,
-			disabled: false,
+			disabled: $scope.script.getUrl() ? false : true,
 			arr: [{text:"Save", id: "save_btn", available: true, disabled: !$scope.editor.script.inStorage() && !self.bg.db.writeable,
 				click: () => {
 					

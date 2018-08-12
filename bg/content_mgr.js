@@ -462,6 +462,41 @@ function CSMgr (bg) {
 				});
 	};
 
+	this.focusMyTab = (port, tag) => {
+
+		let cs = this.getFrameForPort(port);
+		
+		browser.tabs.update(cs.frame.tab.id, {active: true})
+			.then(tab => {
+
+				this.__postTaggedResponse(port, tag,
+					
+					{ status: true,
+						
+						content: {
+							
+							tid: cs.frame.tab.id
+						}
+					}
+				);
+
+			}, err => {
+				
+				this.__postTaggedResponse(port, tag,
+						
+					{ status: false,
+						
+						content: {
+							
+							err: err.message
+						}
+					}
+				);
+				
+			});
+
+	}
+
 	this.contentLoadResource = (port, tag, name) => {
 
 		let res = [];
@@ -717,10 +752,14 @@ function CSMgr (bg) {
 									this.contentDownload(port, args.tag, args.message.args);
 									break;
 
+								case "focus-tab":
+									this.focusMyTab(port, args.tag);
+									break;
+
 								case "print":
 									console.log(args.message.data);
 									break;
-
+									
 								case "error":
 									console.error(args.message.data);
 									break;

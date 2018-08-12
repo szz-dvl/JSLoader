@@ -175,6 +175,12 @@ function CSApi () {
 		
 	};
 
+	this.JSLFocusMyTab = () => {
+		
+		return this.__getMessageResponse ("focus-tab");
+		
+	};
+	
 	/* 
 	   @hostname: host to proxy request.
 	   @proxy: Proxy object {host, port, type}, if null the host will be "DIRECTED"

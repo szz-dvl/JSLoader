@@ -89,6 +89,21 @@ function EditorFG (id, bg) {
 				}
 			},
 			{
+				tab: 'B',
+				name: 'remove',
+				parent: $scope,
+				onTrigger: () => {
+
+					if ($scope.script.persisted) {
+						if (self.bg.db.writeable && self.bg.db.writeable || $scope.script.inStorage())
+							$scope.script.remove()
+							.then(parent => {
+								$scope.$digest();
+							})
+					}
+				}
+			},
+			{
 				tab: '2',
 				name: 'settings',
 				parent: $scope,

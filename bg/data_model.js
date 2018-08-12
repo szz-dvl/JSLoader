@@ -1,7 +1,7 @@
 function Script (opt) {
 	
 	this.uuid = opt.uuid || UUID.generate();
-	this.code = opt.code ? opt.code.trim() : "/* JS code (jQuery, async and underscore available) ...*/\n";
+	this.code = opt.code ? opt.code.trim() : "/* JS code (jQuery available) ...*/\n";
 	this.parent = opt.parent || null;
 	this.name = opt.name || "script_name"; 
 	this.disabled = opt.disabled || false;
@@ -996,7 +996,7 @@ function Resource (opt) {
 	
 	this.readTextContent = () => {
 
-		return this.file;
+		return this.type.includes("text") ? this.file : null;
 		
 	};
 
@@ -1020,7 +1020,7 @@ function Resource (opt) {
 			this.type = 'text/javascript';
 		}
 		
-		this.size = text.length * 2;
+		this.size = text.length * 4; /* Not actually accurate */
 		this.file = text;
 		
 	};

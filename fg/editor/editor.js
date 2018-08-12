@@ -30,327 +30,77 @@ function Shortcut (opt) {
 		}
 	);
 	
-} 
+}
 
 function EditorFG (id, bg) {
 
 	let self = this;
-	
+
 	this.bg = bg;
-	this.events = new EventEmitter();
-	this.shortcuts = [
-		{
-			tab: 'R',
-			name: 'run',
-			parent: self,
-			onTrigger: () => {
-				self.runCurrent();
-			}
-		},
-		{
-			tab: 'S',
-			name: 'save',
-			parent: self,
-			onTrigger: () => {
-				self.saveCurrent();
-			}
-		},
-		{
-			tab: '2',
-			name: 'settings',
-			parent: self,
-			onTrigger: () => {
-				
-				self.scope.toggleSettings();
-				self.scope.$digest();
-			}
-		}
-		
-	]
-	
-	this.editor = this.bg.editor_mgr.getEditorById(id);
-	this.editor.fg = this;
-
-	if (this.editor.script.parent) {
-
-		this.shortcuts.push({
-			tab: '1',
-			name: 'collapse',
-			parent: self,
-			onTrigger: () => {
-
-				self.scope.editor_collapsed = !self.scope.editor_collapsed;
-				self.scope.$digest();
-			}
-		})
-	}
-		
-	
-	this.collapseHeader = () => {
-		
-		if (!this.scope.editor_collapsed) {
-			
-			this.editor_bucket.css("top", "50px");
-			this.editor_bucket.css("height", window.innerHeight - 50);
-			
-		} else {
-			
-			this.editor_bucket.css("top", 0);
-			this.editor_bucket.css("height", "100%");
-		}
-		
-		this.editor.ace.resize();
-	};
-
-	this.toggleButtons = () => {
-		
-		if (this.scope.buttons.shown) {
-			
-			this.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", () => {
-				
-				this.btn_panel.find(".hidden-elem")
-					.css({
-						"visibility" : "hidden",
-						"display": "block"
-					});
-				
-				this.settings_btn.find(".hidden-elem")
-					.css({
-						"visibility" : "hidden",
-						"display": "block"
-					});
-				
-				this.dropdown.fadeOut();
-				
-			});
-			
-		} else {
-			
-			this.btn_panel.find(".hidden-elem").css({
-
-				"display" : "none",
-				"visibility": "visible"
-
-			});
-
-			this.btn_panel.find( ".hidden-elem" ).fadeIn();
-			
-			this.settings_btn.find(".hidden-elem").css({
-				
-				"display" : "none",
-				"visibility": "visible"
-				
-			});
-			
-			this.settings_btn.find( ".hidden-elem" ).fadeIn();
-			
-
-			this.dropdown.fadeIn();
-		}
-		
-		this.scope.buttons.shown = !this.scope.buttons.shown
-	};
-	
-	this.getFirstError = () => {
-
-		return this.editor.ace.getSession().getAnnotations()
-			.find(
-				annotation => {
-					
-					return annotation.type == 'error';
-					
-				}
-			) || null;
-	};
-	
-	this.runCurrent = () => {
-		
-		if (!this.scope.buttons.disabled && this.scope.canRun()) {
-			
-			this.scope.disableButtons();
-			
-			let error = this.getFirstError();
-			
-			if (!error) {
-				
-				this.editor.script.code = this.editor.ace.getValue().toString().trim();
-				this.editor.runInTab()
-					.then(
-						response => {
-							
-							if (!response[0].status) {
-								
-								let error = response[0].errors[0];
-								
-								this.editor.ace.gotoLine(error.line, error.col, true);
-								this.bg.notify_mgr.error(error.type + ": " + error.message);
-								
-							}
-							
-							this.scope.enableButtons();
-							this.scope.$digest();  /* !!! */
-						},
-						err => {
-							
-							/* Liada gorda! */
-							console.log("Run reject: ");
-							console.log(err);
-							
-							this.scope.enableButtons();
-							this.scope.$digest();
-						}
-					);
-				
-			} else if (this.scope.buttons.disabled) {
-				
-				this.bg.notify_mgr.error("Script Errors: Please check your syntax.");
-				this.editor.ace.gotoLine(error.row + 1, error.column, true);
-				this.scope.enableButtons();
-			}
-		}
-	};
-	
-	this.saveCurrent = () => {
-		
-		/* May be triggered from shortcut. */
-		if (!this.scope.buttons.disabled) {
-			
-			this.scope.disableButtons();
-			
-			let error = this.getFirstError();
-			
-			if (!error) {
-
-				let promise = this.editor.script.parent ?
-							  (this.editor.script.parent.isGroup()
-									  ? this.bg.group_mgr.updateParentFor(this.editor.script, this.scope.url)
-									  : (!this.editor.script.parent.isResource() ?
-										 this.bg.domain_mgr.updateParentFor(this.editor.script, this.scope.url) :
-										 this.bg.resource_mgr.solveHierarchyForEditor(this.editor.script.parent, this.scope.resource_name))) :
-							  Promise.resolve();
-
-				promise.then (
-					data => {
-						
-						if (data && data.constructor.name == 'Resource') 
-							this.editor.script.parent = data;
-
-						let new_code = this.editor.ace.getValue().toString().trim();
-						let reload = this.editor.script.code.trim() != new_code;
-						
-						if (reload)
-							this.editor.script.code = new_code;
-						
-						this.editor.script.persist()
-							.then(	
-								parent => {
-									
-									this.scope.enableButtons();
-									
-									if (parent) {
-										
-										if (parent.isResource()) {
-										
-											if (self.bg.option_mgr.events) 
-												self.bg.option_mgr.events.emit("new-resource", parent);
-
-										} else if (reload) {
-
-											self.bg.content_mgr.reloadScript(this.editor.script);
-											
-										}
-									}
-									
-									if (this.editor.tab) {
-
-										if (this.editor.script.includedAt(this.editor.tab.url)) {
-											
-											browser.pageAction.setIcon(
-												{
-													path: {
-														
-														16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
-														32: browser.extension.getURL("fg/icons/red-diskette-32.png")
-															
-													},
-													
-													tabId: self.editor.tab.id
-												}
-											);
-
-											this.scope.enableRun();
-											
-										} else {
-
-											this.scope.disableRun();
-										
-										}
-									}
-									
-									this.scope.$digest();
-								}
-							)
-
-					}, err => { console.error(err); }
-				);
-				
-			} else {
-				
-				this.bg.notify_mgr.error("Script Errors: Please check your syntax.");
-				this.editor.ace.gotoLine(error.row + 1, error.column, true);
-				this.scope.enableButtons();
-			}
-			
-		}
-	};
-
-	this.onResize = () => {
-		
-		if (this.scope.editor_collapsed) {
-			
-			this.editor_bucket.css("top", 0);
-			this.editor_bucket.css("height", "100%");
-			
-		} else {
-			
-			this.editor_bucket.css("top", "50px");
-			this.editor_bucket.css("height", window.innerHeight - 50);
-		}
-		
-		this.editor.ace.resize();
-	};
-	
-	this.resetAce = (args) => {
-
-		let opts = args || this.bg.option_mgr.editor;
-		
-		this.editor.ace.setPrintMarginColumn(opts.printMarginColumn);
-		this.editor.ace.renderer.setShowGutter(opts.showGutter);
-		this.editor.ace.setTheme("ace/theme/" + opts.theme);
-		
-		this.editor.ace.setOptions({
-			
-			fontSize: opts.fontSize + "pt",
-			fontFamily: opts.font
-			
-		});
-	}
 	
 	this.app = angular.module('EditorApp', ['jslPartials']);
 	
 	this.app.controller('editorController', function ($scope, $timeout, $compile) {
-		
-		self.scope = $scope;
+
 		$scope.page = self;
-		
-		$scope.editor = self.editor;
-		$scope.script = self.editor.script;
+
+		$scope.editor_bucket = $("#code_container");
+		$scope.dropdown = $("#dropdown-header");
+		$scope.btn_panel = $("#btns_panel");
+		$scope.settings_btn = $("#settings_btn");
+
+		$scope.editor = self.bg.editor_mgr.getEditorById(id);
+		$scope.script = $scope.editor.script;
 		$scope.groups_copy = self.bg.group_mgr.groups.slice(0);
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
 		
 		$scope.editor_collapsed = false;
 		$scope.settings_shown = false;
+		
+		$scope.shortcuts = [
+			{
+				tab: 'R',
+				name: 'run',
+				parent: $scope,
+				onTrigger: () => {
+					$scope.runCurrent();
+				}
+			},
+			{
+				tab: 'S',
+				name: 'save',
+				parent: $scope,
+				onTrigger: () => {
+					$scope.saveCurrent();
+				}
+			},
+			{
+				tab: '2',
+				name: 'settings',
+				parent: $scope,
+				onTrigger: () => {
+					
+					$scope.toggleSettings();
+					$scope.$digest();
+				}
+			}
+			
+		]
+		
+		if ($scope.editor.script.parent) {
+			
+			$scope.shortcuts.push({
+				tab: '1',
+				name: 'collapse',
+				parent: $scope,
+				onTrigger: () => {
+					
+					$scope.editor_collapsed = !$scope.editor_collapsed;
+					$scope.$digest();
+				}
+			})
+		}
 		
 		$scope.$watch(
 			
@@ -359,14 +109,111 @@ function EditorFG (id, bg) {
 				return $scope.editor_collapsed;
 				
 			},
-						
+			
 			(nval, oval) => {
 				
 				if (nval != oval)
-					self.collapseHeader();
+					$scope.collapseHeader();
 			}
 		);
 
+		$scope.collapseHeader = () => {
+			
+			if (!$scope.editor_collapsed) {
+			
+				$scope.editor_bucket.css("top", "50px");
+				$scope.editor_bucket.css("height", window.innerHeight - 50);
+				
+			} else {
+			
+				$scope.editor_bucket.css("top", 0);
+				$scope.editor_bucket.css("height", "100%");
+			}
+			
+			$scope.editor.ace.resize();
+		};
+
+		$scope.resetAce = (args) => {
+
+			let opts = args || self.bg.option_mgr.editor;
+			
+			$scope.editor.ace.setPrintMarginColumn(opts.printMarginColumn);
+			$scope.editor.ace.renderer.setShowGutter(opts.showGutter);
+			$scope.editor.ace.setTheme("ace/theme/" + opts.theme);
+			
+			$scope.editor.ace.setOptions({
+				
+				fontSize: opts.fontSize + "pt",
+				fontFamily: opts.font
+				
+			});
+		}
+
+		$scope.onResize = () => {
+			
+			if ($scope.editor_collapsed) {
+				
+				$scope.editor_bucket.css("top", 0);
+				$scope.editor_bucket.css("height", "100%");
+				
+			} else {
+				
+				$scope.editor_bucket.css("top", "50px");
+				$scope.editor_bucket.css("height", window.innerHeight - 50);
+			}
+			
+			$scope.editor.ace.resize();
+		};
+
+		$scope.toggleButtons = () => {
+			
+			if ($scope.buttons.shown) {
+				
+				$scope.btn_panel.find( ".hidden-elem" ).fadeOut(400, "swing", () => {
+					
+					$scope.btn_panel.find(".hidden-elem")
+						.css({
+							"visibility" : "hidden",
+							"display": "block"
+						});
+					
+					$scope.settings_btn.find(".hidden-elem")
+						.css({
+							"visibility" : "hidden",
+							"display": "block"
+						});
+					
+					$scope.dropdown.fadeOut();
+					
+				});
+				
+			} else {
+				
+				$scope.btn_panel.find(".hidden-elem").css({
+
+					"display" : "none",
+					"visibility": "visible"
+
+				});
+
+				$scope.btn_panel.find( ".hidden-elem" ).fadeIn();
+				
+				$scope.settings_btn.find(".hidden-elem").css({
+					
+					"display" : "none",
+					"visibility": "visible"
+					
+				});
+				
+				$scope.settings_btn.find( ".hidden-elem" ).fadeIn();
+				
+
+				$scope.dropdown.fadeIn();
+			}
+			
+			$scope.buttons.shown = !$scope.buttons.shown
+		};
+		
 		$scope.onOptChange = (opt) => {
 			
 			switch(opt.id) {
@@ -390,6 +237,157 @@ function EditorFG (id, bg) {
 					break;
 			}
 			
+		};
+
+		$scope.getFirstError = () => {
+
+			return $scope.editor.ace.getSession().getAnnotations()
+				.find(
+					annotation => {
+						
+						return annotation.type == 'error';
+						
+					}
+				) || null;
+		};
+
+		$scope.runCurrent = () => {
+			
+			if (!$scope.buttons.disabled && $scope.canRun()) {
+				
+				$scope.disableButtons();
+				
+				let error = $scope.getFirstError();
+				
+				if (!error) {
+					
+					$scope.editor.script.code = $scope.editor.ace.getValue().toString().trim();
+					$scope.editor.runInTab()
+						.then(
+							response => {
+								
+								if (!response[0].status) {
+									
+									let error = response[0].errors[0];
+									
+									$scope.editor.ace.gotoLine(error.line, error.col, true);
+									self.bg.notify_mgr.error(error.type + ": " + error.message);
+									
+								}
+								
+								$scope.enableButtons();
+								$scope.$digest();  /* !!! */
+							},
+							err => {
+
+								/* Must never happens */
+								console.error(err);
+								
+								$scope.enableButtons();
+								$scope.$digest();
+							}
+						);
+					
+				} else if ($scope.buttons.disabled) {
+					
+					self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
+					$scope.editor.ace.gotoLine(error.row + 1, error.column, true);
+					$scope.enableButtons();
+				}
+			}
+		};
+
+		$scope.saveCurrent = () => {
+			
+			/* May be triggered from shortcut. */
+			if (!$scope.buttons.disabled) {
+				
+				$scope.disableButtons();
+				
+				let error = $scope.getFirstError();
+				
+				if (!error) {
+
+					let promise = $scope.editor.script.parent ?
+								  ($scope.editor.script.parent.isGroup()
+										  ? self.bg.group_mgr.updateParentFor($scope.editor.script, $scope.url)
+										  : (!$scope.editor.script.parent.isResource() ?
+											 self.bg.domain_mgr.updateParentFor($scope.editor.script, $scope.url) :
+											 self.bg.resource_mgr.solveHierarchyForEditor($scope.editor.script.parent, $scope.resource_name))) :
+								  Promise.resolve();
+
+					promise.then (
+						data => {
+							
+							if (data && data.constructor.name == 'Resource') 
+								$scope.editor.script.parent = data;
+
+							let new_code = $scope.editor.ace.getValue().toString().trim();
+							let reload = $scope.editor.script.code.trim() != new_code;
+							
+							if (reload)
+								$scope.editor.script.code = new_code;
+							
+							$scope.editor.script.persist()
+								.then(	
+									parent => {
+										
+										$scope.enableButtons();
+										
+										if (parent) {
+											
+											if (parent.isResource()) {
+												
+												if (self.bg.option_mgr.events) 
+													self.bg.option_mgr.events.emit("new-resource", parent);
+												
+											} else if (reload) {
+
+												self.bg.content_mgr.reloadScript($scope.editor.script);
+												
+											}
+										}
+										
+										if ($scope.editor.tab) {
+
+											if ($scope.editor.script.includedAt($scope.editor.tab.url)) {
+												
+												browser.pageAction.setIcon(
+													{
+														path: {
+															
+															16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
+															32: browser.extension.getURL("fg/icons/red-diskette-32.png")
+																
+														},
+														
+														tabId: $scope.editor.tab.id
+													}
+												);
+
+												$scope.enableRun();
+												
+											} else {
+
+												$scope.disableRun();
+												
+											}
+										}
+										
+										$scope.$digest();
+									}
+								)
+
+						}, err => { console.error(err); }
+					);
+					
+				} else {
+					
+					self.bg.notify_mgr.error("Script Errors: Please check your syntax.");
+					$scope.editor.ace.gotoLine(error.row + 1, error.column, true);
+					$scope.enableButtons();
+				}	
+			}
 		};
 		
 		$scope.opts = [
@@ -429,19 +427,19 @@ function EditorFG (id, bg) {
 			arr: [{text:"Save", id: "save_btn", available: true,
 				click: () => {
 					
-					self.saveCurrent();
+					$scope.saveCurrent();
 					
 				}},
-				{text:"Run in Page", id: "run_btn", available: self.editor.tab ? true : false,
+				{text:"Run in Page", id: "run_btn", available: $scope.editor.tab ? true : false,
 					click: () => {
 						
-						self.runCurrent();
+						$scope.runCurrent();
 						
 					}
 				}]
 		};
 		
-		$scope.page.events
+		$scope.editor
 			.on('validation_start',
 				pending => {
 
@@ -482,7 +480,56 @@ function EditorFG (id, bg) {
 					
 					$scope.enableButtons();
 					
-				});
+				})
+			.on('new_tab',
+				(must_run, unpersisted) => {
+
+					if (unpersisted) {
+
+						if (!$scope.editor.script.parent.isGroup()) {
+
+							$scope.url = $scope.editor.tab.url.name();
+			
+							$("#site_validator")
+								.replaceWith($compile('<site-validator id="site_validator"' +
+									' style="display: inline-block; width: 80%;margin: 0;"' +
+									' ng-if="!script.parent.isGroup()"' +
+									' ev="editor" url="url">' +
+									' </site-validator>')($scope));
+
+						}
+
+					}
+
+					if (must_run)
+						$scope.enableRun();
+					else
+						$scope.disableRun();
+				
+
+
+				})
+			.on('broadcast',
+				request => {
+
+					switch (request.action) {
+						case "opts":
+
+							$scope.resetAce(request.message);
+
+							for (let key of Object.keys(request.message)) {
+
+								$scope.opts.find(opt => { return opt.id == key })
+									.value = request.message[key];
+								
+							}
+
+							$scope.$digest();
+							
+						default:
+							break;
+					}
+				})
 			
 			
 		$scope.disableRun = () => {
@@ -502,20 +549,6 @@ function EditorFG (id, bg) {
 
 			return $scope.buttons.arr[1].available;
 		}
-
-		$scope.tabForUnpersisted = (isgroup) => {
-			
-			if (!isgroup) {
-				
-				$scope.url = $scope.editor.tab.url.name();
-			
-				$("#site_validator")
-					.replaceWith($compile('<site-validator id="site_validator" style="display: inline-block; width: 80%;margin: 0;" ng-if="!script.parent.isGroup()" ev="page.events" url="url"> </site-validator>')($scope));
-				
-			}
-			
-			$scope.enableRun();
-		};
 		
 		$scope.disableButtons = () => {
 			
@@ -531,13 +564,13 @@ function EditorFG (id, bg) {
 		$scope.buttonToggle = () => {
 			
 			if (!$scope.buttons.shown)
-				self.toggleButtons();
+				$scope.toggleButtons();
 		};
 
 		$scope.buttonHide = () => {
 			
 			if ($scope.buttons.shown)
-				self.toggleButtons();
+				$scope.toggleButtons();
 		};
 				
 		/* After interpolation ready ... */
@@ -550,17 +583,17 @@ function EditorFG (id, bg) {
 				.on('change', () => {
 					
 					if ($scope.buttons.shown)
-						self.toggleButtons();
+						$scope.toggleButtons();
 				});
 			
-			self.resetAce();
+			$scope.resetAce();
 			
-			self.editor.ace.gotoLine($scope.editor.pos.line, $scope.editor.pos.col, true);
+			$scope.editor.ace.gotoLine($scope.editor.pos.line, $scope.editor.pos.col, true);
 			
-			window.onresize = self.onResize;
+			window.onresize = $scope.onResize;
 			$scope.editor.setWdw(window);
 			
-			self.shotcuts = self.shortcuts.map(
+			$scope.shotcuts = $scope.shortcuts.map(
 				shortcut => {
 					return new Shortcut(shortcut);
 				}
@@ -568,45 +601,22 @@ function EditorFG (id, bg) {
 			
 			if ($scope.editor.script.parent) {
 				
-				self.editor_bucket.css("top", "50px");
-				self.editor_bucket.css("height", window.innerHeight - 50);
+				$scope.editor_bucket.css("top", "50px");
+				$scope.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
 
-			/* @ https://github.com/ajaxorg/ace/issues/2737 */
-			$scope.editor.ace.session.on("changeScrollTop", $scope.buttonHide);
-			$scope.editor.ace.session.on("changeScrollLeft", $scope.buttonHide);
+			console.log("done!");
 			
 		});
 	});
 
-	browser.runtime.onMessage.addListener(
-
-		request => {
-			
-			switch (request.action) {
-				case "opts":
-				
-					self.resetAce(request.message);
-				
-				default:
-					break;
-			}
-		}
-	);
-	
 	angular.element(document).ready( () => {
-		
-		this.editor_bucket = $("#code_container");
-		this.dropdown = $("#dropdown-header");
-		this.btn_panel = $("#btns_panel");
-		this.settings_btn = $("#settings_btn");
-		this.res_box = $("#result-info");
-		this.target = $("#url_pattern");
 		
 		angular.bootstrap(document, ['EditorApp']);
 		
 	});
+	
 }
 
 browser.runtime.getBackgroundPage()
@@ -619,6 +629,3 @@ browser.runtime.getBackgroundPage()
 			
 		},
 	);
-
-
-

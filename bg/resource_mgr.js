@@ -265,8 +265,6 @@ function ResourceMgr (bg) {
 	};
 	
 	this.removeHierarchyFor = (empty) => {
-
-		console.log("Removing hierarchy for: " + empty.name);
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -786,7 +784,8 @@ function ResourceMgr (bg) {
 			}
 		) 
 	}
-	
+
+	/* shortcut for new resources? */
 	this.editTextResource = (resource) => {
 		
 		if (this.bg.editor_mgr.resourceEditing(resource)) {

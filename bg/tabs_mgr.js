@@ -197,7 +197,7 @@ function TabsMgr (bg) {
 		
 					var url = new URL(tabInfo.url).sort();
 					
-					if (url.protocol != "moz-extension:") {
+					if (url.hostname && url.protocol != "moz-extension:") {
 						
 						this.bg.domain_mgr.haveInfoForUrl(url)
 							.then(

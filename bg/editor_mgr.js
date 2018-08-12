@@ -9,7 +9,9 @@ function EditorWdw (opt) {
 				tabs => {
 					
 					let editor = new Editor(opt);
-					
+					console.log("got editor: ");
+					console.log(editor);
+						
 					if (tabs) {
 						
 						let url = new URL(tabs[0].url).sort();
@@ -48,9 +50,20 @@ function EditorWdw (opt) {
 							browser.windows.update(wdw.id, updateInfo)
 								.then(
 									newWdw => {
+
+										let updateInfo = {
+								
+											width: newWdw.width,
+											height: newWdw.height - 1, // 1 pixel more than original size...
+								
+										};
 										
-										resolve(editor);								
-										
+										browser.windows.update(wdw.id, updateInfo)
+											.then(
+												newWdw => {
+													resolve(editor);								
+												}
+											)
 									}, reject
 								);
 							
@@ -60,87 +73,115 @@ function EditorWdw (opt) {
 		});	
 }
 
-function Editor (opt) {
-	
-	this.parent = opt.parent;
-	this.script = opt.script;
+class Editor extends EventEmitter {
 
-	this.pos = {
+	constructor(opt) {
 
-		line: opt.line || 0,
-		col: opt.col || 0
-	};
-	
-	this.id = this.parent.__getEID.next().value;
-	this.mode = opt.mode || "javascript";
-	
-	this.tab = opt.tab ? this.parent.bg.tabs_mgr.factory(opt.tab) : null;
-	
-	this.parent.editors.push(this);
-	
-	this.runInTab = () => {
+		super();
 		
-		if (this.tab) 
-			return this.tab.run([this.script]);	
-		else
-			return Promise.reject();
-	};
-	
-	this.newTab = (tabInfo, valid) => {
+		this.parent = opt.parent;
+		this.script = opt.script;
+
+		this.pos = {
+
+			line: opt.line || 0,
+			col: opt.col || 0
+		};
 		
-		if (valid) {
+		this.id = this.parent.__getEID.next().value;
+		this.mode = opt.mode || "javascript";
+		
+		this.tab = opt.tab ? this.parent.bg.tabs_mgr.factory(opt.tab) : null;
+		
+		this.parent.editors.push(this);
+		
+		this.runInTab = () => {
 			
-			if (this.fg && this.script.parent) {
+			if (this.tab) 
+				return this.tab.run([this.script]);	
+			else
+				return Promise.reject();
+		};
+		
+		this.newTab = (tabInfo, valid) => {
+			
+			if (valid) {
 
-				if (!this.script.parent.isResource()) {
+				/* Not a configuration page or similar*/
+				
+				if (this.script.parent) {
 					
-					if (this.script.persisted) {
+					/* Not editing User Defs */
+					
+					if (!this.script.parent.isResource()) {
+
+						/* Resources does not care about tabs */
 						
-						if (this.script.includedAt(new URL(tabInfo.url))) {
+						if (this.script.persisted) {
+
+							/* If script is persisted ... */
 							
-							this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-							this.fg.scope.enableRun();
+							if (this.script.includedAt(new URL(tabInfo.url))) {
+								
+								/* ... Tab url must belong to the set of valid urls for our script to run the script.*/
+								
+								this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+
+								this.emit('new_tab', true, false);
+								
+							} else {
+
+								/* ... Otherwise disallow run for the script on this tab */
+
+								this.tab.outdated = true;
+								
+								this.emit('new_tab', false, false);
+							}
 							
 						} else {
+
+							/* If the script is not persisted, allow running it anywhere */
 							
-							this.fg.scope.disableRun();
+							this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
+
+							this.emit('new_tab', true, true);
+							
 						}
-						
-					} else {
-						
-						this.tab = this.parent.bg.tabs_mgr.factory(tabInfo);
-						this.fg.scope.tabForUnpersisted(this.script.parent.isGroup());/* Can't access dead object. */
-						
 					}
 				}
+				
+			} else {
+
+				/* This is a configuration page, if not an editor window disable run, otherwise ignore it. */
+
+				this.tab.outdated = true;
+				
+				if (!this.parent.isEditorWdw(tabInfo.windowId))
+					this.emit('new_tab', false, false);
+				
 			}
-			
-		} else {
-			
-			if (this.fg && !this.parent.isEditorWdw(tabInfo.windowId))
-				this.fg.scope.disableRun();
 		}
+		
+		this.editorClose = () => {
+			
+			this.parent.editors.remove(
+				this.parent.editors.findIndex(
+					editor => {
+						
+						return editor.id == this.id;
+						
+					}
+				)
+			);
+		};
+		
+		this.setWdw = (wdw) => {
+			
+			this.wdw.child = wdw;
+			this.wdw.child.onbeforeunload = this.editorClose;
+			
+		};
 	}
-	
-	this.editorClose = () => {
-		
-		this.parent.editors.remove(
-			this.parent.editors.findIndex(
-				editor => {
-					
-					return editor.id == this.id;
-					
-				}
-			)
-		);
-	};
-	
-	this.setWdw = (wdw) => {
-		
-		this.wdw.child = wdw;
-		this.wdw.child.onbeforeunload = this.editorClose;
-		
-	};
 }
 
 function EditorMgr (bg) {
@@ -301,12 +342,13 @@ function EditorMgr (bg) {
 	};
 	
 	this.broadcastEditors = (message) => {
+
+		for (let editor of this.editors) {
+			
+			editor.emit('broadcast', message);
+			
+		}
 		
-		try {
-			
-			browser.runtime.sendMessage(message);
-			
-		} catch(e) {};	
 	};
 	
 } 

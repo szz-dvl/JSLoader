@@ -1,7 +1,8 @@
 - In-progress:
-  		- Virtual resources:
-			- load them recoursively (resource that claim another resource (some moustache like synthax));
-		
+  		- Editor: Big Refactor { 
+					  - "Add site" button by group chooser when adding group scripts
+					  - DB managing }
+	
 - Big fails:
   - PA: Scripts toggle btn fails first time after being hidden by parent ...
   - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
@@ -10,17 +11,17 @@
 
 - To Do:
 
-  	- Editor: Big Refactor { add download button (download code as text); 
-  	  		  		  - Sync opt page editor settings with editor menu.
-					  - Editor tab check for outdated.
-					  - "Add site" button by group chooser when adding group scripts
-					  - Editor BG to class extending EventEmitter, talk FG via events }
-					
+  	 BUGS
 	- Error manager for beta testing ?¿.
 								
 	- -------------> Beta 1 <---------------
 	
 - To be tested:
+
+  - Virtual resources:
+			- load them recoursively (resource that claim another resource (some moustache like synthax));
+			(Any way to control circular dependencies)
+		
   - Import/Export features. **
   - Data origin ====> support for MongoDB only. **
   - DB Managing ===> Unitary inserts / updates. ** (¿ Modify db connector replace_one ==> update_one ?)

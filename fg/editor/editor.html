@@ -29,7 +29,7 @@
 				  <drop-down shown="'editor_collapsed'" flipped="true"></drop-down>
 			  </div>
 		  </div>
-
+		  
 	      <!-- ¿button toggle on ng-mouseenter here? -->
 		  <div id="editor-header" class="panel-section panel-section-header">
 			  <div class="text-section-header" style="display: inline-block;width: 100%">
@@ -45,20 +45,22 @@
 						  id="site_validator"
 						  style="display: inline-block; width: 80%;margin: 0;"
 						  ng-if="!script.parent.isGroup() && !script.parent.isResource()"
-						  ev="page.events"
+						  ev="editor"
 						  url="url"></site-validator>
+
+					  <img ng-if="!script.parent.isGroup() && !script.parent.isResource()" ng-show="script.persisted" width="16px" height="16px" style="margin-left: 10px;" src="../icons/db.png">
 					  
 					  <group-chooser
 						  style="display: inline-block; width: 80%;margin: 0;"
 						  ng-if="script.parent.isGroup() && !script.parent.isResource()"
-						  ev="page.events"
+						  ev="editor"
 						  validating="script.getParentName()"
 						  groups="groups_copy"></group-chooser>
 
 					  <resource-name
 						  style="display: inline-block; width: 30%;margin: 0;"
 						  ng-if="script.parent.isResource()"
-						  ev="page.events"
+						  ev="editor"
 						  name="resource_name"></resource-name>
 					  
 				  </div>

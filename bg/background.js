@@ -46,13 +46,16 @@ function BG_mgr () {
 					.then(
 						() => {
 							
-							this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+							if (tab_info[0].url.startsWith("file://"))
+								this.notify_mgr.info("Local files won't accept content scripts ... =(");
+							else
+								this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
 							
 						},
 						() => {
 
-							this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
-							//this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
+							//this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+							this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
 							
 						}
 					);
@@ -158,6 +161,7 @@ function BG_mgr () {
 	browser.storage.onChanged.addListener(this.storeChanges);
 	browser.commands.onCommand.addListener(this.receiveCmd);
 
+	/* Always ?*/
 	this.db.once('db_change', string => {
 
 		this.reIndex();

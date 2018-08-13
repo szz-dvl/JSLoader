@@ -47,7 +47,7 @@ cd JSLoader
 
 ```
 
-This must be enough to create the .xpi (** jsload-unsigned.xpi **) and install the native app.
+This must be enough to create the .xpi **jsload-unsigned.xpi** and install the native app.
 
 There is no support at this point for windows users, however to create the .xpi just zip all the extension and renameit to anything ".xpi". To install the native app please follow [this](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests) manuals.
 

@@ -80,34 +80,25 @@ function PAC () {
 			}
 			
 		}
-		
+
+		//browser.runtime.sendMessage(`Proxy listener: ${message} > ` + JSON.stringify(message))
+			
 		return Promise.resolve(this.filtered.length);
 	};
 
 	/* One proxy per host only. */
 	this.FindProxyForURL = (url, host) => {
 		
-		let record = this.filtered.findIndex(
+		
+		record = this.filtered.findIndex(
 			
 			registered => {
 				
-				return registered.host == host && registered.temp;
+				return this.isSubDomain(host, registered.host);
+				
 			}
 			
 		);
-		
-		if (record < 0) {
-			
-			record = this.filtered.findIndex(
-				
-				registered => {
-					
-					return this.isSubDomain(host, registered.host);
-					
-				}
-				
-			);
-		}
 		
 		if (record < 0) {
 			
@@ -116,8 +107,10 @@ function PAC () {
 		} else {
 			
 			let proxys = [this.filtered[record].proxy];
+
+			this.filtered[record].times -= 1
 			
-			if (! --this.filtered[record].times)
+			if (!this.filtered[record].times)
 				this.filtered.remove(record);
 
 			return proxys;

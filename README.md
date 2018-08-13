@@ -76,9 +76,7 @@ Mail me if you want to lend a hand.
 
 ## Authors
 
-* **Szz** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+* **Szz** 
 
 ## License
 

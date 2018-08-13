@@ -31,10 +31,12 @@ For other OS please refer to [this](https://docs.mongodb.com/manual/installation
 
 - Python:
 
-To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link.
+To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link. Once python is installed make sure [pip](https://pip.pypa.io/en/stable/installing/) is installed
+and then install [pymongo](http://api.mongodb.com/python/current/installation.html) the database connector for MongoDB.
 
+With all this dependencies satisfied you are now ready to go.
 
-## Getting Started
+### Installing
 
 For GNU/Linux based OS users:
 
@@ -45,11 +47,11 @@ cd JSLoader
 
 ```
 
-This must be enou
-   
+This must be enough to create the .xpi (** jsload-unsigned.xpi **) and install the native app.
 
+There is no support at this point for windows users, however to create the .xpi just zip all the extension and renameit to anything ".xpi". To install the native app please follow [this](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests) manuals.
 
-### Installing
+## Getting Started
 
 A step by step series of examples that tell you how to get a development env running
 

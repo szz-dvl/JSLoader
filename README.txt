@@ -1,90 +1,123 @@
-- In-progress:
-		DB testing
-	
-- Big fails:
-  - PA: Scripts toggle btn fails first time after being hidden by parent ...
-  - Ace errors not being shown on gutter line, detected by editor however. (disable CSP in about:config solves it, select arrows too! ¿Issue?)
-  - Opened windows after browser crash ==> to be recovered.
-  - Extensions seems to be sharing storage key names!!
+# JSLoader
 
-- To Do:
-
-  	 BUGS
-	- Error manager for beta testing ?¿.
-								
-	- -------------> Beta 1 <---------------
-	
-- To be tested:
-
-  - Virtual resources:
-			- load them recoursively (resource that claim another resource (some moustache like synthax));
-			(Any way to control circular dependencies)
-  - Editor: Big Refactor {- DB managing }		
-  - Import/Export features. **
-  - Data origin ====> support for MongoDB only. **
-  - DB Managing ===> Unitary inserts / updates. ** (¿ Modify db connector replace_one ==> update_one ?)
-  - Group OwnerOf =====> Redesigned matching pattern. *
-  - Tab binded new windows found themselfs as current tab ===> to be tested, several browser windows may fail.
-  - Proxys ===> test new PAC completely.
-  - Editor ===> minor testing.
-  - startsWith =====> "/" !!!
-  - Cascade removes ====> Array.remove [ destructive - index lost - ] collide when multiple items for same parent are quickly removed. (¿ __Script_Bucket ===> to Sets ?);
-  - Virt Resources ==> what is done. (Virt FS, Content API[v1] ==> load resource directory);
-  - Group creation:
-  	* bugs in PA: scripts not shown after first close (Probably from Array.reduce solved BUG)	
-
-  - Added support for pages that load contents via XHR requests: To be tested ===> when pages updates tab info several times after changing its URL
-  		  		  	  			 	  		   	   	   			 (faster solution implemented: the first change will run the associated scripts, enough for any page?
-																 		 ===> otherwise debounce deferred execute until last change)
-
-															   * Hypothetical:
-																	Active/Unactive tab loading content via XHR without changing tab params
-																	(detectable?? ==> [request filter, implement watchers for scripts better: user responsability].)
-															   
-  - PA: Re-arrange lists [DropDown button keep failing when parent sections hides them while opened].
-  - Frames not destroyed! ===> getFramesFor instead of getMainFramesFor;
-  
-- Caveats: /* !!! */
-  - Allow web pages to load scripts of their own for its possible neighbours? [ Only while the script owner is running ¿? ]
-  		  * Permissions controlled by user ==> how?
-		  * Limit third party domains for each site ==> how?
-		  * Possible conflicts between scripts ?? ... =S ...
-
-  - Sidebar: JSL components ==> give support for mouse
-  
-  - Add binded site to group in group creation?
-  - Prevent context menu on extension windows ???
-  - Use classes in data_model && mgrs. ... _''_ ...
-  
-- Issues:
-  - Computed "src" attributes won't display in extension pages (when evaluated [eval & friends allowed in CSP])
-  - Blank windows. Resize needed to render. (Or right click on the wdw ...)
-  - Opening page action from shortcut command fails with: "pageAction.openPopup may only be called from a user input handler"
-  - Downloaded files will allways be named "download".
-  - browser.pageAction.onClicked ==> dosn't seems to work.
-  
-- Finally:
-  - Style everything up!
-  		  * Inform user of unpersisted data on views.
-		  * (( paginate lists, filter for domains & groups lists )). (IP)
-		  * etc, etc, etc ...
-		  
-  - Initial examples for each info recipient.
-  - Translations
-
-_____-- MANUALS --______
-
-Linux users:
-
-	  $> git clone --recurse-submodules https://github.com/szz-dvl/JSLoader.git
-	  $> cd JSLoader
-	  $> ./build
-
-	  * Allow unsigned apps, etc, etc ... install jsload-unsigned.xpi and enjoy!
-
-Windows users:
-
-		* Either wait for signed version or try to build xpi and native app by yourself.
+JSLoader is an browser extension developed for Firefox. Its goal is to give to the user the ability to store scripts for any page allowing them to run. Those scripts will be executed against page content
+everytime the user visit the target site. The extension is not yet signed, hence Firefox developer edition is yet needed to run it.
 
 
-		Cheers!
+### Prerequisites
+
+To enjoy all the functionality the extension offers an instance of mongodb and python must be installed in the machine. For ubuntu or debian based distros:
+
+- MongoDB:
+
+```
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+
+```
+Now depending on your distro you must add the mongo db repositories in [sources lists](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/#create-a-list-file-for-mongodb)
+
+And install the latest version of MongoDB:
+
+```
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+
+```
+
+More detailed information can be found at: [MongoDB](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/)
+
+If you are using any other GNU/Linux distribution [this](https://docs.mongodb.com/manual/administration/install-on-linux/) link may be usefull to you.
+For other OS please refer to [this](https://docs.mongodb.com/manual/installation/) link.
+
+- Python:
+
+To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link.
+
+
+## Getting Started
+
+For GNU/Linux based OS users:
+
+```
+git clone https://github.com/szz-dvl/JSLoader.git
+cd JSLoader
+./build
+
+```
+
+This must be enou
+   
+
+
+### Installing
+
+A step by step series of examples that tell you how to get a development env running
+
+Say what the step will be
+
+```
+Give the example
+```
+
+And repeat
+
+```
+until finished
+```
+
+End with an example of getting some data out of the system or using it for a little demo
+
+## Running the tests
+
+Explain how to run the automated tests for this system
+
+### Break down into end to end tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+### And coding style tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+## Deployment
+
+Add additional notes about how to deploy this on a live system
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+
+See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Hat tip to anyone whose code was used
+* Inspiration
+* etc
+

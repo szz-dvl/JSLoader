@@ -59,7 +59,7 @@
 				  
 				  <div ng-if="scripts_active">
 
-					  <div ng-if="info.domains.length || info.groups[0].total" style="margin-left: 0px;">
+					  <div ng-if="info.domains.length || info.groups[0].total || page.pa_state.outdated" style="margin-left: 0px;">
 
 						  <div ng-if="info.domains.length">
 							  <div ui-view="domains"></div>
@@ -71,7 +71,7 @@
 						  
 					  </div>
 
-					  <no-info ng-if="!info.domains.length && !info.groups[0].total" style="padding-top: 30px;"></no-info>
+					  <no-info ng-if="!info.domains.length && !info.groups[0].total && !page.pa_state.outdated" style="padding-top: 30px;"></no-info>
 						  
 					  <div class="bottom-bucket" style="text-align: center; margin: 10px 0 0 0">
 						  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>

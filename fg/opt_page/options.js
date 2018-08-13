@@ -127,7 +127,7 @@ function OP (bg) {
 
 											});
 										
-									}, 350);
+									}, 650);
 
 								return $scope.filterID;
 							}
@@ -204,9 +204,13 @@ function OP (bg) {
 									$scope.nameID = $timeout(
 										(child) => {
 
-											/* Names not ending in slash here!! */
-
-											return $scope.__findAppropiateNameFor($scope.name + child).split("/").pop();
+											let aux = child.split(".").slice(0, -1).join(".");
+											let ext = child.split(".").pop();
+									   
+											while (aux.endsWith("/"))
+												aux = aux.slice(0, -1);
+						
+											return $scope.__findAppropiateNameFor($scope.name + aux + "." + ext).split("/").pop();
 											
 										}, 2500, true, child
 									);

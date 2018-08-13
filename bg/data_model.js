@@ -641,7 +641,7 @@ function Group (opt) {
 			done = this.disabledAt.findIndex(
 				tuple => {
 					
-					return tuple.url.startsWith(site); /* BUG: will fail for domain sets "*" */
+					return this.__comparePlainUrl(site, tuple.url);
 				}
 			);
 			
@@ -664,7 +664,7 @@ function Group (opt) {
 			done = this.sites.findIndex(
 				stored => {
 					
-					return site.startsWith(stored); /* BUG: will fail for domain sets "*" */
+					return this.__compareSetUrls(stored, site);
 				}
 			);
 
@@ -680,48 +680,105 @@ function Group (opt) {
 		return this.sites.includes(site);
 
 	};
+
+	this.__compareSetUrls = (site, stored) => {
+
+		let hsite = site.split("/")[0];
+		let psite =  "/" + site.split("/").slice(1).join("/");
+
+		let hstored = stored.split("/")[0];
+		let pstored =  "/" + stored.split("/").slice(1).join("/");
+
+		if (hstored == hsite && pstored.startsWith(psite))
+			return true;
+		else if (hstored.includes("*") || hsite.includes("*")) {
+
+			if (hstored.endsWith(".*")) {
+
+				hstored = hstored.split(".").slice(0, -1).join(".");
+				hsite = hsite.split(".").slice(0, -1).join(".");
+
+			}
+
+			if (hstored.startsWith("*.")) {
+
+				hstored = hstored.split(".").slice(1).join(".");
+				hsite = hsite.split(".").slice(1).join(".");
+
+			}
+
+			if (hsite.endsWith(".*")) {
+
+				hstored = hstored.split(".").slice(0, -1).join(".");
+				hsite = hsite.split(".").slice(0, -1).join(".");
+			}
+
+			if (hsite.startsWith("*.")) {
+
+				hstored = hstored.split(".").slice(1).join(".");
+				hsite = hsite.split(".").slice(1).join(".");
+			}
+			
+			return hsite == hstored && pstored.startsWith(psite)
+			
+		} else {
+
+			return false;
+		}
+		
+	}
+	
+	this.__comparePlainUrl = (site, url) => {
+		
+		let pathname = url instanceof URL ? url.pathname : "/" + url.split("/").slice(1).join("/");
+		let hostname = url instanceof URL ? url.hostname : url.split("/")[0];
+		let name = url instanceof URL ? url.name() : hostname + pathname;
+
+		let split = site.split("/");
+		let site_path = "/" + split.slice(1).join("/");
+		
+		if (split[0].startsWith("*.") && split[0].endsWith(".*")) {
+
+			let site_group = split[0].slice(2).slice(0, -2);
+			let aux = hostname.split(".");
+			
+			do {
+				
+				aux = aux.slice(1).slice(0, -1);
+				
+			} while (aux.length && aux.join(".") != site_group);
+			
+			return aux.length ? pathname.startsWith(site_path) : false;
+
+		} else if (split[0].startsWith("*.")) {
+			
+			let site_group = split[0].slice(2);
+			
+			return hostname.endsWith(site_group) && pathname.startsWith(site_path);
+			
+		} else if (split[0].endsWith(".*")) {
+
+			let site_group = split[0].slice(0, -2);
+			
+			return hostname.startsWith(site_group) && pathname.startsWith(site_path);
+			
+		} else {
+			
+			return name.startsWith(site);
+			
+		}
+	}
 	
 	this.includes = (url) => {
 		
 		return this.sites.find(
 			site => {
-
-				let split = site.split("/");
-				let site_path = split.slice(1).join();
-
-				if (split[0].startsWith("*.") && split[0].endsWith(".*")) {
-
-					let site_group = split[0].slice(2).slice(0, -2);
-					let aux = url.hostname.split(".");
-						
-					do {
-							
-						aux = aux.slice(1).slice(0, -1);
-						
-					} while (aux.length && aux.join(".") != site_group);
-						
-					return aux.length ? url.pathname.startsWith(site_path) : false;
-
-				} else if (split[0].startsWith("*.")) {
-					
-					let site_group = split[0].slice(2);
-					
-					return url.hostname.endsWith(site_group) && url.pathname.startsWith(site_path);
-					
-				} else if (split[0].endsWith(".*")) {
-
-					let site_group = split[0].slice(0, -2);
-					
-					return url.hostname.startsWith(site_group) && url.pathname.startsWith(site_path);
-					
-				} else {
-					
-					return url.name().startsWith(site);
-					
-				}
+				
+				return this.__comparePlainUrl(site, url);
 			}
 			
 		) ? true : false;
+		
 	};
 	
 	this.haveSite = (site_name) => {

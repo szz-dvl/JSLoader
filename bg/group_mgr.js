@@ -70,8 +70,6 @@ function GroupMgr (bg) {
 										.then(() => { next() }, () => { next(); });
 									
 								}, err => {
-
-									console.log("Clean");
 									
 									if (err)
 										reject(err);
@@ -149,7 +147,7 @@ function GroupMgr (bg) {
 		
 		return new Promise(
 			(resolve, reject) => {
-
+				
 				this.getGroupsForUrl(path)
 					.then(
 						groups => {

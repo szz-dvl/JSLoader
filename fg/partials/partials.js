@@ -689,6 +689,7 @@ angular.module('jslPartials', [])
 						   
 						   $scope.__resourceNameValidation = (name) => {
 
+							   
 							   let pathname = $scope.name + name;
 							   let valid = $scope.__findAppropiateNameFor(pathname);
 							   
@@ -704,7 +705,13 @@ angular.module('jslPartials', [])
 							   $scope.nameID = $timeout(
 								   (name) => {
 
-									   return $scope.__resourceNameValidation(name);
+									   let aux = name.split(".").slice(0, -1).join(".");
+									   let ext = name.split(".").pop();
+									   
+									   while (aux.endsWith("/"))
+										   aux = aux.slice(0, -1);
+							   
+									   return $scope.__resourceNameValidation(aux + "." + ext);
 									   
 								   }, 2500, true, child
 							   );

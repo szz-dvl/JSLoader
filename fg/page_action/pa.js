@@ -97,9 +97,6 @@ function PA (bg, info) {
 					$scope.page.bg.getPASite()
 						.then(
 							info => {
-
-								console.log("new Info: ");
-								console.log(info);
 								
 								$scope.info = self.info = info;
 								
@@ -536,7 +533,7 @@ function PA (bg, info) {
 												
 												} 
 											
-												$scope.$digest();
+												$rootScope.$digest();
 											});
 										
 									}, to, false, name);
@@ -584,11 +581,12 @@ function PA (bg, info) {
 							}
 
 							$timeout(() => {
-
+								
 								if (self.pa_state.outdated) {
+
+									$scope.scheduleUpdateAt(50, self.pa_state.outdated, true)
+										.then(() => { self.pa_state.outdated = null; });
 									
-									$scope.scheduleUpdateAt(50, self.pa_state.outdated, true);
-									self.pa_state.outdated = null;
 								}
 
 							})
@@ -634,7 +632,7 @@ function PA (bg, info) {
 										.then(
 											group => {
 												
-												if (group.includes(new URL('http://' + $scope.url))) { 
+												if (group.includes($scope.url)) { 
 
 													$scope.action = "Remove";
 													$scope.enabled = group.isMySite($scope.url);
@@ -687,7 +685,7 @@ function PA (bg, info) {
 									() => {
 										
 										if (self.updateGroups) {
-											
+
 											self.updateGroups(350, $scope.current, true)
 												.then(() => {
 

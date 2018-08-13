@@ -26,7 +26,7 @@ function ProxyMgr (bg) {
 						
 						browser.runtime.sendMessage(
 							
-							{ host: hostname, proxy: proxy_obj, times: times },
+							{ host: hostname, proxy: proxy, times: times },
 							{ toProxyScript: true }
 							
 						).then(resolve, reject);
@@ -39,12 +39,6 @@ function ProxyMgr (bg) {
 	browser.proxy.onProxyError.addListener(error => {
 		console.error(`JSL Proxy error: ${error.message}`);
 	});
-	
-	/* browser.runtime.onMessage.addListener(
-	   (message, sender, response) => {
-	   console.log("Proxy message: " + message);
-	   }
-	   ); */
 	
 	browser.proxy.register("pac.js");
 }

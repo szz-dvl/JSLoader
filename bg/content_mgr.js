@@ -413,7 +413,6 @@ function CSMgr (bg) {
 						});
 					
 				}, err => {
-
 					this.__postTaggedResponse(port, tag,
 						
 						{ status: false,

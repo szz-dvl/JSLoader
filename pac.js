@@ -5,7 +5,7 @@ Array.prototype.remove = function(from, to) {
 		return;
 	
 	let rest = this.slice((to || from) + 1 || this.length);
-	this.length = from; //from < 0 ? this.length + from : from;
+	this.length = from;
 	
 	return this.push.apply(this, rest);
 };
@@ -20,12 +20,6 @@ function PAC () {
 			return true;
 		else if (!modified.startsWith("*."))
 			return false
-		
-		// if (orig.endsWith("/"))
-		// 	orig = orig.slice(0, -1);
-		
-		// if (modified.endsWith("/"))
-		// 	modified = modified.slice(0, -1);
 		
 		var mod_arr = modified.split(".");
 		var orig_arr = orig.split(".");
@@ -87,8 +81,6 @@ function PAC () {
 			
 		}
 		
-		// browser.runtime.sendMessage(`Proxy listener: ${message.host} > ` + JSON.stringify(this.filtered));
-		
 		return Promise.resolve(this.filtered.length);
 	};
 
@@ -131,8 +123,6 @@ function PAC () {
 			return proxys;
 			
 		}
-		
-		//browser.runtime.sendMessage(`Proxy for ${host} > ` + (proxys ? JSON.stringify(proxys) : "DIRECT"));
 	};
 	
 	browser.runtime.onMessage.addListener(this.listener);

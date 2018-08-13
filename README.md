@@ -51,9 +51,19 @@ This must be enough to create the .xpi (** jsload-unsigned.xpi **) and install t
 
 There is no support at this point for windows users, however to create the .xpi just zip all the extension and renameit to anything ".xpi". To install the native app please follow [this](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests) manuals.
 
-## Getting Started
+## Using the extension
 
-Once the extension is installed you will se a new page action available![alt text](https://github.com/szz-dvl/JSLoader/blob/master/fg/icons/blue-diskette-16.png) in the pages that are sensible to allow scripts. 
+Once the extension is installed you will se a new page action available ![alt text](https://github.com/szz-dvl/JSLoader/blob/master/fg/icons/blue-diskette-16.png) in the pages that are sensible to allow scripts. When you click on it a new menu will show up allowing you to manage the scripts on this site or add new ones. If there is no info stored for this page the image will be blue, as shown above, otherwise a red diskette ![alt text](https://github.com/szz-dvl/JSLoader/blob/master/fg/icons/red-diskette-16.png) will be shown. The extension admin panel will be available in the preferences page of the extension. You will be able to configure some settings in there. Additionally there are three shortcuts available:
+
+- Alt + Shift + 1: Open an editor binded to the focused tab.
+- Alt + Shift + 2: Open an editor to create a group script.
+- Alt + Shift + Q: Open admin panel.
+
+Groups are another way to manage scripts. Sometimes there is not enough for an script to run in one domain, in this cases a group may be created to store any number of domains that will receive the scripts added to this group.
+
+## Creating Scripts
+
+Scripts are written as usual in javascript. There is an API that will be explained in future releases, those willing to use it may refer to [content_api.js](https://github.com/szz-dvl/JSLoader/blob/master/bg/content_api.js).
 
 ## Built With
 

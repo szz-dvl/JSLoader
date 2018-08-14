@@ -68,6 +68,9 @@ Scripts are written as usual in javascript. There is an API that will be explain
 ## Built With
 
 * [ACE editor](https://ace.c9.io/) - The code editor used
+* [AngularJS](https://angularjs.org/) - MVW
+* [Python](https://www.python.org/) - Native app
+* [MongoDB](https://www.mongodb.com/) - Database
 * [GitHub](https://github.com/) - Hosting
 
 ## Contributing

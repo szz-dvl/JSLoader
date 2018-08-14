@@ -107,10 +107,8 @@ function PAC () {
 		} else {
 			
 			let proxys = [this.filtered[record].proxy];
-
-			this.filtered[record].times -= 1
 			
-			if (!this.filtered[record].times)
+			if (! --this.filtered[record].times)
 				this.filtered.remove(record);
 
 			return proxys;

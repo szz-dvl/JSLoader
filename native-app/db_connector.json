@@ -3,5 +3,5 @@
 	"description": "DB connector for JSLoader",
 	"path": "/usr/lib/mozilla/native-messaging-hosts/db_connector.py",
 	"type": "stdio",
-	"allowed_extensions": [ "jsloader@afinehosttoget.com" ]
+	"allowed_extensions": [ "santiaguzz@gmail.com" ]
 }

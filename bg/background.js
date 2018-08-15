@@ -13,6 +13,7 @@ function BG_mgr () {
 	this.tabs_mgr = new TabsMgr(this);
 	this.proxy_mgr = new ProxyMgr(this);
 	this.resource_mgr = new ResourceMgr(this);
+	this.texts =  new TranslationMgr(this);
 	
 	this.getPASite = () => {
 		
@@ -177,5 +178,3 @@ global_storage.once('ready', () => {
 
 
 /* browser.storage.local.clear(); */
-
-console.log(Components);

@@ -93,7 +93,7 @@
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="saveCurrent()">
 
-			  Save
+			  {{ page.bg.texts.findText("save") }}
 			  
 		  </button>
 
@@ -103,7 +103,7 @@
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="runCurrent()">
 
-			  Run in Page
+			  {{ page.bg.texts.findText("run") }}
 			  
 		  </button>
 		  
@@ -113,7 +113,7 @@
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="script.remove()">
 
-			  Remove
+			  {{ page.bg.texts.findText("remove") }}
 			  
 		  </button>
 		  

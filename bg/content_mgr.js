@@ -11,7 +11,7 @@ function CS (port) {
 		
 		return new Promise(
 			resolve => {
-
+				
 				let my_response = action || "post-results";
 				let my_listener = (args) => {
 					
@@ -613,7 +613,7 @@ function CSMgr (bg) {
 		);	
 	};
 	
-	browser.runtime.onConnect
+	chrome.runtime.onConnect
 		.addListener(
 			port => {
 				

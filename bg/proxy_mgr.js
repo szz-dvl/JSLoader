@@ -36,10 +36,10 @@ function ProxyMgr (bg) {
 		}
 	}
 	
-	browser.proxy.onProxyError.addListener(error => {
+	chrome.proxy.onProxyError.addListener(error => {
 		console.error(`JSL Proxy error: ${error.message}`);
 	});
 	
-	browser.proxy.register("pac.js");
+	chrome.proxy.register("pac.js");
 }
 

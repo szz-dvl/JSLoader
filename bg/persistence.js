@@ -10,7 +10,7 @@ class DB extends EventEmitter {
 		this.writeable = false;
 		this.readable = false;
 		
-		this.port = browser.runtime.connectNative("db_connector");
+		this.port = chrome.runtime.connectNative("db_connector");
 		
 		this.port.onMessage.addListener(
 			response => {
@@ -410,12 +410,12 @@ class Storage extends EventEmitter  {
 		
 		this.__get = (cb, key) => {
 			
-			this.target.get([key],
+			this.target.get(key,
 				values => {
 						
 					cb(values[key]);
 					
-				}, console.error
+				}
 			)
 		};
 		
@@ -540,104 +540,159 @@ class Storage extends EventEmitter  {
 			return this.__set('groups', val);
 		};
 		
-		this.target.get('options')
-			.then(
-				val => {
-					
-					/* DB*/
-					this.db = new DB(val['options'] ? val['options'].data_origin : "mongodb://localhost:27017/jsl");
-					
-					this.__bringItem = (cb, name, type) => {
+		this.target.get('options', val => {
+			
+			/* DB*/
+			this.db = new DB(val['options'] ? val['options'].data_origin : "mongodb://localhost:27017/jsl");
+			
+			this.__bringItem = (cb, name, type) => {
+				
+				this.__get(
+					item => {
+						
+						if (item) {
 
-						this.__get(
-							item => {
-								
-								if (item) {
-
-									item.in_storage = true;
-								
-									switch (type) {
-										case "Domain":
-											cb(item ? new Domain(item) : null);
-										case "Group":
-											cb(item ? new Group(item) : null);
-										case "Resource":
-											cb(item ? (item.dir ? new ResourceDir(item) : new Resource(item)) : null);
-										default:
-											break;
-									}
-
-								} else {
-									
-									this.db['get' + type](name)
-										.then(arr => {
-											
-											cb(arr.length ? arr[0] : null);
-											
-										}, err => { cb(null) });
-								}
-								
-							}, type.toLowerCase() + '-' + name);
-					};
-					
-					this.__pushItem = (val, type, in_storage) => {
-
-						return new Promise ((resolve, reject) => {
+							item.in_storage = true;
 							
-							if (in_storage) {
+							switch (type) {
+								case "Domain":
+									cb(item ? new Domain(item) : null);
+								case "Group":
+									cb(item ? new Group(item) : null);
+								case "Resource":
+									cb(item ? (item.dir ? new ResourceDir(item) : new Resource(item)) : null);
+								default:
+									break;
+							}
+
+						} else {
+							
+							this.db['get' + type](name)
+								.then(arr => {
+									
+									cb(arr.length ? arr[0] : null);
+									
+								}, err => { cb(null) });
+						}
+						
+					}, type.toLowerCase() + '-' + name);
+			};
+			
+			this.__pushItem = (val, type, in_storage) => {
+
+				return new Promise ((resolve, reject) => {
+					
+					if (in_storage) {
+
+						this.__set(type.toLowerCase() + '-' + val.name, val)
+							.then(resolve, reject);
+
+					} else {
+
+						this.db['set' + type](val)
+							.then(resolve, err => {
 
 								this.__set(type.toLowerCase() + '-' + val.name, val)
 									.then(resolve, reject);
-
-							} else {
-
-								this.db['set' + type](val)
-									.then(resolve, err => {
-
-										this.__set(type.toLowerCase() + '-' + val.name, val)
-											.then(resolve, reject);
-										
-									});
-							}
-							
-						})
-					};
-
-					this.__removeItem = (name, type, in_storage) => {
-
-						return new Promise ((resolve, reject) => {
-							
-							if (in_storage) {
-
-								this.__remove(type.toLowerCase() + '-' + name)
-									.then(resolve, reject);
 								
-							} else {
-
-								this.db['remove' + type](name)
-									.then(resolve, reject);
-							}
-							
-						})
+							});
 					}
 					
-					/* Domains: */
+				})
+			};
 
-					this.upsertDomain = (val, in_storage) => {
+			this.__removeItem = (name, type, in_storage) => {
 
-						return new Promise (
-							(resolve, reject) => {
+				return new Promise ((resolve, reject) => {
+					
+					if (in_storage) {
 
-								this.__pushItem(val, "Domain", in_storage)
-									.then(
-										() => {
+						this.__remove(type.toLowerCase() + '-' + name)
+							.then(resolve, reject);
+						
+					} else {
+
+						this.db['remove' + type](name)
+							.then(resolve, reject);
+					}
+					
+				})
+			}
+			
+			/* Domains: */
+
+			this.upsertDomain = (val, in_storage) => {
+
+				return new Promise (
+					(resolve, reject) => {
+
+						this.__pushItem(val, "Domain", in_storage)
+							.then(
+								() => {
+									
+									this.__getDomains(
+										arr => {
 											
+											if (!arr.includes(val.name)) {
+												
+												arr.push(val.name);
+												this.__setDomains(arr)
+													.then(resolve, reject);
+												
+											} else {
+												resolve();
+											}
+											
+										}, true);
+									
+								}, reject)
+					})
+			};
+			
+			this.getDomain = (cb, name) => {
+				
+				this.__bringItem(cb, name, "Domain");
+			};
+
+			this.removeDomain = (name, in_storage) => {
+
+				return new Promise(
+					(resolve, reject) => {
+
+						this.__removeItem(name, "Domain", in_storage)
+							.then (
+								() => {
+									this.db.getDomains()
+										.then(idx => {
+
+											if (in_storage && idx.includes(name))
+												resolve();
+											else {
+												
+												this.__getDomains(
+													arr => {
+														
+														if (arr.includes(name)) {
+															
+															arr.remove(arr.indexOf(name));
+															this.__setDomains(arr)
+																.then(resolve, reject);
+															
+														} else {
+															resolve();
+														}
+														
+													}, true);
+											}
+
+										}, err => {
+
 											this.__getDomains(
 												arr => {
 													
-													if (!arr.includes(val.name)) {
+													if (arr.includes(name)) {
 														
-														arr.push(val.name);
+														arr.remove(arr.indexOf(name));
 														this.__setDomains(arr)
 															.then(resolve, reject);
 														
@@ -646,218 +701,161 @@ class Storage extends EventEmitter  {
 													}
 													
 												}, true);
-											
-										}, reject)
-							})
-					};
-					
-					this.getDomain = (cb, name) => {
+										})
+										
+										
+								}, reject)
+					})
+			};
+
+			this.getOrCreateDomain = (cb, name) => {
+
+				this.__bringItem(
+					domain => {
 						
-						this.__bringItem(cb, name, "Domain");
-					};
-
-					this.removeDomain = (name, in_storage) => {
-
-						return new Promise(
-							(resolve, reject) => {
-
-								this.__removeItem(name, "Domain", in_storage)
-									.then (
-										() => {
-											this.db.getDomains()
-												.then(idx => {
-
-													if (in_storage && idx.includes(name))
-														resolve();
-													else {
-														
-														this.__getDomains(
-															arr => {
-																
-																if (arr.includes(name)) {
-																	
-																	arr.remove(arr.indexOf(name));
-																	this.__setDomains(arr)
-																		.then(resolve, reject);
-																	
-																} else {
-																	resolve();
-																}
-																
-															}, true);
-													}
-
-												}, err => {
-
-													this.__getDomains(
-														arr => {
-															
-															if (arr.includes(name)) {
-																
-																arr.remove(arr.indexOf(name));
-																this.__setDomains(arr)
-																	.then(resolve, reject);
-																
-															} else {
-																resolve();
-															}
-															
-														}, true);
-												})
-											
-											
-										}, reject)
-							})
-					};
-
-					this.getOrCreateDomain = (cb, name) => {
-
-						this.__bringItem(
-							domain => {
-								
-								if (domain)
-									cb(domain);
-								else 
-									cb(new Domain({name: name}));
-								
-							}, name, "Domain");
+						if (domain)
+							cb(domain);
+						else 
+							cb(new Domain({name: name}));
 						
-					};
-
-					this.setDisabledDomains = (array) => {
-						
-						return this.__set('disabled-domains', array);
-						
-					};
-
+					}, name, "Domain");
 				
-					/* Groups: */
-					
-					this.getGroup = (cb, name) => {
+			};
 
-						this.__bringItem(cb, name, "Group");
-						
-					};
+			this.setDisabledDomains = (array) => {
+				
+				return this.__set('disabled-domains', array);
+				
+			};
 
-					this.upsertGroup = (val, in_storage) => {
+			
+			/* Groups: */
+			
+			this.getGroup = (cb, name) => {
 
-						return new Promise (
-							(resolve, reject) => {
+				this.__bringItem(cb, name, "Group");
+				
+			};
 
-								this.__pushItem(val, "Group", in_storage)
-									.then(
-										() => {
+			this.upsertGroup = (val, in_storage) => {
+
+				return new Promise (
+					(resolve, reject) => {
+
+						this.__pushItem(val, "Group", in_storage)
+							.then(
+								() => {
+									
+									this.__getGroups(
+										groups => {
+											
+											if (!groups.includes(val.name)) {
+
+												groups.push(val.name);
+												this.__setGroups(groups)
+													.then(resolve, reject);
+												
+											} else {
+												resolve();
+											}
+											
+										}
+									);
+
+									
+								}, reject)
+					})
+			};
+
+
+			this.removeGroup = (name, in_storage) => {
+
+				return new Promise(
+					(resolve, reject) => {
+
+						this.__removeItem(name, "Group", in_storage)
+							.then (
+								() => {
+									this.db.getGroups()
+										.then(idx => {
+
+											if (in_storage && idx.includes(name)) 
+												resolve();
+											else {
+												
+												this.__getGroups(
+													groups => {
+														
+														if (groups.includes(name)) {
+															
+															groups.remove(groups.indexOf(name));
+															this.__setGroups(groups)
+																.then(resolve, reject);
+															
+														} else {
+															resolve();
+														}
+													}
+												);
+											}
+
+										}, err => {
 											
 											this.__getGroups(
 												groups => {
 													
-													if (!groups.includes(val.name)) {
-
-														groups.push(val.name);
+													if (groups.includes(name)) {
+														
+														groups.remove(groups.indexOf(name));
 														this.__setGroups(groups)
 															.then(resolve, reject);
 														
 													} else {
 														resolve();
 													}
-													
 												}
 											);
+										});
+									
+								}, reject)
+					})
+			};
 
-											
-										}, reject)
-							})
-					};
-
-
-					this.removeGroup = (name, in_storage) => {
-
-						return new Promise(
-							(resolve, reject) => {
-
-								this.__removeItem(name, "Group", in_storage)
-									.then (
-										() => {
-											this.db.getGroups()
-												.then(idx => {
-
-													if (in_storage && idx.includes(name)) 
-														resolve();
-													else {
-															
-														this.__getGroups(
-															groups => {
-																
-																if (groups.includes(name)) {
-																	
-																	groups.remove(groups.indexOf(name));
-																	this.__setGroups(groups)
-																		.then(resolve, reject);
-																	
-																} else {
-																	resolve();
-																}
-															}
-														);
-													}
-
-												}, err => {
-													
-													this.__getGroups(
-														groups => {
-															
-															if (groups.includes(name)) {
-																
-																groups.remove(groups.indexOf(name));
-																this.__setGroups(groups)
-																	.then(resolve, reject);
-																
-															} else {
-																resolve();
-															}
-														}
-													);
-												});
-											
-										}, reject)
-							})
-					};
-
-					this.getOrCreateGroup = (cb, name) => { 
+			this.getOrCreateGroup = (cb, name) => { 
+				
+				this.__bringItem(
+					group => {
 						
-						this.__bringItem(
-							group => {
-								
-								if (group)
-									cb(group);
-								else 
-									cb(new Group({name: name}));
-								
-							}, name, "Group");
-					}
-
-					/* Resources: */
-					this.getResource = (cb, name) => {
+						if (group)
+							cb(group);
+						else 
+							cb(new Group({name: name}));
 						
-						this.__bringItem(cb, name, "Resource");
-						
-					};
+					}, name, "Group");
+			}
 
-					this.setResource = (val, in_storage) => {
+			/* Resources: */
+			this.getResource = (cb, name) => {
+				
+				this.__bringItem(cb, name, "Resource");
+				
+			};
 
-						return this.__pushItem(val, "Resource", in_storage);
-						
-					}
-					
-					this.removeResource = (name, in_storage) => {
+			this.setResource = (val, in_storage) => {
 
-						return this.__removeItem(name, "Resource", in_storage);
-						
-					};
+				return this.__pushItem(val, "Resource", in_storage);
+				
+			}
+			
+			this.removeResource = (name, in_storage) => {
 
-					this.emit('ready');
-				}
-			)
+				return this.__removeItem(name, "Resource", in_storage);
+				
+			};
+
+			this.emit('ready');
+		})
+			
 	}
 	
 }

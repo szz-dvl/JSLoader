@@ -191,100 +191,96 @@ function TabsMgr (bg) {
 	
 	this.showPA = (tabId, changeInfo, tabInfo) => {
 		
-		browser.tabs.get(tabId.tabId || tabId)
-			.then(
-				tabInfo => {
-		
-					var url = new URL(tabInfo.url).sort();
+		chrome.tabs.get(tabId.tabId || tabId,
+			tabInfo => {
+				
+				var url = new URL(tabInfo.url).sort();
+				
+				if (url.hostname && url.protocol != "moz-extension:") {
 					
-					if (url.hostname && url.protocol != "moz-extension:") {
-						
-						this.bg.domain_mgr.haveInfoForUrl(url)
-							.then(
-								any => {
-									
-									let nfo = any ? "red" : "blue";									
-									
-									browser.pageAction.show(tabInfo.id)
-										.then(
-											() => {
-												
-												browser.pageAction.setIcon(
-													{
-														path: {
-															16: browser.extension.getURL("fg/icons/" + nfo + "-diskette-16.png"),
-															32: browser.extension.getURL("fg/icons/" + nfo + "-diskette-32.png")
-																
-														},
-														tabId: tabInfo.id
-													}
-												);
+					this.bg.domain_mgr.haveInfoForUrl(url)
+						.then(
+							any => {
+								
+								let nfo = any ? "red" : "blue";									
+								
+								chrome.pageAction.show(tabInfo.id,
+									() => {
+											
+										chrome.pageAction.setIcon(
+											{
+												path: {
+													16: chrome.extension.getURL("fg/icons/" + nfo + "-diskette-16.png"),
+													32: chrome.extension.getURL("fg/icons/" + nfo + "-diskette-32.png")
+														
+												},
+												tabId: tabInfo.id
 											}
 										);
+									})
 									
-								}, console.error
-							);
-					}
-					
-				});
+							}, console.error
+						);
+				}
+				
+			})
 	};
 	
 	this.updateWdws = (tabId, changeInfo) => {
 		
-		browser.tabs.get(tabId.tabId || tabId)
-			.then(
-				tabInfo => {
+		chrome.tabs.get(tabId.tabId || tabId,
+			tabInfo => {
 					
-					if (tabInfo.active) {
+				if (tabInfo.active) {
+					
+					if (changeInfo) {
+						
+						let deferred = this.isDeferred(tabInfo.id);
 
-						if (changeInfo) {
-
-							let deferred = this.isDeferred(tabInfo.id);
-
-							if (deferred && !deferred.running) {
-								
-								deferred.earlyExecute();
-								
-							}
+						if (deferred && !deferred.running) {
 							
-							if (!deferred) {
-								
-								if (changeInfo.url && changeInfo.status == "complete") {
-									
-									/* Try to handle properly pages that load contents via XHR requests (ng-route & friends) */
-									
-									let frames = this.bg.content_mgr.getMainFramesForTab(tabInfo.id);
-									
-									if (frames.length) {
-										
-										this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
-											.then(
-												scripts => {
-													
-													if (scripts.length) 
-														new deferredXHR(this, tabInfo.id, scripts, frames);
-												
-												}
-											);
-									}	
-								}
-							}
+							deferred.earlyExecute();
+							
 						}
 						
-						let url = new URL(tabInfo.url).sort();
-						
-						for (let editor of this.bg.editor_mgr.editors) 
-							editor.newTab(tabInfo, (url.hostname && url.protocol != "moz-extension:") ? true : false);
+						if (!deferred) {
+							
+							if (changeInfo.url && changeInfo.status == "complete") {
+								
+								/* Try to handle properly pages that load contents via XHR requests (ng-route & friends) */
+								
+								let frames = this.bg.content_mgr.getMainFramesForTab(tabInfo.id);
+								
+								if (frames.length) {
+									
+									this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
+										.then(
+											scripts => {
+												
+												if (scripts.length) 
+													new deferredXHR(this, tabInfo.id, scripts, frames);
+												
+											}
+										);
+								}	
+							}
+						}
 					}
 					
-				});
+					let url = new URL(tabInfo.url).sort();
+					
+					for (let editor of this.bg.editor_mgr.editors) 
+						editor.newTab(tabInfo, (url.hostname && url.protocol != "moz-extension:") ? true : false);
+				}
+					
+		});
 	};
 	
-	browser.tabs.onUpdated.addListener(this.updateWdws);
-	browser.tabs.onActivated.addListener(this.updateWdws);
+	chrome.tabs.onUpdated.addListener(this.updateWdws);
+	chrome.tabs.onActivated.addListener(this.updateWdws);
 	
-	browser.tabs.onUpdated.addListener(this.showPA);
-	browser.tabs.onActivated.addListener(this.showPA);
+	chrome.tabs.onUpdated.addListener(this.showPA);
+	chrome.tabs.onActivated.addListener(this.showPA);
 }
 
 

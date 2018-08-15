@@ -1,6 +1,6 @@
 function TranslationMgr (bg) {
 
-	this.language = browser.i18n.getUILanguage().split("-")[0];
+	this.language = chrome.i18n.getUILanguage().split("-")[0];
 	
 	this.texts = [
 

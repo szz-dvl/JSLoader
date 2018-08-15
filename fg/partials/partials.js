@@ -1053,7 +1053,11 @@ angular.module('jslPartials', [])
 							
 							$scope.times = 100;
 							$scope.copy = $scope.locale.findText("sure");
+<<<<<<< HEAD
 							
+=======
+
+>>>>>>> translations
 							$scope.el.css({
 								
 								'padding-right' : $scope.padding  + 'px',

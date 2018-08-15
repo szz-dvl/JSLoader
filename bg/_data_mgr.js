@@ -252,6 +252,7 @@ function DataMgr (opt) {
 							let scripts = target == this.bg.texts.findText('groups') ?
 													item.scripts :
 													item.haveSite(site).scripts;
+
 							
 							resolve(
 								{

@@ -13,7 +13,11 @@ function BG_mgr () {
 	this.tabs_mgr = new TabsMgr(this);
 	this.proxy_mgr = new ProxyMgr(this);
 	this.resource_mgr = new ResourceMgr(this);
+<<<<<<< HEAD
 	this.texts =  new TranslationMgr(this);
+=======
+	this.texts = new TranslationMgr(this);
+>>>>>>> translations
 	
 	this.getPASite = () => {
 		

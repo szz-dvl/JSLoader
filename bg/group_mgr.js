@@ -15,7 +15,7 @@ function GroupMgr (bg) {
 				this.groups = new_groups;
 		}
 	);
-	
+
 	/* Expensive */
 	this.getGroupsForUrl = (url) => {
 

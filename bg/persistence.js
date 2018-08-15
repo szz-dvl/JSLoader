@@ -443,6 +443,7 @@ class Storage extends EventEmitter  {
 		};
 
 		
+		
 		/* Globals: */
 		this.getGlobals = (cb) => {
 			

@@ -56,6 +56,7 @@ function TranslationMgr (bg) {
 		{id: "included_scripts", en: 'Included Scripts', es: "Scripts incluidos", ca: "Scripts inclosos" },
 		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" },
 	]
+	
 
 	
 	this.findText = (id) => {

@@ -388,9 +388,11 @@ function DomainMgr (bg) {
 									this.bg.group_mgr.getGroupsForUrl(url)
 										.then(groups => {
 
+											let title = this.bg.texts.findText('groups');
+											
 											editInfo.groups.push({
 										
-												title: 'Groups',
+												title: title,
 												actual: 0,
 												total: groups.length,
 												list: []

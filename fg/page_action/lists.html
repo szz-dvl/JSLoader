@@ -2,11 +2,11 @@
 
 	<div
 		ng-if="page.bg.db.available"
-		ng-show="list.title != 'Groups'"
+		ng-show="list.title != page.bg.texts.findText('groups')"
 		style="display: inline-block;"
 		class="origin-mark-sm"
 		ng-click="switchOrigin('domain', list)">
-		
+
 		{{ list.in_storage ? "ST" : "DB" }}
 	</div>
 	
@@ -18,7 +18,7 @@
 
 		<div
 			ng-if="page.bg.db.available"
-			ng-show="list.title == 'Groups'"
+			ng-show="list.title == page.bg.texts.findText('groups')"
 			style="display: inline-block;"
 			class="origin-mark-sm"
 			ng-click="switchOrigin('group', item)">
@@ -60,7 +60,7 @@
 					
 					<td style="float: left;margin-left: 5px;" ng-if="page.bg.content_mgr.framesFor(page.tabId) && !script.disabledAt(page.url)">
 						<button class="browser-style" ng-click="reloadScript(script)" style="margin-left: 5px;text-align: center;">
-							Reload
+							{{ page.bg.texts.findText('reload') }}
 						</button>
 					</td>
 					
@@ -72,7 +72,7 @@
 							ng-click="script.toggleDisableFor(page.url)"
 							style="margin-left: 5px; width: 80px; text-align: center;">
 							
-							{{ script.disabledAt(page.url) ? "Enable" : "Disable" }}
+							{{ script.disabledAt(page.url) ? page.bg.texts.findText('enable') : page.bg.texts.findText('disable') }}
 
 						</button>
 					</td>
@@ -83,7 +83,7 @@
 							ng-click="page.bg.editor_mgr.openEditorInstanceForScript(script)"
 							style="margin-left: 5px; width: 80px; text-align: center;">
 							
-							Edit
+							{{ page.bg.texts.findText('edit') }}
 
 						</button>
 					</td>
@@ -92,8 +92,9 @@
 						<are-u-sure
 							ng-disabled="!canRemove(list, item)"
 							style="margin-left: 5px;width: 80px;"
-							text="'Remove'"
-							action="removeScript(script)">
+							text="page.bg.texts.findText('remove')"
+							action="removeScript(script)"
+							locale="page.bg.texts">
 						</are-u-sure>
 					</td>
 					
@@ -113,7 +114,7 @@
 					ng-if="item.total > 5" 
 					target="item.section"
 					site="item.name"
-					feeding="page.bg[(item.section == 'Groups' ? 'group' : 'domain') + '_mgr'].getScriptsSliceFor" 
+					feeding="page.bg[(item.section == page.bg.texts.findText('groups') ? 'group' : 'domain') + '_mgr'].getScriptsSliceFor" 
 					slice="5" 
 					actual="item.actual" 
 					total="item.total" 
@@ -131,7 +132,7 @@
 					ng-show="list.mustPag()" 
 					target="list.title"
 					site="page.url"
-					feeding="page.bg[(list.title == 'Groups' ? 'group' : 'domain') + '_mgr'].getPASliceFor" 
+					feeding="page.bg[(list.title == page.bg.texts.findText('groups') ? 'group' : 'domain') + '_mgr'].getPASliceFor" 
 					slice="5" 
 					actual="list.actual" 
 					total="list.total" 

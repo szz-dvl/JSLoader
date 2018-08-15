@@ -23,9 +23,9 @@
 	  
 	  <div id="pa-header" class="panel-section panel-section-header" style="display: inline-block">
 
-		  <div class="text-section-header" style="width:80%; display: inline-block">
+		  <div class="text-section-header" style="width:75%; display: inline-block">
 
-			  JSLoader at {{ hostname }}
+			  JSLoader {{ page.bg.texts.findText('at') + " " + hostname }}
 			  
 		  </div>
 
@@ -35,7 +35,7 @@
 			  class="browser-style"
 			  ng-click="disableSite()">
 
-			  {{ disabled ? "Enable" : "Disable" }}
+			  {{ disabled ? page.bg.texts.findText('enable') : page.bg.texts.findText('disable') }}
 
 		  </button>
 		  
@@ -43,9 +43,10 @@
 
 			  ng-if="(info.domains.length || info.groups.length) && page.bg.db.removeable"
 			  style="float: right;"
-			  text="'Remove'"
-			  action="removeSite()">
-			  
+			  text="page.bg.texts.findText('remove')"
+			  action="removeSite()"
+			  locale="page.bg.texts">
+
 		  </are-u-sure>
 
 	  </div>
@@ -55,7 +56,7 @@
 		  <div class="panel-section">
 			  <div id="scripts-content" style="width: 100%;text-align: center;">
 				  
-				  <dd-title val="'scripts_active'" text="'Included scripts'" style="margin: 15px;"></dd-title>
+				  <dd-title val="'scripts_active'" text="page.bg.texts.findText('included_scripts')" style="margin: 15px;"></dd-title>
 				  
 				  <div ng-if="scripts_active">
 
@@ -74,7 +75,7 @@
 					  <no-info ng-if="!info.domains.length && !info.groups[0].total && !page.pa_state.outdated" style="padding-top: 30px;"></no-info>
 						  
 					  <div class="bottom-bucket" style="text-align: center; margin: 10px 0 0 0">
-						  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> Add Script </button>
+						  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> {{ page.bg.texts.findText('add_script') }} </button>
 					  </div>
 					  
 				  </div>

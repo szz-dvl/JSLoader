@@ -420,12 +420,12 @@ function EditorFG (id, bg) {
 		
 		$scope.opts = [
 
-			{text:'Show gutter line', value: self.bg.option_mgr.editor.showGutter, id: "showGutter", type: "checkbox"},
-			{text:'Margin column', value: self.bg.option_mgr.editor.printMarginColumn, id: "printMarginColumn", type: "text"},
-			{text:'Font size', value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text"},
-			{text:'Editor theme', value: self.bg.option_mgr.editor.theme, id: "theme", type: "select"},
-			{text:'Font family', value: self.bg.option_mgr.editor.font, id: "font", type: "select"}
-			
+			{text:self.bg.texts.findText('show_gutter'), value: self.bg.option_mgr.editor.showGutter, id: "showGutter", type: "checkbox"},
+			{text:self.bg.texts.findText('margin_col'), value: self.bg.option_mgr.editor.printMarginColumn, id: "printMarginColumn", type: "text"},
+			{text:self.bg.texts.findText('font_size'), value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text"},
+			{text:self.bg.texts.findText('edit_theme'), value: self.bg.option_mgr.editor.theme, id: "theme", type: "select"},
+			{text:self.bg.texts.findText('font_fam'), value: self.bg.option_mgr.editor.font, id: "font", type: "select"}
+
 		];
 
 		$scope.keyOnHeader = (ev) => {

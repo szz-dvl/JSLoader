@@ -833,7 +833,9 @@ function Group (opt) {
 		return this.persist();
 	};
 	
-	this.isDisabled = (uuid, url_name) => {
+	this.isDisabled = (uuid, urlname) => {
+
+		let url_name = urlname instanceof URL ? urlname.name() : urlname;
 		
 		return this.disabledAt.find(
 			
@@ -846,10 +848,11 @@ function Group (opt) {
 		) ? true : false;
 	}
 
-	this.toggleDisableFor = (uuid, url_name) => {
+	this.toggleDisableFor = (uuid, urlname) => {
 		
 		let idx = -1;
 		let disabled = false;
+		let url_name = urlname instanceof URL ? urlname.name() : urlname;
 		
 		do {
 

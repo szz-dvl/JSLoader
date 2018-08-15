@@ -1,6 +1,6 @@
 <div>	
 	<div>
-		<dd-title val="'resources_active'" text="'Virtual Resources'"></dd-title>
+		<dd-title val="'resources_active'" text="page.bg.texts.findText('virt_res')"></dd-title>
 
 		<label ng-show="resources_active" for="input_filter" style="margin-left: 75px;">
 			<input
@@ -15,8 +15,8 @@
 		
 		<div ng-show="resources_active && data_ok" style="width: 100%;margin-left: 75px;margin-bottom: 45px;">
 
-			<resource-item ng-if="!list.items" resource="list" events="events"></resource-item>
-			<resource-directory ng-if="list.items" name="list.name" items="list.items"  mgr="page.bg.resource_mgr" events="events"> </resource-directory>
+			<resource-item ng-if="!list.items" resource="list" events="events" locale="page.bg.texts"></resource-item>
+			<resource-directory ng-if="list.items" name="list.name" items="list.items"  mgr="page.bg.resource_mgr" events="events" locale="page.bg.texts"> </resource-directory>
 			
 		</div>
 

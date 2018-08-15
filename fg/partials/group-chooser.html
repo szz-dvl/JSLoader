@@ -2,8 +2,8 @@
 	
 	<div style="display: inline-block;" ng-if="(adding || groups.length <= 1)">
 		<group-validator ev="events" group="validating" time="1750"> </group-validator>
-		<button class="browser-style" ng-click="addGroup(validating)" ng-disabled="disabled_btns"> Add group </button>
-		<button ng-if="groups.length > 1" class="browser-style" ng-click="cancelAdd()" ng-disabled="disabled_btns"> Cancel </button>
+		<button class="browser-style" ng-click="addGroup(validating)" ng-disabled="disabled_btns"> {{ locale.findText("add_group") }} </button>
+		<button ng-if="groups.length > 1" class="browser-style" ng-click="cancelAdd()" ng-disabled="disabled_btns"> {{ locale.findText("cancel") }} </button>
 	</div>
 	
 	<select ng-if="(!adding && groups.length > 1)" class="browser-style" ng-model="current" ng-options="group for group in groups track by group" ng-change="selectChange(current)"></select>

@@ -174,7 +174,6 @@ function DataMgr (opt) {
 								
 							}, err => {
 								
-								//console.warn(err);
 								next();
 
 							});
@@ -246,11 +245,11 @@ function DataMgr (opt) {
 		return new Promise(
 			(resolve, reject) => {
 				
-				this.getItem(target == 'Groups' ? site : target)
+				this.getItem(target == this.bg.texts.findText('groups') ? site : target)
 					.then(
 						item => {
 
-							let scripts = target == 'Groups' ?
+							let scripts = target == this.bg.texts.findText('groups') ?
 													item.scripts :
 													item.haveSite(site).scripts;
 							
@@ -287,7 +286,6 @@ function DataMgr (opt) {
 								
 							}, err => {
 								
-								//console.warn(err);
 								next();
 
 							});

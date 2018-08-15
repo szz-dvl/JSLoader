@@ -471,8 +471,8 @@ function PA (bg, info) {
 								self.reload(scr, $compile, $scope);
 							}
 							
-							$scope.data[0].list = self.info.groups[0].list.map(scripts => { return self.itemExtend(scripts, $scope, 'Groups') } );
-							$scope.data[0].visible = self.mustOpen('Groups');
+							$scope.data[0].list = self.info.groups[0].list.map(scripts => { return self.itemExtend(scripts, $scope, self.bg.texts.findText('groups')) } );
+							$scope.data[0].visible = self.mustOpen(self.bg.texts.findText('groups'));
 
 							$scope.data[0].mustPag = () => {
 								
@@ -487,9 +487,9 @@ function PA (bg, info) {
 										$scope.onSizeChange();
 
 										if (nval)
-											self.addOpenedSection('Groups');
+											self.addOpenedSection(self.bg.texts.findText('groups'));
 										else
-											self.removeOpenedSection('Groups');
+											self.removeOpenedSection(self.bg.texts.findText('groups'));
 										
 									}
 								}
@@ -513,7 +513,7 @@ function PA (bg, info) {
 											);
 										
 										if (glist && glist.scripts.length == 1)
-											self.decreasePageIdx('Groups', name);
+											self.decreasePageIdx(self.bg.texts.findText('groups'), name);
 										
 										self.bg.group_mgr.getPASliceFor(
 											$scope.data[0].list.length == 1 && mgr ? ($scope.data[0].actual - 5 < 0 ? 0 : $scope.data[0].actual - 5) : $scope.data[0].actual, 5,
@@ -527,7 +527,7 @@ function PA (bg, info) {
 													
 													$scope.data[0].list = slice.members.map(
 														scripts => {
-															return self.itemExtend(scripts, $scope, 'Groups')
+															return self.itemExtend(scripts, $scope, self.bg.texts.findText('groups'))
 														}
 													);
 												
@@ -557,7 +557,7 @@ function PA (bg, info) {
 									}
 								);
 								
-								self.addPageIdx('Groups', group_name, slice.actual);
+								self.addPageIdx(self.bg.texts.findText('groups'), group_name, slice.actual);
 								
 								elem.scripts = slice.data;
 								elem.actual = slice.actual;
@@ -573,7 +573,7 @@ function PA (bg, info) {
 								
 								$scope.data[0].list = slice.members.map(
 									scripts => {
-										return self.itemExtend(scripts, $scope, 'Groups')
+										return self.itemExtend(scripts, $scope, self.bg.texts.findText('groups'))
 									}
 								);
 								
@@ -634,12 +634,12 @@ function PA (bg, info) {
 												
 												if (group.includes($scope.url)) { 
 
-													$scope.action = "Remove";
+													$scope.action = self.bg.texts.findText('remove');
 													$scope.enabled = group.isMySite($scope.url);
 													
 												} else {
 													
-													$scope.action = "Add";
+													$scope.action = self.bg.texts.findText('add');
 													$scope.enabled = true;
 												}
 												
@@ -677,7 +677,7 @@ function PA (bg, info) {
 							
 							$scope.addSite = () => {
 								
-								let promise = $scope.action == "Add" ?
+								let promise = $scope.action == self.bg.texts.findText('add') ?
 															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
 															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
 								

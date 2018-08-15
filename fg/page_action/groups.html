@@ -2,7 +2,7 @@
 
 	<div style="width: 100%;" id="groups-content">
 		
-		<dd-title val="'groups_active'" text="'Groups'" style="margin: 15px;"></dd-title>
+		<dd-title val="'groups_active'" text="page.bg.texts.findText('groups')" style="margin: 15px;"></dd-title>
 		
 		<div style="display: inline-block; width: 100%; margin-top: 10px;" ng-show="groups_active">
 			
@@ -11,8 +11,6 @@
 				<site-validator style="width:55%;" ev="events" url="url" time="1750"> </site-validator>
 					
 				<div style="float: right;margin-right: 30px">	
-
-					to 
 
 					<select
 						id="groups_box"
@@ -26,10 +24,10 @@
 				
 			</div>	
 
-			<no-info text="'No Groups'" ng-if="!page.bg.group_mgr.groups.length"></no-info>
+			<no-info text="'No' + page.bg.texts.findText('groups')'" ng-if="!page.bg.group_mgr.groups.length"></no-info>
 			
 			<div id="button-bottom" class="bottom-bucket" style="text-align: center; margin: 0;">
-				<button class="browser-style" ng-click="page.bg.showUnattachedEditor(null)"> Add Group Script </button>
+				<button class="browser-style" ng-click="page.bg.showUnattachedEditor(null)"> {{ page.bg.texts.findText('add_group_script') }} </button>
 			</div>
 		</div>
 

@@ -1,6 +1,6 @@
 <div>	
 	<div>
-		<dd-title val="'appdata_active'" text="'Storage'"></dd-title>
+		<dd-title val="'appdata_active'" text="page.bg.texts.findText('storage')"></dd-title>
 		
 		<div ng-show="appdata_active" style="width: 100%;">
 
@@ -8,14 +8,14 @@
 				<thead>
 					<th></th>
 					<th></th>
-					<th style="text-align: center;"> Connected </th>
-					<th style="text-align: center;"> Readable </th>
-					<th style="text-align: center;"> Writeable </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('connected') }} </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('readable') }} </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('writeable') }} </th>
 				</thead>
 				<tbody style="display: table-row-group;">
 					<tr>
 						<td style="width: 20%;">
-							<h2 style="margin: 0;margin-left: 50px;"> Data origin: </h2> <!-- float: right;margin-right: 135px; -->
+							<h2 style="margin: 0;margin-left: 50px;"> {{ page.bg.texts.findText('data_origin') }} </h2> <!-- float: right;margin-right: 135px; -->
 						</td>
 						<td style="width: 60%;">	
 							<input
@@ -54,17 +54,17 @@
 			<table style="display: table;width: 100%;" ng-if="domains.data.length || groups.data.length">
 				<thead>
 					<th></th>
-					<th style="text-align: center;"> Name </th>
-					<th style="text-align: center;" ng-if="page.bg.db.available"> Origin </th>
-					<th style="text-align: center;"> Scripts </th>
-					<th style="text-align: center;"> Sites </th>
-					<th style="text-align: center;"> Actions </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('name') }} </th>
+					<th style="text-align: center;" ng-if="page.bg.db.available"> {{ page.bg.texts.findText('origin') }} </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('scripts') }} </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('sites') }} </th>
+					<th style="text-align: center;"> {{ page.bg.texts.findText('actions') }} </th>
 				</thead>
 				<tbody style="display: table-row-group;">
 					
 					<tr ng-repeat="domain in domains.data track by domain.name">
 						<td>
-							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Domains: </h2>
+							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> {{ page.bg.texts.findText('domains') }} </h2>
 						</td>
 						<td style="text-align: center;">
 							
@@ -88,20 +88,21 @@
 								<are-u-sure
 									ng-disabled="page.bg.db.reconnecting"
 									ng-show="page.bg.db.removeable || domain.in_storage"
-									text="'Remove'"
-									action="removeItem(domain.name, 'domain')">
+									text="page.bg.texts.findText('remove')"
+									action="removeItem(domain.name, 'domain')"
+									locale="page.bg.texts">
 								</are-u-sure>
 								
 								<button ng-if="page.bg.db.writeable && domain.in_storage"
 									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
-									ng-click="moveToDb(domain, 'domain')"> Move to DB 
+									ng-click="moveToDb(domain, 'domain')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
 
 								<button ng-if="page.bg.db.readable && !domain.in_storage"
 									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
-									ng-click="importToST(domain, 'domain')"> Import to ST 
+									ng-click="importToST(domain, 'domain')"> {{ page.bg.texts.findText('import2st') }} 
 								</button>
 								
 							</div>
@@ -112,7 +113,7 @@
 					<br>
 					<tr ng-repeat="group in groups.data track by group.name">
 						<td>
-							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> Groups: </h2>
+							<h2 ng-if="!$index" style="margin: 0;margin-left: 50px;"> {{ page.bg.texts.findText('groups') }} </h2>
 						</td>
 						<td style="text-align: center;">
 							{{ group.name }}
@@ -133,20 +134,21 @@
 								<are-u-sure
 									ng-disabled="page.bg.db.reconnecting"
 									ng-show="page.bg.db.removeable || group.in_storage"
-									text="'Remove'"
-									action="removeItem(group.name, 'group')">
+									text="page.bg.texts.findText('remove')"
+									action="removeItem(group.name, 'group')"
+									locale="page.bg.texts">
 								</are-u-sure>
 								
 								<button ng-if="page.bg.db.writeable && group.in_storage"
 									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
-									ng-click="moveToDb(group, 'group')"> Move to DB 
+									ng-click="moveToDb(group, 'group')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
 
 								<button ng-if="page.bg.db.readable && !group.in_storage"
 									ng-disabled="page.bg.db.reconnecting"
 									class="browser-style"
-									ng-click="importToST(group, 'group')"> Import to ST 
+									ng-click="importToST(group, 'group')"> {{ page.bg.texts.findText('import2st') }} 
 								</button>
 								
 							</div>
@@ -159,20 +161,21 @@
 			<div style="text-align: center;margin-top: 25px;">
 				<input-file
 					ng-file-selected="importData"
-					text="'Import Data'">
+					text="page.bg.texts.findText('import_data')">
 				</input-file>
 				<button class="browser-style"
 					ng-if="domains.data.length || groups.data.length"
-					ng-click="exportData()"> Export Data
+					ng-click="exportData()"> {{ page.bg.texts.findText('export_data') }}
 				</button>
 				<are-u-sure
 					ng-if="domains.data.length || groups.data.length"
-					text="'Clear Data'"
+					text="page.bg.texts.findText('clear_data')"
 					padding="35"
-					action="clearStoredData()">
+					action="clearStoredData()"
+					locale="page.bg.texts">
 				</are-u-sure>
 				<button class="browser-style"
-					ng-click="editUserDefs()"> Edit User Defs
+					ng-click="editUserDefs()"> {{ page.bg.texts.findText('edit_udefs') }}
 				</button>
 			</div>
 			

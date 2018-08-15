@@ -406,31 +406,40 @@ class Storage extends EventEmitter  {
 		super();
 		
 		this.room = "local";
-		this.target = browser.storage[this.room];
+		this.target = chrome.storage[this.room];
 		
 		this.__get = (cb, key) => {
 			
-			this.target.get(key)
-				.then(
-					values => {
+			this.target.get([key],
+				values => {
 						
-						cb(values[key]);
-						
-					}, console.error
-				);	
+					cb(values[key]);
+					
+				}, console.error
+			)
 		};
 		
 		this.__set = (key, val) => {
+
+			return new Promise(
+				(resolve) => {
+					
+					var obj = {};
+					obj[key] = val;
 			
-			var obj = {};
-			obj[key] = val;
-			
-			return this.target.set(obj);
+					this.target.set(obj, resolve);
+
+				})
 		};
 
 		this.__remove = (key) => {
-			
-			return this.target.remove(key);
+
+			return new Promise(
+				(resolve) => {
+
+					return this.target.remove(key, resolve);
+					
+				})
 		};
 
 		

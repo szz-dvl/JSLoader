@@ -425,11 +425,7 @@ function EditorFG (id, bg) {
 			{text:self.bg.texts.findText('font_size'), value: self.bg.option_mgr.editor.fontSize, id: "fontSize", type: "text"},
 			{text:self.bg.texts.findText('edit_theme'), value: self.bg.option_mgr.editor.theme, id: "theme", type: "select"},
 			{text:self.bg.texts.findText('font_fam'), value: self.bg.option_mgr.editor.font, id: "font", type: "select"}
-<<<<<<< HEAD
-			
-=======
 
->>>>>>> translations
 		];
 
 		$scope.keyOnHeader = (ev) => {

@@ -50,7 +50,7 @@ function TranslationMgr (bg) {
 		{id: "enable", en: 'Enable', es: "Activa", ca: "Activa" },
 		{id: "disable", en: 'Disable', es: "Desactiva", ca: "Desactiva" },
 		{id: "edit", en: 'Edit', es: "Editar", ca: "Editar" },
-		{id: "reload", en: 'Reload', es: "Recargar", ca: "Recarregar" },
+		{id: "reload", en: 'Reload', es: "Recargar", ca: "Carrega" },
 		{id: "add_script", en: 'Add Script', es: "Nuevo Script", ca: "Nou Script" },
 		{id: "add_group_script", en: 'Add Group Script', es: "Nuevo Script Grupo", ca: "Nou Script Grup" },
 		{id: "included_scripts", en: 'Included Scripts', es: "Scripts incluidos", ca: "Scripts inclosos" },

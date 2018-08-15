@@ -522,6 +522,7 @@ angular.module('jslPartials', [])
 					locale: "="
 				},
 				
+				
 				templateUrl: function (elem, attr) {
 					
 					return browser.extension.getURL("fg/partials/resource-dir.html");
@@ -1053,11 +1054,7 @@ angular.module('jslPartials', [])
 							
 							$scope.times = 100;
 							$scope.copy = $scope.locale.findText("sure");
-<<<<<<< HEAD
-							
-=======
 
->>>>>>> translations
 							$scope.el.css({
 								
 								'padding-right' : $scope.padding  + 'px',

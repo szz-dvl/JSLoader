@@ -1165,10 +1165,13 @@ function Resource (opt) {
 	};
 
 
-	this.persist = () => {
+	this.persist = (content) => {
 		
 		return new Promise(
 			(resolve, reject) => {
+
+				if (content)
+					this.setTextContent(content);
 				
 				global_storage.setResource(
 			

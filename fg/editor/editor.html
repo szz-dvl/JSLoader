@@ -109,7 +109,7 @@
 		  </button>
 		  
 		  <button 
-			  ng-show="script.persisted && script.parent"
+			  ng-show="script.persisted && script.parent && !script.parent.isResource()"
 			  ng-disabled="(buttons.disabled ? true : (!page.bg.db.available ? false : (page.bg.db.writeable && page.bg.db.removeable ? false : !editor.script.inStorage())))"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="script.remove()">

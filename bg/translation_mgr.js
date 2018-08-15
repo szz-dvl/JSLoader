@@ -54,12 +54,10 @@ function TranslationMgr (bg) {
 		{id: "add_script", en: 'Add Script', es: "Nuevo Script", ca: "Nou Script" },
 		{id: "add_group_script", en: 'Add Group Script', es: "Nuevo Script Grupo", ca: "Nou Script Grup" },
 		{id: "included_scripts", en: 'Included Scripts', es: "Scripts incluidos", ca: "Scripts inclosos" },
-		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" },
+		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" }
+		
 	]
-<<<<<<< HEAD
-=======
 	
->>>>>>> translations
 
 	
 	this.findText = (id) => {

@@ -9,8 +9,6 @@ function EditorWdw (opt) {
 				tabs => {
 					
 					let editor = new Editor(opt);
-					console.log("got editor: ");
-					console.log(editor);
 						
 					if (tabs) {
 						
@@ -54,7 +52,7 @@ function EditorWdw (opt) {
 										let updateInfo = {
 								
 											width: newWdw.width,
-											height: newWdw.height - 1, // 1 pixel more than original size...
+											height: newWdw.height - 1, // 1 pixel less now ...
 								
 										};
 										

@@ -451,9 +451,7 @@ function EditorFG (id, bg) {
 		$scope.editor
 			.on('validation_start',
 				pending => {
-
-					console.log("Validating: " + pending);
-
+					
 					$scope.adding_group = true;
 					
 					if (!$scope.buttons.disabled)	
@@ -648,8 +646,6 @@ function EditorFG (id, bg) {
 				$scope.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
-
-			console.log("done!");
 			
 		});
 	});

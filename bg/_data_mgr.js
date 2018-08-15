@@ -242,8 +242,7 @@ function DataMgr (opt) {
 	};
 
 	this.getScriptsSliceFor = (start, len, target, site) => {
-
-		console.log()
+		
 		return new Promise(
 			(resolve, reject) => {
 				

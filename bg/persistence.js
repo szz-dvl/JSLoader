@@ -290,7 +290,6 @@ class DB extends EventEmitter {
 
 		this.reconnect = (connectionString) => {
 
-			console.log("reconnecting to: " + connectionString)
 			this.connected = false;
 			this.writeable = false;
 			this.readable = false;
@@ -422,9 +421,6 @@ class Storage extends EventEmitter  {
 		};
 		
 		this.__set = (key, val) => {
-
-			console.log("Persisting: " + key);
-			console.log(val);
 			
 			var obj = {};
 			obj[key] = val;
@@ -433,8 +429,6 @@ class Storage extends EventEmitter  {
 		};
 
 		this.__remove = (key) => {
-			
-			console.log("Removing: " + key);
 			
 			return this.target.remove(key);
 		};

@@ -657,8 +657,6 @@ function ResourceMgr (bg) {
 	};
 	
 	this.__traverseVirtFS = (actual, bucket) => {
-
-		console.log("finding: " + actual);
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -737,8 +735,6 @@ function ResourceMgr (bg) {
 	};
 
 	this.traverseVirtFS = (from) => {
-
-		console.log("traversing: " + from);
 		
 		return this.__traverseVirtFS(from, { name: from, items: [] });
 	}
@@ -757,8 +753,6 @@ function ResourceMgr (bg) {
 	};
 	
 	this.getVirtFS = (from) => {
-
-		console.log("getting: " + from);
 		
 		return new Promise(
 			(resolve, reject) => {

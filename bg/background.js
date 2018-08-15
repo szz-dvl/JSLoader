@@ -53,8 +53,7 @@ function BG_mgr () {
 							
 						},
 						() => {
-
-							//this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+							
 							this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
 							
 						}
@@ -179,4 +178,4 @@ global_storage.once('ready', () => {
 
 /* browser.storage.local.clear(); */
 
-
+console.log(Components);

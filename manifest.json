@@ -30,6 +30,7 @@
 			"bg/tabs_mgr.js",
 			"bg/resource_mgr.js",
 			"bg/content_mgr.js",
+			"bg/translation_mgr.js",
 			"bg/background.js"
 		]
 	},

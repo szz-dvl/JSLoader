@@ -29,7 +29,7 @@
 			ng-disabled="in_progress"
 			ng-show="resource.type.includes('text')"
 			ng-click="editResource()">
-			Edit Source
+			{{ locale.findText('edit_src') }}
 		</button>
 
 		<button
@@ -37,7 +37,7 @@
 			class="browser-style"
 			ng-disabled="in_progress"
 			ng-click="removeSelf()">
-			Remove
+			{{ locale.findText('remove') }}
 		</button>
 		
 		<img src="../icons/ko_tick.png"

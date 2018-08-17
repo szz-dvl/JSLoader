@@ -41,7 +41,7 @@ function BG_mgr () {
 	
 	this.showEditorForCurrentTab = () => {
 		
-		browser.tabs.query({currentWindow: true, active: true})
+		browser.tabs.query({active: true, windowType: "normal"})
 			.then(tab_info => {
 				
 				this.content_mgr.forceMainFramesForTab(tab_info[0].id)
@@ -175,7 +175,4 @@ global_storage.once('ready', () => {
 	
 	BG_mgr.call(this);
 
-})
-
-
-/* browser.storage.local.clear(); */
+});

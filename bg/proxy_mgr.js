@@ -23,13 +23,22 @@ function ProxyMgr (bg) {
 					} 
 
 					if (!error) {
-						
-						browser.runtime.sendMessage(
+
+						try {
 							
-							{ host: hostname, proxy: proxy, times: times },
-							{ toProxyScript: true }
+							browser.runtime.sendMessage(
 							
-						).then(resolve, reject);
+								{ host: hostname, proxy: proxy, times: times },
+								{ toProxyScript: true }
+								
+							).then(resolve, reject);
+
+						} catch(e) {
+
+							console.error("SendMessage fails: ");
+							console.error(e);
+							reject(e);
+						}
 					}
 					
 				});

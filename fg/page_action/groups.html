@@ -24,7 +24,7 @@
 				
 			</div>	
 
-			<no-info text="'No' + page.bg.texts.findText('groups')'" ng-if="!page.bg.group_mgr.groups.length"></no-info>
+			<no-info text="page.bg.texts.findText('no_groups')" ng-if="!page.bg.group_mgr.groups.length"></no-info>
 			
 			<div id="button-bottom" class="bottom-bucket" style="text-align: center; margin: 0;">
 				<button class="browser-style" ng-click="page.bg.showUnattachedEditor(null)"> {{ page.bg.texts.findText('add_group_script') }} </button>

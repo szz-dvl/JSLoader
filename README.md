@@ -41,7 +41,7 @@ With all this dependencies satisfied you are now ready to go.
 For GNU/Linux based OS users:
 
 ```
-git clone https://github.com/szz-dvl/JSLoader.git
+git clone --recurse-submodules https://github.com/szz-dvl/JSLoader.git
 cd JSLoader
 ./build
 

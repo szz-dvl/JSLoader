@@ -80,7 +80,7 @@ function PAC () {
 			}
 			
 		}
-
+		
 		//browser.runtime.sendMessage(`Proxy listener: ${message} > ` + JSON.stringify(message))
 			
 		return Promise.resolve(this.filtered.length);

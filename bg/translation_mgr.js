@@ -54,7 +54,10 @@ function TranslationMgr (bg) {
 		{id: "add_script", en: 'Add Script', es: "Nuevo Script", ca: "Nou Script" },
 		{id: "add_group_script", en: 'Add Group Script', es: "Nuevo Script Grupo", ca: "Nou Script Grup" },
 		{id: "included_scripts", en: 'Included Scripts', es: "Scripts incluidos", ca: "Scripts inclosos" },
-		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" }
+		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" },
+		{id: "no_groups", en: 'No Groups', es: "Sin Grupos", ca: "No Grups" },
+		{id: "search_path", en: 'Search path ...', es: "Buscar ruta ...", ca: "Buscar ruta ..." }
+		
 		
 	]
 	

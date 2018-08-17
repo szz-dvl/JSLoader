@@ -40,27 +40,30 @@ function BG_mgr () {
 	};
 	
 	this.showEditorForCurrentTab = () => {
-		
-		chrome.tabs.query({currentWindow: true, active: true},
+
+		/* WIM */
+		chrome.tabs.query({active: true, windowType: "normal"},
 			tab_info => {
 				
-				this.content_mgr.forceMainFramesForTab(tab_info[0].id)
-					.then(
-						() => {
-							
-							if (tab_info[0].url.startsWith("file://"))
-								this.notify_mgr.info("Local files won't accept content scripts ... =(");
-							else
-								this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
-							
-						},
-						() => {
-							
-							this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
-							
-						}
-					);
-				
+				if (tab_info.length) {
+
+					this.content_mgr.forceMainFramesForTab(tab_info[0].id)
+						.then(
+							() => {
+								
+								if (tab_info[0].url.startsWith("file://"))
+									this.notify_mgr.info("Local files won't accept content scripts ... =(");
+								else
+									this.editor_mgr.openEditorInstanceForTab(tab_info[0]);
+								
+							},
+							() => {
+								
+								this.notify_mgr.info("Content scripts not available: This page seems to be blocking your scripts ... =(");
+								
+							}
+						);
+				}
 			}
 		)
 	};

@@ -576,17 +576,18 @@ function ResourceMgr (bg) {
 							
 							/* To check: getCurrent() when editor is opened (filtering types) ===> null? */
 							
-							browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
-								.then(wdws => {
-									browser.tabs.create({ active: true, url: resource.load(), windowId: wdws[0].id })
-										.then(tab => {
-
+							chrome.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] },
+								wdws => {
+									chrome.tabs.create({ active: true, url: resource.load(), windowId: wdws[0].id },
+										tab => {
+											
 											URL.revokeObjectURL(url);
 
-										}, reject);
-									
-								}, reject);
-							
+										}
+									)
+								}
+							)
+								
 						} else {
 							
 							reject(new Error("Trying to view unexisting resource: " + name));

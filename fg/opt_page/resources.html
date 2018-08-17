@@ -2,9 +2,10 @@
 	<div>
 		<dd-title val="'resources_active'" text="page.bg.texts.findText('virt_res')"></dd-title>
 
+		<!-- WIM --> 
 		<label ng-show="resources_active" for="input_filter" style="margin-left: 75px;">
 			<input
-				placeholder="Search path ..." 
+				placeholder="{{ page.bg.texts.findText('search_path') }}"
 				id="input_filter"
 				style="width: 65%; margin-bottom: 15px;"
 				class="browser-style"

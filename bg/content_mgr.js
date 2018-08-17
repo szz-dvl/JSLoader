@@ -237,7 +237,7 @@ function CSMgr (bg) {
 			(resolve, reject) => {
 
 				let promise = reload
-					? browser.tabs.reload(tabId, {bypassCache: false})
+					? new Promise (resolve => { chrome.tabs.reload(tabId, {bypassCache: false}, resolve) })
 					: Promise.resolve();
 				
 				promise.then(
@@ -255,7 +255,7 @@ function CSMgr (bg) {
 									resolve();
 									
 								} else {
-									
+
 									timeout --;
 									
 									if (timeout == 0) {
@@ -278,15 +278,16 @@ function CSMgr (bg) {
 
 				let frames = this.getMainFramesForTab(tabId);
 				
-				if (frames.length)
+				if (frames.length) {
+					
 					resolve(frames);
 
-				else {
-					
+				} else {
+
 					this.__waitForFrames(tabId, reload)
 						.then(
-							frames => {
-							
+							() => {
+								
 								resolve(this.getMainFramesForTab(tabId));
 							
 							}, reject

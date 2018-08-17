@@ -32,7 +32,7 @@ angular.module('jslPartials', [])
 				},
 				
 				templateUrl: function (elem, attr) {
-					return browser.extension.getURL("fg/partials/drop-down.html");
+					return chrome.extension.getURL("fg/partials/drop-down.html");
 				},
 
 				link: function($scope, element, attrs){
@@ -94,7 +94,7 @@ angular.module('jslPartials', [])
 				},
 				
 				templateUrl: function (elem, attr) {
-					return browser.extension.getURL("fg/partials/drop-title.html");
+					return chrome.extension.getURL("fg/partials/drop-title.html");
 				},
 
 				controller: function ($scope) {
@@ -213,7 +213,7 @@ angular.module('jslPartials', [])
 
 			templateUrl: function (elem, attr) {
 				
-				return browser.extension.getURL("fg/partials/paginator.html");
+				return chrome.extension.getURL("fg/partials/paginator.html");
 				
 			},
 
@@ -298,7 +298,7 @@ angular.module('jslPartials', [])
 
 			templateUrl: function (elem, attr) {
 				
-				return browser.extension.getURL("fg/partials/editor-sett.html");
+				return chrome.extension.getURL("fg/partials/editor-sett.html");
 				
 			},
 
@@ -525,7 +525,7 @@ angular.module('jslPartials', [])
 				
 				templateUrl: function (elem, attr) {
 					
-					return browser.extension.getURL("fg/partials/resource-dir.html");
+					return chrome.extension.getURL("fg/partials/resource-dir.html");
 					
 				},
 
@@ -895,7 +895,7 @@ angular.module('jslPartials', [])
 				
 				templateUrl: function (elem, attr) {
 					
-					return browser.extension.getURL("fg/partials/resource-item.html");
+					return chrome.extension.getURL("fg/partials/resource-item.html");
 					
 				},
 
@@ -1165,7 +1165,7 @@ angular.module('jslPartials', [])
 
 				templateUrl: function (elem, attr) {
 					
-					return browser.extension.getURL("fg/partials/group-chooser.html");
+					return chrome.extension.getURL("fg/partials/group-chooser.html");
 					
 				},
 
@@ -1406,13 +1406,13 @@ angular.module('jslPartials', [])
 				
 				templateUrl: function (elem, attr) {
 					
-					return browser.extension.getURL("fg/partials/ace-frame.html");
+					return chrome.extension.getURL("fg/partials/ace-frame.html");
 
 				},
 				
 				controller: function ($scope) {
 					
-					$scope.src = browser.extension.getURL("fg/partials/ace-inline.html");
+					$scope.src = chrome.extension.getURL("fg/partials/ace-inline.html");
 
 				}
 				

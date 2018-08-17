@@ -100,12 +100,12 @@ function PA (bg, info) {
 								
 								$scope.info = self.info = info;
 								
-								browser.pageAction.setIcon(
+								chrome.pageAction.setIcon(
 									{
 										path: {
 
-											16: browser.extension.getURL("fg/icons/blue-diskette-16.png"),
-											32: browser.extension.getURL("fg/icons/blue-diskette-32.png")
+											16: chrome.extension.getURL("fg/icons/blue-diskette-16.png"),
+											32: chrome.extension.getURL("fg/icons/blue-diskette-32.png")
 												
 										},
 										
@@ -727,26 +727,24 @@ function PA (bg, info) {
 }
 
 /* !! catch error !! */
-browser.runtime.getBackgroundPage()
-	.then(
-		page => {
+chrome.runtime.getBackgroundPage(
+	page => {
 
-			page.pa_events = new EventEmitter();
+		page.pa_events = new EventEmitter();
 
-			$(window).unload(() => {
-				
-				page.pa_events = null;
-				
-			});
+		$(window).unload(() => {
 			
-			page.getPASite()
-				.then(
-					info => {
-						
-						new PA(page, info);
-						
-					}
-				);
+			page.pa_events = null;
 			
-		}
-	);
+		});
+		
+		page.getPASite()
+			.then(
+				info => {
+					
+					new PA(page, info);
+					
+				}
+			);
+		
+	})

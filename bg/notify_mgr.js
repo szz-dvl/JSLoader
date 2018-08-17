@@ -6,9 +6,9 @@ function NotificationMgr (bg) {
 
 		let id = UUID.generate().split("-").pop();
 		
-		browser.notifications.create(id, {
+		chrome.notifications.create(id, {
 			"type": "basic",
-			"iconUrl": browser.extension.getURL("fg/icons/error.png"),
+			"iconUrl": chrome.extension.getURL("fg/icons/error.png"),
 			"priority": 2,
 			"title": 'Error',
 			"message": message instanceof Error ? message.message : message,
@@ -21,9 +21,9 @@ function NotificationMgr (bg) {
 
 		let id = UUID.generate().split("-").pop();
 		
-		browser.notifications.create(id, {
+		chrome.notifications.create(id, {
 			"type": "basic",
-			"iconUrl": browser.extension.getURL("fg/icons/info.png"),
+			"iconUrl": chrome.extension.getURL("fg/icons/info.png"),
 			"priority": 2,
 			"title": "Info",
 			"message": message
@@ -36,9 +36,9 @@ function NotificationMgr (bg) {
 
 		let id = UUID.generate().split("-").pop();
 		
-		browser.notifications.create(id, {
+		chrome.notifications.create(id, {
 			"type": "basic",
-			"iconUrl": browser.extension.getURL("fg/icons/Diskette_32.png"),
+			"iconUrl": chrome.extension.getURL("fg/icons/Diskette_32.png"),
 			"priority": 2,
 			"title": title,
 			"message": message

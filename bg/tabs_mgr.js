@@ -6,7 +6,7 @@ function JSLTab (tabInfo, feeding) {
 	this.id = parseInt(this.id);
 	
 	this.feeding = feeding;
-	this.run = function (scripts) {
+	this.run = (scripts) => {
 		
 		return new Promise(
 			(resolve, reject) => {
@@ -130,13 +130,14 @@ function TabsMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				browser.tabs.query({ currentWindow: true, active: true })
-					.then(
-						tab_info => {
+				chrome.tabs.query({ currentWindow: true, active: true },
+					tab_info => {
 
-							resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
-
-						}, reject);
+						resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
+						
+					}
+				)
+					
 			});
 	};
 

@@ -21,7 +21,7 @@ function OP (bg) {
 				resolve: {
 					dataDomains: () => { return self.bg.domain_mgr.getSlice(0, 5); },
 					dataGroups: () => { return self.bg.group_mgr.getSlice(0, 5); },
-					storageContent: () => { return browser.storage.local.get(); },
+					storageContent: () => { return new Promise (resolve =>  { chrome.storage.local.get(null, resolve)}); },
 					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }  //return Promise.resolve({name: "/", items: []}) , return self.bg.resource_mgr.getVirtFS("/");
 				},
 				
@@ -466,18 +466,16 @@ function OP (bg) {
 	);
 }
 
-browser.runtime.getBackgroundPage()
-	.then(
-		page => {
+chrome.runtime.getBackgroundPage(
+	page => {
 			
-			page.option_mgr.events = new EventEmitter();
+		page.option_mgr.events = new EventEmitter();
 			
-			window.onbeforeunload = function () {
+		window.onbeforeunload = function () {
 				
-				page.option_mgr.events = null;
+			page.option_mgr.events = null;
 				
-			}
-			
-			new OP(page);				
 		}
-	);
+			
+		new OP(page);				
+	});

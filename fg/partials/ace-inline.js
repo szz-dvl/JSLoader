@@ -49,10 +49,10 @@ function AceInline (bg) {
 	);	
 }
 
-browser.runtime.getBackgroundPage()
-	.then(
-		page => {
+chrome.runtime.getBackgroundPage(
+	page => {
 			
-			AceInline.call(this, page);
-		}
-	);
+		AceInline.call(this, page);
+		
+	});
+	

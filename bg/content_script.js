@@ -111,8 +111,8 @@ function ContentScript() {
 		);
 	};
 
-	this.port = browser.runtime.connect({name:"CS_" + this.id});
-
+	this.port = chrome.runtime.connect({name:"CS_" + this.id});
+	
 	CSApi.call(this);
 	
 	this.port.onMessage.addListener(

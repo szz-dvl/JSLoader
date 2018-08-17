@@ -380,12 +380,12 @@ function EditorFG (id, bg) {
 
 											if ($scope.editor.script.includedAt($scope.editor.tab.url)) {
 												
-												browser.pageAction.setIcon(
+												chrome.pageAction.setIcon(
 													{
 														path: {
 															
-															16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
-															32: browser.extension.getURL("fg/icons/red-diskette-32.png")
+															16: chrome.extension.getURL("fg/icons/red-diskette-16.png"),
+															32: chrome.extension.getURL("fg/icons/red-diskette-32.png")
 																
 														},
 														
@@ -658,13 +658,12 @@ function EditorFG (id, bg) {
 	
 }
 
-browser.runtime.getBackgroundPage()
-	.then(
-		page => {
+chrome.runtime.getBackgroundPage(
+	page => {
 			
-			let id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
+		let id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
+		
+		new EditorFG(id, page);
 			
-			new EditorFG(id, page);
-			
-		},
-	);
+	}
+)

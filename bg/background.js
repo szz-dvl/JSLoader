@@ -41,8 +41,8 @@ function BG_mgr () {
 	
 	this.showEditorForCurrentTab = () => {
 		
-		browser.tabs.query({currentWindow: true, active: true})
-			.then(tab_info => {
+		chrome.tabs.query({currentWindow: true, active: true},
+			tab_info => {
 				
 				this.content_mgr.forceMainFramesForTab(tab_info[0].id)
 					.then(
@@ -61,7 +61,8 @@ function BG_mgr () {
 						}
 					);
 				
-			}, console.error);
+			}
+		)
 	};
 
 	this.showUnattachedEditor = (group_name) => {
@@ -80,7 +81,7 @@ function BG_mgr () {
 		return new Promise(
 			(resolve, reject) => {
 				
-				fetch(browser.extension.getURL(path))
+				fetch(chrome.extension.getURL(path))
 					.then(
 						response => {
 							
@@ -106,7 +107,7 @@ function BG_mgr () {
 				
 			case "open-option-page-devel":
 			case "open-option-page":
-				browser.runtime.openOptionsPage();
+				chrome.runtime.openOptionsPage();
 				break;
 				
 			default:

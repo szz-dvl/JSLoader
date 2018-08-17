@@ -3,7 +3,7 @@ function EditorWdw (opt) {
 	return new Promise (
 		(resolve, reject) => {
 			
-			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : browser.tabs.query({ active: true, windowType: "normal" });
+			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : new Promise (resolve => { chrome.tabs.query({ active: true, windowType: "normal" }, resolve) });
 
 			promise.then(
 				tabs => {
@@ -18,54 +18,21 @@ function EditorWdw (opt) {
 							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
 					}
 					
-					browser.windows.create({
+					chrome.windows.create({
 						
 						type: "popup",
 						state: "normal",
-						url: browser.extension.getURL("fg/editor/editor.html?" + editor.id),
+						url: chrome.extension.getURL("fg/editor/editor.html?" + editor.id),
 						width: Math.min(1024, screen.width), 
 						height: 420 
 						
-					}).then (
-						wdw => {
+					},wdw => {
 							
-							editor.wdw = wdw;
-							
-							/* 
-							   Workaround to avoid blank windows: 
-							   
-							   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
-					 
-							 */
-							
-							let updateInfo = {
-								
-								width: wdw.width,
-								height: wdw.height + 1, // 1 pixel more than original size...
-								
-							};
-							
-							browser.windows.update(wdw.id, updateInfo)
-								.then(
-									newWdw => {
-
-										let updateInfo = {
-								
-											width: newWdw.width,
-											height: newWdw.height - 1, // 1 pixel less now ...
-								
-										};
-										
-										browser.windows.update(wdw.id, updateInfo)
-											.then(
-												newWdw => {
-													resolve(editor);								
-												}
-											)
-									}, reject
-								);
-							
-						}, reject);
+						editor.wdw = wdw;
+						resolve(editor);
+						
+						}
+					)
 					
 				}, reject);
 		});	
@@ -130,8 +97,6 @@ class Editor extends EventEmitter {
 							} else {
 
 								/* ... Otherwise disallow run for the script on this tab */
-
-								/* this.tab.outdated = true; */
 								
 								this.emit('new_tab', false, false);
 							}

@@ -4,10 +4,10 @@
   <head>
 	
 	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self';">
-	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
 	  <link rel="stylesheet" href="editor.css"/>
 	  <link rel="stylesheet" href="../styles/jsl.css"/>
-
+	  <link rel="stylesheet" href="../styles/extension.css">
+	  
 	  <script src="../deps/jquery.min.js"></script>
 	  <script src="../deps/angular.min.js"></script>
 	
@@ -32,7 +32,7 @@
 		  
 	      <!-- ¿button toggle on ng-mouseenter here? -->
 		  <div id="editor-header" class="panel-section panel-section-header">
-			  <div class="text-section-header" style="display: inline-block;width: 100%">
+			  <div class="text-section-header" style="display: inline-block;width: 100%;">
 				  
 				  <script-name script="script" ng-if="!script.parent.isResource()" onlyval="true" style="width: 15%;display: inline-block;float: left"></script-name>
 				  <bdi style="float: left;" ng-if="script.parent.isResource()">  {{ page.bg.texts.findText("resource") }} </bdi> <bdi style="float: inline-start;margin: 0 15px 0 15px;">||</bdi>
@@ -87,7 +87,7 @@
 		  
 	  </div>
 	    
-	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999;">
+	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999; margin: auto;">
 		  
 		  <button 
 			  ng-disabled="(buttons.disabled ? true : (!script.parent ? false : (!page.bg.db.available ? false : (page.bg.db.writeable ? false : !editor.script.inStorage()))))"

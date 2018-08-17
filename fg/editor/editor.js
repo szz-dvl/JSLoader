@@ -403,10 +403,19 @@ function EditorFG (id, bg) {
 										}
 										
 										$scope.$digest();
+
+									}, err => {
+
+										$scope.enableButtons();
+										console.error(err);
 									}
 								)
 
-						}, err => { console.error(err); }
+						}, err => {
+
+							$scope.enableButtons();
+							console.error(err);
+						}
 					);
 					
 				} else {

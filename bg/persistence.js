@@ -607,7 +607,12 @@ class Storage extends EventEmitter  {
 							} else {
 
 								this.db['remove' + type](name)
-									.then(resolve, reject);
+									.then(resolve, err => {
+
+										this.__remove(type.toLowerCase() + '-' + name)
+											.then(resolve, reject);
+
+									});
 							}
 							
 						})

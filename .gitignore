@@ -1,6 +1,5 @@
 *~
 #*
 jsload-unsigned.xpi
-push
-push_*
-edit_*
+push*
+edit*

@@ -1,6 +1,5 @@
 *~
 #*
 jsload-unsigned.xpi
-push
-push_chrome
-push_master
+push*
+edit*

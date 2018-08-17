@@ -90,8 +90,8 @@ function TabsMgr (bg) {
 	this.getTabsForURL = (url) => {
 		
 		return new Promise(
-			(resolve,reject) => {
-
+			(resolve) => {
+				
 				var url_name;
 				
 				if (typeof(url) == "string") {
@@ -108,9 +108,9 @@ function TabsMgr (bg) {
 							url_name = "*/" + url.split("/").slice(1).join("/");
 						else
 							url_name = url;
-
+						
 					} else {
-
+						
 						url_name = url;
 					}
 					
@@ -119,8 +119,7 @@ function TabsMgr (bg) {
 				
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				
-				browser.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] })
-					.then(resolve, reject);
+				chrome.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] }, resolve)
 			}
 		)
 	};
@@ -162,11 +161,10 @@ function TabsMgr (bg) {
 								let aux = url.includes("://") ? url : 'https://' + url;
 								
 								/* !!! */
-								browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
-									.then(wdws => {
-										browser.tabs.create({ active: true, url: aux, windowId: wdws[0].id })
-											.then(resolve, reject);
-									}, reject);
+								chrome.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] },
+									wdws => {
+										chrome.tabs.create({ active: true, url: aux, windowId: wdws[0].id }, resolve)		
+									})
 							}
 							
 						}, reject);
@@ -207,7 +205,7 @@ function TabsMgr (bg) {
 								
 								chrome.pageAction.show(tabInfo.id,
 									() => {
-											
+										
 										chrome.pageAction.setIcon(
 											{
 												path: {

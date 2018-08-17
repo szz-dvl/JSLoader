@@ -403,10 +403,20 @@ function EditorFG (id, bg) {
 										}
 										
 										$scope.$digest();
+
+									}, err => {
+										
+										$scope.enableButtons();
+										
 									}
 								)
 
-						}, err => { console.error(err); }
+						}, err => {
+
+							$scope.enableButtons();
+							console.error(err);
+							/* WIM */
+						}
 					);
 					
 				} else {

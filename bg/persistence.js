@@ -611,9 +611,14 @@ class Storage extends EventEmitter  {
 							.then(resolve, reject);
 						
 					} else {
-
+						/* WIM */
 						this.db['remove' + type](name)
-							.then(resolve, reject);
+							.then(resolve, err => {
+
+								this.__set(type.toLowerCase() + '-' + val.name, val)
+									.then(resolve, reject);
+								
+							});
 					}
 					
 				})

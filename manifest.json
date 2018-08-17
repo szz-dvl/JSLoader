@@ -56,7 +56,6 @@
 	],
 	
 	"options_ui": {
-		"chrome_style": true,
 		"open_in_tab": true,
 		"page": "fg/opt_page/options.html"
 	},
@@ -64,25 +63,19 @@
 	"commands": {
 		"add-script-for-tab": {
 			"suggested_key": {
-				"linux": "Alt+Shift+1"
+				"default": "Alt+Shift+1"
 			},
 			"description": "Open a new editor window, binded to the current tab."
 		},
 		"new-group-new-script": {
 			"suggested_key": {
-				"linux": "Alt+Shift+2"
+				"default": "Alt+Shift+2"
 			},
 			"description": "Create new group, ¿adds the current site? and binds a new script."
 		},
 		"open-option-page": {
 			"suggested_key": {
-				"linux": "Alt+Shift+O"
-			},
-			"description": "Shows configuration menu."
-		},
-		"open-option-page-devel": {
-			"suggested_key": {
-				"linux": "Alt+Shift+Q"
+				"default": "Alt+Shift+Q"
 			},
 			"description": "Shows configuration menu."
 		}
@@ -90,6 +83,6 @@
 
 	"content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'; img-src 'self'",
 	
-	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "contextMenus", "activeTab", "webRequest", "webRequestBlocking", "proxy", "nativeMessaging" ]
+	"permissions": [ "storage", "tabs", "cookies", "notifications", "<all_urls>", "downloads", "activeTab", "proxy", "nativeMessaging" ]
 	
 }

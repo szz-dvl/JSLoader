@@ -484,7 +484,7 @@ function DomainMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				script.remove()
+				script.remove() /* BUG: new created domains */
 					.then(
 						() => {
 							

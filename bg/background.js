@@ -108,7 +108,6 @@ function BG_mgr () {
 				this.showUnattachedEditor(null);
 				break;
 				
-			case "open-option-page-devel":
 			case "open-option-page":
 				chrome.runtime.openOptionsPage();
 				break;

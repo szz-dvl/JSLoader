@@ -557,10 +557,13 @@ class Storage extends EventEmitter  {
 							switch (type) {
 								case "Domain":
 									cb(item ? new Domain(item) : null);
+									break;
 								case "Group":
 									cb(item ? new Group(item) : null);
+									break;
 								case "Resource":
 									cb(item ? (item.dir ? new ResourceDir(item) : new Resource(item)) : null);
+									break;
 								default:
 									break;
 							}

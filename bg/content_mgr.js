@@ -395,38 +395,45 @@ function CSMgr (bg) {
 				});
 	};
 	
-	this.contentSetProxy = (port, tag, host, proxy, times) => {
-		
-		this.bg.proxy_mgr.updatePAC(host, proxy, times)
+	this.contentSetProxy = (port, tag, host, proxy) => {
+
+		this.bg.proxy_mgr.setProxyFor(host, proxy)
 			.then(
-				length => {
+				() => {
 					
 					this.__postTaggedResponse(port, tag,
 						
 						{
-							status: length >= 0,
+							status: true,
 							content: {
 								proxy: proxy,
-								host: host,
-								times: times
+								host: host
 							}
 							
 						});
 					
-				}, err => {
+				});
+	};
+
+	this.__contentClearProxy = (port, tag) => {
+
+		
+		this.bg.proxy_mgr.clearProxy()
+			.then(
+				() => {
+
 					this.__postTaggedResponse(port, tag,
-						
-						{ status: false,
+						{
+							status: true,
 							
-							content: {
-								
-								err: err.message
-							}
 						}
 					);
 					
-				});
+				}
+			);
 	};
+
+	
 	
 	this.contentDownload = (port, tag, options) => {
 		
@@ -716,7 +723,11 @@ function CSMgr (bg) {
 									break;
 									
 								case "set-proxy":
-									this.contentSetProxy(port, args.tag, args.message.host, args.message.proxy, args.message.times);
+									this.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
+									break;
+
+								case "clear-proxy":
+									this.__contentClearProxy(port, args.tag);
 									break;
 									
 								case "download-file":

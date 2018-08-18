@@ -1,45 +1,37 @@
 function ProxyMgr (bg) {
 
-	this.updatePAC = (hostname, proxy, times) => {
+	this.setProxyFor = (hostname, proxy) => {
 
-		if (times < 1)
-
-			return Promise.reject(new Error("Bad amount: " + times));
-		
-		else {
-			
-			return new Promise(
-				(resolve, reject) => {
-					
-					let error = false;
-					
-					if (proxy) {
+		return new Promise (
+			resolve => {
+				chrome.proxy.settings.set(
+					{value: {
+						mode: "pac_script",
+						pacScript: {
+							data: "function FindProxyForURL(url, host) {\n" +
+								"  if (host == '" + hostname + "')\n" +
+								"    return 'PROXY " + proxy.host + ":" + proxy.port + "';\n" +
+								"  return 'DIRECT';\n" +
+								"}"
+						}
 						
-						if (!proxy.host || !proxy.port || !proxy.type) {
-							
-							reject(new Error("Bad proxy: " + JSON.stringify(proxy)));
-							error = true;
-						} 
-					} 
-
-					if (!error) {
-						
-						browser.runtime.sendMessage(
-							
-							{ host: hostname, proxy: proxy, times: times },
-							{ toProxyScript: true }
-							
-						).then(resolve, reject);
-					}
-					
-				});
-		}
+					}, scope: 'regular'}, resolve)
+			}
+		);
 	}
-	
-	chrome.proxy.onProxyError.addListener(error => {
-		console.error(`JSL Proxy error: ${error.message}`);
-	});
-	
-	chrome.proxy.register("pac.js");
+
+	this.clearProxy = () => {
+
+		return new Promise (
+			resolve => {
+
+				chrome.proxy.settings.clear(
+					{scope: 'regular'},
+					resolve
+				);
+			
+			}
+		);
+	}
 }
 

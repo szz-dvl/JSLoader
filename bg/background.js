@@ -11,7 +11,7 @@ function BG_mgr () {
 	this.editor_mgr = new EditorMgr(this);
 	this.notify_mgr = new NotificationMgr(this);
 	this.tabs_mgr = new TabsMgr(this);
-	//this.proxy_mgr = new ProxyMgr(this);
+	this.proxy_mgr = new ProxyMgr(this);
 	this.resource_mgr = new ResourceMgr(this);
 	this.texts = new TranslationMgr(this);
 	

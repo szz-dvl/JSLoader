@@ -16,7 +16,7 @@ function HttpRequest (opt, cs) {
 			
 			let promise = this.proxy
 						? cs.__getMessageResponse("set-proxy",
-							{ host: self.url.hostname, proxy: self.proxy, times: 1 })
+							{ host: self.url.hostname, proxy: self.proxy })
 				
 				: Promise.resolve();  
 			
@@ -25,24 +25,63 @@ function HttpRequest (opt, cs) {
 				this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
 			
 			promise.then(
-				responses => {
+				response => {
 				
 					this.rq.open(this.method, this.url.href);
 					
 					this.rq.onreadystatechange = () => {
-						
-						if (this.rq.readyState >= this.enoughState)
-							resolve (this.rq);
+
+						if (this.rq.readyState >= this.enoughState) {
+
+							if (this.proxy) {
+
+								cs.__getMessageResponse("clear-proxy")
+									.then(
+										resp => {
+											
+											resolve (this.rq);
+											
+										}
+									)
+								
+							} else {
+							
+								resolve (this.rq);
+
+							}
+						}
 						
 					}
 					
-					this.rq.onerror = () => {
-						
-						reject (this.rq);
-						
+					this.rq.onabort = this.rq.onerror = () => {
+
+						if (this.proxy) {
+
+							cs.__getMessageResponse("clear-proxy")
+								.then(
+									resp => {
+										
+										resolve (this.rq);
+										
+									}
+								)
+								
+							} else {
+							
+								reject(this.rq);
+
+							}
 					}
-					
-					this.rq.send(this.data);
+
+					try {
+						
+						this.rq.send(this.data);
+
+					} catch (e) {
+						
+						console.error(e);
+						reject(e);
+					}
 					
 				});
 		});
@@ -95,7 +134,7 @@ class CSUtils extends EventEmitter {
 				url: url,
 				method: "GET",
 				proxy: proxy
-
+				
 			}, parent);
 		};
 
@@ -177,23 +216,10 @@ function CSApi () {
 
 	this.JSLFocusMyTab = () => {
 		
-		return this.__getMessageResponse ("focus-tab");
+		return this.__getMessageResponse("focus-tab");
 		
 	};
 	
-	/* 
-	   @hostname: host to proxy request.
-	   @proxy: Proxy object {host, port, type}, if null the host will be "DIRECTED"
-	   @times: # of requests to the give hostname that will be routed through this proxy (Negative number to indicate "forever") 
-	   
-	 */
-
-	this.JSLProxyHost = (hostname, proxy, times) => {
-
-		return hostname ? this.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times }) : Promise.reject("Missing hostname");
-		
-	};
-
 	/* 
 	   @params: Either an string representing a valid URL or an options object for chrome.downloads.download as described at: 
 	   
@@ -295,8 +321,5 @@ function CSApi () {
 			}
 		}
 	);
-
-	
-
 }
 

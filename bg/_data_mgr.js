@@ -141,7 +141,7 @@ function DataMgr (opt) {
 							if (inline)
 								resolve(text);
 							else
-								resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, this.key.toLowerCase() + "s.json", {type: "application/json"}) ) }));
+								chrome.downloads.download({ url: URL.createObjectURL( new File(text, this.key.toLowerCase() + "s.json", {type: "application/json"}) ) }, resolve);
 						}
 						
 					});
@@ -346,28 +346,26 @@ function DataMgr (opt) {
 
 		return new Promise(
 			(resolve, reject) => {
-				browser.storage.local.get()
-					.then(
-						stored => {
+				chrome.storage.local.get(null,
+					stored => {
 							
-							resolve(
-
-								Object.keys(stored)
-									.filter(key => {
-										
-										return key.split("-")[0] == this.key.toLowerCase();
-											
-									})
-									.map(key => {
-										
-										return key.split("-").pop();
-										
-									})
-							)
-								
-						}, reject)
-			});
+						resolve(
 							
+							Object.keys(stored)
+								.filter(key => {
+									
+									return key.split("-")[0] == this.key.toLowerCase();
+									
+								})
+								.map(key => {
+									
+									return key.split("-").pop();
+									
+								})
+						)
+							
+					})
+			});	
 	}
 
 	this.reIndex = () => {

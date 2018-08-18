@@ -195,7 +195,7 @@ function CSApi () {
 	};
 
 	/* 
-	   @params: Either an string representing a valid URL or an options object for browser.downloads.download as described at: 
+	   @params: Either an string representing a valid URL or an options object for chrome.downloads.download as described at: 
 	   
 	   https://developer.mozilla.org/en-US/Add-ons/WebExtensions/API/downloads/download
 	   

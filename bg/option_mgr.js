@@ -124,7 +124,7 @@ function OptionMgr (bg) {
 					text.pop();
 					text.push("}");
 
-					browser.downloads.download({ url: URL.createObjectURL( new File(text, "app.json", {type: "application/json"}) ) });
+					chrome.downloads.download({ url: URL.createObjectURL( new File(text, "app.json", {type: "application/json"}) ) });
 				}
 			}
 		);

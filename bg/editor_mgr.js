@@ -214,15 +214,13 @@ function EditorMgr (bg) {
 										
 										if (tab) {
 											
-											browser.tabs.update(tab.id, {active: true})
-												.then(
-													tab => {
+											chrome.tabs.update(tab.id, {active: true},
+												tab => {
 														
-														new EditorWdw({parent: self, script: script, tab: tab, line: line, col: col })
-															.then(resolve, reject);
+													new EditorWdw({parent: self, script: script, tab: tab, line: line, col: col })
+														.then(resolve, reject);
 														
-													}
-												);
+												});
 											
 										} else {
 											

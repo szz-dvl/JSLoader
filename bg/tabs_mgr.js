@@ -84,7 +84,7 @@ function TabsMgr (bg) {
 	
 	this.updateURLForTab = (tabId, url) => {
 
-		return browser.tabs.update (tabId, {url: url.href});
+		return new Promise(resolve => { chrome.tabs.update (tabId, {url: url.href}, resolve) });
 	};
 	
 	this.getTabsForURL = (url) => {
@@ -153,8 +153,7 @@ function TabsMgr (bg) {
 							
 							if (tab) {
 								
-								browser.tabs.update(tab.id, {active: true})
-									.then(resolve, reject);
+								chrome.tabs.update(tab.id, {active: true}, resolve)
 
 							} else {
 

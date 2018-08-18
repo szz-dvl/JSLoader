@@ -430,48 +430,33 @@ function CSMgr (bg) {
 	
 	this.contentDownload = (port, tag, options) => {
 		
-		browser.downloads.download(typeof(options) == 'string' ? {url: options} : options)
-			.then(
-				
-				id => {
+		chrome.downloads.download( typeof(options) == 'string' ? {url: options} : options,
+			id => {
 					
-					this.__postTaggedResponse(port, tag,
+				this.__postTaggedResponse(port, tag,
+					
+					{ status: id ? true : false,
 						
-						{ status: true,
+						content: {
 							
-							content: {
-								
-								did: id
-							}
+							did: id,
+							err: id ? null : chrome.runtime.lastError
 						}
-					);
-				},
-				err => {
-					
-					this.__postTaggedResponse(port, tag,
-						
-						{ status: false,
-							
-							content: {
-								
-								err: err.message
-							}
-						}
-					);
-					
-				});
+					}
+				);
+			});
 	};
 
 	this.focusMyTab = (port, tag) => {
 
 		let cs = this.getFrameForPort(port);
 		
-		browser.tabs.update(cs.frame.tab.id, {active: true})
-			.then(tab => {
-
+		chrome.tabs.update(cs.frame.tab.id, {active: true},
+			tab => {
+				
 				this.__postTaggedResponse(port, tag,
 					
-					{ status: true,
+					{ status: tab.url ? true : false,
 						
 						content: {
 							
@@ -479,22 +464,7 @@ function CSMgr (bg) {
 						}
 					}
 				);
-
-			}, err => {
-				
-				this.__postTaggedResponse(port, tag,
-						
-					{ status: false,
-						
-						content: {
-							
-							err: err.message
-						}
-					}
-				);
-				
 			});
-
 	}
 
 	this.contentLoadResource = (port, tag, name) => {

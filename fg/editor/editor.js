@@ -94,9 +94,8 @@ function EditorFG (id, bg) {
 				parent: $scope,
 				onTrigger: () => {
 
-					if ($scope.script.persisted) {
-						if (self.bg.db.writeable && self.bg.db.writeable || $scope.script.inStorage())
-							$scope.script.remove()
+					if ($scope.canRemove()) {
+						$scope.script.remove()
 							.then(parent => {
 								$scope.$digest();
 							})
@@ -281,7 +280,7 @@ function EditorFG (id, bg) {
 
 		$scope.runCurrent = () => {
 			
-			if (!$scope.buttons.disabled && $scope.canRun()) {
+			if ($scope.canRun()) {
 				
 				$scope.disableButtons();
 				
@@ -328,7 +327,7 @@ function EditorFG (id, bg) {
 		$scope.saveCurrent = () => {
 			
 			/* May be triggered from shortcut. */
-			if (!$scope.buttons.disabled) {
+			if ($scope.canSave()) {
 				
 				$scope.disableButtons();
 				
@@ -597,7 +596,62 @@ function EditorFG (id, bg) {
 
 		$scope.canRun = () => {
 
-			return $scope.run_shown;
+			return !$scope.buttons.disabled && $scope.run_shown;
+		}
+
+		$scope.canSave = () => {
+
+			if ($scope.buttons.disabled)
+				return false;
+			else {
+
+				/* User defs */
+				if (!$scope.script.parent || $scope.script.inStorage())
+
+					return true;
+
+				else {
+
+					if (self.bg.db.available) {
+
+						return self.bg.db.writeable && self.bg.db.removeable; /* May trigger updateParent */
+						
+					} else {
+
+						return false;
+					}
+					
+				}
+				
+
+			}
+		}
+
+		$scope.canRemove = () => {
+
+			if ($scope.buttons.disabled)
+				return false;
+			else {
+
+				/* User defs */
+				if ($scope.script.inStorage())
+
+					return true;
+
+				else {
+
+					if (self.bg.db.available) {
+
+						return self.bg.db.removeable;
+						
+					} else {
+
+						return false;
+						
+					}
+					
+				}
+			}
 		}
 		
 		$scope.disableButtons = () => {

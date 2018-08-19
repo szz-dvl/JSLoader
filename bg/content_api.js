@@ -1,41 +1,42 @@
 function HttpRequest (opt, cs) {
 
 	let self = this;
+	try {
+		
+		this.url = new URL(opt.url),
+		this.method = opt.method,
+		this.enoughState = opt.early ? 3 : 4;
+		this.proxy = opt.proxy || null;
+		this.headers = opt.headers || [];
+		this.data = opt.data  || null;
 	
-	this.url = new URL(opt.url),
-	this.method = opt.method,
-	this.enoughState = opt.early ? 3 : 4;
-	this.proxy = opt.proxy || null;
-	this.headers = opt.headers || [];
-	this.data = opt.data  || null;
-	
-	this.rq = new XMLHttpRequest();
-	
-	return new Promise (
-		(resolve, reject) => {
+		this.rq = new XMLHttpRequest();
+		
+		return new Promise (
+			(resolve, reject) => {
 			
-			let promise = this.proxy
-						? cs.__getMessageResponse("set-proxy",
-							{ host: self.url.hostname, proxy: self.proxy })
-				
-				: Promise.resolve();  
-			
-			
-			if (this.headers.length)
-				this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
-			
-			promise.then(
-				response => {
-				
-					this.rq.open(this.method, this.url.href);
+				let promise = this.proxy
+							? cs.__getMessageResponse("set-proxy",
+								{ host: self.url.hostname, proxy: self.proxy })
 					
-					this.rq.onreadystatechange = () => {
+				: Promise.resolve();  
+				
+				
+				if (this.headers.length)
+					this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
+			
+				promise.then(
+					response => {
+				
+						this.rq.open(this.method, this.url.href);
+					
+						this.rq.onreadystatechange = () => {
 
-						if (this.rq.readyState >= this.enoughState) {
+							if (this.rq.readyState >= this.enoughState) {
+								
+								if (this.proxy) {
 
-							if (this.proxy) {
-
-								cs.__getMessageResponse("clear-proxy")
+									cs.__getMessageResponse("clear-proxy")
 									.then(
 										resp => {
 											
@@ -43,48 +44,46 @@ function HttpRequest (opt, cs) {
 											
 										}
 									)
-								
-							} else {
+										
+								} else {
 							
-								resolve (this.rq);
-
+									resolve (this.rq);
+									
+								}
 							}
+							
 						}
-						
-					}
 					
-					this.rq.onabort = this.rq.onerror = () => {
-
-						if (this.proxy) {
-
-							cs.__getMessageResponse("clear-proxy")
-								.then(
+						this.rq.onabort = this.rq.onerror = () => {
+							
+							if (this.proxy) {
+								
+								cs.__getMessageResponse("clear-proxy")
+									.then(
 									resp => {
 										
 										resolve (this.rq);
 										
 									}
-								)
-								
+									)
+									
 							} else {
 							
 								reject(this.rq);
-
+								
 							}
-					}
-
-					try {
+						}
 						
 						this.rq.send(this.data);
+							
+					});
+			});
 
-					} catch (e) {
+	} catch (err) {
 
-						console.error(e)
-						reject(this.rq);
-					}
-					
-				});
-		});
+		return Promise.reject(err);
+		
+	}
 }
 
 class CSUtils extends EventEmitter {
@@ -231,28 +230,43 @@ function CSApi () {
 	
 	this.JSLDownload = (params, proxy) => {
 
-		if (params) {
-
-			let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
-		
-			let promises = [];
-
-			if (proxy) {
-
-				promises.push(this.__getMessageResponse("set-proxy",
-					
-					{ host: url.hostname, proxy: proxy, times: 1 }
-				
-				));
-			}
+		try {
 			
-			promises.push(this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
-		
-			return Promise.all(promises);
+			if (params) {
+			
+				let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
+				
+				let promises = [];
+				
+				if (proxy) {
+					
+					return new Promise ((resolve, reject) => {
+						
+						this.__getMessageResponse("set-proxy",
+							
+							{ host: url.hostname, proxy: proxy }
+							
+						).then(status => {
+							
+							this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params})
+								.then(resolve, reject);
+						})
+							
+					});
+					
+				} else {
+					
+					return this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params});
+				}
+				
+			} else {
 
-		} else {
+				return Promise.reject('Missing params');
+			}
 
-			return Promise.reject('Missing params');
+		} catch (err) {
+
+			return Promise.reject(err);
 		}
 	};
 	

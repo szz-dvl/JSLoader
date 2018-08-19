@@ -292,7 +292,7 @@ function EditorMgr (bg) {
 		new EditorWdw({
 					
 			parent: self,
-			script: new Script({ parent: group }),
+			script: new Script({ parent: group, created: true }),
 			tab: null
 			
 		});

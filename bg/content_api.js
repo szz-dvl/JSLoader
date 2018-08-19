@@ -1,51 +1,84 @@
 function HttpRequest (opt, cs) {
 
 	let self = this;
+	try {
+		
+		this.url = new URL(opt.url),
+		this.method = opt.method,
+		this.enoughState = opt.early ? 3 : 4;
+		this.proxy = opt.proxy || null;
+		this.headers = opt.headers || [];
+		this.data = opt.data  || null;
 	
-	this.url = new URL(opt.url),
-	this.method = opt.method,
-	this.enoughState = opt.early ? 3 : 4;
-	this.proxy = opt.proxy || null;
-	this.headers = opt.headers || [];
-	this.data = opt.data  || null;
-	
-	this.rq = new XMLHttpRequest();
-	
-	return new Promise (
-		(resolve, reject) => {
-			
-			let promise = this.proxy
-						? cs.__getMessageResponse("set-proxy",
-							{ host: self.url.hostname, proxy: self.proxy, times: 1 })
+		this.rq = new XMLHttpRequest();
+		
+		return new Promise (
+			(resolve, reject) => {
 				
-				: Promise.resolve();  
-			
-			
-			if (this.headers.length)
-				this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
-			
-			promise.then(
-				responses => {
+				let promise = this.proxy
+							? cs.__getMessageResponse("set-proxy",
+								{ host: self.url.hostname, proxy: self.proxy})
+					
+					: Promise.resolve();  
 				
-					this.rq.open(this.method, this.url.href);
-					
-					this.rq.onreadystatechange = () => {
+				
+				if (this.headers.length)
+					this.headers.forEach(header => { this.rq.setRequestHeader(header.name, header.value) });
+				
+				promise.then(
+					responses => {
 						
-						if (this.rq.readyState >= this.enoughState)
-							resolve (this.rq);
+						this.rq.open(this.method, this.url.href);
 						
-					}
-					
-					this.rq.onerror = () => {
+						this.rq.onreadystatechange = () => {
+							
+							if (this.rq.readyState >= this.enoughState) {
+
+								if (this.proxy) {
+
+									cs.__getMessageResponse("set-proxy", { host: self.url.hostname, proxy: self.proxy })
+										.then(status => {
+
+											resolve(this.rq);
+
+										})
+										
+								} else {
+
+									resolve (this.rq);
+								}
+							}
+							
+						}
 						
-						reject (this.rq);
+						this.rq.onerror = () => {
+
+							if (this.proxy) {
+
+								cs.__getMessageResponse("set-proxy",{ host: null, proxy: self.proxy })
+									.then(status => {
+
+										reject(this.rq);
+
+									})
+									
+							} else {
+								
+								reject (this.rq);
+
+							}
+						}
 						
-					}
-					
-					this.rq.send(this.data);
-					
-				});
-		});
+						this.rq.send(this.data);
+						
+					});
+			});
+
+	} catch (err) {
+
+		return Promise.reject(err);
+	}
+	
 }
 
 class CSUtils extends EventEmitter {
@@ -157,21 +190,21 @@ function CSApi () {
 	
 	this.JSLAddSiteToGroup = (site_name, group_name) => {
 
-		return (site_name && group_name) ? this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name}) : Promise.reject("Missing info.");
+		return (site_name && group_name) ? this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name}) : Promise.reject(new Error("Missing info."));
 		
 	};
 
 	/* May return "undefined" values on unexistent keys */
 	this.JSLGetGlobal = (key) => {
 		
-		return key ? this.__getMessageResponse ("get-global", {key: key}) : Promise.reject("Missing key");
+		return key ? this.__getMessageResponse ("get-global", {key: key}) : Promise.reject(new Error("Missing key"));
 		
 	};
 
 	this.JSLSetGlobal = (key, val) => {
 
 		
-		return key ? this.__getMessageResponse ("set-global", {key: key, value: val}) : Promise.reject("Missing key");
+		return key ? this.__getMessageResponse ("set-global", {key: key, value: val}) : Promise.reject(new Error("Missing key"));
 		
 	};
 
@@ -181,19 +214,6 @@ function CSApi () {
 		
 	};
 	
-	/* 
-	   @hostname: host to proxy request.
-	   @proxy: Proxy object {host, port, type}, if null the host will be "DIRECTED"
-	   @times: # of requests to the give hostname that will be routed through this proxy (Negative number to indicate "forever") 
-	   
-	 */
-
-	this.JSLProxyHost = (hostname, proxy, times) => {
-
-		return hostname ? this.__getMessageResponse ("set-proxy", { host: hostname, proxy: proxy, times: times }) : Promise.reject("Missing hostname");
-		
-	};
-
 	/* 
 	   @params: Either an string representing a valid URL or an options object for browser.downloads.download as described at: 
 	   
@@ -205,28 +225,59 @@ function CSApi () {
 	
 	this.JSLDownload = (params, proxy) => {
 
-		if (params) {
-
-			let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
-		
-			let promises = [];
-
-			if (proxy) {
-
-				promises.push(this.__getMessageResponse("set-proxy",
-					
-					{ host: url.hostname, proxy: proxy, times: 1 }
-				
-				));
-			}
+		try {
 			
-			promises.push(this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params}));
-		
-			return Promise.all(promises);
+			if (params) {
 
-		} else {
+				let url = typeof(params) == 'string' ? new URL(params) : new URL(params.url);
+				
+				let promises = [];
 
-			return Promise.reject('Missing params');
+				if (proxy) {
+
+					return new Promise(
+						(resolve, reject) => {
+
+							this.__getMessageResponse("set-proxy",{ host: url.hostname, proxy: proxy})
+								.then(status => {
+
+									this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params})
+										.then(dwnld => {
+
+											this.__getMessageResponse("set-proxy",{ host: url.hostname, proxy: proxy})
+												.then(status => {
+
+													resolve(dwnld);
+													
+												})
+
+										}, err => {
+
+											this.__getMessageResponse("set-proxy",{ host: null, proxy: proxy})
+												.then(status => {
+
+													reject(dwnld);
+													
+												})
+
+										});
+								})
+						})
+						
+				} else {
+
+					return this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params})
+				}
+				
+			} else {
+
+				return Promise.reject(new Error('Missing params'));
+			}
+
+		} catch (err) {
+
+			return Promise.reject(err);
+			
 		}
 	};
 	
@@ -245,19 +296,19 @@ function CSApi () {
 	
 	this.JSLResourceLoad = (path) => {
 
-		return path ? this.__getMessageResponse("load-resource", { path: path }) : Promise.reject("Missing path");
+		return path ? this.__getMessageResponse("load-resource", { path: path }) : Promise.reject(new Error("Missing path"));
 	};
 
 	this.JSLResourceUnload = (path) => {
 		
-		return path ? this.__getMessageResponse("unload-resource", { path: path }) : Promise.reject("Missing path");
+		return path ? this.__getMessageResponse("unload-resource", { path: path }) : Promise.reject(new Error("Missing path"));
 	};
 
 	this.JSLImportAsResource = (url, force, path) => {
 		
 		return url ?
 			   this.__getMessageResponse("import-resource", { path: path || null, url: url, force: typeof(force) == 'undefined' ? false : force }) :
-			   Promise.reject("Missing url");
+			   Promise.reject(new Error("Missing url"));
 	};
 	
 	/* Must remain in final version? Some pages blocks its devtools console ... */

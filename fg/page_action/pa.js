@@ -738,7 +738,7 @@ browser.runtime.getBackgroundPage()
 				page.pa_events = null;
 				
 			});
-			
+
 			page.getPASite()
 				.then(
 					info => {

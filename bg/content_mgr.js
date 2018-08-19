@@ -394,20 +394,19 @@ function CSMgr (bg) {
 				});
 	};
 	
-	this.contentSetProxy = (port, tag, host, proxy, times) => {
+	this.__contentSetProxy = (port, tag, host, proxy) => {
 		
-		this.bg.proxy_mgr.updatePAC(host, proxy, times)
+		this.bg.proxy_mgr.updatePAC(host, proxy)
 			.then(
-				length => {
+				host => {
 					
 					this.__postTaggedResponse(port, tag,
 						
 						{
-							status: length >= 0,
+							status: true,
 							content: {
 								proxy: proxy,
 								host: host,
-								times: times
 							}
 							
 						});
@@ -744,7 +743,7 @@ function CSMgr (bg) {
 									break;
 									
 								case "set-proxy":
-									this.contentSetProxy(port, args.tag, args.message.host, args.message.proxy, args.message.times);
+									this.__contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
 									break;
 									
 								case "download-file":

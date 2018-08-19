@@ -180,7 +180,7 @@ function EditorMgr (bg) {
 							new EditorWdw({
 
 								parent: self,
-								script: new Script({parent: parent}),
+								script: new Script({parent: parent, created: true}),
 								tab: tab
 
 							}).then(resolve, reject);

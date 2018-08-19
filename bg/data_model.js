@@ -6,6 +6,7 @@ function Script (opt) {
 	this.name = opt.name || "script_name"; 
 	this.disabled = opt.disabled || false;
 	this.persisted = opt.code ? true : false;
+	this.created = opt.created || false;
 	
 	this.getUrl = () => {
 		
@@ -105,7 +106,7 @@ function Script (opt) {
 
 	this.inStorage = () => {
 
-		return this.parent ? this.parent.isGroup() ? this.parent.in_storage : (this.parent == this.parent.parent ? this.parent.in_storage : this.parent.parent.in_storage) : true;
+		return this.parent ? (this.parent.isGroup() ? this.parent.in_storage : this.parent.parent.in_storage) : true;
 		
 	};
 	
@@ -399,7 +400,7 @@ function Domain (opt) {
 
 		return new Promise (
 			(resolve, reject) => {
-				
+				console.log("persistiing domain: " + this.name);
 				global_storage.upsertDomain(this.__getDBInfo(), this.in_storage)
 					.then(() => {
 						
@@ -414,7 +415,7 @@ function Domain (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
-				
+				console.log("removing domain: " + this.name);
 				global_storage.removeDomain(this.name, this.in_storage)
 					.then(() => {
 						

@@ -194,7 +194,7 @@ function TabsMgr (bg) {
 				
 				var url = new URL(tabInfo.url).sort();
 				
-				if (url.hostname && url.protocol != "chrome-extension:") {
+				if (url.hostname && !url.protocol.includes("chrome")) {
 					
 					this.bg.domain_mgr.haveInfoForUrl(url)
 						.then(
@@ -268,7 +268,7 @@ function TabsMgr (bg) {
 					let url = new URL(tabInfo.url).sort();
 					
 					for (let editor of this.bg.editor_mgr.editors) 
-						editor.newTab(tabInfo, (url.hostname && url.protocol != "chrome-extension:") ? true : false);
+						editor.newTab(tabInfo, (url.hostname && !url.protocol.includes("chrome")) ? true : false);
 				}
 					
 		});

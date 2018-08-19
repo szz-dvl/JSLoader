@@ -182,4 +182,4 @@ global_storage.once('ready', () => {
 })
 
 
-/* browser.storage.local.clear(); */
+chrome.storage.local.clear();

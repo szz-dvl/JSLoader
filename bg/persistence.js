@@ -622,16 +622,16 @@ class Storage extends EventEmitter  {
 				return new Promise ((resolve, reject) => {
 					
 					if (in_storage) {
-
+						
 						this.__remove(type.toLowerCase() + '-' + name)
 							.then(resolve, reject);
 						
 					} else {
-						/* WIM */
+						
 						this.db['remove' + type](name)
 							.then(resolve, err => {
-
-								this.__set(type.toLowerCase() + '-' + val.name, val)
+								
+								this.__remove(type.toLowerCase() + '-' + name, val)
 									.then(resolve, reject);
 								
 							});

@@ -4,13 +4,16 @@ function ProxyMgr (bg) {
 
 		return new Promise (
 			resolve => {
+				
+				let TYPE = proxy.type.includes("socks") ? "SOCKS" : "PROXY";
+				
 				chrome.proxy.settings.set(
 					{value: {
 						mode: "pac_script",
 						pacScript: {
 							data: "function FindProxyForURL(url, host) {\n" +
 								"  if (host == '" + hostname + "')\n" +
-								"    return 'PROXY " + proxy.host + ":" + proxy.port + "';\n" +
+								"    return '" + TYPE + " " + proxy.host + ":" + proxy.port + "';\n" +
 								"  return 'DIRECT';\n" +
 								"}"
 						}

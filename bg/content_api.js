@@ -78,9 +78,9 @@ function HttpRequest (opt, cs) {
 						this.rq.send(this.data);
 
 					} catch (e) {
-						
-						console.error(e);
-						reject(e);
+
+						console.error(e)
+						reject(this.rq);
 					}
 					
 				});

@@ -37,13 +37,13 @@ function HttpRequest (opt, cs) {
 								if (this.proxy) {
 
 									cs.__getMessageResponse("clear-proxy")
-									.then(
-										resp => {
+										.then(
+											resp => {
+												
+												resolve (this.rq);
 											
-											resolve (this.rq);
-											
-										}
-									)
+											}
+										)
 										
 								} else {
 							
@@ -60,11 +60,11 @@ function HttpRequest (opt, cs) {
 								
 								cs.__getMessageResponse("clear-proxy")
 									.then(
-									resp => {
-										
-										resolve (this.rq);
-										
-									}
+										resp => {
+											
+											reject(this.rq);
+											
+										}
 									)
 									
 							} else {
@@ -195,21 +195,21 @@ function CSApi () {
 	
 	this.JSLAddSiteToGroup = (site_name, group_name) => {
 
-		return (site_name && group_name) ? this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name}) : Promise.reject("Missing info.");
+		return (site_name && group_name) ? this.__getMessageResponse ("site-to-group", {site: site_name, group: group_name}) : Promise.reject(new Error("Missing info."));
 		
 	};
 
 	/* May return "undefined" values on unexistent keys */
 	this.JSLGetGlobal = (key) => {
 		
-		return key ? this.__getMessageResponse ("get-global", {key: key}) : Promise.reject("Missing key");
+		return key ? this.__getMessageResponse ("get-global", {key: key}) : Promise.reject(new Error("Missing key"));
 		
 	};
 
 	this.JSLSetGlobal = (key, val) => {
 
 		
-		return key ? this.__getMessageResponse ("set-global", {key: key, value: val}) : Promise.reject("Missing key");
+		return key ? this.__getMessageResponse ("set-global", {key: key, value: val}) : Promise.reject(new Error("Missing key"));
 		
 	};
 
@@ -249,7 +249,29 @@ function CSApi () {
 						).then(status => {
 							
 							this.__getMessageResponse ("download-file", {args: typeof(params) == 'string' ? {url: params} : params})
-								.then(resolve, reject);
+								.then(dwnld => {
+
+									this.__getMessageResponse("clear-proxy")
+										.then(
+											resp => {
+												
+												resolve (dwnld);
+												
+											}
+										)
+
+								}, err => {
+									
+									this.__getMessageResponse("clear-proxy")
+										.then(
+											resp => {
+												
+												reject(err);
+												
+											}
+										)
+
+								});
 						})
 							
 					});
@@ -261,7 +283,7 @@ function CSApi () {
 				
 			} else {
 
-				return Promise.reject('Missing params');
+				return Promise.reject(new Error('Missing params'));
 			}
 
 		} catch (err) {
@@ -285,19 +307,19 @@ function CSApi () {
 	
 	this.JSLResourceLoad = (path) => {
 
-		return path ? this.__getMessageResponse("load-resource", { path: path }) : Promise.reject("Missing path");
+		return path ? this.__getMessageResponse("load-resource", { path: path }) : Promise.reject(new Error("Missing path"));
 	};
 
 	this.JSLResourceUnload = (path) => {
 		
-		return path ? this.__getMessageResponse("unload-resource", { path: path }) : Promise.reject("Missing path");
+		return path ? this.__getMessageResponse("unload-resource", { path: path }) : Promise.reject(new Error("Missing path"));
 	};
 
 	this.JSLImportAsResource = (url, force, path) => {
 		
 		return url ?
 			   this.__getMessageResponse("import-resource", { path: path || null, url: url, force: typeof(force) == 'undefined' ? false : force }) :
-			   Promise.reject("Missing url");
+			   Promise.reject(new Error("Missing url"));
 	};
 	
 	/* Must remain in final version? Some pages blocks its devtools console ... */

@@ -395,7 +395,7 @@ function CSMgr (bg) {
 				});
 	};
 	
-	this.contentSetProxy = (port, tag, host, proxy) => {
+	this.__contentSetProxy = (port, tag, host, proxy) => {
 
 		this.bg.proxy_mgr.setProxyFor(host, proxy)
 			.then(
@@ -723,7 +723,7 @@ function CSMgr (bg) {
 									break;
 									
 								case "set-proxy":
-									this.contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
+									this.__contentSetProxy(port, args.tag, args.message.host, args.message.proxy);
 									break;
 
 								case "clear-proxy":

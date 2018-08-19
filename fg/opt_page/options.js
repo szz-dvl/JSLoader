@@ -331,20 +331,13 @@ function OP (bg) {
 											
 											$scope.string = string;
 											self.bg.option_mgr.persistDBString(string);
-
-											self.bg.reIndex()
-												.then(resp => {
-													
-													$timeout($scope.__updateData, 50, false, false);
-													
-												}, console.error)
+											$timeout($scope.__updateData, 50, false, false);
 												
 										} else {
 											
 											$timeout($scope.__updateData, 50, true, true);
 										}
 										
-										//$scope.$digest();
 									}
 								)
 								

@@ -160,13 +160,15 @@ function BG_mgr () {
 	
 	browser.storage.onChanged.addListener(this.storeChanges);
 	browser.commands.onCommand.addListener(this.receiveCmd);
-
-	/* Always ?*/
-	this.db.once('db_change', string => {
+	
+	this.db.on('db_change', string => {
 
 		this.reIndex();
 
-	})
+	});
+
+	this.reIndex();
+		
 }
 
 	

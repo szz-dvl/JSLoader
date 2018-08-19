@@ -391,8 +391,23 @@ class DB extends EventEmitter {
 				return Promise.reject(new Error("Unremoveable DB"));
 		}
 		
-		this.getDomains = () => { return this.getIdxFor('domains') };
-		this.getGroups = () => { return this.getIdxFor('groups') };
+		this.getDomains = () => {
+			
+			if (this.mayRead())
+				return this.getIdxFor('domains');
+			else
+				return Promise.resolve([]);
+				
+		};
+		
+		this.getGroups = () => {
+
+			if (this.mayRead())
+				return this.getIdxFor('groups');
+			else
+				return Promise.resolve([]);
+
+		};
 
 		this.port.postMessage('{ "tag": "connect", "content": "' + connString + '" }');
 		

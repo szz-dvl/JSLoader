@@ -330,14 +330,8 @@ function OP (bg) {
 										if (self.bg.db.connected) {
 											
 											$scope.string = string;
-											self.bg.option_mgr.persistDBString(string);
-
-											self.bg.reIndex()
-												.then(resp => {
-													
-													$timeout($scope.__updateData, 50, false, false);
-													
-												}, console.error)
+											self.bg.option_mgr.persistDBString(string);		
+											$timeout($scope.__updateData, 50, false, false);	
 												
 										} else {
 											

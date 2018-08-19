@@ -686,6 +686,7 @@ function PA (bg, info) {
 										
 										if (self.updateGroups) {
 
+											console.log("Updating group");
 											self.updateGroups(350, $scope.current, true)
 												.then(() => {
 

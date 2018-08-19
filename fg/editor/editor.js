@@ -605,24 +605,10 @@ function EditorFG (id, bg) {
 				return false;
 			else {
 
-				/* User defs */
-				if (!$scope.script.parent || $scope.script.inStorage())
-
-					return true;
-
-				else {
-
-					if (self.bg.db.available) {
-
-						return self.bg.db.writeable && self.bg.db.removeable; /* May trigger updateParent */
-						
-					} else {
-
-						return false;
-					}
-					
-				}
-				
+				if (self.bg.db.available)
+					return self.bg.db.writeable && self.bg.db.removeable;
+				else
+					return !$scope.script.parent || $scope.script.inStorage() || $scope.script.created;				
 
 			}
 		}
@@ -633,24 +619,11 @@ function EditorFG (id, bg) {
 				return false;
 			else {
 
-				/* User defs */
-				if ($scope.script.inStorage())
+				if (self.bg.db.available)
+					return self.bg.db.removeable;
+				else
+					return $scope.script.inStorage() || $scope.script.created;
 
-					return true;
-
-				else {
-
-					if (self.bg.db.available) {
-
-						return self.bg.db.removeable;
-						
-					} else {
-
-						return false;
-						
-					}
-					
-				}
 			}
 		}
 		

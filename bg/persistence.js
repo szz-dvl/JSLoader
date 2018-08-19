@@ -626,7 +626,7 @@ class Storage extends EventEmitter  {
 
 								this.db['remove' + type](name)
 									.then(resolve, err => {
-
+										
 										this.__remove(type.toLowerCase() + '-' + name)
 											.then(resolve, reject);
 

@@ -6,6 +6,7 @@ function Script (opt) {
 	this.name = opt.name || "script_name"; 
 	this.disabled = opt.disabled || false;
 	this.persisted = opt.code ? true : false;
+	this.created = opt.created || false;
 	
 	this.getUrl = () => {
 		

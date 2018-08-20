@@ -605,7 +605,7 @@ function EditorFG (id, bg) {
 				return false;
 			else {
 
-				if (self.bg.db.available)
+				if (self.bg.db.connected)
 					return self.bg.db.writeable && self.bg.db.removeable;
 				else
 					return !$scope.script.parent || $scope.script.inStorage() || $scope.script.created;				
@@ -619,7 +619,7 @@ function EditorFG (id, bg) {
 				return false;
 			else {
 
-				if (self.bg.db.available)
+				if (self.bg.db.connected)
 					return self.bg.db.removeable;
 				else
 					return $scope.script.inStorage() || $scope.script.created;

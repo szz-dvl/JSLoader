@@ -466,6 +466,7 @@ function DomainMgr (bg) {
 												
 											}
 										),
+									in_storage: item.in_storage,
 									actual: start,
 									total: info.scripts.length
 								}

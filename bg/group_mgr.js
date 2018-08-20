@@ -170,6 +170,7 @@ function GroupMgr (bg) {
 															return a.uuid > b.uuid;
 															
 														}).slice(first, first + 5),
+													in_storage: group.in_storage,
 													included: true,
 													actual: 0,
 													total: group.scripts.length
@@ -184,51 +185,6 @@ function GroupMgr (bg) {
 							);
 							
 						}, reject);
-			});
-	}
-	
-	this.exportGroups = (inline) => {
-
-		return new Promise(
-			(resolve, reject) => {
-				
-				let text = ["["];
-				
-				async.each(this.groups,
-					(group_name, next) => {
-						
-						this.storage.getGroup(
-							group => {
-								
-								if (group) {
-
-									text.push(group.getJSON());
-									text.push(",");
-									
-								}
-
-								next();
-								
-							}, group_name);
-						
-					}, err => {
-
-						if (err) 
-							reject (err); 
-						else {
-							
-							if (text.length > 1)
-								text.pop(); //last comma
-							
-							text.push("]");
-							
-							if (inline)
-								resolve(text);
-							else
-								resolve(browser.downloads.download({ url: URL.createObjectURL( new File(text, "groups.json", {type: "application/json"}) ) }));
-						}
-						
-					});
 			});
 	}
 } 

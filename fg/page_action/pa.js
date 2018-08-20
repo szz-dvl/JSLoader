@@ -75,7 +75,7 @@ function PA (bg, info) {
 
 		$scope.canDisable = (list, item) => {
 
-			if (list.title == 'Groups')
+			if (list.title == self.bg.texts.findText('groups'))
 				return item.in_storage || self.bg.db.writeable;
 			else
 				return list.in_storage || self.bg.db.writeable
@@ -83,7 +83,7 @@ function PA (bg, info) {
 
 		$scope.canRemove = (list, item) => {
 
-			if (list.title == 'Groups')
+			if (list.title == self.bg.texts.findText('groups'))
 				return item.in_storage || (self.bg.db.writeable && self.bg.db.removeable);
 			else
 				return list.in_storage || (self.bg.db.writeable && self.bg.db.removeable);
@@ -517,7 +517,7 @@ function PA (bg, info) {
 										
 										self.bg.group_mgr.getPASliceFor(
 											$scope.data[0].list.length == 1 && mgr ? ($scope.data[0].actual - 5 < 0 ? 0 : $scope.data[0].actual - 5) : $scope.data[0].actual, 5,
-											'Groups', self.url, self.pa_state.page_idx)
+											self.bg.texts.findText('groups'), self.url, self.pa_state.page_idx)
 											.then(slice => {
 												
 												$scope.data[0].actual = slice.actual;

@@ -569,20 +569,20 @@ class Storage extends EventEmitter  {
 							
 							switch (type) {
 								case "Domain":
-									cb(item ? new Domain(item) : null);
+									cb(new Domain(item));
 									break;
 								case "Group":
-									cb(item ? new Group(item) : null);
+									cb(new Group(item));
 									break;
 								case "Resource":
-									cb(item ? (item.dir ? new ResourceDir(item) : new Resource(item)) : null);
+									cb(item.dir ? new ResourceDir(item) : new Resource(item));
 									break;
 								default:
 									break;
 							}
 
 						} else {
-							
+
 							this.db['get' + type](name)
 								.then(arr => {
 									

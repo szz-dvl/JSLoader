@@ -172,7 +172,8 @@ function GroupMgr (bg) {
 														}).slice(first, first + 5),
 													included: true,
 													actual: 0,
-													total: group.scripts.length
+													total: group.scripts.length,
+													in_storage: group.in_storage
 												};
 												
 											}

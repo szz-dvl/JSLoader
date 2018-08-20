@@ -400,7 +400,6 @@ function Domain (opt) {
 
 		return new Promise (
 			(resolve, reject) => {
-				console.log("persistiing domain: " + this.name);
 				global_storage.upsertDomain(this.__getDBInfo(), this.in_storage)
 					.then(() => {
 						
@@ -415,7 +414,6 @@ function Domain (opt) {
 		
 		return new Promise (
 			(resolve, reject) => {
-				console.log("removing domain: " + this.name);
 				global_storage.removeDomain(this.name, this.in_storage)
 					.then(() => {
 						
@@ -730,11 +728,13 @@ function Group (opt) {
 	}
 	
 	this.__comparePlainUrl = (site, url) => {
-		
-		let pathname = url instanceof URL ? url.pathname : "/" + url.split("/").slice(1).join("/");
-		let hostname = url instanceof URL ? url.hostname : url.split("/")[0];
-		let name = url instanceof URL ? url.name() : hostname + pathname;
 
+		//console.log(url + ": " + typeof(url) + "-" + url.constructor.name + " is URL -> " + (url instanceof URL ? "true" : "false"));
+		
+		let pathname = url.constructor.name == "URL" ? url.pathname : "/" + url.split("/").slice(1).join("/");
+		let hostname = url.constructor.name == "URL" ? url.hostname : url.split("/")[0];
+		let name = url.constructor.name == "URL" ? url.name() : hostname + pathname;
+		
 		let split = site.split("/");
 		let site_path = "/" + split.slice(1).join("/");
 		

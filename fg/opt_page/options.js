@@ -384,6 +384,13 @@ function OP (bg) {
 								reader.readAsText(file);
 							}
 
+							$scope.loadInitialExamples = () => {
+
+								self.bg.option_mgr.loadExamples()
+										.then($scope.__updateData, console.error);
+
+							}
+							
 							$scope.exportData = () => {
 							
 								self.bg.option_mgr.exportApp();

@@ -354,7 +354,7 @@ function PA (bg, info) {
 										$scope.data[idx].list.length == 1 ? ($scope.data[idx].actual - 5 < 0 ? 0 : $scope.data[idx].actual - 5) : $scope.data[idx].actual,
 										5, name, self.url, self.pa_state.page_idx)
 										.then(slice => {
-
+											
 											$scope.data[idx].actual = slice.actual;
 											$scope.data[idx].total = slice.total;
 											
@@ -372,7 +372,8 @@ function PA (bg, info) {
 											}
 											
 											$rootScope.$digest();
-										});
+											
+										}, console.error);
 									
 								}, to, false, url);
 

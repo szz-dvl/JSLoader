@@ -151,6 +151,20 @@ function OptionMgr (bg) {
 			});
 	}
 
+	this.loadExamples = () => {
+
+		return new Promise ((resolve, reject) => {
+			
+			this.bg.readLocalFile("init/examples_jsl.json")
+				.then(text => {
+					
+					this.importApp(JSON.parse(text))
+						.then(resolve, reject);
+					
+				})
+		})
+	}
+	
 	this.clearData = () => {
 
 		return new Promise(

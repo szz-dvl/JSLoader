@@ -164,6 +164,10 @@
 					text="page.bg.texts.findText('import_data')">
 				</input-file>
 				<button class="browser-style"
+					ng-if="!domains.data.length && !groups.data.length"
+					ng-click="loadInitialExamples()"> {{ page.bg.texts.findText('load_examples') }}
+				</button>
+				<button class="browser-style"
 					ng-if="domains.data.length || groups.data.length"
 					ng-click="exportData()"> {{ page.bg.texts.findText('export_data') }}
 				</button>

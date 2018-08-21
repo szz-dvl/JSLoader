@@ -466,7 +466,7 @@ function DomainMgr (bg) {
 												
 											}
 										),
-									in_storage: subdomain.in_storage,
+									in_storage: item.in_storage,
 									actual: start,
 									total: info.scripts.length
 								}

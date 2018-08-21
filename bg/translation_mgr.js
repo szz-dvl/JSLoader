@@ -56,7 +56,8 @@ function TranslationMgr (bg) {
 		{id: "included_scripts", en: 'Included Scripts', es: "Scripts incluidos", ca: "Scripts inclosos" },
 		{id: "sure", en: 'Sure?', es: "Seguro?", ca: "Segur?" },
 		{id: "no_groups", en: 'No Groups', es: "Sin Grupos", ca: "No Grups" },
-		{id: "search_path", en: 'Search path ...', es: "Buscar ruta ...", ca: "Buscar ruta ..." }
+		{id: "search_path", en: 'Search path ...', es: "Buscar ruta ...", ca: "Buscar ruta ..." },
+		{id: "load_examples", en: 'Load Examples', es: "Carregar exemples", ca: "Cargar ejemplos" }
 	]
 	
 

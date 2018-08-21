@@ -375,32 +375,6 @@ function EditorFG (id, bg) {
 											}
 										}
 										
-										if ($scope.editor.tab) {
-
-											if ($scope.editor.script.includedAt($scope.editor.tab.url)) {
-												
-												browser.pageAction.setIcon(
-													{
-														path: {
-															
-															16: browser.extension.getURL("fg/icons/red-diskette-16.png"),
-															32: browser.extension.getURL("fg/icons/red-diskette-32.png")
-																
-														},
-														
-														tabId: $scope.editor.tab.id
-													}
-												);
-
-												$scope.enableRun();
-												
-											} else {
-
-												$scope.disableRun();
-												
-											}
-										}
-										
 										$scope.$digest();
 
 									}, err => {

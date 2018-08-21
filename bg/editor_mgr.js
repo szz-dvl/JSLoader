@@ -27,7 +27,8 @@ function EditorWdw (opt) {
 						height: 420 
 						
 					},wdw => {
-							
+
+						wdw.alwaysOnTop = true;
 						editor.wdw = wdw;
 						resolve(editor);
 						

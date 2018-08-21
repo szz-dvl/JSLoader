@@ -560,6 +560,7 @@ function CSMgr (bg) {
 								
 								err: err.message
 								
+								
 							}
 						}
 					);

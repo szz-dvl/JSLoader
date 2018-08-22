@@ -93,6 +93,11 @@ function CS (port) {
 			this.resources.indexOf(url)
 		);
 	};
+
+	this.isMainFrame = () => {
+
+		return this.frame.url === this.frame.tab.url;
+	}
 }
 
 function CSMgr (bg) {
@@ -606,12 +611,16 @@ function CSMgr (bg) {
 								
 								case "get-info":
 									{
+
+										let cs = new CS(port);
+
+										if (cs.isMainFrame()) {
+
+											this.alive.push(cs);
+											let defs = this.defs;
 										
-										this.alive.push(new CS(port));
-										let defs = this.defs;
-										
-										port.postMessage({action: "info", message: defs });
-										
+											port.postMessage({action: "info", message: defs });
+										}
 									}
 									
 									break;

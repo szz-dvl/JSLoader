@@ -8,15 +8,17 @@ function EditorWdw (opt) {
 			promise.then(
 				tabs => {
 					
-					let editor = new Editor(opt);
+					//
 						
 					if (tabs) {
 						
 						let url = new URL(tabs[0].url).sort();
 						
 						if (url.hostname && url.protocol != "moz-extension:")
-							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
+							opt.tab = tabs[0];
 					}
+
+					let editor = new Editor(opt);
 					
 					browser.windows.create({
 						
@@ -28,7 +30,7 @@ function EditorWdw (opt) {
 						
 					}).then (
 						wdw => {
-							
+
 							editor.wdw = wdw;
 							
 							/* 
@@ -59,6 +61,7 @@ function EditorWdw (opt) {
 										browser.windows.update(wdw.id, updateInfo)
 											.then(
 												newWdw => {
+													
 													resolve(editor);								
 												}
 											)
@@ -88,8 +91,9 @@ class Editor extends EventEmitter {
 		
 		this.id = this.parent.__getEID.next().value;
 		this.mode = opt.mode || "javascript";
-		
 		this.tab = opt.tab ? this.parent.bg.tabs_mgr.factory(opt.tab) : null;
+
+		this.last_focus = false;
 		
 		this.parent.editors.push(this);
 		
@@ -179,6 +183,45 @@ class Editor extends EventEmitter {
 			this.wdw.child.onbeforeunload = this.editorClose;
 			
 		};
+
+		this.on('broadcast', request => {
+
+			switch (request.action) {
+
+				case "focus":
+
+					if (request.message > 0) {
+
+						if (!this.wdw || request.message == this.wdw.id) {
+
+							this.parent.broadcastEditors({action: "last_focus", message: this.id});
+							
+						} else {
+							
+							if (!this.parent.isEditorWdw(request.message)) { 
+
+								this.parent.getLastFocused()
+									.then(
+										wid => {
+											browser.windows.update(wid, {focused: true});
+										}
+									);
+							
+							}
+						}
+					}
+					
+					break;
+				case "last_focus":
+					
+					this.last_focus = request.message == this.id;
+					
+				default:
+					break;
+
+			}
+
+		})
 	}
 }
 
@@ -324,11 +367,49 @@ function EditorMgr (bg) {
 		return this.editors.find(
 			editor => {
 				
-				return editor.wdw.id == wid;
+				return editor.wdw && editor.wdw.id == wid;
 				
 			}) ? true : false;
 	};
 
+	this.getLastFocused = () => {
+
+		return new Promise((resolve, reject) => {
+			
+			async.each(this.editors, (editor, next) => {
+
+				if (editor.last_focus) {
+
+					browser.windows.get(editor.wdw.id)
+						.then(
+							wdw => {
+							
+								if (wdw.state == "normal")
+									next(editor);
+								else
+									next();
+
+							}, () => { next() }
+						)
+
+				} else {
+					
+					next();
+					
+				}
+
+			}, editor => {
+
+				if (editor)
+					resolve(editor.wdw.id);
+				else
+					reject();
+					
+			})
+
+		})
+	};
+	
 	this.resourceEditing = (resource) => {
 		
 		return this.editors.find(
@@ -348,5 +429,13 @@ function EditorMgr (bg) {
 		}
 		
 	};
-	
+
+	browser.windows.onFocusChanged.addListener(
+		wid => {
+
+			this.broadcastEditors({action: "focus", message: wid});
+			
+
+		}
+	)
 } 

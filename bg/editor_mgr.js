@@ -183,45 +183,6 @@ class Editor extends EventEmitter {
 			this.wdw.child.onbeforeunload = this.editorClose;
 			
 		};
-
-		this.on('broadcast', request => {
-
-			switch (request.action) {
-
-				case "focus":
-
-					if (request.message > 0) {
-
-						if (!this.wdw || request.message == this.wdw.id) {
-
-							this.parent.broadcastEditors({action: "last_focus", message: this.id});
-							
-						} else {
-							
-							if (!this.parent.isEditorWdw(request.message)) { 
-
-								this.parent.getLastFocused()
-									.then(
-										wid => {
-											browser.windows.update(wid, {focused: true});
-										}
-									);
-							
-							}
-						}
-					}
-					
-					break;
-				case "last_focus":
-					
-					this.last_focus = request.message == this.id;
-					
-				default:
-					break;
-
-			}
-
-		})
 	}
 }
 
@@ -371,44 +332,6 @@ function EditorMgr (bg) {
 				
 			}) ? true : false;
 	};
-
-	this.getLastFocused = () => {
-
-		return new Promise((resolve, reject) => {
-			
-			async.each(this.editors, (editor, next) => {
-
-				if (editor.last_focus) {
-
-					browser.windows.get(editor.wdw.id)
-						.then(
-							wdw => {
-							
-								if (wdw.state == "normal")
-									next(editor);
-								else
-									next();
-
-							}, () => { next() }
-						)
-
-				} else {
-					
-					next();
-					
-				}
-
-			}, editor => {
-
-				if (editor)
-					resolve(editor.wdw.id);
-				else
-					reject();
-					
-			})
-
-		})
-	};
 	
 	this.resourceEditing = (resource) => {
 		
@@ -429,13 +352,4 @@ function EditorMgr (bg) {
 		}
 		
 	};
-
-	browser.windows.onFocusChanged.addListener(
-		wid => {
-
-			this.broadcastEditors({action: "focus", message: wid});
-			
-
-		}
-	)
 } 

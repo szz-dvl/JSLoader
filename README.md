@@ -1,8 +1,6 @@
 # JSLoader
 
-JSLoader is an browser extension developed for Firefox. Its goal is to give to the user the ability to store scripts for any page allowing them to run. Those scripts will be executed against page content
-everytime the user visit the target site. The extension is not yet signed, hence Firefox developer edition is yet needed to run it.
-
+JSLoader is an browser extension developed for Chrome and Chromium browsers. Its goal is to give to the user the ability to store scripts for any page allowing them to run. Those scripts will be executed against page content everytime the user visit the target site. The extension name is JSLoader and can be found in chromoe web store as usual, those willing to use this repository can get an unsigned copy of the extension.
 
 ### Prerequisites
 
@@ -31,25 +29,26 @@ For other OS please refer to [this](https://docs.mongodb.com/manual/installation
 
 - Python:
 
-To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link. Once python is installed make sure [pip](https://pip.pypa.io/en/stable/installing/) is installed
-and then install [pymongo](http://api.mongodb.com/python/current/installation.html) the database connector for MongoDB.
+To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link. Once python is installed make sure [pip](https://pip.pypa.io/en/stable/installing/) is installed and then install [pymongo](http://api.mongodb.com/python/current/installation.html) the database connector for MongoDB.
 
 With all this dependencies satisfied you are now ready to go.
 
 ### Installing
 
+The extension can be found in Chrome web store under the name JSloader, those willing to get an unsigned copy of the extension please follow this:
+
 For GNU/Linux based OS users:
 
 ```
-git clone https://github.com/szz-dvl/JSLoader.git
+git clone -b chrome --single-branch --recurse-submodules https://github.com/szz-dvl/JSLoader.git
 cd JSLoader
 ./build
 
 ```
 
-This must be enough to create the .xpi **jsload-unsigned.xpi** and install the native app.
+This must be enough to create the .zip **jsload-unsigned.zip** and install the native app.
 
-There is no support at this point for windows users, however to create the .xpi just zip all the extension and renameit to anything ".xpi". To install the native app please follow [this](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests) manuals.
+There is no support at this point for windows users. To install the native app please follow [this](https://developer.chrome.com/extensions/nativeMessaging) manuals.
 
 ## Using the extension
 
@@ -63,7 +62,7 @@ Groups are another way to manage scripts. Sometimes there is not enough for an s
 
 ## Creating Scripts
 
-Scripts are written as usual in javascript. There is an API that will be explained in future releases, those willing to use it may refer to [content_api.js](https://github.com/szz-dvl/JSLoader/blob/master/bg/content_api.js).
+Scripts are written as usual in javascript. There is an API that will be explained in future releases, those willing to use it may refer to [content_api.js](https://github.com/szz-dvl/JSLoader/blob/master/bg/content_api.js). If the extension is installed please look in the preferences page (Alt + Shift + Q) and hit the "Load Examples button", you will find a complete set of examples for each API function.
 
 ## Built With
 

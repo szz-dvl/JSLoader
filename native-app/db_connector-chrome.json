@@ -1,0 +1,9 @@
+{
+	"name": "db_connector",
+	"description": "DB connector for JSLoader",
+	"path": "/etc/opt/chrome/native-messaging-hosts/db_connector.py",
+	"type": "stdio",
+	"allowed_origins": [
+		"chrome-extension://ocpgpmeabafdidcgjpmlndlfaiflebba/"
+	]
+}

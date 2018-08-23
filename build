@@ -1,12 +1,25 @@
 #!/bin/bash
 
-rm -f jsload-unsigned.xpi
+rm -f jsload-unsigned.zip
 
-if [ ! -d "/usr/lib/mozilla/native-messaging-hosts/" ]; then
-	sudo mkdir -p /usr/lib/mozilla/native-messaging-hosts/
+if [ -f "$(which google-chrome-stable)" ]; then
+	  
+	if [ ! -d "/etc/opt/chrome/native-messaging-hosts/" ]; then
+		sudo mkdir -p /etc/opt/chrome/native-messaging-hosts/
+	fi
+
+	sudo cp native-app/db_connector-chrome.json /etc/opt/chrome/native-messaging-hosts/db_connector.json
+	sudo cp native-app/db_connector.py /etc/opt/chrome/native-messaging-hosts/db_connector.py
 fi
 
-sudo cp native-app/db_connector.json /usr/lib/mozilla/native-messaging-hosts/db_connector.json
-sudo cp native-app/db_connector.py /usr/lib/mozilla/native-messaging-hosts/db_connector.py
+if [ -f "$(which chromium-browser)" ]; then
+	  
+	if [ ! -d "/etc/chromium/native-messaging-hosts/" ]; then
+		sudo mkdir -p /etc/chromium/native-messaging-hosts/
+	fi
 
-zip -r jsload-unsigned.xpi *
+	sudo cp native-app/db_connector-chromium.json /etc/chromium/native-messaging-hosts/db_connector.json
+	sudo cp native-app/db_connector.py /etc/chromium/native-messaging-hosts/db_connector.py
+fi
+
+zip -r jsload-unsigned.zip *

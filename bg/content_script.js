@@ -8,6 +8,7 @@ function ContentScript() {
 		err => {
 
 			try {
+				
 				let encoded = err.stack.split("/")[0];
 				let action = encoded.split('$')[0].replace(/_/g,  '-');
 				let script = encoded.split('$').pop().replace(/_/g, '-'); /* Any other way? */

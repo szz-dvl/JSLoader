@@ -656,7 +656,8 @@ function EditorFG (id, bg) {
 				$scope.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
-			
+
+			$("#settings_img").attr("src", $("#settings_img").attr("src").split(":").slice(1).join(":")) //* Workaround: images loaded from self marked as unsafe ...*/
 		});
 	});
 
@@ -675,6 +676,11 @@ browser.runtime.getBackgroundPage()
 			let id = parseInt(window.location.toString().split("?")[1].split("&")[0]);
 			
 			new EditorFG(id, page);
+
+			//@ https://stackoverflow.com/questions/17372885/block-f5-key-using-javascript
+			$(document).on("keydown", (e) => {
+				 if ((e.which || e.keyCode) == 116) e.preventDefault();
+			});
 			
 		},
 	);

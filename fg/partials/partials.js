@@ -15,7 +15,7 @@ angular.module('jslPartials', [])
 		})
 	
 	.directive('dropDown',
-		() => {
+		($timeout) => {
 			
 			return {
 				restrict: 'E',
@@ -36,7 +36,8 @@ angular.module('jslPartials', [])
 				},
 
 				link: function($scope, element, attrs){
-					
+
+					$scope.el = element;
 					$scope.obj = 'item' in attrs;
 					$scope.height = 'height' in attrs ? $scope.height : '20';
 					$scope.width = 'width' in attrs ? $scope.width : '20';
@@ -75,6 +76,14 @@ angular.module('jslPartials', [])
 						else 
 							$scope.$parent[$scope.shown] = $scope.mostra;
 					}
+
+					$timeout(() => {
+
+						/* Workaround: images loaded from self marked as unsafe ...*/
+						
+						$scope.el.attr('src', $scope.el.attr('src').split(":").slice(1).join(":"));
+
+					})
 				}	
 			}
 		})

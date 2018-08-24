@@ -733,11 +733,13 @@ browser.runtime.getBackgroundPage()
 
 			page.pa_events = new EventEmitter();
 
-			$(window).unload(() => {
+			$(window).on('unload',
+				() => {
 				
-				page.pa_events = null;
+					page.pa_events = null;
 				
-			});
+				}
+			);
 
 			page.getPASite()
 				.then(

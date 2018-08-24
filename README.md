@@ -1,7 +1,6 @@
 # JSLoader
 
-JSLoader is an browser extension developed for Firefox. Its goal is to give to the user the ability to store scripts for any page allowing them to run. Those scripts will be executed against page content
-everytime the user visit the target site. The extension is not yet signed, hence Firefox developer edition is yet needed to run it.
+JSLoader is an browser extension developed for Firefox. Its goal is to give to the user the ability to store scripts for any page allowing them to run. Those scripts will be executed against page content everytime the user visit the target site. The extension is distributed in AMO and can be found as ususal, those using this repository will receive an unsigned version of the extension.
 
 
 ### Prerequisites
@@ -31,8 +30,7 @@ For other OS please refer to [this](https://docs.mongodb.com/manual/installation
 
 - Python:
 
-To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link. Once python is installed make sure [pip](https://pip.pypa.io/en/stable/installing/) is installed
-and then install [pymongo](http://api.mongodb.com/python/current/installation.html) the database connector for MongoDB.
+To install python please refer to [this](https://wiki.python.org/moin/BeginnersGuide/Download) link. Once python is installed make sure [pip](https://pip.pypa.io/en/stable/installing/) is installed and then install [pymongo](http://api.mongodb.com/python/current/installation.html) the database connector for MongoDB.
 
 With all this dependencies satisfied you are now ready to go.
 
@@ -40,8 +38,10 @@ With all this dependencies satisfied you are now ready to go.
 
 For GNU/Linux based OS users:
 
+Please use the signed version of the app, you can find it [here](https://addons.mozilla.org/en-US/firefox/addon/jsloader/), otherwise follow this instructons:
+
 ```
-git clone --recurse-submodules https://github.com/szz-dvl/JSLoader.git
+git clone -b master --single-branch --recurse-submodules https://github.com/szz-dvl/JSLoader.git
 cd JSLoader
 ./build
 
@@ -63,7 +63,7 @@ Groups are another way to manage scripts. Sometimes there is not enough for an s
 
 ## Creating Scripts
 
-Scripts are written as usual in javascript. There is an API that will be explained in future releases, those willing to use it may refer to [content_api.js](https://github.com/szz-dvl/JSLoader/blob/master/bg/content_api.js).
+Scripts are written as usual in javascript. There is an API that will be explained in future releases, those willing to use it may refer to [content_api.js](https://github.com/szz-dvl/JSLoader/blob/master/bg/content_api.js). If the extensioon is installed Please look for the button "Load Examples" in the preferences page (Alt + Shift + Q), where you will find a complete set of exampls for the API provided.
 
 ## Built With
 

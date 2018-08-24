@@ -7,8 +7,6 @@ function EditorWdw (opt) {
 
 			promise.then(
 				tabs => {
-					
-					//
 						
 					if (tabs) {
 						
@@ -52,10 +50,10 @@ function EditorWdw (opt) {
 									newWdw => {
 
 										let updateInfo = {
-								
+											
 											width: newWdw.width,
 											height: newWdw.height - 1, // 1 pixel less now ...
-								
+											
 										};
 										
 										browser.windows.update(wdw.id, updateInfo)

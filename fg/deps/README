@@ -1,4 +1,4 @@
-Angular js => https://ajax.googleapis.com/ajax/libs/angularjs/1.7.2/angular.js
+Angular js => https://unpkg.com/angular@1.7.3/angular.js
 	* Never used in content scripts is used in the extension to grab data from background and show it in views (page action, option page and editors).
 	  "Eval" permission is needed for angular. 
 

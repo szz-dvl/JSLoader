@@ -204,7 +204,7 @@ angular.module('jslPartials', [])
 		};
 	})
 
-	.directive('paginator', function() {
+	.directive('paginator', function($timeout) {
 		
 		return {
 			
@@ -227,7 +227,8 @@ angular.module('jslPartials', [])
 			},
 
 			link: function ($scope, element, attrs) {
-				
+
+				$scope.imgs = element.find('img'); 
 				$scope.size = "pagSmall" in attrs ? '16' : '20';
 			},
 			
@@ -288,7 +289,17 @@ angular.module('jslPartials', [])
 							);
 					});
 				}
-				
+
+				$timeout(() => {
+
+					/* Workaround: images loaded from self marked as unsafe ...*/
+					$scope.imgs.each(function () {
+
+						$(this).attr('src', $(this).attr('src').split(":").slice(1).join(":"))
+						
+					})
+					
+				})
 			}
 		}
 	})

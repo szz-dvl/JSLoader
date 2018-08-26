@@ -5,10 +5,10 @@
 		
 		<div style="margin-left: 15px;display: inline-flex;">
 			<div ng-show="hover" class="resource-add" style="border:0;margin-right: 5px;" ng-click="viewSelf()" style="margin-right: 5px;">
-				<img src="../icons/16-eye.png" width="16px" height="16px"/>
+				<img class="icons" src="../icons/16-eye.png" width="16px" height="16px"/>
 			</div>
 			<div ng-show="hover" class="resource-add" style="border:0; margin-right: 5px;" ng-click="editSelf()">
-				<img src="../icons/edit-16.png" width="16px" height="16px"/>
+				<img class="icons" src="../icons/edit-16.png" width="16px" height="16px"/>
 			</div>			
 		</div>
 		
@@ -41,6 +41,7 @@
 		</button>
 		
 		<img src="../icons/ko_tick.png"
+			class="icons"
 			width="20px"
 			height="20px"
 			ng-click="cancelEdit()"

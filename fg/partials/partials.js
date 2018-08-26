@@ -15,7 +15,7 @@ angular.module('jslPartials', [])
 		})
 	
 	.directive('dropDown',
-		() => {
+		($timeout) => {
 			
 			return {
 				restrict: 'E',
@@ -36,7 +36,8 @@ angular.module('jslPartials', [])
 				},
 
 				link: function($scope, element, attrs){
-					
+
+					$scope.el = element;
 					$scope.obj = 'item' in attrs;
 					$scope.height = 'height' in attrs ? $scope.height : '20';
 					$scope.width = 'width' in attrs ? $scope.width : '20';
@@ -75,6 +76,14 @@ angular.module('jslPartials', [])
 						else 
 							$scope.$parent[$scope.shown] = $scope.mostra;
 					}
+
+					$timeout(() => {
+
+						/* Workaround: images loaded from self marked as unsafe ...*/
+						
+						$scope.el.attr('src', $scope.el.attr('src').split(":").slice(1).join(":"));
+
+					})
 				}	
 			}
 		})
@@ -195,7 +204,7 @@ angular.module('jslPartials', [])
 		};
 	})
 
-	.directive('paginator', function() {
+	.directive('paginator', function($timeout) {
 		
 		return {
 			
@@ -218,7 +227,8 @@ angular.module('jslPartials', [])
 			},
 
 			link: function ($scope, element, attrs) {
-				
+
+				$scope.imgs = element.find('img'); 
 				$scope.size = "pagSmall" in attrs ? '16' : '20';
 			},
 			
@@ -279,7 +289,17 @@ angular.module('jslPartials', [])
 							);
 					});
 				}
-				
+
+				$timeout(() => {
+
+					/* Workaround: images loaded from self marked as unsafe ...*/
+					$scope.imgs.each(function () {
+
+						$(this).attr('src', $(this).attr('src').split(":").slice(1).join(":"))
+						
+					})
+					
+				})
 			}
 		}
 	})
@@ -532,6 +552,7 @@ angular.module('jslPartials', [])
 				link: function ($scope, elem, attrs) {
 
 					$scope.elem = elem;
+					$scope.ticks = elem.find(".ticks");
 					$scope.ul = elem.find('ul');
 					
 					$scope.resetUl = () => {
@@ -875,6 +896,15 @@ angular.module('jslPartials', [])
 						$('#' + $scope.idname).off('keypress');
 						$scope.adding = false;
 					}
+
+					$timeout(() => {
+
+						$scope.ticks.each(function () {
+							
+							$(this).attr("src", $(this).attr("src").split(":").slice(1).join(":"));
+						})
+						
+					})
 				}
 				
 			}
@@ -900,6 +930,8 @@ angular.module('jslPartials', [])
 				},
 
 				link: function ($scope, elem, attrs) {
+
+					$scope.icons = elem.find(".icons");
 					
 					elem.on('dragstart', ev => {
 						
@@ -997,6 +1029,15 @@ angular.module('jslPartials', [])
 						$scope.editing = false;
 						
 					}
+
+					$timeout(() => {
+
+						$scope.icons.each(function () {
+							
+							$(this).attr("src", $(this).attr("src").split(":").slice(1).join(":"));
+						})
+						
+					})
 				}
 			}
 		})
@@ -1148,7 +1189,7 @@ angular.module('jslPartials', [])
 		})
 	
 	.directive('groupChooser',
-		() => {
+		($timeout) => {
 
 			return {
 				
@@ -1172,8 +1213,8 @@ angular.module('jslPartials', [])
 				controller: function ($scope) {
 					
 					$scope.groups.push($scope.locale.findText("new_group"));
-					$scope.current = $scope.groups[0];
-					$scope.adding = true;
+					$scope.current = $scope.groups.includes($scope.validating) ? $scope.validating : $scope.groups[0];
+					$scope.adding = !$scope.groups.includes($scope.validating);
 					$scope.disabled_btns = false;
 					
 					$scope.selectChange = (nval) => {

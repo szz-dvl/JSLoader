@@ -432,7 +432,16 @@ function OP (bg) {
 
 							}
 
-							$timeout($scope.__updateService);
+							$timeout(() => {
+								
+								$(".status").each(function () {
+
+									$(this).attr("src", $(this).attr("src").split(":").slice(1).join(":")); 
+									
+								});
+
+								$scope.__updateService();
+							});
 						}
 					},
 

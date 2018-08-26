@@ -4,19 +4,24 @@
   <head>
 	
 	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self';">
+	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
 	  <link rel="stylesheet" href="editor.css"/>
 	  <link rel="stylesheet" href="../styles/jsl.css"/>
-	  <link rel="stylesheet" href="../styles/extension.css">
+	  <link rel="stylesheet" href="../styles/extension.css"/>
 	  
 	  <script src="../deps/jquery.min.js"></script>
 	  <script src="../deps/angular.min.js"></script>
-	
+
+	  <script src="../partials/partials.js"></script>
+	  
 	  <script src="../deps/shortcut.js"></script>
 	  <script src="../deps/ace/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 	  <script src="../../utils/jsloader-utils.js" type="text/javascript" charset="utf-8"></script>
-	  <script src="../partials/partials.js"></script>
-	
+	  	
 	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+
+	  <script src="editor.js"></script>
+	  
 	  
   </head>
   
@@ -32,10 +37,10 @@
 		  
 	      <!-- ¿button toggle on ng-mouseenter here? -->
 		  <div id="editor-header" class="panel-section panel-section-header">
-			  <div class="text-section-header" style="display: inline-block;width: 100%;">
+			  <div class="text-section-header" style="display: inline-block;width: 100%">
 				  
 				  <script-name script="script" ng-if="!script.parent.isResource()" onlyval="true" style="width: 15%;display: inline-block;float: left"></script-name>
-				  <bdi style="float: left;" ng-if="script.parent.isResource()">  {{ page.bg.texts.findText("resource") }} </bdi> <bdi style="float: inline-start;vertical-align:top; margin: 0 15px 0 15px">||</bdi>
+				  <bdi style="float: left;" ng-if="script.parent.isResource()">  {{ page.bg.texts.findText("resource") }} </bdi> <bdi style="float: inline-start;margin: 0 15px 0 15px;">||</bdi>
 				  
 				  <div style="width: 80%;display: inline-block">
 					  <bdi ng-if="!script.parent.isResource()" id="user_action" class="bold" style="display: inline; width: 10%;margin-top: 5px;float: left;"> {{ page.bg.texts.findText("script_for") }} </bdi>
@@ -48,7 +53,14 @@
 						  ev="editor"
 						  url="url"></site-validator>
 
-					  <img ng-if="!script.parent.isGroup() && !script.parent.isResource()" ng-show="script.persisted" width="16px" height="16px" style="margin-left: 10px;" src="../icons/db.png">
+					  <img
+						  id="persisted_mark"
+						  src="../icons/db.png"
+						  ng-if="!script.parent.isResource()"
+						  ng-show="script.persisted && mine && (script.parent.isGroup() ? !adding_group : true)"
+						  width="16px"
+						  height="16px"
+						  style="margin-left: 10px;">
 					  
 					  <group-chooser
 						  style="display: inline-block; width: 60%;margin: 0;float:left"
@@ -87,7 +99,7 @@
 		  
 	  </div>
 	    
-	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999; margin: auto;">
+	  <div id="btns_panel" class="panel-section hidden-elem" ng-mouseenter="buttonToggle()" style="z-index: 99999999999999999999999;">
 		  
 		  <button 
 			  ng-disabled="!canSave()"
@@ -99,7 +111,7 @@
 		  </button>
 
 		  <button 
-			  ng-show="run_shown"
+			  ng-show="run_shown && gotit && mine"
 			  ng-disabled="buttons.disabled"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="runCurrent()">
@@ -109,10 +121,10 @@
 		  </button>
 		  
 		  <button 
-			  ng-show="script.persisted && script.parent && !script.parent.isResource()"
+			  ng-show="script.persisted && script.parent && !script.parent.isResource() && mine"
 			  ng-disabled="!canRemove()"
 			  class="hidden-elem browser-style mright jsload_button"
-			  ng-click="script.remove()">
+			  ng-click="removeCurrent()">
 
 			  {{ page.bg.texts.findText("remove") }}
 			  
@@ -140,8 +152,6 @@
 			   ng-mouseleave="settingsSrc(false)"
 			   ng-click="toggleSettings()">
 	   </div>
-	   
-	  <script src="editor.js"></script>
 	  
   </body>
 </html>

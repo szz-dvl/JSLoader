@@ -5,7 +5,7 @@
 			<drop-down shown="'dir_shown'" width="16" height="16"></drop-down>
 		</strong>
 		
-		<ul class="browser-style" style="width: -webkit-fit-content" id="directory-{{name}}" ng-show="dir_shown">
+		<ul class="browser-style" style="width: -moz-fit-content" id="directory-{{name}}" ng-show="dir_shown">
 			
 			<li ng-class="resource.items ? 'browser-style resource-dir' : 'browser-style resource-item'" ng-repeat="resource in items">
 
@@ -54,12 +54,14 @@
 				</input-file>
 				
 				<img src="../icons/ko_tick.png"
+					class="ticks"
 					width="22px"
 					height="22px"
 					ng-click="cancelResource()"
 					style="vertical-align: sub; margin-left: 15px;display: inline;"/>
 				
 				<img src="../icons/ok_tick.png"
+					class="ticks"
 					width="20px"
 					height="20px"
 					ng-show="item_type == locale.findText('dir')"

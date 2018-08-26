@@ -93,7 +93,7 @@ function Script (opt) {
 	};
 
 	this.includedAt = (url) => {
-		
+
 		return this.parent.includes(url);
 
 	};
@@ -774,7 +774,7 @@ function Group (opt) {
 		
 		return this.sites.find(
 			site => {
-				
+
 				return this.__comparePlainUrl(site, url);
 			}
 			

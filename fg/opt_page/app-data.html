@@ -30,21 +30,21 @@
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
 							<div style="width: 40px;height: 40px;">
-								<img src="../icons/ok_tick.png" ng-show="page.bg.db.connected && !page.bg.db.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="!page.bg.db.connected && !page.bg.db.reconnecting" width="32px" height="32px">
-								<img src="../icons/loading.gif" ng-show="page.bg.db.reconnecting" width="32px" height="32px">
+								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && !page.bg.db.reconnecting" width="24px" height="24px">
+								<img class="status" src="../icons/ko_tick.png" ng-show="!page.bg.db.connected && !page.bg.db.reconnecting" width="32px" height="32px">
+								<img class="status" src="../icons/loading.gif" ng-show="page.bg.db.reconnecting" width="32px" height="32px">
 							</div>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
 							<div style="width: 40px;height: 40px;">
-								<img src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.readable && !page.bg.db.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.readable && !page.bg.db.reconnecting" width="32px" height="32px">
+								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.readable && !page.bg.db.reconnecting" width="24px" height="24px">
+								<img class="status" src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.readable && !page.bg.db.reconnecting" width="32px" height="32px">
 							</div>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
 							<div style="width: 40px;height: 40px;">
-								<img src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.writeable && !page.bg.db.reconnecting" width="24px" height="24px">
-								<img src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.writeable && !page.bg.db.reconnecting" width="32px" height="32px">
+								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.writeable && !page.bg.db.reconnecting" width="24px" height="24px">
+								<img class="status" src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.writeable && !page.bg.db.reconnecting" width="32px" height="32px">
 							</div>
 						</td>
 					</tr>

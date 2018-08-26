@@ -2,8 +2,9 @@ function EditorWdw (opt) {
 	
 	return new Promise (
 		(resolve, reject) => {
-			
-			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : browser.tabs.query({ active: true, windowType: "normal" });
+
+			/* || opt.script.persisted */
+			let promise = (opt.tab) ? Promise.resolve() : browser.tabs.query({ active: true, windowType: "normal" });
 
 			promise.then(
 				tabs => {
@@ -132,9 +133,9 @@ class Editor extends EventEmitter {
 							} else {
 
 								/* ... Otherwise disallow run for the script on this tab */
-
-								/* this.tab.outdated = true; */
 								
+								/* this.tab.outdated = true; */
+
 								this.emit('new_tab', false, false);
 							}
 							

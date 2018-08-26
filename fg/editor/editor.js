@@ -55,11 +55,12 @@ function EditorFG (id, bg) {
 		/* Groups */
 		$scope.groups_copy = self.bg.group_mgr.groups.slice(0);
 		$scope.gotit = true;
-		$scope.adding_group = true;
+		$scope.mine = true;
+		$scope.adding_group = !$scope.groups_copy.includes($scope.script.getParentName());
 		
 		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
-
+		
 		
 		$scope.editor_collapsed = false;
 		$scope.settings_shown = false;
@@ -67,7 +68,7 @@ function EditorFG (id, bg) {
 
 		$scope.buttons = {
 			
-			disabled: !$scope.script.parent ? false : ($scope.script.getUrl() ? false : ($scope.script.parent.isResource() ? false : true))
+			disabled: !$scope.script.parent ? false : ($scope.script.getUrl() ? false : ($scope.script.parent.isResource() ? false : $scope.adding_group))
 
 		};
 		
@@ -94,12 +95,7 @@ function EditorFG (id, bg) {
 				parent: $scope,
 				onTrigger: () => {
 
-					if ($scope.canRemove()) {
-						$scope.script.remove()
-							.then(parent => {
-								$scope.$digest();
-							})
-					}
+					$scope.removeCurrent();
 				}
 			},
 			{
@@ -357,20 +353,31 @@ function EditorFG (id, bg) {
 							
 							$scope.editor.script.persist()
 								.then(	
-									parent => {
+									prnt => {
 										
 										$scope.enableButtons();
 										
-										if (parent) {
+										if (prnt) {
 											
-											if (parent.isResource()) {
+											if (prnt.isResource()) {
 												
 												if (self.bg.option_mgr.events) 
-													self.bg.option_mgr.events.emit("new-resource", parent);
+													self.bg.option_mgr.events.emit("new-resource", prnt);
 												
-											} else if (reload) {
+											} else {
 
-												self.bg.content_mgr.reloadScript($scope.editor.script);
+												if (prnt.isGroup()) {
+
+													/* New group created yet unpersisted */
+													if ($scope.adding_group)
+														$scope.adding_group = false;
+
+													if (!$scope.mine)
+														$scope.mine = true;
+												}
+												
+												if (reload) 
+													self.bg.content_mgr.reloadScript($scope.editor.script);
 												
 											}
 										}
@@ -380,6 +387,8 @@ function EditorFG (id, bg) {
 									}, err => {
 
 										$scope.enableButtons();
+										$scope.$digest();
+										
 										console.error(err);
 									}
 								)
@@ -387,6 +396,8 @@ function EditorFG (id, bg) {
 						}, err => {
 
 							$scope.enableButtons();
+							$scope.$digest();
+							
 							console.error(err);
 						}
 					);
@@ -399,6 +410,49 @@ function EditorFG (id, bg) {
 				}	
 			}
 		};
+
+		$scope.removeCurrent = () => {
+
+			if ($scope.canRemove()) {
+
+				$scope.disableButtons();
+				
+				$scope.script.remove()
+					.then(prnt => {
+
+						$scope.enableButtons();
+						
+						if (prnt.isGroup()) {
+							$scope.mine = false;
+
+						} else {
+
+							if ($scope.url != $scope.editor.tab.url.name()) {
+
+								$scope.url = $scope.editor.tab.url.name();
+			
+								$("#site_validator")
+									.replaceWith($compile('<site-validator id="site_validator"' +
+										' style="display: inline-block; width: 80%;margin: 0;"' +
+										' ng-if="!script.parent.isGroup()"' +
+										' ev="editor" url="url">' +
+										' </site-validator>')($scope));
+
+								$scope.run_shown = true;
+							}
+						}
+						
+						$scope.$digest();
+
+					}, err => {
+
+						$scope.enableButtons();
+						$scope.$digest();
+						console.error(err);
+						
+					})
+			}
+		}
 		
 		$scope.opts = [
 
@@ -457,18 +511,25 @@ function EditorFG (id, bg) {
 					$scope.page.bg.group_mgr.getItem(selected)
 						.then(
 							group => {
-
+								
 								$scope.adding_group = false;
 								
+								if (group.haveScript($scope.script.uuid)) 
+									$scope.mine = true;
+								else 
+									$scope.mine = false;
+
 								if (group.isMySite($scope.editor.tab.url.name())) 
 									$scope.gotit = true;
 								else 
 									$scope.gotit = false;
-								
+
 								$scope.$digest();
 
 							}, err => {
 
+								$scope.mine = false;
+								$scope.gotit = false;
 								$scope.adding_group = true;
 								$scope.$digest();
 							}
@@ -496,10 +557,29 @@ function EditorFG (id, bg) {
 				})
 			.on('new_tab',
 				(must_run, unpersisted) => {
+					
+					if ($scope.script.parent.isGroup()) {
 
+						if (!$scope.adding_group) {
+
+							$scope.page.bg.group_mgr.getItem($scope.url)
+								.then(
+									group => {
+										
+										if (group.isMySite($scope.editor.tab.url.name())) 
+											$scope.gotit = true;
+										else 
+											$scope.gotit = false;
+										
+										$scope.$digest();
+										
+									}, console.error)
+						}
+					}
+					
 					if (unpersisted) {
 
-						if (!$scope.editor.script.parent.isGroup()) {
+						if (!$scope.script.parent.isGroup()) {
 
 							$scope.url = $scope.editor.tab.url.name();
 			
@@ -510,21 +590,24 @@ function EditorFG (id, bg) {
 									' ev="editor" url="url">' +
 									' </site-validator>')($scope));
 
-						}
+						} 
 
 					}
 
-					if (must_run)
+					if (must_run) {
+						
 						$scope.enableRun();
-					else
+						
+						
+					} else {
+						
 						$scope.disableRun();
-				
-
-
+	
+					}
 				})
 			.on('broadcast',
 				request => {
-
+					
 					switch (request.action) {
 						case "opts":
 
@@ -547,12 +630,26 @@ function EditorFG (id, bg) {
 
 		$scope.tabSiteToCurrentGroup = () => {
 
-			if ($scope.gotit) 
-				self.bg.group_mgr.removeSiteFrom($scope.url, $scope.editor.tab.url.name());
-			else
-				self.bg.group_mgr.addSiteTo($scope.url, $scope.editor.tab.url.name());
+			if ($scope.gotit) {
+
+				if ($scope.mine)
+					$scope.script.parent.removeSite($scope.editor.tab.url.name());
+				else
+					self.bg.group_mgr.removeSiteFrom($scope.url, $scope.editor.tab.url.name());
+
+			} else { 
+
+				if ($scope.mine)
+					$scope.script.parent.appendSite($scope.editor.tab.url.name());
+				else
+					self.bg.group_mgr.addSiteTo($scope.url, $scope.editor.tab.url.name());
+				
+			}
 			
 			$scope.gotit = !$scope.gotit;
+
+			if ($scope.gotit && $scope.mine)
+				$scope.run_shown = true;
 		}
 			
 		$scope.disableRun = () => {
@@ -582,7 +679,7 @@ function EditorFG (id, bg) {
 				if (self.bg.db.connected)
 					return self.bg.db.writeable && self.bg.db.removeable;
 				else
-					return !$scope.script.parent || $scope.script.inStorage() || $scope.script.created;				
+					return !$scope.script.parent || $scope.script.parent.isResource() || $scope.script.inStorage() || $scope.script.created;				
 
 			}
 		}
@@ -656,8 +753,13 @@ function EditorFG (id, bg) {
 				$scope.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
-
-			$("#settings_img").attr("src", $("#settings_img").attr("src").split(":").slice(1).join(":")) //* Workaround: images loaded from self marked as unsafe ...*/
+			
+			
+			if ($("#persisted_mark").attr("src"))
+				$("#persisted_mark").attr("src", $("#persisted_mark").attr("src").split(":").slice(1).join(":"));
+			
+			$("#settings_img").attr("src", $("#settings_img").attr("src").split(":").slice(1).join(":")); //* Workaround: images loaded from self marked as unsafe ...*/
+			
 		});
 	});
 

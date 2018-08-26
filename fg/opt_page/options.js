@@ -22,7 +22,7 @@ function OP (bg) {
 					dataDomains: () => { return self.bg.domain_mgr.getSlice(0, 5); },
 					dataGroups: () => { return self.bg.group_mgr.getSlice(0, 5); },
 					storageContent: () => { return browser.storage.local.get(); },
-					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }  //return Promise.resolve({name: "/", items: []}) , return self.bg.resource_mgr.getVirtFS("/");
+					dataResources: () => { return self.bg.resource_mgr.getVirtFS("/"); }
 				},
 				
 				views: {
@@ -330,7 +330,7 @@ function OP (bg) {
 										if (self.bg.db.connected) {
 											
 											$scope.string = string;
-											self.bg.option_mgr.persistDBString(string);		
+											self.bg.option_mgr.persistDBString(string);
 											$timeout($scope.__updateData, 50, false, false);	
 												
 										} else {
@@ -433,7 +433,16 @@ function OP (bg) {
 
 							}
 
-							$timeout($scope.__updateService);
+							$timeout(() => {
+
+								$(".status").each(function () {
+
+									$(this).attr("src", $(this).attr("src").split(":").slice(1).join(":")); 
+									
+								});
+
+								$scope.__updateService();
+							});
 						}
 					},
 

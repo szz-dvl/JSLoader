@@ -52,7 +52,14 @@
 						  ev="editor"
 						  url="url"></site-validator>
 
-					  <img ng-if="!script.parent.isGroup() && !script.parent.isResource()" ng-show="script.persisted" width="16px" height="16px" style="margin-left: 10px;" src="../icons/db.png">
+					  <img
+						  id="persisted_mark"
+						  src="../icons/db.png"
+						  ng-if="!script.parent.isResource()"
+						  ng-show="script.persisted && mine && (script.parent.isGroup() ? !adding_group : true)"
+						  width="16px"
+						  height="16px"
+						  style="margin-left: 10px;">
 					  
 					  <group-chooser
 						  style="display: inline-block; width: 60%;margin: 0;float:left"
@@ -103,7 +110,7 @@
 		  </button>
 
 		  <button 
-			  ng-show="run_shown"
+			  ng-show="run_shown && gotit && mine"
 			  ng-disabled="buttons.disabled"
 			  class="hidden-elem browser-style mright jsload_button"
 			  ng-click="runCurrent()">
@@ -113,10 +120,10 @@
 		  </button>
 		  
 		  <button 
-			  ng-show="script.persisted && script.parent && !script.parent.isResource()"
+			  ng-show="script.persisted && script.parent && !script.parent.isResource() && mine"
 			  ng-disabled="!canRemove()"
 			  class="hidden-elem browser-style mright jsload_button"
-			  ng-click="script.remove()">
+			  ng-click="removeCurrent()">
 
 			  {{ page.bg.texts.findText("remove") }}
 			  

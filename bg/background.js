@@ -177,3 +177,5 @@ global_storage.once('ready', () => {
 	BG_mgr.call(this);
 
 });
+
+/* browser.storage.clear(); */

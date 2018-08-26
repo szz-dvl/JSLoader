@@ -4,6 +4,6 @@
 	"path": "/etc/chromium/native-messaging-hosts/db_connector.py",
 	"type": "stdio",
 	"allowed_origins": [
-		"chrome-extension://ocpgpmeabafdidcgjpmlndlfaiflebba/"
+		"chrome-extension://fcanbhmblljagfbkgccephjngcepeeln/"
 	]
 }

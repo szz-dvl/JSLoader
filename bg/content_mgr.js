@@ -764,22 +764,26 @@ function CSMgr (bg) {
 					
 					port.onDisconnect.addListener(
 						port => {
-							
-							let frame = this.getFrameForPort(port);
-							
-							for (let loaded of frame.resources) 
-								this.bg.resource_mgr.unloadResource(loaded);
 
-							/* Check for error */
-							this.alive.remove(
-								this.alive.findIndex(
-									dead => {
-										
-										return dead.name == port.name;
-										
-									}
-								)
-							);	
+							/*WIM*/
+							let frame = this.getFrameForPort(port);
+
+							if (frame) {
+
+								for (let loaded of frame.resources) 
+									this.bg.resource_mgr.unloadResource(loaded);
+
+								/* Check for error */
+								this.alive.remove(
+									this.alive.findIndex(
+										dead => {
+											
+											return dead.name == port.name;
+											
+										}
+									)	
+								);
+							}
 						}
 					);
 				}

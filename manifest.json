@@ -63,19 +63,19 @@
 	"commands": {
 		"add-script-for-tab": {
 			"suggested_key": {
-				"default": "Alt+Shift+1"
+				"default": "Ctrl+Shift+1"
 			},
 			"description": "Open a new editor window, binded to the current tab."
 		},
 		"new-group-new-script": {
 			"suggested_key": {
-				"default": "Alt+Shift+2"
+				"default": "Ctrl+Shift+2"
 			},
-			"description": "Create new group, ¿adds the current site? and binds a new script."
+			"description": "Create new group, and binds a new script."
 		},
 		"open-option-page": {
 			"suggested_key": {
-				"default": "Alt+Shift+Q"
+				"default": "Ctrl+Shift+3"
 			},
 			"description": "Shows configuration menu."
 		}

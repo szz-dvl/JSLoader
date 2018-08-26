@@ -1,0 +1,20 @@
+Angular js => https://unpkg.com/angular@1.7.3/angular.js
+	* Never used in content scripts is used in the extension to grab data from background and show it in views (page action, option page and editors).
+	  "Eval" permission is needed for angular. 
+
+Angular UI router => https://unpkg.com/@uirouter/angularjs/release/angular-ui-router.js
+	* Used in Page action and Option Page to organize views
+	
+Jquery => https://code.jquery.com/jquery-3.3.1.js
+	* This one is included in content scripts, used by Angular JS too. Page action and editor makes use of it too.
+	
+Shortcut.js => http://www.openjs.com/scripts/events/keyboard_shortcuts/shortcut.js
+    * Used in editor to grab:
+	  	   Ctrl + 1: show/hide editor header
+		   Ctrl + 2: show/hide editor settings
+		   Ctrl + S: Save script (where it needs to be saved, if avaailable)
+		   Ctrl + R: Run the script in the tab (if avaailable)
+		   Ctrl + B: Remove a previously saved script.
+
+ACE => https://github.com/ajaxorg/ace-builds/blob/8a271c3dae5267e4a124f378d940f221cc7b3dab/src-noconflict/ace.js
+    * Code editor used to write the scripts 

@@ -1,0 +1,11 @@
+async js => https://raw.githubusercontent.com/caolan/async/master/dist/async.js
+	  * Used in several parts of the extension
+
+underscore js  => https://underscorejs.org/underscore.js
+	  * Used in options page to update "app-data" view.
+
+bluebird => https://cdn.jsdelivr.net/bluebird/latest/bluebird.js
+	  * Used in bg/content_script.js to handle unhandled rejections, scripts failures.
+
+EventEmitter => https://raw.githubusercontent.com/Olical/EventEmitter/master/EventEmitter.js
+	  * Used in several parts of the extension

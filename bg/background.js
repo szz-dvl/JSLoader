@@ -179,7 +179,6 @@ global_storage.once('ready', () => {
 	
 	BG_mgr.call(this);
 
-})
+});
 
 
-chrome.storage.local.clear();

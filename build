@@ -1,9 +1,9 @@
 #!/bin/bash
 
-rm -f jsload-unsigned.zip
+rm -f jsload-unsigned.*
 
 if [ -f "$(which google-chrome-stable)" ]; then
-	  
+
 	if [ ! -d "/etc/opt/chrome/native-messaging-hosts/" ]; then
 		sudo mkdir -p /etc/opt/chrome/native-messaging-hosts/
 	fi
@@ -13,7 +13,7 @@ if [ -f "$(which google-chrome-stable)" ]; then
 fi
 
 if [ -f "$(which chromium-browser)" ]; then
-	  
+
 	if [ ! -d "/etc/chromium/native-messaging-hosts/" ]; then
 		sudo mkdir -p /etc/chromium/native-messaging-hosts/
 	fi

@@ -3,20 +3,20 @@ function EditorWdw (opt) {
 	return new Promise (
 		(resolve, reject) => {
 			
-			let promise = (opt.tab || opt.script.persisted) ? Promise.resolve() : new Promise (resolve => { chrome.tabs.query({ active: true, windowType: "normal" }, resolve) });
+			let promise = (opt.tab) ? Promise.resolve() : new Promise (resolve => { chrome.tabs.query({ active: true, windowType: "normal" }, resolve) });
 
 			promise.then(
 				tabs => {
-					
-					let editor = new Editor(opt);
 						
 					if (tabs) {
 						
 						let url = new URL(tabs[0].url).sort();
 						
-						if (url.hostname && url.protocol != "moz-extension:")
-							editor.tab = editor.parent.bg.tabs_mgr.factory(tabs[0]);
+						if (url.hostname && !url.protocol.includes("chrome"))
+							opt.tab = tabs[0];
 					}
+
+					let editor = new Editor(opt);
 					
 					chrome.windows.create({
 						

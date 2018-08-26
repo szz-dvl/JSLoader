@@ -4,7 +4,6 @@
   <head>
 	
 	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' * 'unsafe-eval'; object-src 'self'; img-src 'self';">
-	  <link rel="stylesheet" href="chrome://browser/content/extension.css">
 	  <link rel="stylesheet" href="editor.css"/>
 	  <link rel="stylesheet" href="../styles/jsl.css"/>
 	  <link rel="stylesheet" href="../styles/extension.css"/>
@@ -40,7 +39,8 @@
 			  <div class="text-section-header" style="display: inline-block;width: 100%">
 				  
 				  <script-name script="script" ng-if="!script.parent.isResource()" onlyval="true" style="width: 15%;display: inline-block;float: left"></script-name>
-				  <bdi style="float: left;" ng-if="script.parent.isResource()">  {{ page.bg.texts.findText("resource") }} </bdi> <bdi style="float: inline-start;margin: 0 15px 0 15px;">||</bdi>
+				  <bdi style="float: left;" ng-if="script.parent.isResource()">  {{ page.bg.texts.findText("resource") }} </bdi>
+				  <bdi style="float: inline-start;margin: 0 15px 0 15px;vertical-align: top">||</bdi>
 				  
 				  <div style="width: 80%;display: inline-block">
 					  <bdi ng-if="!script.parent.isResource()" id="user_action" class="bold" style="display: inline; width: 10%;margin-top: 5px;float: left;"> {{ page.bg.texts.findText("script_for") }} </bdi>

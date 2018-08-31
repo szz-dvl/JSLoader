@@ -162,11 +162,11 @@ function BG_mgr () {
 	browser.commands.onCommand.addListener(this.receiveCmd);
 	
 	this.db.on('db_change', string => {
-
+		
 		this.reIndex();
 
 	});
-
+	
 	this.reIndex();
 		
 }

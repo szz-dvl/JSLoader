@@ -27,7 +27,7 @@ function Script (opt) {
 			this.persisted = false;
 		
 		return this.parent 
-			? this.parent.removeScript(this.uuid)
+			 ? this.parent.removeScript(this.uuid)
 			: Promise.resolve();
 	};
 	
@@ -80,10 +80,11 @@ function Script (opt) {
 		
 		if (this.parent) {
 			
-			if (!this.parent.isResource() && !this.parent.haveScript(this.id))
+			if (!this.parent.isResource() && !this.parent.haveScript(this.uuid))
 				this.parent.upsertScript(this);
-
+			
 			return this.parent.persist(this.code);
+			
 
 		} else {
 
@@ -298,6 +299,9 @@ function Site (opt) {
 	};
 	
 	this.persist = () => {
+
+		/* Remove scripts from editor */
+		this.parent.appendSite(this);
 		
 		return this.parent.persist();
 		
@@ -454,6 +458,14 @@ function Domain (opt) {
 		this.sites.push(nsite);
 		
 		return nsite;
+	};
+
+	this.appendSite = (site) => {
+
+		if (this.haveSite(site.url))
+			return;
+
+		this.sites.push(site);
 	};
 	
 	this.haveScript = (id) => {

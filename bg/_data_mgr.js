@@ -360,7 +360,7 @@ function DataMgr (opt) {
 									})
 									.map(key => {
 										
-										return key.split("-").pop();
+										return key.split("-").slice(1).join("-");
 										
 									})
 							)
@@ -377,6 +377,8 @@ function DataMgr (opt) {
 				
 				Promise.all([this.storage.db['get' + this.key + 's'](), this.getStored()])
 					.then(resp => {
+
+						//console.log(resp);
 						
 						this.storage["__set" + this.key + "s"](resp[0].concat(resp[1]).unique())
 							.then(resolve, reject);

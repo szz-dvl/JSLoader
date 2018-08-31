@@ -592,6 +592,9 @@ class Storage extends EventEmitter  {
 					
 					this.__pushItem = (val, type, in_storage) => {
 
+						/* console.log("Persisting " + type + ": " + val.name);
+						   console.log(val); */
+						
 						return new Promise ((resolve, reject) => {
 							
 							if (in_storage) {
@@ -615,6 +618,8 @@ class Storage extends EventEmitter  {
 
 					this.__removeItem = (name, type, in_storage) => {
 
+						//console.log("Removing " + type + ": " + name);
+						
 						return new Promise ((resolve, reject) => {
 							
 							if (in_storage) {

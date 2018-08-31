@@ -15,11 +15,11 @@ function PA (bg, info) {
 		page_idx: []
 		
 	};
-	
+
 	this.app = angular.module('pageActionApp', ['jslPartials', 'ui.router']);
 	
 	this.app.controller('siteController', function ($scope, $timeout, $state, $compile, $stateParams) {
-
+		
 		$scope.page = self;
 		$scope.info = self.info;
 		
@@ -35,7 +35,7 @@ function PA (bg, info) {
 			
 			$scope.onSizeChange();
 		}
-
+		
 		$scope.removeSite = () => {
 			
 			self.bg.domain_mgr.removeSite($scope.hostname, self.url.pathname)
@@ -43,7 +43,7 @@ function PA (bg, info) {
 		}
 
 		$scope.switchOrigin = (mgr, elem) => {
-
+			
 			let name = mgr == "domain" ? elem.title : elem.name;
 			
 			if (elem.in_storage) {

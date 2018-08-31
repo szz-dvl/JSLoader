@@ -189,3 +189,11 @@ div.origin-mark-sm {
 div.origin-mark-sm:hover {
 	cursor: pointer;
 }
+
+bdi.selectable {
+	
+	-webkit-user-select: all;
+	-moz-user-select: all;     
+	user-select: all;
+
+}

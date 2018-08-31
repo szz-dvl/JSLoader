@@ -298,6 +298,9 @@ function Site (opt) {
 	};
 	
 	this.persist = () => {
+
+		/* Remove scripts from editor */
+		this.parent.appendSite(this);
 		
 		return this.parent.persist();
 		
@@ -452,6 +455,14 @@ function Domain (opt) {
 		this.sites.push(nsite);
 		
 		return nsite;
+	};
+
+	this.appendSite = (site) => {
+
+		if (this.haveSite(site.url))
+			return;
+
+		this.sites.push(site);
 	};
 	
 	this.haveScript = (id) => {

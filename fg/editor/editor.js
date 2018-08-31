@@ -39,6 +39,12 @@ function EditorFG (id, bg) {
 	this.bg = bg;
 	
 	this.app = angular.module('EditorApp', ['jslPartials']);
+
+	this.app.config(($compileProvider) => {
+
+		$compileProvider.imgSrcSanitizationWhitelist(/chrome-extension\:/)
+			
+	});
 	
 	this.app.controller('editorController', function ($scope, $timeout, $compile) {
 
@@ -753,12 +759,6 @@ function EditorFG (id, bg) {
 				$scope.editor_bucket.css("height", window.innerHeight - 50);
 				
 			}
-			
-			
-			if ($("#persisted_mark").attr("src"))
-				$("#persisted_mark").attr("src", $("#persisted_mark").attr("src").split(":").slice(1).join(":"));
-			
-			$("#settings_img").attr("src", $("#settings_img").attr("src").split(":").slice(1).join(":")); //* Workaround: images loaded from self marked as unsafe ...*/
 			
 		});
 	});

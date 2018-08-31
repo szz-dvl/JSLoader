@@ -5,6 +5,12 @@ function OP (bg) {
 	this.bg = bg;
 
 	this.app = angular.module('optionsPageApp', ['jslPartials', 'ui.router']);
+
+	this.app.config(($compileProvider) => {
+
+		$compileProvider.imgSrcSanitizationWhitelist(/chrome-extension\:/)
+			
+	});
 	
 	this.app.controller('optionsController', function ($scope, $timeout, $state, $stateParams, $rootScope, $interval) {
 		
@@ -326,16 +332,18 @@ function OP (bg) {
 									string => {
 
 										$scope.in_progress = false;
+
+										$scope.domains.actual = $scope.groups.actual = 0;
 										
 										if (self.bg.db.connected) {
 											
 											$scope.string = string;
 											self.bg.option_mgr.persistDBString(string);
-											$timeout($scope.__updateData, 50, false, false);
+											$timeout($scope.__updateData, 150, false, false);
 												
 										} else {
 											
-											$timeout($scope.__updateData, 50, true, true);
+											$timeout($scope.__updateData, 150, true, true);
 										}
 										
 									}
@@ -432,16 +440,7 @@ function OP (bg) {
 
 							}
 
-							$timeout(() => {
-								
-								$(".status").each(function () {
-
-									$(this).attr("src", $(this).attr("src").split(":").slice(1).join(":")); 
-									
-								});
-
-								$scope.__updateService();
-							});
+							$timeout($scope.__updateService);
 						}
 					},
 

@@ -28,8 +28,8 @@
 		</div>
 		
 		<h5 style="margin: 5px 0 0 2px; display: inline-block;">
-			<bdi style="color: black" ng-if="item.included"> {{ item.name }} </bdi>
-			<bdi style="color: gray;" ng-if="!item.included"> {{ item.name }} </bdi>
+			<bdi style="color: black" class="selectable" ng-if="item.included"> {{ item.name }} </bdi>
+			<bdi style="color: gray;" class="selectable" ng-if="!item.included"> {{ item.name }} </bdi>
 			<drop-down ng-if="item.included" item="item" width="12" height="12"></drop-down>
 		</h5>
 		

@@ -359,7 +359,7 @@ function DataMgr (opt) {
 								})
 								.map(key => {
 									
-									return key.split("-").pop();
+									return key.split("-").slice(1).join("-");
 									
 								})
 						)

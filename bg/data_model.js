@@ -21,6 +21,14 @@ function Script (opt) {
 			return null; /* !!! */
 	};
 
+	this.getUrlString = () => {
+		
+		if (this.parent && !this.parent.isGroup() && !this.parent.isResource()) 			
+			return this.parent.parent.name + (this.parent.url == "/" ? "" : this.parent.url);
+		else
+			return null;
+	};
+	
 	this.remove = () => {
 
 		if (this.persisted)

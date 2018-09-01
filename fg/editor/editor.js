@@ -65,7 +65,7 @@ function EditorFG (id, bg) {
 		$scope.mine = true;
 		$scope.adding_group = !$scope.groups_copy.includes($scope.script.getParentName());
 		
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
+		$scope.url = $scope.script.getUrlString() ? $scope.script.getUrlString() : $scope.groups_copy[0];
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
 		
 		
@@ -75,7 +75,7 @@ function EditorFG (id, bg) {
 
 		$scope.buttons = {
 			
-			disabled: !$scope.script.parent ? false : ($scope.script.getUrl() ? false : ($scope.script.parent.isResource() ? false : $scope.adding_group))
+			disabled: !$scope.script.parent ? false : ($scope.script.getUrlString() ? false : ($scope.script.parent.isResource() ? false : $scope.adding_group))
 
 		};
 		
@@ -673,21 +673,21 @@ function EditorFG (id, bg) {
 		};
 
 		$scope.canRun = () => {
-
+			
 			return !$scope.buttons.disabled && $scope.run_shown;
 		}
 
 		$scope.canSave = () => {
-
+			
 			if ($scope.buttons.disabled)
 				return false;
 			else {
-
+				
 				if (self.bg.db.connected)
 					return self.bg.db.writeable && self.bg.db.removeable;
 				else
-					return !$scope.script.parent || $scope.script.parent.isResource() || $scope.script.inStorage() || $scope.script.created;				
-
+					return true;				
+				
 			}
 		}
 
@@ -700,7 +700,7 @@ function EditorFG (id, bg) {
 				if (self.bg.db.connected)
 					return self.bg.db.removeable;
 				else
-					return $scope.script.inStorage() || $scope.script.created;
+					return true; 
 
 			}
 		}

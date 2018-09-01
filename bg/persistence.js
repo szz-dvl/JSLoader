@@ -562,10 +562,15 @@ class Storage extends EventEmitter  {
 				
 				this.__get(
 					item => {
+
+						//console.log("Getting " + type + ": " + unescape(name));
 						
 						if (item) {
 
+							/* console.log(item); */
+							
 							item.in_storage = true;
+							//item.name = unescape(item.name);
 							
 							switch (type) {
 								case "Domain":
@@ -583,7 +588,9 @@ class Storage extends EventEmitter  {
 
 						} else {
 
-							this.db['get' + type](name)
+							//console.log("Missing");
+							
+							this.db['get' + type](unescape(name))
 								.then(arr => {
 									
 									cb(arr.length ? arr[0] : null);
@@ -591,16 +598,20 @@ class Storage extends EventEmitter  {
 								}, err => { cb(null) });
 						}
 						
-					}, type.toLowerCase() + '-' + name);
+					}, type.toLowerCase() + '-' + unescape(name));
 			};
 			
 			this.__pushItem = (val, type, in_storage) => {
 
+				//console.log("Pushing " + type + ": " + unescape(val.name));
+				
 				return new Promise ((resolve, reject) => {
+
+					//val.name = unescape(val.name);
 					
 					if (in_storage) {
 
-						this.__set(type.toLowerCase() + '-' + val.name, val)
+						this.__set(type.toLowerCase() + '-' + unescape(val.name), val)
 							.then(resolve, reject);
 
 					} else {
@@ -608,7 +619,7 @@ class Storage extends EventEmitter  {
 						this.db['set' + type](val)
 							.then(resolve, err => {
 
-								this.__set(type.toLowerCase() + '-' + val.name, val)
+								this.__set(type.toLowerCase() + '-' + unescape(val.name), val)
 									.then(resolve, reject);
 								
 							});
@@ -623,7 +634,7 @@ class Storage extends EventEmitter  {
 					
 					if (in_storage) {
 						
-						this.__remove(type.toLowerCase() + '-' + name)
+						this.__remove(type.toLowerCase() + '-' + unescape(name))
 							.then(resolve, reject);
 						
 					} else {
@@ -631,7 +642,7 @@ class Storage extends EventEmitter  {
 						this.db['remove' + type](name)
 							.then(resolve, err => {
 								
-								this.__remove(type.toLowerCase() + '-' + name, val)
+								this.__remove(type.toLowerCase() + '-' + unescape(name), val)
 									.then(resolve, reject);
 								
 							});
@@ -646,7 +657,9 @@ class Storage extends EventEmitter  {
 
 				return new Promise (
 					(resolve, reject) => {
-
+						
+						val.name = unescape(val.name);
+						
 						this.__pushItem(val, "Domain", in_storage)
 							.then(
 								() => {
@@ -675,11 +688,13 @@ class Storage extends EventEmitter  {
 				this.__bringItem(cb, name, "Domain");
 			};
 
-			this.removeDomain = (name, in_storage) => {
+			this.removeDomain = (dirty_name, in_storage) => {
 
 				return new Promise(
 					(resolve, reject) => {
 
+						let name = unescape(dirty_name);
+						
 						this.__removeItem(name, "Domain", in_storage)
 							.then (
 								() => {
@@ -763,6 +778,8 @@ class Storage extends EventEmitter  {
 				return new Promise (
 					(resolve, reject) => {
 
+						val.name = unescape(val.name);
+						
 						this.__pushItem(val, "Group", in_storage)
 							.then(
 								() => {
@@ -789,11 +806,13 @@ class Storage extends EventEmitter  {
 			};
 
 
-			this.removeGroup = (name, in_storage) => {
+			this.removeGroup = (dirty_name, in_storage) => {
 
 				return new Promise(
 					(resolve, reject) => {
 
+						let name = unescape(dirty_name);
+						
 						this.__removeItem(name, "Group", in_storage)
 							.then (
 								() => {

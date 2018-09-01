@@ -159,6 +159,8 @@ function DataMgr (opt) {
 		return new Promise((resolve, reject) => {
 
 			let data = [];
+
+			//console.log(this[this.key.toLowerCase() + "s"]);
 			
 			async.each(this[this.key.toLowerCase() + "s"],
 				(item_name, next) => {

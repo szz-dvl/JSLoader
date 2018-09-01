@@ -243,6 +243,8 @@ function OP (bg) {
 						
 						templateUrl: 'app-data.html',
 						controller: function ($scope, $compile, $rootScope, $state, $interval, $timeout, dataGroups, dataDomains) {
+
+							console.log(dataDomains);
 							
 							$scope.domains = dataDomains;
 							$scope.groups = dataGroups;

@@ -90,7 +90,7 @@ function TabsMgr (bg) {
 	this.getTabsForURL = (url) => {
 		
 		return new Promise(
-			(resolve) => {
+			(resolve, reject) => {
 				
 				var url_name;
 				
@@ -119,7 +119,21 @@ function TabsMgr (bg) {
 				
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				
-				chrome.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] }, resolve)
+				chrome.tabs.query({ url: [ "*://" + url_name + "*", "*://" + url_name ] },
+					(tabs) => {
+
+						if (tabs)
+
+							resolve(tabs[0]);
+
+						else {
+							
+							console.error(chrome.runtime.lastError);
+							reject(url_name);
+						}
+						
+					}
+				)
 			}
 		)
 	};

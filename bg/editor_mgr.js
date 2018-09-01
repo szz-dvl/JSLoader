@@ -217,10 +217,10 @@ function EditorMgr (bg) {
 											
 											chrome.tabs.update(tab.id, {active: true},
 												tab => {
-														
+													
 													new EditorWdw({parent: self, script: script, tab: tab, line: line, col: col })
 														.then(resolve, reject);
-														
+													
 												});
 											
 										} else {
@@ -229,7 +229,13 @@ function EditorMgr (bg) {
 												.then(resolve, reject);
 										}
 										
-									}, reject
+									}, url_name => {
+
+										
+										new EditorWdw({ parent: self, script: script, tab: null, line: line, col: col })
+											.then(resolve, reject);
+										
+									}
 								);
 							
 						} else {

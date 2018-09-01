@@ -64,7 +64,7 @@ function EditorFG (id, bg) {
 		$scope.mine = true;
 		$scope.adding_group = !$scope.groups_copy.includes($scope.script.getParentName());
 		
-		$scope.url = $scope.script.getUrl() ? $scope.script.getUrl().name() : $scope.groups_copy[0];
+		$scope.url = $scope.script.getUrlString() ? $scope.script.getUrlString() : $scope.groups_copy[0];
 		$scope.resource_name = $scope.script.parent && $scope.script.parent.isResource() ? $scope.script.parent.name : null; 
 		
 		
@@ -74,7 +74,7 @@ function EditorFG (id, bg) {
 
 		$scope.buttons = {
 			
-			disabled: !$scope.script.parent ? false : ($scope.script.getUrl() ? false : ($scope.script.parent.isResource() ? false : $scope.adding_group))
+			disabled: !$scope.script.parent ? false : ($scope.script.getUrlString() ? false : ($scope.script.parent.isResource() ? false : $scope.adding_group))
 
 		};
 		
@@ -339,14 +339,17 @@ function EditorFG (id, bg) {
 
 					let promise = $scope.editor.script.parent ?
 								  ($scope.editor.script.parent.isGroup()
-										  ? self.bg.group_mgr.updateParentFor($scope.editor.script, $scope.url)
+										  ? self.bg.group_mgr.updateParentFor($scope.script, $scope.url)
 										  : (!$scope.editor.script.parent.isResource() ?
-											 self.bg.domain_mgr.updateParentFor($scope.editor.script, $scope.url) :
-											 self.bg.resource_mgr.solveHierarchyForEditor($scope.editor.script.parent, $scope.resource_name))) :
+											 self.bg.domain_mgr.updateParentFor($scope.script, $scope.url) :
+											 self.bg.resource_mgr.solveHierarchyForEditor($scope.script.parent, $scope.resource_name))) :
 								  Promise.resolve();
 
 					promise.then (
 						data => {
+
+							console.log(data);
+							console.log($scope.url);
 							
 							if (data && data.constructor.name == 'Resource') 
 								$scope.editor.script.parent = data;
@@ -563,6 +566,8 @@ function EditorFG (id, bg) {
 				})
 			.on('new_tab',
 				(must_run, unpersisted) => {
+
+					console.log("new tab!");
 					
 					if ($scope.script.parent.isGroup()) {
 
@@ -685,11 +690,11 @@ function EditorFG (id, bg) {
 				if (self.bg.db.connected)
 					return self.bg.db.writeable && self.bg.db.removeable;
 				else
-					return !$scope.script.parent || $scope.script.parent.isResource() || $scope.script.inStorage() || $scope.script.created;				
-
+					return true;
+				
 			}
 		}
-
+		
 		$scope.canRemove = () => {
 
 			if ($scope.buttons.disabled)
@@ -699,7 +704,7 @@ function EditorFG (id, bg) {
 				if (self.bg.db.connected)
 					return self.bg.db.removeable;
 				else
-					return $scope.script.inStorage() || $scope.script.created;
+					return true;
 
 			}
 		}

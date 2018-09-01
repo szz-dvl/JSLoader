@@ -93,7 +93,7 @@ function DomainMgr (bg) {
 				
 				let domains = [];
 				let names = this.__getNamesFor(hostname);
-				
+	
 				async.eachSeries(names,
 					(actual, cb) => {
 						
@@ -292,7 +292,7 @@ function DomainMgr (bg) {
 								
 							}
 							
-							/* Group & Subdomain scripts: refac*/
+							/* Group & Subdomain scripts: */
 							this.__getAggregatedScripts(url)
 								.then(group_scripts => {
 									

@@ -3,7 +3,7 @@
 	"description": "Store JS scripts to be run for a given site",
 	"manifest_version": 2,
 	"name": "jsloader",
-	"version": "1.2",
+	"version": "2.2",
 	
 	"background": {
 		"scripts": [

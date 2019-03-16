@@ -184,22 +184,6 @@ angular.module('jslPartials', [])
 			}
 		})
 
-	.directive('ngOnChange', function() {
-		
-		return {
-			
-			restrict: "A",
-			scope: {
-				ngOnChange: '&'
-			},
-			
-			link: function (scope, element) {
-				
-				element.on('change', scope.ngOnChange());
-			}
-		};
-	})
-
 	.directive('paginator', function($timeout) {
 		
 		return {
@@ -371,13 +355,13 @@ angular.module('jslPartials', [])
 		};
 	})
 
-	.directive('inputFile', function($interval) {
+	.directive('inputFile', function($interval, $compile) {
 		
 		return {
 			
 			restrict: "E",
 			replace: true,
-			transclude: true,
+			/* transclude: true, */
 			scope: {
 				text: "=?",
 				padding: "=?",
@@ -386,9 +370,9 @@ angular.module('jslPartials', [])
 			},
 
 			template: '<div style="display: inline;">' +
-				'<input ng-show="false" type="file" ng-on-change="inptChange" class="browser-style"/>' +
-				'<button class="browser-style" ng-click="inptClick()"> {{ copy }} </button>' +
-				'</div>',
+					  '<input type="file" ng-show="false" class="browser-style"/>' +
+					  '<button class="browser-style" ng-click="inptClick()"> {{ copy }} </button>' +
+					  '</div>',
 
 			link: function ($scope, element, attrs) {
 				
@@ -397,6 +381,8 @@ angular.module('jslPartials', [])
 				$scope.text = 'text' in attrs ? $scope.text : 'Import File';
 				$scope.padding = 'padding' in attrs ? $scope.padding : 30;
 				$scope.backup = $scope.text;
+				$scope.input.on("change", $scope.inptChange);
+				
 				
 			},
 			
@@ -415,7 +401,7 @@ angular.module('jslPartials', [])
 
 					if ($scope.waiting)
 						$interval.cancel($scope.fID);
-					
+
 					$scope.input.click();
 					
 				};

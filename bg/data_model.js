@@ -48,35 +48,18 @@ function Script (opt) {
 	};
 
 	this.disabledAt = (url_name) => {
-		
-		if (this.parent.isGroup()) {
-
-			return url_name ?
-				   this.parent.isDisabled(this.uuid, url_name) :
-				   this.parent.disabledEverywhere(this.uuid);
-		} else
-			return this.disabled;
+	
+		return this.parent.isGroup() ?
+			   this.parent.isDisabled(this.uuid, url_name) :
+			   this.disabled;
 	};
 
 	this.toggleDisableFor = (url_name) => {
-
-		if (this.parent.isGroup()) {
-
-			if (url_name)
-				this.parent.toggleDisableFor(this.uuid, url_name);
-			else {
-				
-				if (this.parent.disabledEverywhere(this.uuid)) 
-					this.parent.enableEverywhere(this.uuid);
-				else
-					this.parent.disableEverywhere(this.uuid);
-			}
-			
-		} else {
-			
+		
+		if (this.parent.isGroup()) 
+			this.parent.toggleDisableFor(this.uuid, url_name);
+		else 	
 			this.disabled = !this.disabled;
-			
-		}
 		
 		this.__schedulePersistAt(500);
 	};
@@ -667,12 +650,6 @@ function Group (opt) {
 					return stored.includes(site);
 				}
 			);
-
-			/* if (done >= 0) {
-
-			   console.log(this.sites[done].name + " includes " + site.name);
-
-			   } */
 			
 			cnt ++;
 			
@@ -686,56 +663,8 @@ function Group (opt) {
 		return this.sites.find(my_site => my_site.match(site));
 
 	};
-
-	this.__compareSetUrls = (site, stored) => {
-
-		let hsite = site.split("/")[0];
-		let psite =  "/" + site.split("/").slice(1).join("/");
-
-		let hstored = stored.split("/")[0];
-		let pstored =  "/" + stored.split("/").slice(1).join("/");
-
-		if (hstored == hsite && pstored.startsWith(psite))
-			return true;
-		else if (hstored.includes("*") || hsite.includes("*")) {
-
-			if (hstored.endsWith(".*")) {
-
-				hstored = hstored.split(".").slice(0, -1).join(".");
-				hsite = hsite.split(".").slice(0, -1).join(".");
-
-			}
-
-			if (hstored.startsWith("*.")) {
-
-				hstored = hstored.split(".").slice(1).join(".");
-				hsite = hsite.split(".").slice(1).join(".");
-
-			}
-
-			if (hsite.endsWith(".*")) {
-
-				hstored = hstored.split(".").slice(0, -1).join(".");
-				hsite = hsite.split(".").slice(0, -1).join(".");
-			}
-
-			if (hsite.startsWith("*.")) {
-
-				hstored = hstored.split(".").slice(1).join(".");
-				hsite = hsite.split(".").slice(1).join(".");
-			}
-			
-			return hsite == hstored && pstored.startsWith(psite)
-			
-		} else {
-
-			return false;
-		}
-		
-	}
 	
 	this.includes = (url) => {
-
 		
 		return this.sites.find(
 			site => {
@@ -763,9 +692,11 @@ function Group (opt) {
 			this.upsertScript(script);
 		
 		for (let site_name of imported.sites) {
+
+			let site_aux = new JSLUrl(site_name);
 			
-			if (!this.sites.includes(site_name))
-				this.sites.push(site_name);
+			if (!this.sites.find(my_site => my_site.match(site_aux)))
+				this.sites.push(site_aux);
 		}
 
 		for (let tuple of imported.disabledAt) {
@@ -776,23 +707,26 @@ function Group (opt) {
 				}
 			) ? true : false;
 
-			let site_mine = this.sites.find(
-				site => {
-					return site == tuple.url;
-				}
-			) ? true : false;
-			
-			if (site_mine && script_mine) {
-				
-				let idx = this.disabledAt.findIndex(
-					stored => {
-						
-						return stored.id == tuple.id && tuple.url == stored.url;	
+			if (script_mine) {
+
+				let site_mine = this.sites.find(
+					site => {
+						return site == tuple.url;
 					}
-				);
+				) ? true : false;
 				
-				if (idx < 0)
-					this.disabledAt.push({id: tuple.id, url: tuple.url});
+				if (site_mine) {
+					
+					let idx = this.disabledAt.findIndex(
+						stored => {
+							
+							return stored.id == tuple.id && tuple.url == stored.url.name;	
+						}
+					);
+				
+					if (idx < 0)
+						this.disabledAt.push({id: tuple.id, url: JSLUrl(tuple.url)});
+				}
 			}
 		}
 
@@ -842,58 +776,6 @@ function Group (opt) {
 				this.disabledAt.push({id: uuid, url: url});
 			
 		} while (idx >= 0);
-	}
-
-	this.disabledEverywhere = (uuid) => {
-		
-		return this.sites.length && this.disabledAt.filter(
-			tuple => {
-				
-				return tuple.id == uuid;
-			}
-			
-		).length >= this.sites.length;
-	};
-	
-	this.disableEverywhere = (uuid) => {
-		
-		for (let site of this.sites) {
-			
-			let idx = this.disabledAt.findIndex(
-				tuple => {
-				
-					return tuple.id == uuid && tuple.url == site;
-
-				}
-			
-			);
-		
-			if (idx < 0)
-				this.disabledAt.push({id: uuid, url: site});
-		}
-	}
-
-	this.enableEverywhere = (uuid) => {
-
-		let idx = -1;
-		
-		for (let site of this.sites) {
-
-			do {
-				
-				let idx = this.disabledAt.findIndex(
-					tuple => {
-						
-						return tuple.id == uuid && tuple.url.startsWith(site);
-						
-					}
-				);
-				
-				if (idx >= 0)
-					this.disabledAt.remove(idx);
-				
-			} while (idx >= 0);
-		}
 	}
 	
 	this.getJSON = () => {

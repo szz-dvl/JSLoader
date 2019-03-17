@@ -115,7 +115,7 @@ function TabsMgr (bg) {
 					}
 					
 				} else
-					url_name = url.name();
+					url_name = url.name;
 				
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				

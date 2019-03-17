@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+	
+	  <meta charset="utf-8" http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval'; object-src 'self'; img-src 'self'">
+	  
+	  <link rel="stylesheet" href="pa.css">
+	  <link rel="stylesheet" href="../styles/jsl.css">
+	  
+	  <script src="../deps/jquery.min.js"></script>
+	  <script src="../deps/angular.min.js"></script>
+	  <script src="../deps/angular-ui-router.min.js"></script>
+	  <script src="../partials/partials.js"></script>
+
+	  <script src="../../utils/jsloader-utils.js"></script>
+	  <script src="../../utils/deps/EventEmitter/EventEmitter.min.js"></script>
+	  <script src="pa.js"></script>
+	  
+  </head>
+  
+  <body ng-controller="siteController" spellcheck="false" ng-cloak>
+	  
+	  <div id="pa-header" class="panel-section panel-section-header" style="display: inline-block">
+
+		  <div class="text-section-header" style="width:75%; display: inline-block">
+			  
+			  JSLoader {{ page.bg.texts.findText('at') + " " + hostname }}
+			  
+		  </div>
+
+		  <button
+
+			  style="float: right;margin-left: 10px"
+			  class="browser-style"
+			  ng-click="disableSite()">
+
+			  {{ disabled ? page.bg.texts.findText('enable') : page.bg.texts.findText('disable') }}
+
+		  </button>
+		  
+		  <are-u-sure
+
+			  ng-if="(info.domains.length || info.groups.length) && page.bg.db.removeable"
+			  style="float: right;"
+			  text="page.bg.texts.findText('remove')"
+			  action="removeSite()"
+			  locale="page.bg.texts">
+		  </are-u-sure>
+
+	  </div>
+
+	  <div id="pa-content" ng-show="!disabled">
+		  
+		  <div class="panel-section">
+			  <div id="scripts-content" style="width: 100%;text-align: center;">
+				  
+				  <dd-title val="'scripts_active'" text="page.bg.texts.findText('included_scripts')" style="margin: 15px;"></dd-title>
+				  
+				  <div ng-if="scripts_active">
+
+					  <div style="margin-left: 0px;">
+
+						  <div ng-if="info.domains.length">
+							  <div ui-view="domains"></div>
+						  </div>
+
+						  <div>
+							  <div ui-view="groups"></div>
+						  </div>
+						  
+					  </div>
+
+					  <no-info ng-if="!info.domains.length && !info.groups[0].total && !page.pa_state.outdated" style="padding-top: 30px;"></no-info>
+						  
+					  <div class="bottom-bucket" style="text-align: center; margin: 10px 0 0 0">
+						  <button class="browser-style" ng-click="page.bg.showEditorForCurrentTab()"> {{ page.bg.texts.findText('add_script') }} </button>
+					  </div>
+					  
+				  </div>
+				  
+			  </div>
+		  </div>
+
+		  <div ui-view="group_mgr"></div>
+		  
+	  </div>
+	  
+  </body>
+  
+</html>

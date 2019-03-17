@@ -59,7 +59,6 @@ Array.prototype.unique = function() {
 
 URL.prototype.match = function(url) {
 
-	
 	return url ? (this.pathname == url.pathname && this.hostname == url.hostname) : false;
 
 };
@@ -82,3 +81,89 @@ URL.prototype.sort = function() {
 		return this;
 };
 
+class JSLUrl {
+	
+	constructor(url) {
+
+		if (typeof url === "string") {
+			
+			try {
+				
+				let aux = new URL(url);
+				
+				if (aux.protocol === "wyciwyg:") 
+					aux = new URL(aux.pathname.split(/^\/\/[0-9]+\//).pop());
+				
+				this.hostname = aux.hostname;
+				this.pathname = aux.pathname;
+				
+			} catch (err) {
+				
+				/* "*" in the URL */
+				this.hostname = url.split("://").pop().split("/")[0];
+				this.pathname = "/" + url.split("://").pop().split("/").slice(1).join("/");
+			}
+			
+		} else {
+			
+			if (url.protocol === "wyciwyg:") 
+				url = new URL(url.pathname.split(/^\/\/[0-9]+\//).pop());
+			
+			this.hostname = url.hostname;
+			this.pathname = url.pathname;
+			
+		}
+
+		if (this.pathname.slice(-1) == "/") 
+			this.pathname = this.pathname.slice(0, -1);
+
+		this.name = this.hostname + this.pathname;
+		
+		this.match = url => {
+			
+			return url.hostname == this.hostname && url.pathname == this.pathname;
+			
+		},
+
+		this.includes = url => {
+			
+			if (this.hostname.startsWith("*.") && this.hostname.endsWith(".*")) {
+				
+				let parent_group = this.hostname.slice(2).slice(0, -2);
+				let aux = url.hostname.split(".");
+				
+				do {
+					
+					aux = aux.slice(1).slice(0, -1);
+					
+				} while (aux.length && aux.join(".") != parent_group);
+
+				return aux.length ? url.pathname.startsWith(this.pathname) : false;
+				
+			} else if (this.hostname.startsWith("*.")) {
+				
+				let parent_group = this.hostname.slice(2);
+				
+				return url.hostname.endsWith(parent_group) && url.pathname.startsWith(this.pathname);
+				
+			} else if (this.hostname.endsWith(".*")) {
+
+				let parent_group = this.hostname.slice(0, -2);
+				
+				return url.hostname.startsWith(parent_group) && url.pathname.startsWith(this.pathname);
+
+			} else {
+
+				return url.name.startsWith(this.name);
+				
+			}
+			
+		}
+		
+		this.includedBy = url => {
+
+			return url.includes(this);
+			
+		}
+	}
+}

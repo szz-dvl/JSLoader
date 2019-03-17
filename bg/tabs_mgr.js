@@ -134,7 +134,7 @@ function TabsMgr (bg) {
 					.then(
 						tab_info => {
 
-							resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
+							resolve({url: new JSLUrl(tab_info[0].url), tab: tab_info[0].id });
 
 						}, reject);
 			});
@@ -164,14 +164,14 @@ function TabsMgr (bg) {
 								browser.windows.getAll({ populate: false, windowTypes: ['normal', 'panel'] })
 									.then(wdws => {
 										browser.tabs.create({ active: true, url: aux, windowId: wdws[0].id })
-											.then(resolve, reject);
+											   .then(resolve, reject);
 									}, reject);
 							}
 							
 						}, reject);
 			});
 	};
-
+	
 	this.factory = (tabInfo) => {
 
 		return new JSLTab(tabInfo, this.bg.content_mgr.forceMainFramesForTab)
@@ -195,13 +195,15 @@ function TabsMgr (bg) {
 			.then(
 				tabInfo => {
 		
-					var url = new URL(tabInfo.url).sort();
+					var url = new JSLUrl(tabInfo.url);
 					
 					if (url.hostname && url.protocol != "moz-extension:") {
 						
 						this.bg.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
+
+									console.log(any);
 									
 									let nfo = any ? "red" : "blue";									
 									

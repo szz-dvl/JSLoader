@@ -33,7 +33,7 @@ function EditorWdw (opt) {
 							editor.wdw = wdw;
 							
 							/* 
-							   Workaround to avoid blank windows: 
+							   Workaround to avoid blank windows in old firefox versions: 
 							   
 							   @https://discourse.mozilla.org/t/ff57-browser-windows-create-displays-blank-panel-detached-panel-popup/23644/3 
 					 
@@ -124,7 +124,7 @@ class Editor extends EventEmitter {
 
 							/* If script is persisted ... */	
 							
-							if (this.script.includedAt(new URL(tabInfo.url))) {
+							if (this.script.includedAt(new JSLUrl(tabInfo.url))) {
 								
 								/* ... Tab url must belong to the set of valid urls for our script to run the script.*/	
 

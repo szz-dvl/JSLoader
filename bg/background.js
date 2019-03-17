@@ -28,7 +28,7 @@ function BG_mgr () {
 							.then(
 								nfo => {
 									
-									nfo.url = tabnfo.url.href;
+									nfo.url = tabnfo.url.name;
 									nfo.tabId = tabnfo.tab;
 									
 									resolve(nfo);
@@ -178,4 +178,4 @@ global_storage.once('ready', () => {
 
 });
 
-/* browser.storage.clear(); */
+/* browser.storage.local.clear(); */

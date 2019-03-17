@@ -15,7 +15,7 @@ function Script (opt) {
 			if (this.parent.parent.isSubdomain())
 				return null;
 			else
-				return new URL('http://' + this.parent.parent.name + this.parent.url);
+				return new JSLUrl(this.parent.parent.name + this.parent.url);
 			
 		} else
 			return null; /* !!! */
@@ -258,46 +258,21 @@ function Site (opt) {
 		
 	};
 
+	this.getJSLurl = () => {
+
+		return new JSLUrl(this.siteName());
+
+	};
+	
 	this.includes = (url) => {
-
-		if (this.parent.isSubdomain()) {
-			
-			if (this.parent.name.startsWith("*.") && this.parent.name.endsWith(".*")) {
-
-				let parent_group = this.parent.name.slice(2).slice(0, -2);
-				let aux = url.hostname.split(".");
-				
-				do {
-					
-					aux = aux.slice(1).slice(0, -1);
-					
-				} while (aux.length && aux.join(".") != parent_group);
-
-				return aux.length ? url.pathname.startsWith(this.url) : false;
-				
-			} else if (this.parent.name.startsWith("*.")) {
-
-				let parent_group = this.parent.name.slice(2);
-				
-				return url.hostname.endsWith(parent_group) && url.pathname.startsWith(this.url);
-				
-			} else if (this.parent.name.endsWith(".*")) {
-
-				let parent_group = this.parent.name.slice(0, -2);
-						
-				return url.hostname.startsWith(parent_group) && url.pathname.startsWith(this.url);
-			}
-			
-		} else {
-			
-			return url.name().startsWith(this.siteName());
-			
-		}
-	}
+		
+		return this.getJSLurl().includes(url);
+		
+	};
 	
 	this.isEmpty = () => {
 		
-		return !this.scripts.length; 
+		return !this.scripts.length;
 		
 	};
 	
@@ -399,7 +374,7 @@ function Domain (opt) {
 		
 				this.pID = setTimeout(
 					() => {
-
+						
 						func()
 							.then(resolve, reject);
 						
@@ -562,8 +537,8 @@ function Group (opt) {
 	__Script_Bucket.call(this, opt.scripts || []);
 	
 	this.name = opt.name || UUID.generate().split("-").pop();
-	this.sites = opt.sites || [];
-	this.disabledAt = opt.disabledAt || [];
+	this.sites = opt.sites ? opt.sites.map(site => new JSLUrl(site)) : [];
+	this.disabledAt = opt.disabledAt ? opt.disabledAt.map(tuple => { return {id: tuple.id, url: new JSLUrl(tuple.url) }}) : [];
 	this.in_storage = opt.in_storage || false;
 	
 	this.isDomain = () => {
@@ -639,16 +614,20 @@ function Group (opt) {
 	};
 
 	this.appendSite = (site) => {
+
+		let aux = new JSLUrl(site);
 		
-		if (!this.sites.includes(site))
-			this.sites.push(site);
+		if (!this.sites.find(my_site => my_site.match(aux)))
+			this.sites.push(aux);
 
 		return this.persist();
 	};
 
 	this.removeSite = (site) => {
 
-		let idx = this.sites.indexOf(site);
+		let aux = new JSLUrl(site);
+		
+		let idx = this.sites.findIndex(my_site => { return my_site.match(aux) });
 		let cnt = 0;
 		
 		this.sites.remove(idx);
@@ -662,7 +641,7 @@ function Group (opt) {
 			done = this.disabledAt.findIndex(
 				tuple => {
 					
-					return this.__comparePlainUrl(site, tuple.url);
+					return aux.includes(tuple.url);
 				}
 			);
 			
@@ -685,10 +664,16 @@ function Group (opt) {
 			done = this.sites.findIndex(
 				stored => {
 					
-					return this.__compareSetUrls(stored, site);
+					return stored.includes(site);
 				}
 			);
 
+			/* if (done >= 0) {
+
+			   console.log(this.sites[done].name + " includes " + site.name);
+
+			   } */
+			
 			cnt ++;
 			
 		} while (done >= 0);
@@ -698,7 +683,7 @@ function Group (opt) {
 
 	this.isMySite = (site) => {
 
-		return this.sites.includes(site);
+		return this.sites.find(my_site => my_site.match(site));
 
 	};
 
@@ -749,53 +734,13 @@ function Group (opt) {
 		
 	}
 	
-	this.__comparePlainUrl = (site, url) => {
-		
-		let pathname = url.constructor.name == "URL" ? url.pathname : "/" + url.split("/").slice(1).join("/");
-		let hostname = url.constructor.name == "URL" ? url.hostname : url.split("/")[0];
-		let name = url.constructor.name == "URL" ? url.name() : hostname + pathname;
-
-		let split = site.split("/");
-		let site_path = "/" + split.slice(1).join("/");
-		
-		if (split[0].startsWith("*.") && split[0].endsWith(".*")) {
-
-			let site_group = split[0].slice(2).slice(0, -2);
-			let aux = hostname.split(".");
-			
-			do {
-				
-				aux = aux.slice(1).slice(0, -1);
-				
-			} while (aux.length && aux.join(".") != site_group);
-			
-			return aux.length ? pathname.startsWith(site_path) : false;
-
-		} else if (split[0].startsWith("*.")) {
-			
-			let site_group = split[0].slice(2);
-			
-			return hostname.endsWith(site_group) && pathname.startsWith(site_path);
-			
-		} else if (split[0].endsWith(".*")) {
-
-			let site_group = split[0].slice(0, -2);
-			
-			return hostname.startsWith(site_group) && pathname.startsWith(site_path);
-			
-		} else {
-			
-			return name.startsWith(site);
-			
-		}
-	}
-	
 	this.includes = (url) => {
+
 		
 		return this.sites.find(
 			site => {
 
-				return this.__comparePlainUrl(site, url);
+				return site.includes(url)
 			}
 			
 		) ? true : false;
@@ -854,33 +799,36 @@ function Group (opt) {
 		return this.persist();
 	};
 	
-	this.isDisabled = (uuid, urlname) => {
+	this.isDisabled = (uuid, url) => {
 
-		let url_name = urlname instanceof URL ? urlname.name() : urlname;
-		
-		return this.disabledAt.find(
-			
-			tuple => {
-
-				return (tuple.id == uuid && url_name.startsWith(tuple.url));
+		try {
+			return this.disabledAt.find(
 				
-			}
-			
-		) ? true : false;
-	}
+				tuple => {
+					
+					return (tuple.id == uuid && url.name.startsWith(tuple.url.name));
+					
+				}
+				
+			) ? true : false;
+		
+		} catch (err) {
 
-	this.toggleDisableFor = (uuid, urlname) => {
+			console.error(err);
+
+		}
+	}
+	this.toggleDisableFor = (uuid, url) => {
 		
 		let idx = -1;
 		let disabled = false;
-		let url_name = urlname instanceof URL ? urlname.name() : urlname;
 		
 		do {
 
 			idx = this.disabledAt.findIndex(
 				tuple => {
 					
-					return tuple.id == uuid && url_name.startsWith(tuple.url);
+					return tuple.id == uuid && url.name.startsWith(tuple.url.name);
 					
 				}
 			);
@@ -891,7 +839,7 @@ function Group (opt) {
 				disabled = true;
 				
 			} else if (!disabled)
-				this.disabledAt.push({id: uuid, url: url_name});
+				this.disabledAt.push({id: uuid, url: url});
 			
 		} while (idx >= 0);
 	}
@@ -961,8 +909,8 @@ function Group (opt) {
 		return {
 			
 			name: me.name,
-			sites: me.sites,
-			disabledAt: me.disabledAt,
+			sites: me.sites.map(site => site.name),
+			disabledAt: me.disabledAt.map(disabled => { return {id: disabled.id, url: disabled.url.name }}),
 			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();

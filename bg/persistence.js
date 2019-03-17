@@ -9,6 +9,7 @@ class DB extends EventEmitter {
 		this.connected = false;
 		this.writeable = false;
 		this.readable = false;
+		this.removeable = false;
 		
 		this.port = browser.runtime.connectNative("db_connector");
 		
@@ -39,7 +40,7 @@ class DB extends EventEmitter {
 					
 					
 					switch (obj.tag) {
-						
+							
 						case "alive":
 
 							this.available = true;
@@ -106,11 +107,11 @@ class DB extends EventEmitter {
 						this.port.onMessage.addListener(handler);
 						
 						this.port.postMessage('{ "tag": "push_sync", "response": "' 
-							+ tag 
-							+ '", "collection": "' 
-							+ collection 
-							+ '", "content": '
-							+ ((items && items.length) ? JSON.stringify(items) : "[]") + '}');
+											+ tag 
+											+ '", "collection": "' 
+											+ collection 
+											+ '", "content": '
+											+ ((items && items.length) ? JSON.stringify(items) : "[]") + '}');
 
 						tID = setTimeout(() => {
 							
@@ -177,11 +178,11 @@ class DB extends EventEmitter {
 						this.port.onMessage.addListener(handler);
 						
 						this.port.postMessage('{ "tag": "get_sync", "response": "' 
-							+ tag 
-							+ '", "collection": "' 
-							+ collection 
-							+ '", "content": '
-							+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
+											+ tag 
+											+ '", "collection": "' 
+											+ collection 
+											+ '", "content": '
+											+ ((items && items.length) ? JSON.stringify(items) : "[]") + ' }');
 						
 						tID = setTimeout(() => {
 							
@@ -230,11 +231,11 @@ class DB extends EventEmitter {
 						this.port.onMessage.addListener(handler);
 
 						this.port.postMessage('{ "tag": "remove_sync", "response": "' 
-							+ tag 
-							+ '", "collection": "' 
-							+ collection 
-							+ '", "content": '
-							+ ((names && names.length) ? JSON.stringify(names) : "[]") + ' }');
+											+ tag 
+											+ '", "collection": "' 
+											+ collection 
+											+ '", "content": '
+											+ ((names && names.length) ? JSON.stringify(names) : "[]") + ' }');
 
 						tID = setTimeout(() => {
 							
@@ -279,10 +280,10 @@ class DB extends EventEmitter {
 					this.port.postMessage('{ "tag": "' + type + '_get", "content": ' + "[]" + ', "string": "' + this.data_origin + '" }');
 					
 					tID = setTimeout(() => {
-							
+						
 						reject(new Error("Transaction " + type + " timed out."));
 						this.port.onMessage.removeListener(handler);
-							
+						
 					}, 5000);
 					
 				});
@@ -290,6 +291,7 @@ class DB extends EventEmitter {
 
 		this.reconnect = (connectionString) => {
 
+			this.available = false;
 			this.connected = false;
 			this.writeable = false;
 			this.readable = false;
@@ -397,7 +399,7 @@ class DB extends EventEmitter {
 				return this.getIdxFor('domains');
 			else
 				return Promise.resolve([]);
-				
+			
 		};
 		
 		this.getGroups = () => {
@@ -562,7 +564,7 @@ class Storage extends EventEmitter  {
 								if (item) {
 
 									item.in_storage = true;
-								
+									
 									switch (type) {
 										case "Domain":
 											cb(new Domain(item));
@@ -750,7 +752,7 @@ class Storage extends EventEmitter  {
 						
 					};
 
-				
+					
 					/* Groups: */
 					
 					this.getGroup = (cb, name) => {
@@ -804,7 +806,7 @@ class Storage extends EventEmitter  {
 													if (in_storage && idx.includes(name)) 
 														resolve();
 													else {
-															
+														
 														this.__getGroups(
 															groups => {
 																

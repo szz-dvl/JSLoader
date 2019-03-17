@@ -4,10 +4,11 @@ function PA (bg, info) {
 	
 	this.bg = bg;
 	this.info = info;
+	console.log(info);
 	this.lists = [];
 	
 	this.tabId = info.tabId;
-	this.url = new URL(this.info.url);
+	this.url = new JSLUrl(this.info.url);
 
 	this.pa_state = {
 		
@@ -42,6 +43,31 @@ function PA (bg, info) {
 				.then($scope.updateData, $scope.updateData);
 		}
 
+		$scope.mustShowRemove = () => {
+
+			if ($scope.info.domains.length) {
+
+				let found = false;
+				
+				for(domain of info.domains) {
+
+					found = domain.list.find(site => site.included);
+
+					if (found)
+						break;
+
+				}
+
+				return (found || $scope.info.groups[0].total) && (self.bg.db.available ? self.bg.db.removeable : true);
+				
+			} else {
+				
+				return ($scope.info.groups[0].total) && (self.bg.db.available ? self.bg.db.removeable : true);
+
+			}
+
+		}
+		
 		$scope.switchOrigin = (mgr, elem) => {
 			
 			let name = mgr == "domain" ? elem.title : elem.name;
@@ -89,8 +115,10 @@ function PA (bg, info) {
 				return list.in_storage || (self.bg.db.writeable && self.bg.db.removeable);
 		};
 		
-		$scope.updateData = () => {
+		$scope.updateData = (err) => {
 
+			/* TO-DO: Notify on error */
+			
 			return new Promise(
 				(resolve, reject) => {
 
@@ -601,7 +629,7 @@ function PA (bg, info) {
 							$scope.current = self.bg.group_mgr.groups[0];
 							$scope.groups_active = false;
 							
-							$scope.url = self.url.name();
+							$scope.url = self.url;
 							$scope.events = new EventEmitter();
 							
 							$scope.action;
@@ -669,7 +697,7 @@ function PA (bg, info) {
 								.on('validation_ready',
 									validated => {
 										
-										$scope.url = validated;
+										$scope.url = new JSLUrl(validated);
 										$scope.validation_in_progress = false;
 										$scope.setAction();
 										
@@ -678,8 +706,8 @@ function PA (bg, info) {
 							$scope.addSite = () => {
 								
 								let promise = $scope.action == self.bg.texts.findText('add') ?
-															   $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url) :
-															   $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url);
+											  $scope.page.bg.group_mgr.addSiteTo($scope.current, $scope.url.name) :
+											  $scope.page.bg.group_mgr.removeSiteFrom($scope.current, $scope.url.name);
 								
 								promise.then(
 									() => {

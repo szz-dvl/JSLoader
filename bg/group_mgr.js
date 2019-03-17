@@ -25,7 +25,6 @@ function GroupMgr (bg) {
 				this.getMeaningful()
 					.then(
 						groups => {
-
 							resolve(
 								groups.filter(
 									group => {
@@ -55,7 +54,7 @@ function GroupMgr (bg) {
 
 	/* Expensive, @url: plain string here. */
 	this.cleanSite = (site) => {
-
+		
 		return new Promise (
 			(resolve, reject) => {
 				
@@ -64,19 +63,19 @@ function GroupMgr (bg) {
 						groups => {
 							
 							async.each(groups,
-								(group, next) => {
-									
-									group.cleanSite(site)
-										.then(() => { next() }, () => { next(); });
-									
-								}, err => {
-									
-									if (err)
-										reject(err);
-									else
-										resolve();
-									
-								}
+									   (group, next) => {
+										   
+										   group.cleanSite(site)
+												.then(() => { next() }, () => { next(); });
+										   
+									   }, err => {
+										   
+										   if (err)
+											   reject(err);
+										   else
+											   resolve();
+										   
+									   }
 							);
 							
 						}, reject);
@@ -103,12 +102,15 @@ function GroupMgr (bg) {
 	};
 
 	this.addSiteTo = (group_name, url) => {
-			
+
+		console.log(url);
+		
 		return this.__siteOps(group_name, url, "append");
 		
 	}
 
 	this.removeSiteFrom = (group_name, url) => {
+		console.log(url);
 		
 		return this.__siteOps(group_name, url, "remove");
 		
@@ -144,6 +146,8 @@ function GroupMgr (bg) {
 	}
 	
 	this.getPASliceFor = (start, len, target, path, index) => {
+
+		console.log(path); /*!!!*/
 		
 		return new Promise(
 			(resolve, reject) => {

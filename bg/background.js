@@ -173,7 +173,7 @@ function BG_mgr () {
 
 	
 global_storage.once('ready', () => {
-	
+
 	BG_mgr.call(this);
 
 });

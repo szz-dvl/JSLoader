@@ -73,7 +73,7 @@
 			"suggested_key": {
 				"default": "Alt+Shift+1"
 			},
-			"description": "Open a new editor window, binded to the current focused tab."
+			"description": "Open a new editor window, binded to the currently focused tab."
 		},
 		"new-group-new-script": {
 			"suggested_key": {

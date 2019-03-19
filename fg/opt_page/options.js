@@ -237,6 +237,15 @@ function OP (bg) {
 									$scope.filterChange();
 								}
 							);
+
+							self.bg.option_mgr.events
+								.on('db_change',
+									string => {
+
+										$scope.filterChange();
+										
+									}
+								);
 						}
 					},
 					
@@ -443,14 +452,14 @@ function OP (bg) {
 							}
 
 							$scope.disconnectDB = () => {
-
-								self.bg.db.connected = false;
-
+								
+								self.bg.db.disconnect();
+								
 							}
 
 							$scope.connectDB = () => {
 
-								$scope.page.bg.db.reconnect($scope.string);
+								self.bg.db.reconnect($scope.string);
 
 							}
 

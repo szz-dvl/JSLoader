@@ -573,7 +573,7 @@ angular.module('jslPartials', [])
 
 						
 						if (ev.originalEvent.dataTransfer.files.length) {
-
+							
 							async.eachSeries(ev.originalEvent.dataTransfer.files,
 								(file, next) => {
 
@@ -605,8 +605,7 @@ angular.module('jslPartials', [])
 								}
 							}
 						}
-					});
-					
+					});	
 				},
 				
 				controller: function ($scope) {

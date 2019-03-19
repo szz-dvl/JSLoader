@@ -299,6 +299,14 @@ class DB extends EventEmitter {
 			
 		}
 
+		this.disconnect = () => {
+
+			this.connected = false;
+
+			this.emit("db_change", this.data_origin);
+
+		}
+		
 		this.mayRead = () => {
 
 			return this.available && this.connected && this.readable;

@@ -442,6 +442,19 @@ function OP (bg) {
 
 							}
 
+							$scope.disconnectDB = () => {
+
+								self.bg.db.connected = false;
+
+							}
+
+							$scope.connectDB = () => {
+
+								$scope.page.bg.db.reconnect($scope.string);
+
+							}
+
+							
 							$timeout($scope.__updateService);
 						}
 					},

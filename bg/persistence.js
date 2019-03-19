@@ -288,7 +288,6 @@ class DB extends EventEmitter {
 
 		this.reconnect = (connectionString) => {
 
-			this.available = false;
 			this.connected = false;
 			this.writeable = false;
 			this.readable = false;

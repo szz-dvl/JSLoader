@@ -91,7 +91,7 @@
 					<td style="float: left; margin-left: 5px;">
 						<are-u-sure
 							ng-disabled="!canRemove(list, item)"
-							style="margin-left: 5px;width: 80px;"
+							style="margin-left: 5px;width: 80px;padding-left: 15px;"
 							text="page.bg.texts.findText('remove')"
 							action="removeScript(script)"
 							locale="page.bg.texts">
@@ -129,7 +129,7 @@
 
 				<tr paginator
 					pag-big
-					ng-show="list.mustPag()" 
+					ng-if="list.mustPag()" 
 					target="list.title"
 					site="page.url"
 					feeding="page.bg[(list.title == page.bg.texts.findText('groups') ? 'group' : 'domain') + '_mgr'].getPASliceFor" 

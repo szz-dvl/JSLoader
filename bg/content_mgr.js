@@ -318,8 +318,8 @@ function CSMgr (bg) {
 
 		let retval = 0;
 		
-		/* this.getFramesForTab instead of this.getMainFramesForTab: some page frames do not die on location reload (to be observed) Policy: look for hits. */
-		for (let frame of this.getFramesForTab(tabId)) {
+		/* Policy: look for hits. */
+		for (let frame of this.getMainFramesForTab(tabId)) {
 			
 			let status = frame.historyStatus(script_id);
 			
@@ -343,8 +343,7 @@ function CSMgr (bg) {
 
 		let promises = [];
 		
-		/* @ getStatus */
-		for (let frame of this.getFramesForTab(tabId)) 
+		for (let frame of this.getMainFramesForTab(tabId)) 
 			promises.push(frame.run([script]));
 		
 		return Promise.all(promises);
@@ -635,7 +634,7 @@ function CSMgr (bg) {
 										let cs = new CS(port);
 
 										if (cs.isMainFrame()) {
-
+											
 											this.alive.push(cs);
 											let defs = this.defs;
 										

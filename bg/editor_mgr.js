@@ -207,7 +207,7 @@ function EditorMgr (bg) {
 		return new Promise(
 			(resolve, reject) => {
 				
-				let url = new URL(tab.url).sort();
+				let url = new JSLUrl(tab.url);
 				
 				self.bg.domain_mgr.getOrCreateItem(url.hostname, false)
 					.then(

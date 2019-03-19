@@ -2,7 +2,7 @@ function JSLTab (tabInfo, feeding) {
 
 	Object.assign(this, tabInfo);
 	
-	this.url = new URL(this.url).sort();
+	this.url = new JSLUrl(this.url);
 	this.id = parseInt(this.id);
 	
 	this.feeding = feeding;
@@ -202,8 +202,6 @@ function TabsMgr (bg) {
 						this.bg.domain_mgr.haveInfoForUrl(url)
 							.then(
 								any => {
-
-									console.log(any);
 									
 									let nfo = any ? "red" : "blue";									
 									
@@ -259,13 +257,13 @@ function TabsMgr (bg) {
 									
 									if (frames.length) {
 										
-										this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
+										this.bg.domain_mgr.getScriptsForUrl(new JSLUrl(changeInfo.url))
 											.then(
 												scripts => {
 													
 													if (scripts.length) 
 														new deferredXHR(this, tabInfo.id, scripts, frames);
-												
+													
 												}
 											);
 									}	

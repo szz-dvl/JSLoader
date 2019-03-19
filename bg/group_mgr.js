@@ -146,8 +146,6 @@ function GroupMgr (bg) {
 	}
 	
 	this.getPASliceFor = (start, len, target, path, index) => {
-
-		console.log(path); /*!!!*/
 		
 		return new Promise(
 			(resolve, reject) => {

@@ -11,13 +11,12 @@
 				<site-validator style="width:55%;" ev="events" url="url.name" time="1750"> </site-validator>
 					
 				<div style="float: right;margin-right: 30px">	
-
-					<select
-						id="groups_box"
-						class="browser-style"
-						ng-model="current"
-						ng-options="group for group in page.bg.group_mgr.groups track by group"
-						ng-change="selectChange(current)"></select>
+					
+					<select id="groups_box"
+							class="browser-style"
+							ng-model="current"
+							ng-options="group for group in page.bg.group_mgr.groups track by group"
+							ng-change="selectChange(current)"></select>
 					
 					<button ng-disabled="validation_in_progress || !current || !enabled" class="browser-style" ng-click="addSite()"> {{action}} Site </button>
 				</div>

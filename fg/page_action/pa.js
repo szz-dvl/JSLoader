@@ -4,7 +4,6 @@ function PA (bg, info) {
 	
 	this.bg = bg;
 	this.info = info;
-	console.log(info);
 	this.lists = [];
 	
 	this.tabId = info.tabId;

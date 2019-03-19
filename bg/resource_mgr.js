@@ -372,7 +372,7 @@ function ResourceMgr (bg) {
 												if (parent) {
 
 													if (force) {
-
+														
 														let cnt = 1;
 														let backup = actual_name;
 														

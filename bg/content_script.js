@@ -8,12 +8,12 @@ function ContentScript() {
 		err => {
 
 			try {
-				let encoded = err.stack.split("/")[0];
+				
+				let encoded = err.stack.split("/")[0].split("\n").pop().replace(/ /g, "");
 				let action = encoded.split('$')[0].replace(/_/g,  '-');
 				let script = encoded.split('$').pop().replace(/_/g, '-'); /* Any other way? */
-
-				err.stack = err.stack.replace(encoded, 'anonymous');
-				console.error(err);
+				
+				console.error("JSLoader => " + err.name + ": " + err.message);
 				
 				this.port.postMessage(
 					{
@@ -59,7 +59,7 @@ function ContentScript() {
 				'() {\n' + script.code + '\n}; ' +
 				response.replace(/-/g,  '_') +
 				'$' + script.id.replace(/-/g,  '_') + '();'; 
-			
+
 			new Function(encoded).call(this);
 			
 			return void 0;

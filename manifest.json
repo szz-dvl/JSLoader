@@ -3,7 +3,7 @@
 	"description": "Store JS scripts to be run for a given site",
 	"manifest_version": 2,
 	"name": "jsloader",
-	"version": "2.3",
+	"version": "2.4",
 	
 	"applications": {
 		"gecko": {

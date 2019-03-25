@@ -478,14 +478,17 @@ function OP (bg) {
 
 chrome.runtime.getBackgroundPage(
 	page => {
-			
+
+		console.log(page);
 		page.option_mgr.events = new EventEmitter();
-			
+		
 		window.onbeforeunload = function () {
-				
-			page.option_mgr.events = null;
-				
-		}
 			
+			page.option_mgr.events = null;
+			
+		}
+
+		console.log("arribo aqui!");
+		
 		new OP(page);				
 	});

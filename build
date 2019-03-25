@@ -12,7 +12,7 @@ if [ -f "$(which google-chrome-stable)" ]; then
 	sudo cp native-app/db_connector.py /etc/opt/chrome/native-messaging-hosts/db_connector.py
 fi
 
-if [ -f "$(which chromium-browser)" ]; then
+if [ -f "$(which chromium)" ]; then
 
 	if [ ! -d "/etc/chromium/native-messaging-hosts/" ]; then
 		sudo mkdir -p /etc/chromium/native-messaging-hosts/

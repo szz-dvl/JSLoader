@@ -174,11 +174,14 @@ function BG_mgr () {
 	this.reIndex();
 }
 
-	
-global_storage.once('ready', () => {
-	
-	BG_mgr.call(this);
 
-});
+const initID = setInterval(() => {
 
+	if (global_storage.ready) {
+
+		clearInterval(initID);
+		BG_mgr.call(this);
+	}
+	
+}, 50);
 

@@ -71,7 +71,7 @@
 			"suggested_key": {
 				"default": "Ctrl+Shift+2"
 			},
-			"description": "Create new group, and binds a new script."
+			"description": "Create new group script."
 		},
 		"open-option-page": {
 			"suggested_key": {

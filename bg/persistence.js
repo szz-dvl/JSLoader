@@ -18,8 +18,8 @@ class DB extends EventEmitter {
 				let obj = JSON.parse(response);					
 				this.reconnecting = false;
 
-				/* console.log("message: ");
-				   console.log(obj); */
+				console.log("message: ");
+				console.log(obj);
 
 				if (obj.error && obj.error.includes('[Errno 111]')) {
 
@@ -412,12 +412,11 @@ class DB extends EventEmitter {
 	}
 }
 
-class Storage extends EventEmitter  {
+class Storage {
 
 	constructor() {
 
-		super();
-		
+		this.ready = false;
 		this.room = "local";
 		this.target = chrome.storage[this.room];
 		
@@ -893,7 +892,7 @@ class Storage extends EventEmitter  {
 				
 			};
 
-			this.emit('ready');
+			this.ready = true;
 		})
 			
 	}

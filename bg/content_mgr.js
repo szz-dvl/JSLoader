@@ -628,7 +628,7 @@ function CSMgr (bg) {
 								case "get-jobs":
 									{
 										
-										let url = new URL(args.message.url).sort();
+										let url = new JSLUrl(args.message.url);
 										
 										this.bg.domain_mgr.getScriptsForUrl(url)
 											.then(

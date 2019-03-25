@@ -42,7 +42,7 @@
 		  
 		  <are-u-sure
 
-			  ng-if="(info.domains.length || info.groups.length) && page.bg.db.removeable"
+			  ng-if="mustShowRemove()"
 			  style="float: right;"
 			  text="page.bg.texts.findText('remove')"
 			  action="removeSite()"

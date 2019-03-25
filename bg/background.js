@@ -28,7 +28,7 @@ function BG_mgr () {
 							.then(
 								nfo => {
 									
-									nfo.url = tabnfo.url.href;
+									nfo.url = tabnfo.url.name;
 									nfo.tabId = tabnfo.tab;
 									
 									resolve(nfo);
@@ -178,7 +178,7 @@ function BG_mgr () {
 const initID = setInterval(() => {
 
 	if (global_storage.ready) {
-
+		
 		clearInterval(initID);
 		BG_mgr.call(this);
 	}

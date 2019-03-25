@@ -18,9 +18,6 @@ class DB extends EventEmitter {
 				let obj = JSON.parse(response);					
 				this.reconnecting = false;
 
-				console.log("message: ");
-				console.log(obj);
-
 				if (obj.error && obj.error.includes('[Errno 111]')) {
 
 					if (this.connected) {
@@ -301,6 +298,14 @@ class DB extends EventEmitter {
 			
 		}
 
+		this.disconnect = () => {
+
+			this.connected = false;
+
+			this.emit("db_change", this.data_origin);
+
+		}
+		
 		this.mayRead = () => {
 
 			return this.available && this.connected && this.readable;

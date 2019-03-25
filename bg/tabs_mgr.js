@@ -2,7 +2,7 @@ function JSLTab (tabInfo, feeding) {
 
 	Object.assign(this, tabInfo);
 	
-	this.url = new URL(this.url).sort();
+	this.url = new JSLUrl(this.url);
 	this.id = parseInt(this.id);
 	
 	this.feeding = feeding;
@@ -38,11 +38,7 @@ function deferredXHR (parent, tabId, scripts, frames) {
 	this.execute = () => {
 
 		this.running = true;
-
-		/* To be tested. */
-		console.warn('Re-running scripts at tab: ' + this.tabId);
-
-		/* Only one frame if Main frames ... */
+		
 		async.each(this.frames,
 			(frame, next) => {
 				
@@ -115,7 +111,7 @@ function TabsMgr (bg) {
 					}
 					
 				} else
-					url_name = url.name();
+				   url_name = url.name;
 				
 				url_name += (url_name.indexOf("/") < 0) ? "/" : "";
 				
@@ -146,7 +142,7 @@ function TabsMgr (bg) {
 				chrome.tabs.query({ currentWindow: true, active: true },
 					tab_info => {
 
-						resolve({url: new URL(tab_info[0].url).sort(), tab: tab_info[0].id });
+						resolve({url: new JSLUrl(tab_info[0].url), tab: tab_info[0].id });
 						
 					}
 				)
@@ -210,7 +206,7 @@ function TabsMgr (bg) {
 				
 				if (url.hostname && !url.protocol.includes("chrome")) {
 					
-					this.bg.domain_mgr.haveInfoForUrl(url)
+					this.bg.domain_mgr.haveInfoForUrl(new JSLUrl(url))
 						.then(
 							any => {
 								
@@ -222,6 +218,7 @@ function TabsMgr (bg) {
 										chrome.pageAction.setIcon(
 											{
 												path: {
+
 													16: chrome.extension.getURL("fg/icons/" + nfo + "-diskette-16.png"),
 													32: chrome.extension.getURL("fg/icons/" + nfo + "-diskette-32.png")
 														
@@ -265,7 +262,7 @@ function TabsMgr (bg) {
 								
 								if (frames.length) {
 									
-									this.bg.domain_mgr.getScriptsForUrl(new URL(changeInfo.url).sort())
+									this.bg.domain_mgr.getScriptsForUrl(new JSLUrl(changeInfo.url))
 										.then(
 											scripts => {
 												
@@ -284,8 +281,8 @@ function TabsMgr (bg) {
 					for (let editor of this.bg.editor_mgr.editors) 
 						editor.newTab(tabInfo, (url.hostname && !url.protocol.includes("chrome")) ? true : false);
 				}
-					
-		});
+				
+			});
 	};
 	
 	chrome.tabs.onUpdated.addListener(this.updateWdws);

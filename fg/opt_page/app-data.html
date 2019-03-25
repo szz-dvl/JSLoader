@@ -8,6 +8,7 @@
 				<thead>
 					<th></th>
 					<th></th>
+					<th></th>
 					<th style="text-align: center;"> {{ page.bg.texts.findText('connected') }} </th>
 					<th style="text-align: center;"> {{ page.bg.texts.findText('readable') }} </th>
 					<th style="text-align: center;"> {{ page.bg.texts.findText('writeable') }} </th>
@@ -17,7 +18,7 @@
 						<td style="width: 20%;">
 							<h2 style="margin: 0;margin-left: 50px;"> {{ page.bg.texts.findText('data_origin') }} </h2> <!-- float: right;margin-right: 135px; -->
 						</td>
-						<td style="width: 60%;">	
+						<td style="width: 40%;">	
 							<input
 								style="width: 100%;"
 								class="browser-style"
@@ -29,20 +30,32 @@
 								info-protected/>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
-							<div style="width: 40px;height: 40px;">
+							<button ng-if="page.bg.db.connected"
+									ng-disabled="page.bg.db.reconnecting"
+									class="browser-style"
+									ng-click="disconnectDB()"> {{ page.bg.texts.findText('disconnect') }} 
+							</button>
+							<button ng-if="!page.bg.db.connected"
+									ng-disabled="page.bg.db.reconnecting"
+									class="browser-style"
+									ng-click="connectDB()"> {{ page.bg.texts.findText('connect') }} 
+							</button>
+						</td>
+						<td style="text-align: center; width: 10%;padding: 55px">
+							<div style="width: 40px;height: 40px;margin: 0 auto;">
 								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && !page.bg.db.reconnecting" width="24px" height="24px">
 								<img class="status" src="../icons/ko_tick.png" ng-show="!page.bg.db.connected && !page.bg.db.reconnecting" width="32px" height="32px">
 								<img class="status" src="../icons/loading.gif" ng-show="page.bg.db.reconnecting" width="32px" height="32px">
 							</div>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
-							<div style="width: 40px;height: 40px;">
+							<div style="width: 40px;height: 40px;margin: 0 auto;">
 								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.readable && !page.bg.db.reconnecting" width="24px" height="24px">
 								<img class="status" src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.readable && !page.bg.db.reconnecting" width="32px" height="32px">
 							</div>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
-							<div style="width: 40px;height: 40px;">
+							<div style="width: 40px;height: 40px;margin: 0 auto;">
 								<img class="status" src="../icons/ok_tick.png" ng-show="page.bg.db.connected && page.bg.db.writeable && !page.bg.db.reconnecting" width="24px" height="24px">
 								<img class="status" src="../icons/ko_tick.png" ng-show="page.bg.db.connected && !page.bg.db.writeable && !page.bg.db.reconnecting" width="32px" height="32px">
 							</div>

@@ -32,8 +32,7 @@ function EditorWdw (opt) {
 						editor.wdw = wdw;
 						resolve(editor);
 						
-						}
-					)
+					})
 					
 				}, reject);
 		});	
@@ -89,7 +88,7 @@ class Editor extends EventEmitter {
 
 							/* If script is persisted ... */	
 							
-							if (this.script.includedAt(new URL(tabInfo.url))) {
+							if (this.script.includedAt(new JSLUrl(tabInfo.url))) {
 								
 								/* ... Tab url must belong to the set of valid urls for our script to run the script.*/	
 
@@ -169,8 +168,8 @@ function EditorMgr (bg) {
 		
 		return new Promise(
 			(resolve, reject) => {
-				
-				let url = new URL(tab.url).sort();
+
+				let url = new JSLUrl(tab.url);
 				
 				self.bg.domain_mgr.getOrCreateItem(url.hostname, false)
 					.then(

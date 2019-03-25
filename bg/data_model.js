@@ -15,10 +15,10 @@ function Script (opt) {
 			if (this.parent.parent.isSubdomain())
 				return null;
 			else
-				return new URL('http://' + this.parent.parent.name + this.parent.url);
+				return new JSLUrl(this.parent.parent.name + this.parent.url);
 			
 		} else
-			return null; /* !!! */
+			return null;
 	};
 
 	this.getUrlString = () => {
@@ -257,42 +257,17 @@ function Site (opt) {
 		
 	};
 
+	this.getJSLurl = () => {
+
+		return new JSLUrl(this.siteName());
+
+	};
+	
 	this.includes = (url) => {
-
-		if (this.parent.isSubdomain()) {
-			
-			if (this.parent.name.startsWith("*.") && this.parent.name.endsWith(".*")) {
-
-				let parent_group = this.parent.name.slice(2).slice(0, -2);
-				let aux = url.hostname.split(".");
-				
-				do {
-					
-					aux = aux.slice(1).slice(0, -1);
-					
-				} while (aux.length && aux.join(".") != parent_group);
-
-				return aux.length ? url.pathname.startsWith(this.url) : false;
-				
-			} else if (this.parent.name.startsWith("*.")) {
-
-				let parent_group = this.parent.name.slice(2);
-				
-				return url.hostname.endsWith(parent_group) && url.pathname.startsWith(this.url);
-				
-			} else if (this.parent.name.endsWith(".*")) {
-
-				let parent_group = this.parent.name.slice(0, -2);
-						
-				return url.hostname.startsWith(parent_group) && url.pathname.startsWith(this.url);
-			}
-			
-		} else {
-			
-			return url.name().startsWith(this.siteName());
-			
-		}
-	}
+		
+		return this.getJSLurl().includes(url);
+		
+	};
 	
 	this.isEmpty = () => {
 		
@@ -559,8 +534,8 @@ function Group (opt) {
 	__Script_Bucket.call(this, opt.scripts || []);
 	
 	this.name = opt.name || UUID.generate().split("-").pop();
-	this.sites = opt.sites || [];
-	this.disabledAt = opt.disabledAt || [];
+	this.sites = opt.sites ? opt.sites.map(site => new JSLUrl(site)) : [];
+	this.disabledAt = opt.disabledAt ? opt.disabledAt.map(tuple => { return {id: tuple.id, url: new JSLUrl(tuple.url) }}) : [];
 	this.in_storage = opt.in_storage || false;
 	
 	this.isDomain = () => {
@@ -608,13 +583,13 @@ function Group (opt) {
 			(resolve, reject) => {
 				
 				global_storage.upsertGroup(this.__getDBInfo(), this.in_storage)
-					.then(
-						() => {
-							
-							resolve(this);
-							
-						}, reject
-					);
+							  .then(
+								  () => {
+									  
+									  resolve(this);
+									  
+								  }, reject
+							  );
 			}
 		);
 	};
@@ -625,27 +600,31 @@ function Group (opt) {
 			(resolve, reject) => {
 				
 				global_storage.removeGroup(this.name, this.in_storage)
-					.then(
-						() => {
-							
-							resolve(this);
-							
-						}, reject);
+							  .then(
+								  () => {
+									  
+									  resolve(this);
+									  
+								  }, reject);
 			}
 		);
 	};
 
 	this.appendSite = (site) => {
+
+		let aux = new JSLUrl(site);
 		
-		if (!this.sites.includes(site))
-			this.sites.push(site);
+		if (!this.sites.find(my_site => my_site.match(aux)))
+			this.sites.push(aux);
 
 		return this.persist();
 	};
 
 	this.removeSite = (site) => {
 
-		let idx = this.sites.indexOf(site);
+		let aux = new JSLUrl(site);
+		
+		let idx = this.sites.findIndex(my_site => { return my_site.match(aux) });
 		let cnt = 0;
 		
 		this.sites.remove(idx);
@@ -659,7 +638,7 @@ function Group (opt) {
 			done = this.disabledAt.findIndex(
 				tuple => {
 					
-					return this.__comparePlainUrl(site, tuple.url);
+					return aux.includes(tuple.url);
 				}
 			);
 			
@@ -682,10 +661,10 @@ function Group (opt) {
 			done = this.sites.findIndex(
 				stored => {
 					
-					return this.__compareSetUrls(stored, site);
+					return stored.includes(site);
 				}
 			);
-
+			
 			cnt ++;
 			
 		} while (done >= 0);
@@ -695,106 +674,16 @@ function Group (opt) {
 
 	this.isMySite = (site) => {
 
-		return this.sites.includes(site);
+		return this.sites.find(my_site => my_site.match(site));
 
 	};
-
-	this.__compareSetUrls = (site, stored) => {
-
-		let hsite = site.split("/")[0];
-		let psite =  "/" + site.split("/").slice(1).join("/");
-
-		let hstored = stored.split("/")[0];
-		let pstored =  "/" + stored.split("/").slice(1).join("/");
-
-		if (hstored == hsite && pstored.startsWith(psite))
-			return true;
-		else if (hstored.includes("*") || hsite.includes("*")) {
-
-			if (hstored.endsWith(".*")) {
-
-				hstored = hstored.split(".").slice(0, -1).join(".");
-				hsite = hsite.split(".").slice(0, -1).join(".");
-
-			}
-
-			if (hstored.startsWith("*.")) {
-
-				hstored = hstored.split(".").slice(1).join(".");
-				hsite = hsite.split(".").slice(1).join(".");
-
-			}
-
-			if (hsite.endsWith(".*")) {
-
-				hstored = hstored.split(".").slice(0, -1).join(".");
-				hsite = hsite.split(".").slice(0, -1).join(".");
-			}
-
-			if (hsite.startsWith("*.")) {
-
-				hstored = hstored.split(".").slice(1).join(".");
-				hsite = hsite.split(".").slice(1).join(".");
-			}
-			
-			return hsite == hstored && pstored.startsWith(psite)
-			
-		} else {
-
-			return false;
-		}
-		
-	}
-	
-	this.__comparePlainUrl = (site, url) => {
-
-		//console.log(url + ": " + typeof(url) + "-" + url.constructor.name + " is URL -> " + (url instanceof URL ? "true" : "false"));
-		
-		let pathname = url.constructor.name == "URL" ? url.pathname : "/" + url.split("/").slice(1).join("/");
-		let hostname = url.constructor.name == "URL" ? url.hostname : url.split("/")[0];
-		let name = url.constructor.name == "URL" ? url.name() : hostname + pathname;
-		
-		let split = site.split("/");
-		let site_path = "/" + split.slice(1).join("/");
-		
-		if (split[0].startsWith("*.") && split[0].endsWith(".*")) {
-
-			let site_group = split[0].slice(2).slice(0, -2);
-			let aux = hostname.split(".");
-			
-			do {
-				
-				aux = aux.slice(1).slice(0, -1);
-				
-			} while (aux.length && aux.join(".") != site_group);
-			
-			return aux.length ? pathname.startsWith(site_path) : false;
-
-		} else if (split[0].startsWith("*.")) {
-			
-			let site_group = split[0].slice(2);
-			
-			return hostname.endsWith(site_group) && pathname.startsWith(site_path);
-			
-		} else if (split[0].endsWith(".*")) {
-
-			let site_group = split[0].slice(0, -2);
-			
-			return hostname.startsWith(site_group) && pathname.startsWith(site_path);
-			
-		} else {
-			
-			return name.startsWith(site);
-			
-		}
-	}
 	
 	this.includes = (url) => {
 		
 		return this.sites.find(
 			site => {
-				
-				return this.__comparePlainUrl(site, url);
+
+				return site.includes(url)
 			}
 			
 		) ? true : false;
@@ -817,9 +706,11 @@ function Group (opt) {
 			this.upsertScript(script);
 		
 		for (let site_name of imported.sites) {
+
+			let site_aux = new JSLUrl(site_name);
 			
-			if (!this.sites.includes(site_name))
-				this.sites.push(site_name);
+			if (!this.sites.find(my_site => my_site.match(site_aux)))
+				this.sites.push(site_aux);
 		}
 
 		for (let tuple of imported.disabledAt) {
@@ -830,56 +721,62 @@ function Group (opt) {
 				}
 			) ? true : false;
 
-			let site_mine = this.sites.find(
-				site => {
-					return site == tuple.url;
-				}
-			) ? true : false;
-			
-			if (site_mine && script_mine) {
-				
-				let idx = this.disabledAt.findIndex(
-					stored => {
-						
-						return stored.id == tuple.id && tuple.url == stored.url;	
+			if (script_mine) {
+
+				let site_mine = this.sites.find(
+					site => {
+						return site == tuple.url;
 					}
-				);
+				) ? true : false;
 				
-				if (idx < 0)
-					this.disabledAt.push({id: tuple.id, url: tuple.url});
+				if (site_mine) {
+					
+					let idx = this.disabledAt.findIndex(
+						stored => {
+							
+							return stored.id == tuple.id && tuple.url == stored.url.name;	
+						}
+					);
+					
+					if (idx < 0)
+						this.disabledAt.push({id: tuple.id, url: JSLUrl(tuple.url)});
+				}
 			}
 		}
 
 		return this.persist();
 	};
 	
-	this.isDisabled = (uuid, urlname) => {
+	this.isDisabled = (uuid, url) => {
 
-		let url_name = urlname instanceof URL ? urlname.name() : urlname;
-		
-		return this.disabledAt.find(
-			
-			tuple => {
-
-				return (tuple.id == uuid && url_name.startsWith(tuple.url));
+		try {
+			return this.disabledAt.find(
 				
-			}
+				tuple => {
+					
+					return (tuple.id == uuid && url.name.startsWith(tuple.url.name));
+					
+				}
+				
+			) ? true : false;
 			
-		) ? true : false;
-	}
+		} catch (err) {
 
-	this.toggleDisableFor = (uuid, urlname) => {
+			console.error(err);
+
+		}
+	}
+	this.toggleDisableFor = (uuid, url) => {
 		
 		let idx = -1;
 		let disabled = false;
-		let url_name = urlname instanceof URL ? urlname.name() : urlname;
 		
 		do {
 
 			idx = this.disabledAt.findIndex(
 				tuple => {
 					
-					return tuple.id == uuid && url_name.startsWith(tuple.url);
+					return tuple.id == uuid && url.name.startsWith(tuple.url.name);
 					
 				}
 			);
@@ -890,61 +787,9 @@ function Group (opt) {
 				disabled = true;
 				
 			} else if (!disabled)
-				this.disabledAt.push({id: uuid, url: url_name});
+				this.disabledAt.push({id: uuid, url: url});
 			
 		} while (idx >= 0);
-	}
-
-	this.disabledEverywhere = (uuid) => {
-		
-		return this.sites.length && this.disabledAt.filter(
-			tuple => {
-				
-				return tuple.id == uuid;
-			}
-			
-		).length >= this.sites.length;
-	};
-	
-	this.disableEverywhere = (uuid) => {
-		
-		for (let site of this.sites) {
-			
-			let idx = this.disabledAt.findIndex(
-				tuple => {
-				
-					return tuple.id == uuid && tuple.url == site;
-
-				}
-			
-			);
-		
-			if (idx < 0)
-				this.disabledAt.push({id: uuid, url: site});
-		}
-	}
-
-	this.enableEverywhere = (uuid) => {
-
-		let idx = -1;
-		
-		for (let site of this.sites) {
-
-			do {
-				
-				let idx = this.disabledAt.findIndex(
-					tuple => {
-						
-						return tuple.id == uuid && tuple.url.startsWith(site);
-						
-					}
-				);
-				
-				if (idx >= 0)
-					this.disabledAt.remove(idx);
-				
-			} while (idx >= 0);
-		}
 	}
 	
 	this.getJSON = () => {
@@ -960,8 +805,8 @@ function Group (opt) {
 		return {
 			
 			name: me.name,
-			sites: me.sites,
-			disabledAt: me.disabledAt,
+			sites: me.sites.map(site => site.name),
+			disabledAt: me.disabledAt.map(disabled => { return {id: disabled.id, url: disabled.url.name }}),
 			scripts: me.scripts.map(
 				script => {
 					return script.__getDBInfo();

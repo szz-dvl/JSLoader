@@ -208,39 +208,38 @@ function DomainMgr (bg) {
 
 		return new Promise(
 			(resolve, reject) => {
-				
-				this.storage.getDomain(
-					domain => {
+
+				this.bg.group_mgr.cleanSite(new JSLUrl(hostname + pathname))
+					.then(() => {
 						
-						if (domain) {
-
-							let sites = this.__getSitesInfoFor(domain, pathname);
-
-							let promise = Promise.resolve();
-							
-							for (site_tuple of sites.scripts) {
-
-								promise = domain.removeSite(site_tuple.name);
+						this.storage.getDomain(
+							domain => {
 								
-							}
+								if (domain) {
+									
+									let sites = this.__getSitesInfoFor(domain, pathname);
+									console.log(sites);
+									let promise = Promise.resolve();
 
-							promise.then(() => {
+									for (site_tuple of sites.scripts) 
+										promise = domain.removeSite(site_tuple.name); /* deferred save or remove */
+									
+									promise.then(resolve, reject);
 
-								this.bg.group_mgr.cleanSite(hostname + pathname)
-									.then(resolve, reject);
-							
-							});
-							
-							
-						} else {
-							
-							reject(new Error("Domain " + hostname + " not found."));
-							
-						}
+								} else {
+
+									resolve();
+									
+								}
+								
+							}, hostname)
+
+					}, err => {
 						
-					}, hostname
-				);			
-			})
+						reject(err);
+						
+					});
+			});
 	}
 	
 	this.removeSite = (hostname, pathname) => {
@@ -485,37 +484,21 @@ function DomainMgr (bg) {
 		return new Promise (
 			(resolve, reject) => {
 				
-				script.remove() /* BUG: new created domains */
-					.then(
-						() => {
-							
-							var pathname, hostname;
-							
-							try {
-								
-								let temp = new URL("http://" + url);
-								
-								pathname = temp.pathname;
-								hostname = temp.hostname;
-								
-							} catch (e) {
-								
-								/* All subdomains shortcut. */
-								
-								hostname = url.split("/")[0]; 
-								pathname = "/" + url.split("/").slice(1).join("/");
-								
-							}
-							
-							this.storage.getOrCreateDomain(
-								domain => {
-									
-									resolve(domain.getOrCreateSite(pathname).upsertScript(script));
-									
-								}, hostname);
-							
-						}, reject
-					);
+				script.remove()
+					  .then(
+						  () => {
+
+							  let temp = new JSLUrl(url);
+							  
+							  this.storage.getOrCreateDomain(
+								  domain => {
+									  
+									  resolve(domain.getOrCreateSite(temp.pathname).upsertScript(script));
+									  
+								  }, temp.hostname);
+							  
+						  }, reject
+					  );
 			});
 	};
 
@@ -524,7 +507,7 @@ function DomainMgr (bg) {
 		
 		try {
 			
-			let my_url = new URL ("http://" + url);
+			let my_url = new JSLUrl (url);
 			
 			if (script.parent && my_url.match(script.getUrl())) 
 				return Promise.resolve(script);
@@ -541,7 +524,7 @@ function DomainMgr (bg) {
 					return this.__updateParentFor(script, url);
 			}
 		}
-	};	
+	};		
 	
 	this.haveInfoForUrl = (url) => {
 

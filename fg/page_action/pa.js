@@ -7,7 +7,7 @@ function PA (bg, info) {
 	this.lists = [];
 	
 	this.tabId = info.tabId;
-	this.url = new URL(this.info.url);
+	this.url = new JSLUrl(this.info.url);
 
 	this.pa_state = {
 		
@@ -73,6 +73,31 @@ function PA (bg, info) {
 			}
 		};
 
+		$scope.mustShowRemove = () => {
+
+			if ($scope.info.domains.length) {
+
+				let found = false;
+				
+				for(domain of info.domains) {
+
+					found = domain.list.find(site => site.included);
+
+					if (found)
+						break;
+
+				}
+
+				return (found || $scope.info.groups[0].total) && (self.bg.db.connected ? self.bg.db.removeable : true);
+				
+			} else {
+				
+				return ($scope.info.groups[0].total) && (self.bg.db.connected ? self.bg.db.removeable : true);
+
+			}
+
+		}
+		
 		$scope.canDisable = (list, item) => {
 			
 			if (list.title == self.bg.texts.findText('groups'))
@@ -602,7 +627,7 @@ function PA (bg, info) {
 							$scope.current = self.bg.group_mgr.groups[0];
 							$scope.groups_active = false;
 							
-							$scope.url = self.url.name();
+							$scope.url = self.url;
 							$scope.events = new EventEmitter();
 							
 							$scope.action;
@@ -670,7 +695,7 @@ function PA (bg, info) {
 								.on('validation_ready',
 									validated => {
 										
-										$scope.url = validated;
+										$scope.url = new JSLUrl(validated);
 										$scope.validation_in_progress = false;
 										$scope.setAction();
 										

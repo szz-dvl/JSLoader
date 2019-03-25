@@ -420,12 +420,11 @@ class DB extends EventEmitter {
 	}
 }
 
-class Storage extends EventEmitter  {
+class Storage  {
 
 	constructor() {
 
-		super();
-		
+		this.ready = false;
 		this.room = "local";
 		this.target = browser.storage[this.room];
 		
@@ -881,7 +880,7 @@ class Storage extends EventEmitter  {
 						
 					};
 
-					this.emit('ready');
+					this.ready = true;
 				}
 			)
 	}

@@ -171,11 +171,14 @@ function BG_mgr () {
 		
 }
 
+
+const initID = setInterval(() => {
+
+	if (global_storage.ready) {
+		
+		clearInterval(initID);
+		BG_mgr.call(this);
+	}
 	
-global_storage.once('ready', () => {
-
-	BG_mgr.call(this);
-
-});
-
+}, 50);
 /* browser.storage.local.clear(); */

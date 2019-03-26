@@ -528,7 +528,7 @@ function EditorFG (id, bg) {
 								else 
 									$scope.mine = false;
 
-								if (group.isMySite($scope.editor.tab.url.name())) 
+								if (group.isMySite($scope.editor.tab.url.name)) 
 									$scope.gotit = true;
 								else 
 									$scope.gotit = false;
@@ -564,10 +564,8 @@ function EditorFG (id, bg) {
 					$scope.enableButtons();
 					
 				})
-			.on('new_tab',
+			 .on('new_tab',
 				(must_run, unpersisted) => {
-
-					console.log("new tab!");
 					
 					if ($scope.script.parent.isGroup()) {
 
@@ -644,16 +642,16 @@ function EditorFG (id, bg) {
 			if ($scope.gotit) {
 
 				if ($scope.mine)
-					$scope.script.parent.removeSite($scope.editor.tab.url.name());
+					$scope.script.parent.removeSite($scope.editor.tab.url.name);
 				else
-					self.bg.group_mgr.removeSiteFrom($scope.url, $scope.editor.tab.url.name());
+					self.bg.group_mgr.removeSiteFrom($scope.url, $scope.editor.tab.url.name);
 
 			} else { 
 
 				if ($scope.mine)
-					$scope.script.parent.appendSite($scope.editor.tab.url.name());
+					$scope.script.parent.appendSite($scope.editor.tab.url.name);
 				else
-					self.bg.group_mgr.addSiteTo($scope.url, $scope.editor.tab.url.name());
+					self.bg.group_mgr.addSiteTo($scope.url, $scope.editor.tab.url.name);
 				
 			}
 			

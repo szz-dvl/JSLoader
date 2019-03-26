@@ -525,7 +525,7 @@ function EditorFG (id, bg) {
 								else 
 									$scope.mine = false;
 
-								if (group.isMySite($scope.editor.tab.url.name)) 
+								if (group.isMySite($scope.editor.tab.url)) 
 									$scope.gotit = true;
 								else 
 									$scope.gotit = false;

@@ -151,9 +151,10 @@ class Editor extends EventEmitter {
 				
 			} else {
 
-				/* This is a configuration page, if not an editor window disable run, otherwise ignore it. */
+				/* This is a configuration page, if not an editor window disable run, otherwise ignore it. 
+				   If we reach here without a window object assume is the editor itself */
 
-				if (!this.parent.isEditorWdw(tabInfo.windowId)) {
+				if (this.wdw && !this.parent.isEditorWdw(tabInfo.windowId)) {
 
 					this.emit('new_tab', false, false);
 					this.tab.outdated = true;
@@ -323,13 +324,13 @@ function EditorMgr (bg) {
 	};
 
 	this.isEditorWdw = (wid) => {
-
+		
 		return this.editors.find(
 			editor => {
 				
 				return editor.wdw && editor.wdw.id == wid;
 				
-			}) ? true : false;
+			}); /* ? true : false */;
 	};
 	
 	this.resourceEditing = (resource) => {

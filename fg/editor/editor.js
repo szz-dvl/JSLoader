@@ -434,9 +434,9 @@ function EditorFG (id, bg) {
 
 						} else {
 
-							if ($scope.url != $scope.editor.tab.url.name()) {
+							if ($scope.url != $scope.editor.tab.url.name) {
 
-								$scope.url = $scope.editor.tab.url.name();
+								$scope.url = $scope.editor.tab.url.name;
 			
 								$("#site_validator")
 									.replaceWith($compile('<site-validator id="site_validator"' +
@@ -526,7 +526,7 @@ function EditorFG (id, bg) {
 								else 
 									$scope.mine = false;
 
-								if (group.isMySite($scope.editor.tab.url.name)) 
+								if (group.isMySite($scope.editor.tab.url)) 
 									$scope.gotit = true;
 								else 
 									$scope.gotit = false;
@@ -573,7 +573,7 @@ function EditorFG (id, bg) {
 								.then(
 									group => {
 										
-										if (group.isMySite($scope.editor.tab.url.name())) 
+										if (group.isMySite($scope.editor.tab.url)) 
 											$scope.gotit = true;
 										else 
 											$scope.gotit = false;
@@ -588,7 +588,7 @@ function EditorFG (id, bg) {
 
 						if (!$scope.script.parent.isGroup()) {
 
-							$scope.url = $scope.editor.tab.url.name();
+							$scope.url = $scope.editor.tab.url.name;
 			
 							$("#site_validator")
 								.replaceWith($compile('<site-validator id="site_validator"' +

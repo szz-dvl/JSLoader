@@ -184,224 +184,208 @@ angular.module('jslPartials', [])
 			}
 		})
 
-	.directive('ngOnChange', function() {
-		
-		return {
-			
-			restrict: "A",
-			scope: {
-				ngOnChange: '&'
-			},
-			
-			link: function (scope, element) {
-				
-				element.on('change', scope.ngOnChange());
-			}
-		};
-	})
+	   .directive('paginator', function($timeout) {
+		   
+		   return {
+			   
+			   restrict: "A",
+			   scope: {
+				   target: '=?',
+				   site:'=?',
+				   parent: '&',
+				   feeding: '&',
+				   filter: '=?',
+				   slice: '=',
+				   actual: '=',
+				   total:'='
+			   },
 
-	.directive('paginator', function($timeout) {
-		
-		return {
-			
-			restrict: "A",
-			scope: {
-				target: '=?',
-				site:'=?',
-				parent: '&',
-				feeding: '&',
-				filter: '=?',
-				slice: '=',
-				actual: '=',
-				total:'='
-			},
+			   templateUrl: function (elem, attr) {
+				   
+				   return chrome.extension.getURL("fg/partials/paginator.html");
+				   
+			   },
 
-			templateUrl: function (elem, attr) {
-				
-				return chrome.extension.getURL("fg/partials/paginator.html");
-				
-			},
+			   link: function ($scope, element, attrs) {
 
-			link: function ($scope, element, attrs) {
+				   $scope.imgs = element.find('img'); 
+				   $scope.size = "pagSmall" in attrs ? '16' : '20';
+			   },
+			   
+			   controller: function ($scope) {
 
-				$scope.imgs = element.find('img'); 
-				$scope.size = "pagSmall" in attrs ? '16' : '20';
-			},
-			
-			controller: function ($scope) {
+				   $scope.last_page = Math.ceil($scope.total / $scope.slice);
+				   $scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+				   
+				   $scope.prevSlice = () => {
 
-				$scope.last_page = Math.ceil($scope.total / $scope.slice);
-				$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
-				
-				$scope.prevSlice = () => {
+					   if ($scope.current_page > 1) {
 
-					if ($scope.current_page > 1) {
+						   $scope.feeding()($scope.actual - $scope.slice, $scope.slice, $scope.target, $scope.site, [])
+								 .then(
+									 slice => {
 
-						$scope.feeding()($scope.actual - $scope.slice, $scope.slice, $scope.target, $scope.site, [])
-							.then(
-								slice => {
+										 $scope.actual = slice.actual;
+										 $scope.total = slice.total;
+										 $scope.last_page = Math.ceil($scope.total / $scope.slice);
+										 $scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;	
+										 $scope.parent()(slice, $scope.target, $scope.site);
+									 }
+								 );
+					   }
+				   }
 
-									$scope.actual = slice.actual;
-									$scope.total = slice.total;
-									$scope.last_page = Math.ceil($scope.total / $scope.slice);
-									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;	
-									$scope.parent()(slice, $scope.target, $scope.site);
-								}
-							);
-					}
-				}
+				   $scope.nextSlice = () => {
+					   
+					   if ( $scope.current_page < $scope.last_page ) {
 
-				$scope.nextSlice = () => {
-					
-					if ( $scope.current_page < $scope.last_page ) {
+						   $scope.feeding()($scope.actual + $scope.slice, $scope.slice, $scope.target, $scope.site, [])
+								 .then(
+									 slice => {
 
-						$scope.feeding()($scope.actual + $scope.slice, $scope.slice, $scope.target, $scope.site, [])
-							.then(
-								slice => {
+										 $scope.actual = slice.actual;
+										 $scope.total = slice.total;
+										 $scope.last_page = Math.ceil($scope.total / $scope.slice);
+										 $scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+										 $scope.parent()(slice, $scope.target, $scope.site);
+									 }
+								 );
+					   }
+				   }
 
-									$scope.actual = slice.actual;
-									$scope.total = slice.total;
-									$scope.last_page = Math.ceil($scope.total / $scope.slice);
-									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
-									$scope.parent()(slice, $scope.target, $scope.site);
-								}
-							);
-					}
-				}
+				   if ($scope.filter) {
+					   $scope.filter.on('change', (filter) => {
 
-				if ($scope.filter) {
-					$scope.filter.on('change', (filter) => {
+						   $scope.feeding()(0, $scope.slice, $scope.target, $scope.site, [], filter)
+								 .then(
+									 slice => {
+										 
+										 $scope.actual = slice.actual;
+										 $scope.total = slice.total;
+										 $scope.last_page = Math.ceil($scope.total / $scope.slice);
+										 $scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
+										 $scope.parent()(slice, $scope.target, $scope.site);
+									 }
+								 );
+					   });
+				   }
+			   }
+		   }
+	   })
 
-						$scope.feeding()(0, $scope.slice, $scope.target, $scope.site, [], filter)
-							.then(
-								slice => {
-									
-									$scope.actual = slice.actual;
-									$scope.total = slice.total;
-									$scope.last_page = Math.ceil($scope.total / $scope.slice);
-									$scope.current_page = $scope.last_page - Math.ceil(($scope.total - $scope.actual) / $scope.slice) + 1;
-									$scope.parent()(slice, $scope.target, $scope.site);
-								}
-							);
-					});
-				}
-			}
-		}
-	})
-	
-	.directive('editorSettings', function() {
-		
-		return {
-			
-			restrict: "E",
-			replace: true,
-			scope: {
-				onChange: '&',
-				opts: '=',
-				rows: '=?'
-			},
+	   .directive('editorSettings', function() {
+		   
+		   return {
+			   
+			   restrict: "E",
+			   replace: true,
+			   scope: {
+				   onChange: '&',
+				   opts: '=',
+				   rows: '=?'
+			   },
 
-			templateUrl: function (elem, attr) {
-				
-				return chrome.extension.getURL("fg/partials/editor-sett.html");
-				
-			},
+			   templateUrl: function (elem, attr) {
+				   
+				   return chrome.extension.getURL("fg/partials/editor-sett.html");
+				   
+			   },
 
-			link: function ($scope, elem, attrs) {
+			   link: function ($scope, elem, attrs) {
 
-				$scope.rows = 'rows' in attrs ? $scope.rows : false;
-				
-			},
-			
-			controller: function ($scope) {
-				
-				$scope.fonts = [
-					
-					"serif",
-					"sans-serif",
-					"monospace"
-				];
-				
-				$scope.themes = [
-					
-					"monokai",
-					"ambiance",
-					"chaos", 
-					"chrome",
-					"clouds",
-					"clouds_midnight",
-					"cobalt",
-					"crimson_editor",
-					"dawn",
-					"dreamweaver",
-					"eclipse",
-					"github",
-					"gob", 
-					"gruvbox",
-					"idle_fingers",
-					"iplastic",
-					"katzenmilch",
-					"kr_theme",
-					"kuroir",
-					"merbivore",
-					"merbivore_soft",
-					"mono_industrial",
-					"pastel_on_dark",
-					"solarized_dark",
-					"solarized_light",
-					"sqlserver",
-					"terminal",
-					"textmate",
-					"tomorrow",
-					"tomorrow_night_blue", 
-					"tomorrow_night_bright",
-					"tomorrow_night_eighties",
-					"tomorrow_night", 
-					"twilight",
-					"vibrant_ink",
-					"xcode"
-				];
+				   $scope.rows = 'rows' in attrs ? $scope.rows : false;
+				   
+			   },
+			   
+			   controller: function ($scope) {
+				   
+				   $scope.fonts = [
+					   
+					   "serif",
+					   "sans-serif",
+					   "monospace"
+				   ];
+				   
+				   $scope.themes = [
+					   
+					   "monokai",
+					   "ambiance",
+					   "chaos", 
+					   "chrome",
+					   "clouds",
+					   "clouds_midnight",
+					   "cobalt",
+					   "crimson_editor",
+					   "dawn",
+					   "dreamweaver",
+					   "eclipse",
+					   "github",
+					   "gob", 
+					   "gruvbox",
+					   "idle_fingers",
+					   "iplastic",
+					   "katzenmilch",
+					   "kr_theme",
+					   "kuroir",
+					   "merbivore",
+					   "merbivore_soft",
+					   "mono_industrial",
+					   "pastel_on_dark",
+					   "solarized_dark",
+					   "solarized_light",
+					   "sqlserver",
+					   "terminal",
+					   "textmate",
+					   "tomorrow",
+					   "tomorrow_night_blue", 
+					   "tomorrow_night_bright",
+					   "tomorrow_night_eighties",
+					   "tomorrow_night", 
+					   "twilight",
+					   "vibrant_ink",
+					   "xcode"
+				   ];
 
-				$scope.onOptChange = (opt) => {
+				   $scope.onOptChange = (opt) => {
 
-					$scope.onChange()(opt);
-					
-				};
-				
-			}
-		};
-	})
+					   $scope.onChange()(opt);
+					   
+				   };
+				   
+			   }
+		   };
+	   })
 
-	.directive('inputFile', function($interval) {
-		
-		return {
-			
-			restrict: "E",
-			replace: true,
-			transclude: true,
-			scope: {
-				text: "=?",
-				padding: "=?",
-				ngFileSelected: '&'
-				
-			},
+	   .directive('inputFile', function($interval) {
+		   
+		   return {
+			   
+			   restrict: "E",
+			   replace: true,
+			   transclude: true,
+			   scope: {
+				   text: "=?",
+				   padding: "=?",
+				   ngFileSelected: '&'
+				   
+			   },
 
-			template: '<div style="display: inline;">' +
-				'<input ng-show="false" type="file" ng-on-change="inptChange" class="browser-style"/>' +
-				'<button class="browser-style" ng-click="inptClick()"> {{ copy }} </button>' +
-				'</div>',
+			   template: '<div style="display: inline;">' +
+						 '<input ng-show="false" type="file" class="browser-style"/>' +
+						 '<button class="browser-style" ng-click="inptClick()"> {{ copy }} </button>' +
+						 '</div>',
 
-			link: function ($scope, element, attrs) {
-				
-				$scope.input = element.find('input');
-				$scope.button = element.find('button');
-				$scope.text = 'text' in attrs ? $scope.text : 'Import File';
-				$scope.padding = 'padding' in attrs ? $scope.padding : 30;
-				$scope.backup = $scope.text;
-				
-			},
-			
-			controller: function ($scope) {
+			   link: function ($scope, element, attrs) {
+				   
+				   $scope.input = element.find('input');
+				   $scope.button = element.find('button');
+				   $scope.text = 'text' in attrs ? $scope.text : 'Import File';
+				   $scope.padding = 'padding' in attrs ? $scope.padding : 30;
+				   $scope.backup = $scope.text;
+				   $scope.input.on('change', $scope.inptChange);
+			   },
+			   
+			   controller: function ($scope) {
 				
 				$scope.waiting = false;
 				$scope.copy = new String($scope.text);

@@ -36,9 +36,9 @@
 									ng-click="disconnectDB()"> {{ page.bg.texts.findText('disconnect') }} 
 							</button>
 							<button ng-if="!page.bg.db.connected"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="connectDB()"> {{ page.bg.texts.findText('connect') }} 
+										   ng-disabled="page.bg.db.reconnecting"
+										   class="browser-style"
+										   ng-click="connectDB()"> {{ page.bg.texts.findText('connect') }} 
 							</button>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
@@ -100,22 +100,22 @@
 								
 								<are-u-sure
 									ng-disabled="page.bg.db.reconnecting"
-									ng-show="page.bg.db.removeable || domain.in_storage"
-									text="page.bg.texts.findText('remove')"
-									action="removeItem(domain.name, 'domain')"
-									locale="page.bg.texts">
+												 ng-show="page.bg.db.removeable || domain.in_storage"
+												 text="page.bg.texts.findText('remove')"
+												 action="removeItem(domain.name, 'domain')"
+												 locale="page.bg.texts">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && domain.in_storage"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="moveToDb(domain, 'domain')"> {{ page.bg.texts.findText('move2db') }} 
+								<button ng-if="page.bg.db.connected && page.bg.db.writeable && domain.in_storage"
+											   ng-disabled="page.bg.db.reconnecting"
+											   class="browser-style"
+											   ng-click="moveToDb(domain, 'domain')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
 
-								<button ng-if="page.bg.db.readable && !domain.in_storage"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="importToST(domain, 'domain')"> {{ page.bg.texts.findText('import2st') }} 
+								<button ng-if="page.bg.db.connected && page.bg.db.readable && !domain.in_storage"
+											   ng-disabled="page.bg.db.reconnecting"
+											   class="browser-style"
+											   ng-click="importToST(domain, 'domain')"> {{ page.bg.texts.findText('import2st') }} 
 								</button>
 								
 							</div>
@@ -151,16 +151,16 @@
 									locale="page.bg.texts">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && group.in_storage"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="moveToDb(group, 'group')"> {{ page.bg.texts.findText('move2db') }} 
+								<button ng-if="page.bg.db.connected && page.bg.db.writeable && group.in_storage"
+										ng-disabled="page.bg.db.reconnecting"
+										class="browser-style"
+										ng-click="moveToDb(group, 'group')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
 
-								<button ng-if="page.bg.db.readable && !group.in_storage"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="importToST(group, 'group')"> {{ page.bg.texts.findText('import2st') }} 
+								<button ng-if="page.bg.db.connected && page.bg.db.readable && !group.in_storage"
+										ng-disabled="page.bg.db.reconnecting"
+										class="browser-style"
+										ng-click="importToST(group, 'group')"> {{ page.bg.texts.findText('import2st') }} 
 								</button>
 								
 							</div>

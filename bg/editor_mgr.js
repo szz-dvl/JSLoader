@@ -115,7 +115,7 @@ class Editor extends EventEmitter {
 
 				/* This is a configuration page, if not an editor window disable run, otherwise ignore it. */
 
-				if (!this.parent.isEditorWdw(tabInfo.windowId)) {
+				if (this.wdw && !this.parent.isEditorWdw(tabInfo.windowId)) {
 
 					this.emit('new_tab', false, false);
 					this.tab.outdated = true;

@@ -205,19 +205,14 @@ function DomainMgr (bg) {
 							domain => {
 								
 								if (domain) {
-
-									console.log("Scripts for: " + domain.name + ", " + pathname);
 									
 									let sites = this.__getSitesInfoFor(domain, pathname);
 									console.log(sites);
 									let promise = Promise.resolve();
 
-									for (site_tuple of sites.scripts) {
-
-										console.log("Removing: " + site_tuple.name + " from " + domain.name);
+									for (site_tuple of sites.scripts) 
 										promise = domain.removeSite(site_tuple.name); /* deferred save or remove */
 										
-									}
 									promise.then(resolve, reject);
 
 								} else {

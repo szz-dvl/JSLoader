@@ -38,11 +38,7 @@ function deferredXHR (parent, tabId, scripts, frames) {
 	this.execute = () => {
 
 		this.running = true;
-
-		/* To be tested. */
-		console.warn('Re-running scripts at tab: ' + this.tabId);
-
-		/* Only one frame if Main frames ... */
+		
 		async.each(this.frames,
 			(frame, next) => {
 				
@@ -195,11 +191,11 @@ function TabsMgr (bg) {
 			.then(
 				tabInfo => {
 		
-					var url = new JSLUrl(tabInfo.url);
+					var url = new URL(tabInfo.url).sort();
 					
 					if (url.hostname && url.protocol != "moz-extension:") {
 						
-						this.bg.domain_mgr.haveInfoForUrl(url)
+						this.bg.domain_mgr.haveInfoForUrl(new JSLUrl(url))
 							.then(
 								any => {
 									

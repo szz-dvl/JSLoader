@@ -57,11 +57,11 @@ function PA (bg, info) {
 
 				}
 
-				return (found || $scope.info.groups[0].total) && (self.bg.db.available ? self.bg.db.removeable : true);
+				return (found || $scope.info.groups[0].total) && (self.bg.db.connected ? self.bg.db.removeable : true);
 				
 			} else {
 				
-				return ($scope.info.groups[0].total) && (self.bg.db.available ? self.bg.db.removeable : true);
+				return ($scope.info.groups[0].total) && (self.bg.db.connected ? self.bg.db.removeable : true);
 
 			}
 

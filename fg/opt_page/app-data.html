@@ -21,24 +21,24 @@
 						<td style="width: 40%;">	
 							<input
 								style="width: 100%;"
-								class="browser-style"
-								id="data-origin-inpt"
-								type="password"
-								ng-model="string"
-								ng-change="validateConnection(string)"
-								ng-disabled="in_progress"
-								info-protected/>
+									   class="browser-style"
+									   id="data-origin-inpt"
+									   type="password"
+									   ng-model="string"
+									   ng-change="validateConnection(string)"
+									   ng-disabled="in_progress"
+									   info-protected/>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
 							<button ng-if="page.bg.db.connected"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="disconnectDB()"> {{ page.bg.texts.findText('disconnect') }} 
+										   ng-disabled="page.bg.db.reconnecting"
+										   class="browser-style"
+										   ng-click="disconnectDB()"> {{ page.bg.texts.findText('disconnect') }} 
 							</button>
 							<button ng-if="!page.bg.db.connected"
-									ng-disabled="page.bg.db.reconnecting"
-									class="browser-style"
-									ng-click="connectDB()"> {{ page.bg.texts.findText('connect') }} 
+										   ng-disabled="page.bg.db.reconnecting"
+										   class="browser-style"
+										   ng-click="connectDB()"> {{ page.bg.texts.findText('connect') }} 
 							</button>
 						</td>
 						<td style="text-align: center; width: 10%;padding: 55px">
@@ -106,16 +106,16 @@
 									locale="page.bg.texts">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && domain.in_storage"
+								<button ng-if="page.bg.db.connected && page.bg.db.writeable && domain.in_storage"
 										ng-disabled="page.bg.db.reconnecting"
 										class="browser-style"
 										ng-click="moveToDb(domain, 'domain')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
-
-								<button ng-if="page.bg.db.readable && !domain.in_storage"
-										ng-disabled="page.bg.db.reconnecting"
-										class="browser-style"
-										ng-click="importToST(domain, 'domain')"> {{ page.bg.texts.findText('import2st') }} 
+								
+								<button ng-if="page.bg.db.connected && page.bg.db.readable && !domain.in_storage"
+											   ng-disabled="page.bg.db.reconnecting"
+											   class="browser-style"
+											   ng-click="importToST(domain, 'domain')"> {{ page.bg.texts.findText('import2st') }} 
 								</button>
 								
 							</div>
@@ -151,13 +151,13 @@
 									locale="page.bg.texts">
 								</are-u-sure>
 								
-								<button ng-if="page.bg.db.writeable && group.in_storage"
+								<button ng-if="page.bg.db.connected && page.bg.db.writeable && group.in_storage"
 										ng-disabled="page.bg.db.reconnecting"
 										class="browser-style"
 										ng-click="moveToDb(group, 'group')"> {{ page.bg.texts.findText('move2db') }} 
 								</button>
 
-								<button ng-if="page.bg.db.readable && !group.in_storage"
+								<button ng-if="page.bg.db.connected && page.bg.db.readable && !group.in_storage"
 										ng-disabled="page.bg.db.reconnecting"
 										class="browser-style"
 										ng-click="importToST(group, 'group')"> {{ page.bg.texts.findText('import2st') }} 
@@ -177,12 +177,12 @@
 					text="page.bg.texts.findText('import_data')">
 				</input-file>
 				<button class="browser-style"
-					ng-if="domains.data.length || groups.data.length"
-					ng-click="exportData()"> {{ page.bg.texts.findText('export_data') }}
+						ng-if="domains.data.length || groups.data.length"
+						ng-click="exportData()"> {{ page.bg.texts.findText('export_data') }}
 				</button>
 				<button class="browser-style"
-					ng-if="!domains.data.length && !groups.data.length"
-					ng-click="loadInitialExamples()"> {{ page.bg.texts.findText('load_examples') }}
+						ng-if="!domains.data.length && !groups.data.length"
+						ng-click="loadInitialExamples()"> {{ page.bg.texts.findText('load_examples') }}
 				</button>
 				<are-u-sure
 					ng-if="domains.data.length || groups.data.length"
@@ -192,7 +192,7 @@
 					locale="page.bg.texts">
 				</are-u-sure>
 				<button class="browser-style"
-					ng-click="editUserDefs()"> {{ page.bg.texts.findText('edit_udefs') }}
+						ng-click="editUserDefs()"> {{ page.bg.texts.findText('edit_udefs') }}
 				</button>
 			</div>
 
